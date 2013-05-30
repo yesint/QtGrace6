@@ -4741,7 +4741,7 @@ QString fileName = QFileDialog::getSaveFileName(this, tr("Save Messages"),"/",tr
 	{
 	ofstream ofi;
 	ofi.open(fileName.toAscii());
-	ofi << text.toAscii().data() << endl;
+    ofi << text.toAscii().data() << endl;
 	ofi.close();
 	}
 }
@@ -23801,8 +23801,12 @@ import_info.dec_sep_komma=false;
 setFont(stdFont);
 setWindowTitle(tr("qtGrace: CSV-import"));
 setWindowIcon(QIcon(*GraceIcon));
-fileDialog=new QFileDialog(this,tr("Open CSV file"));
-fileDialog->hide();
+
+// It is not good idea to use "this" in constructor.
+// Moved code to frmCSVImporter::doOpen(void)
+//fileDialog=new QFileDialog(this,tr("Open CSV file"));
+//fileDialog->hide();
+
 layout=new QGridLayout;
 layout->setMargin(STD_MARGIN);
 layout->setSpacing(STD_SPACING);
@@ -24097,6 +24101,9 @@ recreate_input_selectors();
 
 void frmCSVImporter::doOpen(void)
 {
+    fileDialog=new QFileDialog(this,tr("Open CSV file"));
+    //fileDialog->hide();
+
 QString filename=fileDialog->getOpenFileName(this,tr("Open CSV file"));
     if (!filename.isEmpty())
     {
