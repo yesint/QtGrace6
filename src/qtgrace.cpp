@@ -29,6 +29,7 @@
 #include "undo_module.h"
 #include "device.h"
 
+
 extern int replacement_main(int argc,char **argv);
 
 char BI_VERSION[128];
@@ -488,7 +489,14 @@ startupphase=true;
 
     QApplication * a=new QApplication( argc, argv );
 
-    //At first: Initialize everything with NULL-pointers
+    //NEW CODE
+    //Server server;
+  //server.show();
+      //qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
+
+      //END NEW CODE
+
+      //At first: Initialize everything with NULL-pointers
     useQPrinter=false;
     stdPrinter=NULL;
     FormAbout=NULL;
@@ -624,7 +632,9 @@ delete MainPixmap;
 return 0;
 }
 
-    mainWin->setGeometry( 100, 100, 872, 670 );
+//NIMAL
+mainWin->setGeometry( 100, 100,1060,800 );
+//      mainWin->setGeometry( 100, 100, 872, 670 );
 init();
     FormConsole=new frmConsole(mainWin);//needed for error-Messages
     FormPreferences=new frmPreferences(mainWin);
