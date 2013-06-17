@@ -76,6 +76,8 @@ extern region rg[];
 
 #endif
 
+extern char printstr[];         /* print to this file */
+
 /* real-time input delay (prevents getting stuck reading) */
 GLOBAL(timer_delay, int, 200);
 
