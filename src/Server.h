@@ -4,6 +4,7 @@
 #endif // SERVER_H
 
 #include <QtNetwork/QLocalServer>
+#include <QtNetwork/QLocalSocket>
 #include <stdlib.h>
 #include <stdio.h>
 #include "globals.h"
@@ -44,28 +45,60 @@ public:
     ~LocalSocketIpcServer();
 
 
-public slots:
-    void readSocket();
-    void sendData();
-    void readToQtGrace();
-    int getdata(int gno, char *fn, int src, int load_type);
-    void parse_qtGrace_Additions(char * s);
-    int uniread(FILE *fp, int load_type, char *label);
-    int read_long_line(FILE *fp, char **linebuf, int *buflen);
-    int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
+private slots:
+    void    readSocket();
+    void    ConnectToBeast(const char* sendParam, int sendLen);
+    void    sendDataToGrace();
+    void    socket_disconnected();
+    void    socket_readReady();
+    void    socket_error(QLocalSocket::LocalSocketError);
 
+private:
+    void    doCreateNew();
+    void    readPsFileName();
+    void    setLayoutMode();
+    void    setScalingMode();
+    void    writeDataToTmpFile();
+    void    sendParam();
+    char*   copyDataFromSocket(int availableBytes, char* dataFromSocket);
+    void    readDataFromSocket(char *dataFromSocket,int availableBytes, int dataType);
+    void    saveDataFromSocket(int numberOfRead);
+    int     getdata(int gno, char *fn, int src, int load_type);
+    void    parse_qtGrace_Additions(char * s);
+    int     uniread(FILE *fp, int load_type, char *label);
+    int     read_long_line(FILE *fp, char **linebuf, int *buflen);
+    int     expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
+    void    readXYData(char* xData, char* yData);
 
 private:
     QLocalServer*       m_fromBeast;
-    QLocalServer*       m_toBeast;
+    QLocalSocket*       m_toBeast;
+    QString             readServer;
     QString             m_data;
-    char                *socketData1;
-    char                *socketData2;
+
+    bool                socket_connected_busy=false;
+    const char*         m_sendParam;
+    int                 m_paramLen;
+
+    //Data types
+    char                *dataSet1;
+    char                *dataSet2;
+    char                *dataSet3;
     int                 command=0;
-    int                 doneFlg = 0;
     int                 dataLength = 0;
+    int                 mode = 0;
+    int                 columns;
+    int                 graphNo;
+    int                 rows;
+    int                 numGraphs;
+    double*             xminPtr;
+    double*             xmaxPtr;
+    double              xmin =0;
+    double              xmax =0;
+    int                 printStrNameLength;
+    string              printStrName;
+    int                 conditionToExitFunction = 0;
     char                *message;
-    QByteArray          dataLengthByte;
     quint16             countNoOfRead = 0;
     double              *x;
     double              *y;
@@ -75,20 +108,25 @@ private:
     int                 *new_set_nos=NULL;
     graph               *g;
     QList<QFont>        stdFontList;
-    //QByteArray          data1;
-    QString             str1;
-    QByteArray          ba;
-    char                *filename;
-    QByteArray          byteArray;
+    QString             xValueStr;
+    QString             yValueStr;
+    QString             fileNameStr;
+    QByteArray          fileNameBa;
+    QByteArray          xValueBa;
+    QByteArray          yValueBa;
+    char                *xValueChar;
+    char                *yValueChar;
+    char                *fileNameChar;
+    QByteArray          dataFromBuffer;
     QBuffer             buffer;
-    QTemporaryFile      file;
-
-    QString             str2;
-    QByteArray          ba2;
-    char                *doubletest;
-
     quint16             countNoOfReadData = 0;
-    quint16             readFirstMessage = 1;
+    qint64              availableBytesFromSocket;
+    bool                readSocketIsLocked;
+    bool                writeToTmpFile=true;
+    int                 gno=0;
+    int                 load = 0; //read single set
+    int                 cursource = 0; // read from temp file
+    int                 paramLength;
 
 
 };

@@ -1,219 +1,663 @@
 #include "Server.h"
+#include "undo_module.h"
+//#include <MainWindow.h>
+#include <unistd.h>
 #include <QtNetwork/QLocalSocket>
 
+extern bool startupphase;
 
 // initialize server
-LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)
-    :QObject(parent) {
+LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent) {
+    //Read from Beast
     m_fromBeast = new QLocalServer(this);
-    m_toBeast = new QLocalServer(this);
+
 
     if (!m_fromBeast->listen(writeServerName)) {
         qDebug() << "Not able to start the Server";
     }
 
-    if (!m_toBeast->listen(readServerName)) {
-        qDebug() << "Not able to start the Server";
-    }
 
-    m_data = "Data From Server Read: Hej Nimal";
-    connect(m_toBeast, SIGNAL(newConnection()), this, SLOT(sendData()));
     connect(m_fromBeast, SIGNAL(newConnection()), this, SLOT(readSocket()));
 
-//Buffer to save data from socket
-    buffer.setBuffer(&byteArray);
+    //Buffer to save data from socket
+    buffer.setBuffer(&dataFromBuffer);
     buffer.open(QIODevice::Append);
+
+    readSocketIsLocked=false;
+
+   //Write to Beasst
+    readServer = readServerName;
+    m_toBeast =   new QLocalSocket(this);
+    connect(m_toBeast, SIGNAL(connected()), this, SLOT(sendDataToGrace()));
+    connect(m_toBeast, SIGNAL(disconnected()), this, SLOT(socket_disconnected()));
+    connect(m_toBeast, SIGNAL(readyRead()), this, SLOT(socket_readReady()));
+
+    connect(m_toBeast, SIGNAL(error(QLocalSocket::LocalSocketError)),
+            this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
+
+
+
 
 }
 
-LocalSocketIpcServer::~LocalSocketIpcServer() {}
+void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
+    qDebug() << "2) Connect to Server"+readServer;
+    qDebug() << "sendParam as int="<< *(int*)(sendParam);
+    m_toBeast->abort();
+    m_sendParam = sendParam;
+    m_paramLen = sendLen;
+    m_toBeast->connectToServer(readServer);
 
-//Read from client/Beast
+}
+
+LocalSocketIpcServer::~LocalSocketIpcServer() {
+    qDebug() << "Server deletion";
+
+    m_fromBeast->close();
+    delete m_fromBeast;
+    m_fromBeast = NULL;
+
+    m_toBeast->abort();
+    delete m_toBeast;
+    m_toBeast = NULL;
+}
+
+
 void LocalSocketIpcServer::readSocket() {
+    qDebug()<<"readSocket() START";
+    if(readSocketIsLocked){
+        qDebug()<<"readSocket() SLEEPING because pervious invpcation has not finished yet";
+        //sleep(1);
+        qApp->processEvents();
+        qDebug()<<"readSocket() ENDSLEEPING because pervious invpcation has not finished yet";
+
+        // waiting because the previous call is not done
+        // all the work it should do.
+    }
+    readSocketIsLocked=true;
+
+    //if(killGraphEnable)
+    //    kill_graph(0);
+
+    conditionToExitFunction = 0;
 
     QLocalSocket *clientConnection = m_fromBeast->nextPendingConnection();
 
-    while (clientConnection->bytesAvailable() < (int)sizeof(quint32))
-        clientConnection->waitForReadyRead();
+    countNoOfRead++;
 
-    connect(clientConnection, SIGNAL(disconnected()),
-            clientConnection, SLOT(deleteLater()));
+    //Specifiy the amount of bytes to be read
+
+    int bytesNeeded;
+    if(countNoOfRead==1 || countNoOfRead==2 ||(command == 6 && countNoOfRead==3) || command == 8){
+        bytesNeeded=(int)sizeof(quint32);
+    }else if (command==2){
+        bytesNeeded= dataLength*8;
+    }else if(command == 6 && mode==2){
+        bytesNeeded=(int)sizeof(double);
+    }else{
+        bytesNeeded= dataLength;
+    }
+
+    while (clientConnection->bytesAvailable() < bytesNeeded){
+qDebug()<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
+        clientConnection->waitForReadyRead();
+    }
+    qDebug()<<"Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
+
+
+
+//    connect(clientConnection, SIGNAL(disconnected()),
+//            clientConnection, SLOT(deleteLater()));
 
     QDataStream in(clientConnection);
-    in.setVersion(QDataStream::Qt_4_0);
+    in.setVersion(QDataStream::Qt_4_7);
     if (clientConnection->bytesAvailable() < (int)sizeof(quint16)) {
+        qDebug()<<"readSocket() FAIL 2";
+
         return;
     }
 
-//A text stream to save the data from beast
-    QTextStream out(&file);
 
-    if (file.open()) {
-        //Convert temporary filename to a char
-        str1 = file.fileName();
-        ba = str1.toLocal8Bit();
-        filename = ba.data();
-        qDebug()<<file.fileName();
+    availableBytesFromSocket = clientConnection->bytesAvailable();
+    message=new char[availableBytesFromSocket+1];
+    message[availableBytesFromSocket]=0; // ensure that
+    // 0-terminated character strings
+    // come here correctly.
+
+    int receivedFromRead=clientConnection->read(message,availableBytesFromSocket);
+    qDebug()<<"Reads " << receivedFromRead << " bytes";
+
+    if(availableBytesFromSocket!=receivedFromRead){
+        fprintf(stderr, "All available data not read!\n");
     }
 
-//Read data from socket
-    in >> message;
+    qDebug()<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes";
 
+    /* read all data from socket */
 
+    saveDataFromSocket(countNoOfRead);
 
-
-
-
-    //  if (readFirstMessage)
-    // command = message[0];
-
-    countNoOfRead++;
-
-    switch (countNoOfRead){
-
-    //Read the command and determine how many times to continuous read
-
-    case 1:
-        command = message[0];
-        break;
-    case 2:
-        dataLength = message[0];
-        break;
-    case 3:
-        socketData1 = message;
-        break;
-    case 4:
-        socketData2 = message;
-        break;
-    default:  break;
-
+    if (conditionToExitFunction) {
+        qDebug()<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command;
+        readSocketIsLocked=false; // should be unlocked when "returns" from
+        // this function.
+        return;
     }
 
+    //Execute task from Beast
+    qDebug()<<"Command No (" << command<< ")";
+    switch (command){
 
-//sockRead case 1: read parameters
-    if (countNoOfRead == 3 && command == 1){
-            qDebug()<<"Read parameters";
-            countNoOfRead =0;
-            buffer.write(socketData1);
-            countNoOfRead = 0;
-           }
+    case 1://Read PLOT_INFO(1)
 
- //sockRead case 2: read XYdata set
-    if (countNoOfRead == 4 && command == 2){
+        qDebug()<<"Run Command" << command;
+        buffer.write(dataSet1);
+        countNoOfRead = 0;
+        break;
 
-        x = (double *) socketData1;
-        y = (double *) socketData2;
+    case 2://WRITE_DATAVEC(2)
+        qDebug()<<"Run Command" << command;
+        readXYData(dataSet1, dataSet2);
+        countNoOfRead = 0;
+        writeToTmpFile=true;
 
-        buffer.write("@TYPE xy");
-        //print double pointer elements
+        break;
 
-        for(int i=0; i<7; i++){
+    case 3://READ_MODE(3)
+        qDebug()<<"Run Command" << command;
+        sendParam();
+        countNoOfRead = 0;
+        break;
 
-            if(qIsNaN(x[i]))
-                x[i]=0;
+    case 4://REDRAW(4)
+        qDebug()<<"Run Command" << command;
 
-            if(qIsNaN(y[i]))
-                y[i]=0;
+       // set_page_dimensions(733,538,1);
+        //set_page_geometry()
+        countNoOfRead = 0;
+        break;
 
-            //double to string
-            str2 = QString::number(x[i]);
-            //String to char
-            ba2 = str2.toLocal8Bit();
-            doubletest = ba2.data();
-            buffer.write("\n \t");
-            buffer.write(doubletest);
+    case 5://PS_FILENAME(5)
+        qDebug()<<"Run Command" << command;
+        readPsFileName();
+        countNoOfRead = 0;
+        break;
 
-            buffer.write("\t");
+    case 6://SET_SCALING_MODE(6)
+    {
+        qDebug()<<"Run Command" << command;
 
-            str2 = QString::number(y[i]);
-            ba2 = str2.toLocal8Bit();
-            doubletest = ba2.data();
-            buffer.write(doubletest);
-                    }
-            buffer.write("\n");
-            countNoOfRead = 0;
+        startupphase=true;
+        int oldNoask=noask;
+        noask=true; // prevent questions
+        writeDataToTmpFile();
+        setScalingMode();
+        noask=oldNoask;
+        startupphase=false;
 
+        countNoOfRead = 0;
+        writeToTmpFile=false;
+        break;
+    }
+
+    case 7://REDRAW_AND_WRITEPS(7)
+        qDebug()<<"Run Command" << command;
+        /* force a hardcopy */
+        do_hardcopy();
+        countNoOfRead = 0;
+        break;
+
+    case 8://SET_LAYOUT_MODE(8)
+        qDebug()<<"Run Command" << command;
+        startupphase=true;
+        setLayoutMode();
+        startupphase=false;
+        qDebug()<<"Was setLayoutMode" << command;
+        countNoOfRead = 0;
+        break;
+
+    case 42://KILL_CHILD(42)
+        qDebug()<<"Run Command" << command;
+        /* kill me */
+        /* printf("got killed"); */
+        exit(0);
+        countNoOfRead = 0;
+        break;
+
+    case 99://END_COMM(99)
+    {
+        qDebug()<<"Run Command" << command;
+        update_all();
+        xdrawgraph();
+        countNoOfRead = 0;
+
+        writeToTmpFile=true;
+        countNoOfRead = 0;
+        break;
+    }
+    default:
+        qDebug()<<"INVALID COMMAND STOP" << command;
+        exit(0);
+        countNoOfRead = 0;
+        break;
+    }
+    qDebug()<<"Command was performed " << command;
+
+    readSocketIsLocked=false; // should be unlocked when "returns" from
+    // this function.
+
+
+    qDebug()<<"readSocket() DONE";
+
+}
+
+void LocalSocketIpcServer::sendDataToGrace(){
+
+    if(socket_connected_busy){
+        cerr << " It is busy already ! "<< endl;
+        exit(0);
+    }
+    socket_connected_busy=true;
+
+    usleep(1000);
+    std::cerr << "writeRawData "<<m_paramLen<<" bytes "<<std::endl;
+    std::cerr << " data are: ";
+    //if(m_len>0 && m_sendMessage [0] == 8) sleep(1);
+    for(int i=0;i<20;i++){
+        if (i<m_paramLen) {
+            std::cerr << (int)(m_sendParam[i]) << " ";
+        } else {
+            std::cerr <<  "...";
         }
 
+    }
+    std::cerr << std::endl;
 
-/*
-case 6:
-            /* Autoscaling Information */
-//            autoscale_byset(int gno, int setno, int autos_type);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_7);
+    out.writeRawData(m_sendParam,m_paramLen);
+    out.device()->seek(0);
+    m_toBeast->write(block);
+    m_toBeast->flush();
 
-    //sockRead case 99: end transmission
-    if (countNoOfRead == 1 && command == 6 ){
-        out <<byteArray;
-        buffer.close();
+    socket_connected_busy=false;
+}
+
+char* LocalSocketIpcServer::copyDataFromSocket(int availableBytes, char* dataFromSocket){
+
+    char* data;
+    data = new char[availableBytes+1];
+    memcpy( data , dataFromSocket, availableBytes+1);
+    return data;
+}
+
+void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int availableBytes, int dataType){
+    switch (dataType){
+
+    case 1: //Read command
+        //        command = newDataFromSocket[0];
+        command = *((int*)(newDataFromSocket));
+        qDebug() << " The command is int, 4 bytes are "<<
+                    (int)(newDataFromSocket[0]) << " " <<
+                    (int)(newDataFromSocket[1]) << " " <<
+                    (int)(newDataFromSocket[2]) << " " <<
+                    (int)(newDataFromSocket[3]) << " ";
+        break;
+
+    case 2: //Read data length
+        // dataLength = newDataFromSocket[0];
+        dataLength = *((int*)(newDataFromSocket));
+        break;
+
+    case 3: //Read data set
+
+        if(command!=6 && command!=8){
+            dataSet1 = copyDataFromSocket(availableBytes,newDataFromSocket);
+        }
+        else{
+            mode = *((int*)(newDataFromSocket));
+            qDebug() << " Got mode= "<< mode ;
+        }
+        break;
+
+    case 4:
+        if(command==6){
+            xminPtr = (double *)newDataFromSocket;
+            xmin = xminPtr[0];
+        }
+        else if(command == 8){
+            columns = *((int*)(newDataFromSocket));
+        }
+        else{
+            dataSet2 = copyDataFromSocket(availableBytes,newDataFromSocket);
+        }
+        break;
+
+    case 5:
+        if(command==6){
+            xmaxPtr = (double *)newDataFromSocket;
+            xmax = xmaxPtr[0];
+
+        }
+        else if(command == 8)
+        {
+            numGraphs = *((int*)(newDataFromSocket));
+        }
+        else{}
+        break;
+
+    default:
+        break;
+    }
+}
+
+void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
+
+    switch (numberOfRead){
+
+    case 1:
+
+        readDataFromSocket(message,availableBytesFromSocket, READ_COMMAND);
+
+
+        if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99)
+            conditionToExitFunction = 0;
+        else
+            conditionToExitFunction = 1;
+
+        break;
+
+    case 2:
+        readDataFromSocket(message,availableBytesFromSocket, READ_DATALENGTH);
+        conditionToExitFunction = 1;
+        break;
+
+    case 3:
+        readDataFromSocket(message,availableBytesFromSocket, READ_DATASET_1);
+
+        qDebug() << " Analysing(3) mode= "<< mode ;
+        if((command == 6 && mode == 2)|| (command == 8 && mode == 3) || command == 2)
+            conditionToExitFunction = 1;
+        break;
+
+
+    case 4:
+        readDataFromSocket(message,availableBytesFromSocket, READ_DATASET_2);
+        qDebug() << " Analysing(4) mode= "<< mode ;
+
+        if((command == 6 && mode == 2)|| (command == 8 && mode == 3))
+            conditionToExitFunction = 1;
+
+        break;
+
+    case 5:
+        readDataFromSocket(message,availableBytesFromSocket, READ_DATASET_3);
+        break;
+
+
+    default:
+        conditionToExitFunction = 1;
+        break;
+    }
+
+}
+
+void LocalSocketIpcServer::readXYData(char* xData, char* yData){
+    x = (double *) xData;
+    y = (double *) yData;
+
+    buffer.write("@TYPE xy");
+    //print double pointer elements
+
+    for(int i=0; i<dataLength; i++){
+        if(fabs(x[i])>1e30 || (x[i]!=0 && fabs(x[i])<1e-30))  {
+            qDebug()<<"Invalid numeric data in x["<<i<<"]="<<x[i];
+            exit(0);
+            x[i]=0;
+        }
+        if(fabs(y[i])>1e30  || (y[i]!=0 && fabs(y[i])<1e-30))   {
+            qDebug()<<"Invalid numeric data in y["<<i<<"]="<<y[i];
+            exit(0);
+            y[i]=0;
+        }
+
+        if(qIsNaN(x[i]))
+            x[i]=0;
+
+        if(qIsNaN(y[i]))
+            y[i]=0;
+
+        //double to string
+        xValueStr = QString::number(x[i]);
+        //String to char
+        xValueBa = xValueStr.toLocal8Bit();
+        xValueChar = xValueBa.data();
+        buffer.write("\n \t");
+        buffer.write(xValueChar);
+
+        buffer.write("\t");
+
+        yValueStr = QString::number(y[i]);
+        yValueBa = yValueStr.toLocal8Bit();
+        yValueChar = yValueBa.data();
+        buffer.write(yValueChar);
+
+    }
+    buffer.write("\n");
+
+}
+
+void LocalSocketIpcServer::readPsFileName(){
+    /* Read the item name for print settings */
+
+    /* read the item name from socket */
+    dataSet1[dataLength] = '\0';
+
+    /* printstring length is 128, be careful */
+    if(dataLength > 125){ /* three bytes for .ps */
+        printf("\nItem name for printer settings coudn't read, line to long!\n"); // BZ629-3 beep removed
+        free(dataSet1);
+        return;
+    }
+
+    /* set the printstring with the read data */
+    if(dataSet1[0] != '\0'){
+        printStrName = (string)dataSet1;
+    }
+    free(dataSet1);
+    set_ptofile(TRUE);
+    /* default print is fileprint */
+
+}
+
+void LocalSocketIpcServer::setScalingMode()
+{
+
+
+    /* Autoscaling Information */
+    //            autoscale_byset(int gno, int setno, int autos_type);
+
+    /* mode 0 = no autoscale       */
+    /* mode 1 = autoscale all axis */
+    /* mode 2 = autoscale y axis   */
+
+
+    switch(mode){
+    case 2:
+        graphNo = dataLength;
+        world w;
+        w.xg2 = xmax;
+        w.xg1 = xmin;
+        set_graph_world(graphNo, w);
+
+        /* autoscale y axis */
+        autoscale_graph(graphNo, 2);
+        update_all();
+        break;
+
+    case 1:
+        /* autoscale all axis - default*/
+        autoscale_graph(graphNo, 3);
+        update_all();
+        break;
+
+    case 0:
+        /* no autoscale */
+
+        break;
+    default:
+        fprintf(stderr, "Wrong autoscale mode!\n");
+        break;
+    }
+
+    mode = 0;
+
+}
+
+void LocalSocketIpcServer::writeDataToTmpFile()
+{
+    //kill_all_sets(0);
+    // kill_all_graphs();
+    //Write to tmp file
+
+    if (writeToTmpFile){
+        // writeToTmpFile=false;
+        //Write to tmp file and update graph in qtGrace
+        //A text stream to save the data from beast
+        QTemporaryFile   file;
+        QTextStream out(&file);
+
+        if (file.open()) {
+            //Convert temporary filename to a char
+            fileNameStr = file.fileName();
+            fileNameBa = fileNameStr.toLocal8Bit();
+            fileNameChar = fileNameBa.data();
+            qDebug()<<file.fileName();
+        }
+        out <<dataFromBuffer;
         file.close();
-        qDebug()<<byteArray;
+        //qDebug()<<dataFromBuffer;
 
         if (new_set_nos!=NULL)
         {
             delete[] new_set_nos;
             new_set_nos=NULL;
         }
+
         new_set_no=0;
-        ////    int load = 0;
-        ////    int graphno = 0;
-        ////    int cursource = 0;
-        ////        //cout << "A3 " << graphno << " " << filename << " " << cursource << " " << load << endl;
-        getdata(0, filename,0,0);
+
+        getdata(gno, fileNameChar,cursource,load);
+
 
         update_all();
-        xdrawgraph();
-        file.close();
-        // mainWin->mainArea->completeRedraw();
+        buffer.close();
+        dataFromBuffer.clear();
+        buffer.open(QIODevice::Append);
 
+        //buffer.disconnect();
+        //    byteArray.clear();
+        // buffer.setBuffer(&byteArray);
+        //buffer.open(QIODevice::Append);
+
+
+        //xdrawgraph();
+        //  file.close();
+        // doCreateNew();
     }
 
-
-
-}
-//    //////////////////////////////////////
-
-
-
-
-
-
-
-////////////////////
-
-
-//Send data to client/Beast
-void LocalSocketIpcServer::sendData()
-{
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::ReadWrite);
-    out.setVersion(QDataStream::Qt_4_0);
-    out << (quint16)0;
-
-    // out << m_data.at(qrand() % m_data.size());
-    out << m_data;
-
-
-    out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
-
-    QLocalSocket *clientConnection = m_toBeast->nextPendingConnection();
-    connect(clientConnection, SIGNAL(disconnected()),
-            clientConnection, SLOT(deleteLater()));
-
-    clientConnection->write(block);
-    clientConnection->flush();
-    clientConnection->disconnectFromServer();
 }
 
-void LocalSocketIpcServer::readToQtGrace(){
+void LocalSocketIpcServer::setLayoutMode(){
 
+
+    switch(mode){
+    case 3:
+
+        graphNo = dataLength;
+
+        if(columns==0)
+            rows = 1;
+        else {
+            rows = numGraphs/columns;
+            if(numGraphs%columns != 0)
+                rows ++;
+        }
+        // define_arrange(rows, columns, 0, 0.05, 0.05, 0.15, 0.15, 0.75/rows, 0.75/columns);
+        // arrange_graphs(rows, columns);
+        arrange_graphs_simple(rows, columns,0, 0, 0.15,0.15,0);
+        update_all();
+        /* arrange_graphs(graphNo, numGraphs,
+                           rows, columns, 0 ,0,
+                           0.15,0.15,0.15,0.15,
+                           0.05, 0.05,
+                           0, 0);
+*/
+        break;
+
+    case 2: //overlay
+        if(graphNo != 0)  { // Lay all on the first one.
+           overlay_graphs(graphNo, 0, 0);
+        }
+            update_all();
+        break;
+
+    case 1:
+        // join, do nothing
+
+
+        break;
+
+    case 0:
+
+        break;
+    default:
+        fprintf(stderr, "Wrong layout mode!\n");
+        break;
+    }
+    mode = 0;
+}
+
+void LocalSocketIpcServer::sendParam(){
+    QTemporaryFile  parFile;
+
+    if (parFile.open()) {
+        //Convert temporary filename to a char
+        fileNameStr = parFile.fileName();
+        fileNameBa = fileNameStr.toLocal8Bit();
+        fileNameChar = fileNameBa.data();
+        qDebug()<<parFile.fileName();
+    }
+
+    parFile.close();
+
+    FILE* pFile = fopen(fileNameChar, "w");
+    putparms(-1, pFile, TRUE);
+
+    fclose(pFile);
+    parFile.open();
+
+    QByteArray paramToSend = parFile.readAll();
+
+    parFile.close();
+
+    printStrNameLength = printStrName.length();
+    int printStrNameLengthToSend=printStrNameLength;
+
+    const char *printStrNameToSend = printStrName.data();
+
+    paramLength = paramToSend.length();
+    int paramLengthToSend=paramLength;
+
+    ConnectToBeast((const char *)(&printStrNameLengthToSend),sizeof(int));
+    ConnectToBeast(printStrNameToSend,printStrNameLength);
+
+    ConnectToBeast((const char *)(&paramLengthToSend),sizeof(int));
+    ConnectToBeast(paramToSend.data(),paramLength);
 
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////
-//LOCAL FUNCTIONS
 int LocalSocketIpcServer::uniread(FILE *fp, int load_type, char *label)
 {
     int nrows, ncols, nncols, nscols, nncols_req;
@@ -407,7 +851,6 @@ int LocalSocketIpcServer::uniread(FILE *fp, int load_type, char *label)
     return RETURN_SUCCESS;
 }
 
-
 int LocalSocketIpcServer::read_long_line(FILE * fp, char **linebuf, int *buflen)
 {
     char *cursor;
@@ -447,9 +890,9 @@ int LocalSocketIpcServer::read_long_line(FILE * fp, char **linebuf, int *buflen)
     return retval;
 }
 
-
 int LocalSocketIpcServer::getdata(int gno, char *fn, int src, int load_type)
 {
+    //  kill_all_graphs();
     FILE *fp;
     int retval;
     int save_version, cur_version;
@@ -492,6 +935,7 @@ int LocalSocketIpcServer::getdata(int gno, char *fn, int src, int load_type)
     if (cur_version != 0) {
         /* a complete project */
         postprocess_project(cur_version);
+        autoscale_graph(gno, autoscale_onread); //Nimal: Always autoscale
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
         autoscale_graph(gno, autoscale_onread);
@@ -500,9 +944,6 @@ int LocalSocketIpcServer::getdata(int gno, char *fn, int src, int load_type)
 
     return retval;
 }
-
-
-
 
 void LocalSocketIpcServer::parse_qtGrace_Additions(char * s)
 {
@@ -562,12 +1003,10 @@ void LocalSocketIpcServer::parse_qtGrace_Additions(char * s)
         }
     }
 }
-
-
-
 /*
  * expand a line buffer
  */
+
 int LocalSocketIpcServer::expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
 {
     char *newbuf;
@@ -599,3 +1038,25 @@ int LocalSocketIpcServer::expand_line_buffer(char **adrBuf, int *ptrSize, char *
     return RETURN_SUCCESS;
 }
 
+void LocalSocketIpcServer::doCreateNew()
+{
+    int * gnos=new int[2];
+    gnos[1]=gnos[0]=number_of_graphs();
+    set_graph_active(number_of_graphs());
+    GraphsCreated(1,gnos,UNDO_COMPLETE);
+    delete[] gnos;
+}
+
+
+void LocalSocketIpcServer::socket_disconnected() {
+    qDebug() << "socket_disconnected";
+}
+
+
+void LocalSocketIpcServer::socket_readReady() {
+    qDebug() << "socket_readReady";
+}
+
+void LocalSocketIpcServer::socket_error(QLocalSocket::LocalSocketError) {
+    qDebug() << "socket_error";
+}
