@@ -247,14 +247,26 @@ PatternPixmaps[i]=new QPixmap(tempIcon);
 
 MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 {
-QPixmap HelpPixmap;
+
+  //  Nimal
+    SocketConnection = new LocalSocketIpcServer("Server1","Server2",this);
+    //        END SERVER CODE NEW
+
+
+    QPixmap HelpPixmap;
 
 setFont(stdFont);
 
 setWindowTitle(tr("qtGrace: untitled"));
 
-windowWidth=872;
-windowHeight=670;
+//Nimal
+
+//windowWidth=872;
+//windowHeight=670;
+
+windowWidth=1060;
+windowHeight=800;
+
 
 helpMapper=new QSignalMapper();
 rtiTimer=new QTimer(this);
