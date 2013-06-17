@@ -64,7 +64,10 @@
 #include "MainWindow.h"
 #include "allWidgets.h"
 
-#include <QtWebKit>
+//#include <Qt>
+///qtwebkit.h>
+//#include <Qt/qwebview.h>
+#include <QtWebKit/QWebView>
 
 #ifdef WINDOWS_SYSTEM
 #define O_NONBLOCK 0x0004
@@ -1291,6 +1294,7 @@ void sync_canvas_size(unsigned int *w, unsigned int *h, int inv)
     *w=mainWin->mainArea->width()-8;
     *h=mainWin->mainArea->height()-8;
 ///        GetDimensions(canvas, w, h);
+
         set_page_dimensions(*w*72.0/pg.dpi, *h*72.0/pg.dpi, TRUE);//hier fehlen die Canvas-Dimensionen!!!!!!!
     } else {
         *w = pg.width;
