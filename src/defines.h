@@ -104,8 +104,15 @@ using namespace std;*/
 #define MAX_ARROW 3
 #define MAX_PREC 10
 
-/* symbol types */
+/* data types from socket */
+#define READ_COMMAND 1
+#define READ_DATALENGTH 2
+#define READ_DATASET_1 3
+#define READ_DATASET_2 4
+#define READ_DATASET_3 5
 
+
+/* symbol types */
 #define SYM_NONE    0
 #define SYM_CIRCLE  1
 #define SYM_SQUARE  2
