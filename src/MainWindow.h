@@ -36,6 +36,11 @@
 #include "events.h"
 #include "fundamentals.h"
 
+//NEW SERVER CODE
+#include "Server.h"
+
+//END SERVER CODE NEW
+
 using namespace std;
 
 class MainArea : public QWidget
@@ -78,6 +83,12 @@ void dropEvent(QDropEvent *event);
 class MainWindow : public QWidget
 {
 Q_OBJECT
+
+    //NEW SERVER CODE
+private:
+    LocalSocketIpcServer *SocketConnection;
+    //END SERVER CODE NEW
+
 public:
 int windowWidth,windowHeight;
 int stdBarHeight,stdRowHeight,stdColWidth;
