@@ -67,8 +67,16 @@
 //#include <Qt>
 ///qtwebkit.h>
 //#include <Qt/qwebview.h>
-#include <QtWebKit/QWebView>
 
+// Why needed =?
+// IN Qy 4.8
+//#include <QtWebKit/QWebView>
+// In Qt 5.0
+
+#include <QtWebKit>
+//#include <QWebView>
+//#include <QtWebKit/QWebView>
+#include <QtWebKitWidgets>
 #ifdef WINDOWS_SYSTEM
 #define O_NONBLOCK 0x0004
 #endif
@@ -1565,12 +1573,20 @@ void convertBitmapToPixmap(QBitmap * source,QPixmap * dest)
 {
 QPixmap m2(source->size());
 m2.fill(Qt::white);
+
+ #if QT_VERSION < 0x050000
 m2.setAlphaChannel(*source);
+ #else
+qDebug()<<"TODO setAlphaChannel";
+ #endif
+
 *dest=m2;
 QBitmap bm1;
 bm1.fill(Qt::color1);
 dest->fill(Qt::black);
+ #if QT_VERSION < 0x050000
 dest->setAlphaChannel(bm1);
+ #endif
 //dest->setMask(source->createMaskFromColor(Qt::color1));
 QPainter pai1(dest);
 //pai1.setCompositionMode(QPainter::CompositionMode_Xor);
