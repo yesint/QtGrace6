@@ -22,6 +22,8 @@
 
 #include <iostream>
 #include <QtGui>
+#include <QtWidgets>
+#include <QtPrintSupport>
 #include <fstream>
 #include <cstring>
 #include <QListWidget>
@@ -30,11 +32,13 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QMenuBar>
-
+#include <QString>
 #include "noxprotos.h"
 #include "t1fonts.h"
 #include "parser.h"
 #include "graphs.h"
+
+#define toAscii toLatin1
 
 #define DIRLIST 0
 #define FILELIST 1
