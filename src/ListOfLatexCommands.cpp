@@ -25,7 +25,7 @@
 #include "defines.h"
 #include "t1fonts.h"
 #include "utils.h"
-
+#define toAscii toLatin1
 using namespace std;
 
 extern char dummy[];

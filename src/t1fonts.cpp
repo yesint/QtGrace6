@@ -45,7 +45,7 @@
 
 #include "noxprotos.h"
 #include <QPainter>
-
+#define toAscii toLatin1
 using namespace std;
 
 extern QPainter * GeneralPainter;

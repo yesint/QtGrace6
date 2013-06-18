@@ -304,7 +304,7 @@ return len;
 void prependAllSetID(QString * text,int sno,int gno)
 {
 static char * tosuppl[7]={"X","Y","Y0","Y1","Y2","Y3","Y4"};
-QString str(text->toAscii());
+QString str(text->toLatin1());
 QString l1;
 QString toinsert;
 QRegExp regex1("G\\d*.S\\d*.$");//what we search for as a regular expression
