@@ -16,8 +16,9 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
         qDebug() << "Not able to start the Server";
     }
 
+m_fromBeast->setMaxPendingConnections(300);
 
-    connect(m_fromBeast, SIGNAL(newConnection()), this, SLOT(readSocket()));
+connect(m_fromBeast, SIGNAL(newConnection()), this, SLOT(readSocket()));
 
     //Buffer to save data from socket
     buffer.setBuffer(&dataFromBuffer);
@@ -172,7 +173,7 @@ qDebug()<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->byt
     case 4://REDRAW(4)
         qDebug()<<"Run Command" << command;
 
-       // set_page_dimensions(733,538,1);
+        set_page_dimensions(733,538,1);
         //set_page_geometry()
         countNoOfRead = 0;
         break;
