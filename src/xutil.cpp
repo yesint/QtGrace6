@@ -639,5 +639,9 @@ void setpointer(VPoint vp)
 char *display_name(void)
 {
     //return DisplayString(disp);
+#if QT_VERSION < 0x050000
     return QDesktopServices::displayName(QDesktopServices::DesktopLocation).toAscii().data();
+#else
+    return QStandardPaths::displayName(QStandardPaths::DesktopLocation).toAscii().data();
+#endif
 }
