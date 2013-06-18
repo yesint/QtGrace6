@@ -566,10 +566,16 @@ startupphase=true;
 
 FileCodec=QTextCodec::codecForName("System");
 avcod=QTextCodec::availableCodecs();
+
+ #if QT_VERSION < 0x050000
 QLocale * sysloc=new QLocale();
 QChar dpc=sysloc->decimalPoint();
 SystemsDecimalPoint=dpc.toAscii();
 delete[] sysloc;
+#else
+QChar dpc='.';
+SystemsDecimalPoint='.';
+#endif
 
 allocated_colors=0;
 ColorIcons=NULL;
