@@ -920,8 +920,8 @@ return;
 void set_Pen_only(void)
 {
 QPen tmpPen(GeneralPainter->pen());
-
-tmpPen.setColor(get_Color(draw_props.pen.color));
+QColor penColor=get_Color(draw_props.pen.color);
+tmpPen.setColor(penColor);
 tmpPen.setWidthF(qreal(draw_props.linew));
 switch (xliblinecap)
 {
@@ -975,7 +975,8 @@ tmpPen.setBrush(tmpBrush);
 */
 tmpPen.setBrush(QBitmap(*(patterns[draw_props.pen.pattern])));
 }
-
+//Make graphs visible, when they are over each other)
+GeneralPainter->setBackgroundMode(Qt::TransparentMode);
 GeneralPainter->setPen(tmpPen);
 }
 

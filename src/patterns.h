@@ -199,11 +199,11 @@ static char dash_array0[2] =
 static char dash_array1[2] =
 {1, 0};
 static char dash_array2[2] =
-{1, 3};
+{1, 2};
 static char dash_array3[2] =
-{5, 3};
+{1, 3};
 static char dash_array4[2] =
-{7, 3};
+{1, 4};
 static char dash_array5[4] =
 {1, 3, 5, 3};
 static char dash_array6[4] =
