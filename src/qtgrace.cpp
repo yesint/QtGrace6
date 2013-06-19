@@ -631,12 +631,11 @@ a->setWindowIcon(*GraceIcon);
 replacement_main(argc,argv);//set up all internal Grace-things
 
 //Here setup socket connection.
-//  Nimal
-
-  cout<<"MainWindow::MainWindow "<<connectToViewBeast<<" "<<
+//Nimal
+cout<<"MainWindow::MainWindow "<<connectToViewBeast<<" "<<
         sendToBeast<<" "<<readFromBeast<<endl;
   if(connectToViewBeast)
-      mainWin->SocketConnection = new LocalSocketIpcServer("sendToBeast","readFromBeast",mainWin);
+      mainWin->SocketConnection = new LocalSocketIpcServer(sendToBeast,readFromBeast,mainWin);
   else
       fprintf(stderr, "Not able to start View Beast connection\n");
 

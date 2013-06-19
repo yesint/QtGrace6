@@ -248,19 +248,8 @@ PatternPixmaps[i]=new QPixmap(tempIcon);
 MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 {
 
-  //  Nimal
-    cout<<"MainWindow::MainWindow "<<connectToViewBeast<<" "<<
-          sendToBeast<<" "<<readFromBeast<<endl;
-   // if(connectToViewBeast)
-        SocketConnection = new LocalSocketIpcServer("a","b",this);
-    //else
-      //  fprintf(stderr, "Not able to start View Beast connection\n");
 
-
-    //        END SERVER CODE NEW
-
-
-    QPixmap HelpPixmap;
+QPixmap HelpPixmap;
 
 setFont(stdFont);
 
