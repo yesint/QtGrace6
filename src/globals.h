@@ -38,7 +38,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "defines.h"
 #include "graphs.h"
 ///#include "draw.h"
@@ -176,5 +175,10 @@ GLOBALARR(yvar_name, char, 128, "");
 
 /* the safe mode flag */
 GLOBAL(safe_mode, int, TRUE);
+
+GLOBALARR(sendToBeast,char,512,"");
+GLOBALARR(readFromBeast,char,512,"");
+GLOBAL(connectToViewBeast,int,FALSE);
+
 
 #endif /* __GLOBALS_H_ */

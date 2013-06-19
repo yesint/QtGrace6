@@ -47,7 +47,7 @@ class MainArea : public QWidget
 {
 Q_OBJECT
 public:
-
+//LocalSocketIpcServer *SocketConnection;
 QFrame * drawArea;
 QLabel * lblBackGr;
 int useable_w,useable_h;
@@ -85,7 +85,7 @@ class MainWindow : public QWidget
 Q_OBJECT
 
     //NEW SERVER CODE
-private:
+public:
     LocalSocketIpcServer *SocketConnection;
     //END SERVER CODE NEW
 

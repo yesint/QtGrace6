@@ -249,7 +249,14 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 {
 
   //  Nimal
-    SocketConnection = new LocalSocketIpcServer("Server1","Server2",this);
+    cout<<"MainWindow::MainWindow "<<connectToViewBeast<<" "<<
+          sendToBeast<<" "<<readFromBeast<<endl;
+   // if(connectToViewBeast)
+        SocketConnection = new LocalSocketIpcServer("a","b",this);
+    //else
+      //  fprintf(stderr, "Not able to start View Beast connection\n");
+
+
     //        END SERVER CODE NEW
 
 
@@ -655,6 +662,7 @@ setLayout(mainGrid);
 
 MainWindow::~MainWindow()
 {
+   // delete SocketConnection;
 for (int i=0;i<MAXPATTERNS;i++)
 delete patterns[i];
 

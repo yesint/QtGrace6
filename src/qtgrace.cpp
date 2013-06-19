@@ -630,6 +630,20 @@ mainWin=new MainWindow();
 a->setWindowIcon(*GraceIcon);
 replacement_main(argc,argv);//set up all internal Grace-things
 
+//Here setup socket connection.
+//  Nimal
+
+  cout<<"MainWindow::MainWindow "<<connectToViewBeast<<" "<<
+        sendToBeast<<" "<<readFromBeast<<endl;
+  if(connectToViewBeast)
+      mainWin->SocketConnection = new LocalSocketIpcServer("sendToBeast","readFromBeast",mainWin);
+  else
+      fprintf(stderr, "Not able to start View Beast connection\n");
+
+
+  //        END SERVER CODE NEW
+
+
 if (gracebat==TRUE)//no GUI wanted
 {
 delete mainWin;
@@ -687,7 +701,9 @@ update_font_selectors();
 mainWin->activateWindow();
 startupphase=false;
 
-return a->exec();
+int execVal=a->exec();
+delete  mainWin->SocketConnection;
+return execVal;
 }
 
 int object_edit_popup(int type, int id)
