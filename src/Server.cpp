@@ -41,9 +41,6 @@ connect(m_fromBeast, SIGNAL(newConnection()), this, SLOT(readSocket()));
     connect(m_toBeast, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
 
-
-
-
 }
 
 void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
@@ -179,7 +176,7 @@ void LocalSocketIpcServer::readSocket() {
     case 4://REDRAW(4)
     {//qDebug()<<"Run Command" << command;
 
-       
+
         set_page_dimensions(733,538,1);
         //set_page_geometry()
 
@@ -260,10 +257,16 @@ void LocalSocketIpcServer::readSocket() {
 
         writeToTmpFile=true;
         countNoOfRead = 0;
+
+
+
         break;
     }
     default:
         //qDebug()<<"INVALID COMMAND STOP" << command;
+
+        QMessageBox::information(0,"Communication Error","Communication error: try to restart");
+
         exit(0);
         countNoOfRead = 0;
         break;
@@ -598,6 +601,14 @@ void LocalSocketIpcServer::writeDataToTmpFile()
 void LocalSocketIpcServer::setLayoutMode(){
 
   graphNo = dataLength;
+    view v;
+
+
+    v.xv1 = 0.15;
+    v.xv2 = 1.21;
+    v.yv1 =0.15;
+    v.yv2 = 0.85;
+
 
     switch(mode){
     case 3:{
@@ -613,7 +624,19 @@ void LocalSocketIpcServer::setLayoutMode(){
         }
         // define_arrange(rows, columns, 0, 0.05, 0.05, 0.15, 0.15, 0.75/rows, 0.75/columns);
         // arrange_graphs(rows, columns);
-        arrange_graphs_simple(rows, columns,0, 1, 0.15,0.15,0);
+
+        double offset = 0.15;
+        double vgapArrangeGraph =0.2;
+        double hgabArrangeGraph =0.2;
+
+        vgapArrangeGraph = vgapArrangeGraph*numGraphs;
+        hgabArrangeGraph = hgabArrangeGraph*numGraphs;
+
+        /*int arrange_graphs_simple(int nrows, int ncols,
+            int order, int snake, double offset, double hgap, double vgap)*/
+        arrange_graphs_simple(rows, columns,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+
+
         //update_all();
         /* arrange_graphs(graphNo, numGraphs,
                            rows, columns, 0 ,0,
@@ -623,20 +646,31 @@ void LocalSocketIpcServer::setLayoutMode(){
 */
         break;
 }
-    case 2: //overlay
+    case 2: //overlay4
        {
            if(graphNo != 0)  { // Lay all on the first one.
-            overlay_graphs(graphNo, 0, 0);
-        }
-          //  update_all();
+//#define GOVERLAY_SMART_AXES_DISABLED  0
+//#define GOVERLAY_SMART_AXES_NONE      1
+//#define GOVERLAY_SMART_AXES_X         2
+//#define GOVERLAY_SMART_AXES_Y         3
+//#define GOVERLAY_SMART_AXES_XY        4
+               overlay_graphs(graphNo, 0, 4);
+           }
+
+               set_graph_viewport(graphNo, v);
+
         break;
 }
     case 1:
     {    // join, do nothing
-
+       set_graph_viewport(graphNo, v);
         break;
     }
     case 0:{
+
+        set_graph_viewport(graphNo, v);
+
+
         break;
     }
     default:
@@ -664,6 +698,8 @@ void LocalSocketIpcServer::sendParam(){
 
     fclose(pFile);
     parFile.open();
+
+
 
     QByteArray paramToSend = parFile.readAll();
 
