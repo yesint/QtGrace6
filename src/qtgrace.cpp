@@ -489,12 +489,6 @@ startupphase=true;
 
     QApplication * a=new QApplication( argc, argv );
 
-    //NEW CODE
-    //Server server;
-  //server.show();
-      //qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
-
-      //END NEW CODE
 
       //At first: Initialize everything with NULL-pointers
     useQPrinter=false;
@@ -632,14 +626,11 @@ replacement_main(argc,argv);//set up all internal Grace-things
 
 //Here setup socket connection.
 //Nimal
-cout<<"MainWindow::MainWindow "<<connectToViewBeast<<" "<<
-        sendToBeast<<" "<<readFromBeast<<endl;
+
   if(connectToViewBeast)
       mainWin->SocketConnection = new LocalSocketIpcServer(sendToBeast,readFromBeast,mainWin);
   else
       fprintf(stderr, "Not able to start View Beast connection\n");
-
-
   //        END SERVER CODE NEW
 
 
