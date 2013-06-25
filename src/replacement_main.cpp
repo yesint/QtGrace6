@@ -63,7 +63,7 @@
 #include "draw.h"
 #include "MainWindow.h"
 #include "allWidgets.h"
-
+#include "QtGui/QPainter"
 //#include <Qt>
 ///qtwebkit.h>
 //#include <Qt/qwebview.h>
@@ -1587,28 +1587,45 @@ painter.end();
 
 void convertBitmapToPixmap(QBitmap * source,QPixmap * dest)
 {
+
 QPixmap m2(source->size());
-m2.fill(Qt::white);
 
- #if QT_VERSION < 0x050000
-m2.setAlphaChannel(*source);
- #else
-//qDebug()<<"TODO setAlphaChannel";
- #endif
+#if QT_VERSION < 0x050000
+        m2.fill(Qt::white);
+        m2.setAlphaChannel(*source);
 
-*dest=m2;
-QBitmap bm1;
-bm1.fill(Qt::color1);
-dest->fill(Qt::black);
- #if QT_VERSION < 0x050000
-dest->setAlphaChannel(bm1);
- #endif
-//dest->setMask(source->createMaskFromColor(Qt::color1));
-QPainter pai1(dest);
-//pai1.setCompositionMode(QPainter::CompositionMode_Xor);
-pai1.setCompositionMode(QPainter::CompositionMode_SourceOver);
-pai1.drawPixmap(0,0,m2);
-pai1.end();
+#else
+        m2.fill(Qt::black);
+
+#endif
+
+    *dest=m2;
+    QBitmap bm1;
+    bm1.fill(Qt::color1);
+
+#if QT_VERSION < 0x050000
+        dest->setAlphaChannel(bm1);
+        dest->fill(Qt::black);
+
+    #else
+        dest->fill(Qt::white);
+        dest->setMask(source->createMaskFromColor(Qt::color1));
+
+#endif
+
+    QPainter pai1(dest);
+
+#if QT_VERSION < 0x050000
+        pai1.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+    #else
+        pai1.setCompositionMode(QPainter::CompositionMode_Xor);
+
+#endif
+
+    pai1.drawPixmap(0,0,m2);
+    pai1.end();
+
 }
 
 int openPipe(char * pname,int * fd)

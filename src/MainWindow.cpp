@@ -220,6 +220,8 @@ extern Device_entry *device_table;
 
 extern QString get_filename_with_extension(int device);
 
+
+
 void init_Patterns(void)
 {
 QPixmap tempIcon(38,16);//38,24
@@ -476,43 +478,44 @@ cmdDraw=new QPushButton(tr("Draw"),toolBar1);
 cmdDraw->setToolTip(tr("Redraw project"));
 cmdDraw->setGeometry(2,4,64,stdHeight1);
 connect(cmdDraw, SIGNAL(clicked()), this, SLOT(doDraw()));
-convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
-cmdZoom=new QPushButton(HelpPixmap,"",toolBar1);
+//convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
+QString icondir=grace_path("fonts/icons/");
+cmdZoom=new QPushButton(QIcon(icondir+"zoom.png"),"",toolBar1);
 cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle"));
 cmdZoom->setGeometry(cmdDraw->x()+stdDistance2,cmdDraw->y()+cmdDraw->height()+6,stdWidth2,stdHeight2);
 connect(cmdZoom, SIGNAL(clicked()), this, SLOT(doZoom()));
-convertBitmapToPixmap(autoBitMap,&HelpPixmap);
-cmdAutoScale=new QPushButton(HelpPixmap,"",toolBar1);
+//convertBitmapToPixmap(autoBitMap,&HelpPixmap);
+cmdAutoScale=new QPushButton(QIcon(icondir+"autoscale.png"),"",toolBar1);
 cmdAutoScale->setToolTip(tr("Autoscale graph(s) on X and Y axis"));
 cmdAutoScale->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdZoom->y(),stdWidth2,stdHeight2);
 connect(cmdAutoScale, SIGNAL(clicked()), this, SLOT(doAutoScale()));
-convertBitmapToPixmap(expandBitMap,&HelpPixmap);
-cmdZz=new QPushButton(HelpPixmap,"",toolBar1);
+//convertBitmapToPixmap(expandBitMap,&HelpPixmap);
+cmdZz=new QPushButton(QIcon(icondir+"zoomOut.png"),"",toolBar1);
 cmdZz->setToolTip(tr("Zoom out"));
 cmdZz->setGeometry(cmdDraw->x()+stdDistance2,cmdZoom->y()+cmdZoom->height()+stdDistance1,stdWidth2,stdHeight2);
 connect(cmdZz, SIGNAL(clicked()), this, SLOT(doZz()));
-convertBitmapToPixmap(shrinkBitMap,&HelpPixmap);
-cmdzz=new QPushButton(HelpPixmap,"",toolBar1);
+//convertBitmapToPixmap(shrinkBitMap,&HelpPixmap);
+cmdzz=new QPushButton(QIcon(icondir+"zoomIn.png"),"",toolBar1);
 cmdzz->setToolTip(tr("Zoom in"));
 cmdzz->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdZz->y(),stdWidth2,stdHeight2);
 connect(cmdzz, SIGNAL(clicked()), this, SLOT(dozz()));
-convertBitmapToPixmap(leftBitMap,&HelpPixmap);
-cmdLeft=new QPushButton(HelpPixmap,"",toolBar1);
+//convertBitmapToPixmap(leftBitMap,&HelpPixmap);
+cmdLeft=new QPushButton(QIcon(icondir+"goLeft.png"),"",toolBar1);
 cmdLeft->setToolTip(tr("Scroll graph(s) left"));
 cmdLeft->setGeometry(cmdDraw->x()+stdDistance2,cmdZz->y()+cmdZz->height()+stdDistance1,stdWidth2,stdHeight2);
 connect(cmdLeft, SIGNAL(clicked()), this, SLOT(doLeft()));
-convertBitmapToPixmap(rightBitMap,&HelpPixmap);
-cmdRight=new QPushButton(HelpPixmap,"",toolBar1);
+//convertBitmapToPixmap(rightBitMap,&HelpPixmap);
+cmdRight=new QPushButton(QIcon(icondir+"goRight.png"),"",toolBar1);
 cmdRight->setToolTip(tr("Scroll graph(s) right"));
 cmdRight->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdLeft->y(),stdWidth2,stdHeight2);
 connect(cmdRight, SIGNAL(clicked()), this, SLOT(doRight()));
-convertBitmapToPixmap(upBitMap,&HelpPixmap);
-cmdUp=new QPushButton(HelpPixmap,"",toolBar1);
+//convertBitmapToPixmap(upBitMap,&HelpPixmap);
+cmdUp=new QPushButton(QIcon(icondir+"goUp.png"),"",toolBar1);
 cmdUp->setToolTip(tr("Scroll graph(s) up"));
 cmdUp->setGeometry(cmdDraw->x()+stdDistance2,cmdLeft->y()+cmdLeft->height()+stdDistance1,stdWidth2,stdHeight2);
 connect(cmdUp, SIGNAL(clicked()), this, SLOT(doUp()));
-convertBitmapToPixmap(downBitMap,&HelpPixmap);
-cmdDown=new QPushButton(HelpPixmap,"",toolBar1);
+//convertBitmapToPixmap(downBitMap,&HelpPixmap);
+cmdDown=new QPushButton(QIcon(icondir+"goDown.png"),"",toolBar1);
 cmdDown->setToolTip(tr("Scroll graph(s) down"));
 cmdDown->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdUp->y(),stdWidth2,stdHeight2);
 connect(cmdDown, SIGNAL(clicked()), this, SLOT(doDown()));
