@@ -297,6 +297,11 @@ mnuHistory->setTearOffEnabled(TRUE);
 mnuHistory->addSeparator();
 mnuHistory->addAction(actClearHistory);
 mnuFile->addMenu(mnuHistory);
+//Nimal
+mnuFile->addSeparator();
+mnuFile->addAction(actExportToFile);
+//Nimal
+
 mnuFile->addSeparator();
 mnuFile->addAction(actPrintSetup);
 mnuFile->addAction(actPrint);
@@ -1148,38 +1153,28 @@ int ret=bailout();
     qApp->exit(0);
     }
 }
+//Nimal
+void MainWindow::ExportToFile(void)
+{
+    FormDeviceSetup=new frmDeviceSetup(3,this);
+//if (FormDeviceSetup==NULL)
+//{
+
+//}
+
+FormDeviceSetup->show();
+FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("JPEG")); //? write the two formats before the one you want as default in the format list (BMP is the default)
+FormDeviceSetup->raise();
+FormDeviceSetup->activateWindow();
+
+}
+
 
 void MainWindow::PrintSetup(void)
 {
-if (FormDeviceSetup==NULL)
-{
-FormDeviceSetup=new frmDeviceSetup(this);
-    //initialize this only on startup
-    if (default_Print_Device==-1)//last one
-    FormDeviceSetup->devices_item->setCurrentIndex(stdOutputFormat);
-    else
-    FormDeviceSetup->devices_item->setCurrentIndex(default_Print_Device);
-}
-    /*Device_entry dev = get_device_props(FormDeviceSetup->cur_dev);
-    sprintf(print_file,"%s.%s",get_docbname(),dev.fext);
-    QDir tmpFile(get_docname());
-    cout << "print_file=" << print_file << " docname=" << get_docname() << endl;
-    tmpFile.cdUp();
-    if (strcmp(get_docname(),"Untitled"))
-    {
-    FormDeviceSetup->printfile_item->setText(QDir::cleanPath(tmpFile.absolutePath())+QDir::separator()+QString(print_file));
-    }
-    else
-    {
-    FormDeviceSetup->printfile_item->setText(QString(print_file));
-    }*/
-
-    FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
-
-FormDeviceSetup->show();
-//FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PS")-1);//'-1' because dummy-device not shown
-FormDeviceSetup->raise();
-FormDeviceSetup->activateWindow();
+FormDeviceSetup=new frmDeviceSetup(2,this);
+FormDeviceSetup->doNativePrinterDialog();
+FormDeviceSetup->doClose();
 }
 
 void MainWindow::Print(void)
@@ -1192,6 +1187,7 @@ do_hardcopy();
     device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;
 printing_in_file=false;
 mainArea->completeRedraw();
+
 }
 
 void MainWindow::DataSets(void)
@@ -1711,7 +1707,9 @@ if (FormPlotAppearance==NULL)
 {
 FormPlotAppearance=new frmPlotAppearance(this);
 }
+
 FormPlotAppearance->init();
+FormPlotAppearance->flp->timestamp_font_item->setCurrentIndex(4); //Nimal Set helvetica as default font
 FormPlotAppearance->show();
 FormPlotAppearance->raise();
 FormPlotAppearance->activateWindow();
@@ -1749,6 +1747,8 @@ FormSetAppearance=new frmSetAppearance(this);
 FormSetAppearance->listSet->set_graph_number(get_cg(),false);
 }
 FormSetAppearance->init();
+//FormSetAppearance->flp->tabSy->cmbSymbFont->setCurrentIndex(4); //Nimal Set helvetica as default font
+//FormSetAppearance->flp->tabAnVa->cmbFont->setCurrentIndex(4);
 FormSetAppearance->show();
 FormSetAppearance->raise();
 FormSetAppearance->activateWindow();
@@ -1766,7 +1766,10 @@ if (FormAxisProperties==NULL)
 {
 FormAxisProperties=new frmAxisProp(this);
 }
+
 FormAxisProperties->create_axes_dialog(0);
+//FormAxisProperties->flp->tabMain->selTickLabelFont->setCurrentIndex(4);
+//FormAxisProperties->flp->tabLabelsBars->selLabelFont->setCurrentIndex(4);
 FormAxisProperties->show();
 FormAxisProperties->raise();
 FormAxisProperties->activateWindow();
@@ -1844,14 +1847,16 @@ void MainWindow::ShowToolBar(void)
 	}
 }
 
+
 void MainWindow::PageSetup(void)
 {
-if (FormDeviceSetup==NULL)
-{
-FormDeviceSetup=new frmDeviceSetup(this);
-}
+FormDeviceSetup=new frmDeviceSetup(1,this);
+//if (FormDeviceSetup==NULL)
+//{
+
+//}
 FormDeviceSetup->show();
-FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("X11"));
+FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("BMP"));
 FormDeviceSetup->raise();
 FormDeviceSetup->activateWindow();
 }
@@ -1907,6 +1912,8 @@ if (FormFontTool==NULL)
 {
 FormFontTool=new frmFontTool(this);
 }
+
+//FormFontTool->selFont->setCurrentIndex(4); //Nimal Set helvetica as default font
 FormFontTool->show();
 FormFontTool->raise();
 FormFontTool->activateWindow();
@@ -2158,10 +2165,19 @@ connect(actRevert, SIGNAL(triggered()), this, SLOT(RevertToSaved()));
 actPrint= new QAction(tr("&Print"), this);
 actPrint->setShortcut(tr("Ctrl+P"));
 actPrint->setStatusTip(tr("Print"));
-connect(actPrint, SIGNAL(triggered()), this, SLOT(Print()));
+connect(actPrint, SIGNAL(triggered()), this, SLOT(PrintSetup()));
+
+//Nimal
+
+actExportToFile= new QAction(tr("Export to file..."), this);
+actExportToFile->setStatusTip(tr("Export to BMP, JPEG, PNG..."));
+connect(actExportToFile, SIGNAL(triggered()), this, SLOT(ExportToFile()));
+
+/*
 actPrintSetup= new QAction(tr("Prin&t Setup..."), this);
 actPrintSetup->setStatusTip(tr("Adjust print properties"));
 connect(actPrintSetup, SIGNAL(triggered()), this, SLOT(PrintSetup()));
+*/
 actExit= new QAction(tr("E&xit"), this);
 actExit->setShortcut(tr("Ctrl+Q"));
 actExit->setStatusTip(tr("Exit program"));
@@ -2284,7 +2300,7 @@ actShowToolBar= new QAction(tr("Show tool bar" ), this);
 actShowToolBar->setCheckable(TRUE);
 actShowToolBar->setChecked(TRUE);
 connect(actShowToolBar, SIGNAL(triggered()), this, SLOT(ShowToolBar()));
-actPageSetup= new QAction(tr("&PageSetup" ), this);
+actPageSetup= new QAction(tr("&Screen setup" ), this);
 connect(actPageSetup, SIGNAL(triggered()), this, SLOT(PageSetup()));
 actRedraw= new QAction(tr("&Redraw" ), this);
 connect(actRedraw, SIGNAL(triggered()), this, SLOT(Redraw()));

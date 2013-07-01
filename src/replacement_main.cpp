@@ -74,8 +74,8 @@
 // In Qt 5.0
 
 #include <QtWebKit>
-//#include <QWebView>
-//#include <QtWebKit/QWebView>
+#include <QWebView>
+#include <QtWebKit/QWebView>
 #include <QtWebKitWidgets>
 #ifdef WINDOWS_SYSTEM
 #define O_NONBLOCK 0x0004
@@ -445,20 +445,21 @@ int replacement_main(int argc, char **argv)
     /* set the starting directory */
     set_workingdir(NULL);
 
+    //Nimal
     /*
      * print command
      */
-    if ((s = getenv("GRACE_PRINT_CMD")) != NULL) {
-	set_print_cmd(s);
-    }
+//    if ((s = getenv("GRACE_PRINT_CMD")) != NULL) {
+//	set_print_cmd(s);
+//    }
 
-    /* if no print command defined, print to file by default */
-    s = get_print_cmd();
-    if (s == NULL || s[0] == '\0') {
+//    /* if no print command defined, print to file by default */
+//    s = get_print_cmd();
+//    if (s == NULL || s[0] == '\0') {
         set_ptofile(TRUE);
-    } else {
-        set_ptofile(FALSE);
-    }
+//    } else {
+//        set_ptofile(FALSE);
+//    }
     
     /*
      * editor
@@ -526,12 +527,12 @@ int replacement_main(int argc, char **argv)
     if (cli == TRUE || gracebat == TRUE) {
         tdevice = register_dummy_drv();
     } else {*/
-        tdevice = register_x11_drv();
+
 /*    }
 #else*/
     //tdevice = register_dummy_drv();
 //#endif
-    select_device(tdevice);
+
 
     hdevice = register_ps_drv();
     register_eps_drv();
@@ -550,9 +551,12 @@ int replacement_main(int argc, char **argv)
 #endif
     /*a QT special*/
     register_qt_devices();
-
+//Move Screen option to end of select list in export file dialog - Nimal
     register_mf_drv();
 
+    tdevice = register_x11_drv();
+
+     select_device(tdevice);
     /* check whether locale is correctly set */
     if (init_locale() != RETURN_SUCCESS) {
         errmsg(QObject::tr("Invalid or unsupported locale").toAscii().constData());

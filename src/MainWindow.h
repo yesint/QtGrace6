@@ -145,7 +145,7 @@ QLabel * lblSD;
 QLabel * lblCW;
 QPushButton * cmdExit;
 
-QAction * actNew,*actOpen,*actSave,*actSaveAs,*actRevert,*actPrint,*actPrintSetup,*actExit;
+QAction * actNew,*actOpen,*actSave,*actSaveAs,*actRevert,*actPrint,*actPrintSetup,*actExit,*actExportToFile;
 QAction *actDataSets,*actSetOperations,*actArrangeGraphs,*actOverlayGraphs,*actAutoscaleGraphs,*actRegionsStatus,*actRegionsDefine,*actRegionsClear,*actRegionsReportOn,*actHotLinks,*actSetLocFixPoint,*actClearLocFixPoint,*actLocProp,*actPreferences;
 QAction*actDataSetOperations,*actFeatureExtraction,*actExportAscii,*actImportNetCDF,*actImportAscii,*actEvaluateExpr,*actHistograms,*actFourier,*actFourier2,*actRunningAverages,*actDifferences,*actSeasonalDiff,*actIntegration,*actInterpolation,*actRegression,*actNonLinCurveFitting,*actCorrelation,*actDigitalFilter,*actLinConvolution,*actGeomTransform,*actSamplePoints,*actPruneData;
 QAction *actPlotAppearance,*actGraphAppearance,*actSetAppearance,*actAxisProperties,*actLoadParameters,*actSaveParameters;
@@ -178,6 +178,7 @@ void SaveAs(void);
 void RevertToSaved(void);
 void Print(void);
 void PrintSetup(void);
+void ExportToFile(void);
 void Exit(void);
 void DataSets(void);
 void Explorer(void);

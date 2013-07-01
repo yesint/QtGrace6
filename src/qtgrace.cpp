@@ -935,7 +935,7 @@ bool res_undo=undo_active;
 undo_active=false;
     if (FormDeviceSetup==NULL)
     {
-    FormDeviceSetup=new frmDeviceSetup(mainWin);
+        FormDeviceSetup=new frmDeviceSetup(1,mainWin);
         //initialize this only on startup
         if (default_Print_Device==-1)//last one
         FormDeviceSetup->devices_item->setCurrentIndex(stdOutputFormat);
@@ -943,7 +943,8 @@ undo_active=false;
         FormDeviceSetup->devices_item->setCurrentIndex(default_Print_Device);
     }
     FormDeviceSetup->hide();
-    FormDeviceSetup->print_string_item->setText( allPrefs->value(QString("PrintCommand"),QVariant("lpr")).toString() );
+ //Nimal
+    //   FormDeviceSetup->print_string_item->setText( allPrefs->value(QString("PrintCommand"),QVariant("lpr")).toString() );
     FormDeviceSetup->doApply();
 
     allPrefs->endGroup();
