@@ -159,13 +159,22 @@ void LocalSocketIpcServer::readSocket() {
         countNoOfRead = 0;
         break;
 
+
     case 2://WRITE_DATAVEC(2)
         //qDebug()<<"Run Command" << command;
         readXYData(dataSet1, dataSet2);
         countNoOfRead = 0;
+        newDataSetReady=0;
+        break;
 
+    case 12://WRITE_DATAVEC_FINISH(2)
+        //qDebug()<<"Run Command" << command;
+        countNoOfRead = 0;
+        buffer.write("\n");
+        newDataSetReady=1;
 
         break;
+
 
     case 3://READ_MODE(3)
         //qDebug()<<"Run Command" << command;
@@ -391,7 +400,7 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
         readDataFromSocket(message,availableBytesFromSocket, READ_COMMAND);
 
 
-        if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99 || command == 9)
+        if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99 || command == 9 || command == 12)
             conditionToExitFunction = 0;
         else
             conditionToExitFunction = 1;
@@ -437,7 +446,9 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
     x = (double *) xData;
     y = (double *) yData;
 
+    if (newDataSetReady)
     buffer.write("@TYPE xy");
+
     //print double pointer elements
 
     for(int i=0; i<dataLength; i++){
@@ -474,7 +485,7 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
         buffer.write(yValueChar);
 
     }
-    buffer.write("\n");
+
 
 }
 

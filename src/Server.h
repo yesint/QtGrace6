@@ -100,6 +100,7 @@ private:
     int                 conditionToExitFunction = 0;
     char                *message;
     quint16             countNoOfRead = 0;
+    quint16             newDataSetReady = 1;
     double              *x;
     double              *y;
     int                 k=0;
@@ -119,6 +120,8 @@ private:
     char                *fileNameChar;
     QByteArray          dataFromBuffer;
     QBuffer             buffer;
+    QBuffer             xDataSetbuffer;
+    QBuffer             yDataSetbuffer;
     quint16             countNoOfReadData = 0;
     qint64              availableBytesFromSocket;
     bool                readSocketIsLocked;
