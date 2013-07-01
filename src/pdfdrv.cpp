@@ -540,11 +540,12 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
 
 static char *pdf_builtin_fonts[] = 
 {
-    "Times-Roman",
+
+    "Helvetica", //Change to default font - Nimal
     "Times-Italic",
     "Times-Bold",
     "Times-BoldItalic",
-    "Helvetica",
+    "Times-Roman",
     "Helvetica-Oblique",
     "Helvetica-Bold",
     "Helvetica-BoldOblique",

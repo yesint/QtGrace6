@@ -49,7 +49,7 @@
 #include "noxprotos.h"
 
 static defaults d_d =
-{1, 0, 1, 1, 1, 1.0, 0, 1.0};
+{1, 0, 1, 1, 1, 1.0, 4, 1.0};
 
 /* defaults:
     int color;
