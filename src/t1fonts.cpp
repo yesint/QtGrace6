@@ -1099,7 +1099,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 
     dev = get_curdevice_props();
 
-if (curdevice==0 && useQtFonts==true && dev.devfonts==TRUE)
+if (curdevice==9 && useQtFonts==true && dev.devfonts==TRUE)//Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimal
 useQtFunctions=true;
 else
 useQtFunctions=false;
@@ -1316,7 +1316,7 @@ useQtFunctions=false;
                 } else {
                     vptmp = cs->start;
                 }
-                if (devputtext == NULL || (curdevice==0 && useQtFonts==false)) {
+                if (devputtext == NULL || (curdevice==9 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimal
                     errmsg("Device has no built-in fonts");
                 } else {
                     (*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);
