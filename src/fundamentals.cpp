@@ -2226,7 +2226,7 @@ void FileSelector::DirDoubleClicked( const QModelIndex & index )
 {
 doubleclickdir=true;
 selectedDir=index.data().toString();
-
+if(selectedDir==".") return; //Nimal - added in order to avoid qtgrace to crash
 currentDir=currentDir+separator+selectedDir;//set a new directory
 QString newFilter,newDir;
 GeneratePathWithExtension(currentDir,newFilter,newDir);
@@ -4410,7 +4410,7 @@ entries=new int[2];
 text_entries=new QString[2];
 show_hidden=true;
 show_data_less=false;
-show_comments=false;
+show_comments=true; //Show comments as default - Nimal
 
 if (type==GRAPHLIST)//register this List so that it may be updated later (live)
 {
@@ -5267,7 +5267,7 @@ for (int i = 0; i < maxstr; i++)
 {
     if (!isactive_string(i)) continue;
     twi=new QTreeWidgetItem(this);
-    sprintf(dummy," \"%s\"",pstr[i].alt);
+    sprintf(dummy," \"%s\"",pstr[i].alt_plotstring);
     twi->setText(0,tr("String-Object")+QString(dummy));
     twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
     twi->setData(0,TREE_ROLE_SET,QVariant(-1));
@@ -5609,8 +5609,8 @@ void store_plot_string(plotstr * p,stdLineEdit * led)
 QString text=led->text();
 char * te=new char[text.length()+2];
 strcpy(te,text.toAscii().constData());
-p->s = copy_string(p->s, te);
-p->alt = copy_string(p->alt, te);
+p->s_plotstring = copy_string(p->s_plotstring, te);
+p->alt_plotstring = copy_string(p->alt_plotstring, te);
 //ENTER LATEX-CONVERSION HERE
 delete[] te;
 }
