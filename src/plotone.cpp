@@ -139,7 +139,7 @@ void do_hardcopy(void)
     view v;
     double vx, vy;
     int truncated_out;
-    
+
     if (get_ptofile())
     {
         if (print_file[0] == '\0')
@@ -814,19 +814,19 @@ void draw_titles(int gno)
     vp1.x = (v.xv2 + v.xv1) / 2;
     vp1.y = (v.yv2 < v.yv1)? v.yv1 : v.yv2;
     vp2 = vp1;
-    if (lab.title.s && lab.title.s[0]) {
+    if (lab.title.s_plotstring && lab.title.s_plotstring[0]) {
         setcolor(lab.title.color);
         setcharsize(lab.title.charsize);
         setfont(lab.title.font);
         vp1.y += 0.06;
-        WriteString(vp1, 0, JUST_CENTER|JUST_BOTTOM, lab.title.s);
+        WriteString(vp1, 0, JUST_CENTER|JUST_BOTTOM, lab.title.s_plotstring);
     }
-    if (lab.stitle.s && lab.stitle.s[0]) {
+    if (lab.stitle.s_plotstring && lab.stitle.s_plotstring[0]) {
         setcolor(lab.stitle.color);
         setcharsize(lab.stitle.charsize);
         setfont(lab.stitle.font);
         vp2.y += 0.02;
-        WriteString(vp2, 0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s);
+        WriteString(vp2, 0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s_plotstring);
     }
 }
 
@@ -2181,7 +2181,7 @@ void draw_string(int gno, int i)
         }
     }
 
-    if (strlen(pstr.s) && (pstr.charsize > 0.0) && pstr.active) {
+    if (strlen(pstr.s_plotstring) && (pstr.charsize > 0.0) && pstr.active) {
         if (pstr.loctype == COORD_WORLD) {
             wptmp.x = pstr.x;
             wptmp.y = pstr.y;
@@ -2211,7 +2211,7 @@ else
 WriteString(vp, pstr.rot, pstr.just, pstr.s);
 }*/
 
-        WriteString(vp, pstr.rot, pstr.just, pstr.s);
+        WriteString(vp, pstr.rot, pstr.just, pstr.s_plotstring);
 
         pstr.bb = get_bbox(BBOX_TYPE_TEMP);
         set_graph_string(i, &pstr);
@@ -2773,7 +2773,7 @@ void draw_timestamp(void)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        WriteString(vp, timestamp.rot, timestamp.just, timestamp.s);
+        WriteString(vp, timestamp.rot, timestamp.just, timestamp.s_plotstring);
 
         timestamp.bb = get_bbox(BBOX_TYPE_TEMP);
     }

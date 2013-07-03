@@ -215,7 +215,7 @@ int isactive_ellipse(int ellipno)
 
 int isactive_string(int strno)
 {
-    if (is_valid_string(strno) && pstr[strno].s && pstr[strno].s[0]) {
+    if (is_valid_string(strno) && pstr[strno].s_plotstring && pstr[strno].s_plotstring[0]) {
 	return TRUE;
     } else {
         return FALSE;
@@ -394,8 +394,8 @@ void copy_object(int type, int from, int to)
     case OBJECT_STRING:
 	kill_string(to);
 	pstr[to] = pstr[from];
-	pstr[to].s = copy_string(NULL, pstr[from].s);
-        pstr[to].alt = copy_string(NULL, pstr[from].alt);
+    pstr[to].s_plotstring = copy_string(NULL, pstr[from].s_plotstring);
+        pstr[to].alt_plotstring = copy_string(NULL, pstr[from].alt_plotstring);
 	break;
     }
     set_dirtystate();
@@ -434,7 +434,7 @@ void kill_line(int lineno)
 
 void kill_string(int stringno)
 {
-    XCFREE(pstr[stringno].s);
+    XCFREE(pstr[stringno].s_plotstring);
     pstr[stringno].active = FALSE;
     set_dirtystate();
 }
@@ -463,7 +463,10 @@ int get_object_bb(int type, int id, view *bb)
 
 void set_plotstr_string(plotstr *pstr, char *buf)
 {
-    pstr->s = copy_string(pstr->s, buf);
+    pstr->s_plotstring = copy_string(pstr->s_plotstring, buf);
+
+    pstr->alt_plotstring = copy_string(pstr->alt_plotstring, buf);
+    // Because the dialog box shows alt_plotstring for axes labels, titles, subtitles and string-objects.
 }
 
 void init_line(int id, VPoint vp1, VPoint vp2)
@@ -549,7 +552,7 @@ void init_string(int id, VPoint vp)
     if (id < 0 || id > number_of_strings()) {
         return;
     }
-    pstr[id].s = copy_string(NULL, "\0");
+    pstr[id].s_plotstring = copy_string(NULL, "\0");
     pstr[id].font = string_font;
     pstr[id].color = string_color;
     pstr[id].rot = string_rot;

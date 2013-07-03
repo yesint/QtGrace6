@@ -137,10 +137,10 @@ int kill_graph(int gno)
     int j;
     if (is_valid_gno(gno) == TRUE) {
 	kill_all_sets(gno);
-        XCFREE(g[gno].labs.title.s);
-        XCFREE(g[gno].labs.stitle.s);
-        XCFREE(g[gno].labs.title.alt);
-        XCFREE(g[gno].labs.stitle.alt);
+        XCFREE(g[gno].labs.title.s_plotstring);
+        XCFREE(g[gno].labs.stitle.s_plotstring);
+        XCFREE(g[gno].labs.title.alt_plotstring);
+        XCFREE(g[gno].labs.stitle.alt_plotstring);
         for (j = 0; j < MAXAXES; j++) {
             free_graph_tickmarks(g[gno].t[j]);
             g[gno].t[j] = NULL;
@@ -182,10 +182,10 @@ int copy_graph(int from, int to)
     
     /* kill target graph */
     kill_all_sets(to);
-    XCFREE(g[to].labs.title.s);
-    XCFREE(g[to].labs.stitle.s);
-    XCFREE(g[to].labs.title.alt);
-    XCFREE(g[to].labs.stitle.alt);
+    XCFREE(g[to].labs.title.s_plotstring);
+    XCFREE(g[to].labs.stitle.s_plotstring);
+    XCFREE(g[to].labs.title.alt_plotstring);
+    XCFREE(g[to].labs.stitle.alt_plotstring);
     for (j = 0; j < MAXAXES; j++) {
         free_graph_tickmarks(g[to].t[j]);
         g[to].t[j] = NULL;
@@ -196,10 +196,10 @@ int copy_graph(int from, int to)
     /* zero allocatable storage */
     g[to].p = NULL;
     g[to].maxplot = 0;
-    g[to].labs.title.s = NULL;
-    g[to].labs.stitle.s = NULL;
-    g[to].labs.title.alt = NULL;
-    g[to].labs.stitle.alt = NULL;
+    g[to].labs.title.s_plotstring = NULL;
+    g[to].labs.stitle.s_plotstring = NULL;
+    g[to].labs.title.alt_plotstring = NULL;
+    g[to].labs.stitle.alt_plotstring = NULL;
 
     /* duplicate allocatable storage */
     if (realloc_graph_plots(to, g[from].maxplot) != RETURN_SUCCESS) {
@@ -208,10 +208,10 @@ int copy_graph(int from, int to)
     for (i = 0; i < g[from].maxplot; i++) {
         do_copyset(from, i, to, i);
     }
-    g[to].labs.title.s = copy_string(NULL, g[from].labs.title.s);
-    g[to].labs.stitle.s = copy_string(NULL, g[from].labs.stitle.s);
-    g[to].labs.title.alt = copy_string(NULL, g[from].labs.title.alt);
-    g[to].labs.stitle.alt = copy_string(NULL, g[from].labs.stitle.alt);
+    g[to].labs.title.s_plotstring = copy_string(NULL, g[from].labs.title.s_plotstring);
+    g[to].labs.stitle.s_plotstring = copy_string(NULL, g[from].labs.stitle.s_plotstring);
+    g[to].labs.title.alt_plotstring = copy_string(NULL, g[from].labs.title.alt_plotstring);
+    g[to].labs.stitle.alt_plotstring = copy_string(NULL, g[from].labs.stitle.alt_plotstring);
     for (j = 0; j < MAXAXES; j++) {
 	g[to].t[j] = copy_graph_tickmarks(g[from].t[j]);
     }
@@ -375,8 +375,8 @@ tickmarks *copy_graph_tickmarks(tickmarks *t)
         if (retval != NULL)
         {
             memcpy(retval, t, sizeof(tickmarks));
-	    retval->label.s = copy_string(NULL, t->label.s);
-            retval->label.alt = copy_string(NULL, t->label.alt);
+        retval->label.s_plotstring = copy_string(NULL, t->label.s_plotstring);
+            retval->label.alt_plotstring = copy_string(NULL, t->label.alt_plotstring);
             retval->tl_formula = copy_string(NULL, t->tl_formula);
             for (i = 0; i < MAX_TICKS; i++)
             {
@@ -396,8 +396,8 @@ void free_graph_tickmarks(tickmarks *t)
     {
         return;
     }
-    XCFREE(t->label.s);
-    XCFREE(t->label.alt);
+    XCFREE(t->label.s_plotstring);
+    XCFREE(t->label.alt_plotstring);
     XCFREE(t->tl_formula);
     for (i = 0; i < MAX_TICKS; i++)
     {
@@ -513,15 +513,15 @@ void set_graph_labels(int gno, labels *labs)
     if (is_valid_gno(gno) != TRUE) {
         return;
     }
-    xfree(g[gno].labs.title.alt);
-    xfree(g[gno].labs.stitle.alt);
-    xfree(g[gno].labs.title.s);
-    xfree(g[gno].labs.stitle.s);
+    xfree(g[gno].labs.title.alt_plotstring);
+    xfree(g[gno].labs.stitle.alt_plotstring);
+    xfree(g[gno].labs.title.s_plotstring);
+    xfree(g[gno].labs.stitle.s_plotstring);
     memcpy(&g[gno].labs, labs, sizeof(labels));
-    g[gno].labs.title.s = copy_string(NULL, labs->title.s);
-    g[gno].labs.stitle.s = copy_string(NULL, labs->stitle.s);
-    g[gno].labs.title.alt = copy_string(NULL, labs->title.alt);
-    g[gno].labs.stitle.alt = copy_string(NULL, labs->stitle.alt);
+    g[gno].labs.title.s_plotstring = copy_string(NULL, labs->title.s_plotstring);
+    g[gno].labs.stitle.s_plotstring = copy_string(NULL, labs->stitle.s_plotstring);
+    g[gno].labs.title.alt_plotstring = copy_string(NULL, labs->title.alt_plotstring);
+    g[gno].labs.stitle.alt_plotstring = copy_string(NULL, labs->stitle.alt_plotstring);
     set_dirtystate();
 }
 

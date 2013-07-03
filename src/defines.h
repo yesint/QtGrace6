@@ -523,8 +523,8 @@ typedef struct {
     int font;
     int just;
     double charsize;
-    char * s;
-    char * alt;//added by Andreas Winter, 2011 (to keep original text in LaTeX-format)
+    char * s_plotstring;
+    char * alt_plotstring;//added by Andreas Winter, 2011 (to keep original text in LaTeX-format)
     view bb;
 } plotstr;
 

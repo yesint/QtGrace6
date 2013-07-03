@@ -146,7 +146,7 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "%stimestamp rot %d\n", embedstr, timestamp.rot);
     fprintf(pp, "%stimestamp font %d\n", embedstr, get_font_mapped_id(timestamp.font));
     fprintf(pp, "%stimestamp char size %f\n", embedstr, timestamp.charsize);
-    fprintf(pp, "%stimestamp def \"%s\"\n", embedstr, PSTRING(timestamp.s));
+    fprintf(pp, "%stimestamp def \"%s\"\n", embedstr, PSTRING(timestamp.s_plotstring));
 
 
     put_objects(gno, pp, embed);
@@ -216,11 +216,11 @@ void putparms(int gno, FILE *pp, int embed)
                 v.xv1, v.yv1, v.xv2, v.yv2);
 
             get_graph_labels(gno, &lab);
-            fprintf(pp, "%s    title \"%s\"\n", embedstr, PSTRING(lab.title.s));
+            fprintf(pp, "%s    title \"%s\"\n", embedstr, PSTRING(lab.title.s_plotstring));
             fprintf(pp, "%s    title font %d\n", embedstr, get_font_mapped_id(lab.title.font));
             fprintf(pp, "%s    title size %f\n", embedstr, lab.title.charsize);
             fprintf(pp, "%s    title color %d\n", embedstr, lab.title.color);
-            fprintf(pp, "%s    subtitle \"%s\"\n", embedstr, PSTRING(lab.stitle.s));
+            fprintf(pp, "%s    subtitle \"%s\"\n", embedstr, PSTRING(lab.stitle.s_plotstring));
             fprintf(pp, "%s    subtitle font %d\n", embedstr, get_font_mapped_id(lab.stitle.font));
             fprintf(pp, "%s    subtitle size %f\n", embedstr, lab.stitle.charsize);
             fprintf(pp, "%s    subtitle color %d\n", embedstr, lab.stitle.color);
@@ -262,7 +262,7 @@ void putparms(int gno, FILE *pp, int embed)
                 fprintf(pp, "%s bar linewidth %.1f\n", buf, t->t_drawbarlinew);
 
 
-                fprintf(pp, "%s label \"%s\"\n", buf, PSTRING(t->label.s));
+                fprintf(pp, "%s label \"%s\"\n", buf, PSTRING(t->label.s_plotstring));
                 if (t->label_layout == LAYOUT_PERPENDICULAR) {
                     fprintf(pp, "%s label layout perp\n", buf);
                 } else {
@@ -581,7 +581,7 @@ static void put_objects(int gno, FILE * pp, int embed)
 
     for (i = 0; i < number_of_strings(); i++) {
         get_graph_string(i, &s);
-        if (s.active == TRUE && s.s[0]) {
+        if (s.active == TRUE && s.s_plotstring[0]) {
             fprintf(pp, "%swith string\n", embedstr);
             fprintf(pp, "%s    string on\n", embedstr);
             fprintf(pp, "%s    string loctype %s\n", embedstr, w_or_v(s.loctype));
@@ -594,7 +594,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             fprintf(pp, "%s    string font %d\n", embedstr, get_font_mapped_id(s.font));
             fprintf(pp, "%s    string just %d\n", embedstr, s.just);
             fprintf(pp, "%s    string char size %f\n", embedstr, s.charsize);
-            fprintf(pp, "%s    string def \"%s\"\n", embedstr, PSTRING(s.s));
+            fprintf(pp, "%s    string def \"%s\"\n", embedstr, PSTRING(s.s_plotstring));
         }
     }
 }

@@ -133,8 +133,8 @@ void set_default_string(plotstr * s)
     s->font = grdefaults.font;
     s->just = JUST_LEFT|JUST_BLINE;
     s->charsize = grdefaults.charsize;
-    s->s = NULL;
-    s->alt = NULL;
+    s->s_plotstring = NULL;
+    s->alt_plotstring = NULL;
 }
 
 void set_default_arrow(Arrow *arrowp)

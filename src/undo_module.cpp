@@ -572,9 +572,9 @@ gnos=snos=NULL;
         offset=2;
         draw_props.bgcolor=origin[offset];
         draw_props.bgfilled=origin[offset+1];
-        ssav=timestamp.s;
+        ssav=timestamp.s_plotstring;
         memcpy(&timestamp,st[offset/2],sizeof(plotstr));
-        timestamp.s=ssav;
+        timestamp.s_plotstring=ssav;
         if (FormPlotAppearance!=NULL) FormPlotAppearance->init();
     break;
     case UNDO_TYPE_OBJECT_MODIFIED:
@@ -605,9 +605,9 @@ gnos=snos=NULL;
             if (isactive_string(nid))
             {
             memcpy(pstr+nid,st[offset],sizeof(plotstr));
-                if (pstr[nid].s!=NULL)
+                if (pstr[nid].s_plotstring!=NULL)
                 {
-                pstr[nid].s=copy_string(NULL,(st[offset])->s);
+                pstr[nid].s_plotstring=copy_string(NULL,(st[offset])->s_plotstring);
                 }
             }
         break;
@@ -802,9 +802,9 @@ gnos=snos=NULL;
             nid=next_string();
             id[0][i]=nid;
             memcpy(pstr+nid,st[i],sizeof(plotstr));
-                if (pstr[nid].s!=NULL)
+                if (pstr[nid].s_plotstring!=NULL)
                 {
-                pstr[nid].s=copy_string(NULL,(st[i])->s);
+                pstr[nid].s_plotstring=copy_string(NULL,(st[i])->s_plotstring);
                 }
             }
         break;
@@ -897,7 +897,7 @@ nr=origin[2];
     st=(plotstr**)data;
         for (int i=0;i<nr;i++)
         {
-        XCFREE(st[i]->s);
+        XCFREE(st[i]->s_plotstring);
         delete[] st[i];
         }
     break;
@@ -1188,10 +1188,10 @@ st=new plotstr*[len];
     {
     st[i]=new plotstr;
     memcpy(st[i],pstr+ids[i],sizeof(plotstr));
-        if (st[i]->s!=NULL)
+        if (st[i]->s_plotstring!=NULL)
         {
-        st[i]->s=new char[strlen(pstr[ids[i]].s)+1];
-        strcpy(st[i]->s,pstr[ids[i]].s);
+        st[i]->s_plotstring=new char[strlen(pstr[ids[i]].s_plotstring)+1];
+        strcpy(st[i]->s_plotstring,pstr[ids[i]].s_plotstring);
         }
     }
 nn->data=(void*)st;
@@ -1707,10 +1707,10 @@ void copyGraph(int gno,graph * gr,int what)//we assume, that gr has ben allocate
     if (what==UNDO_COMPLETE || what&UNDO_APPEARANCE)
     {
     memcpy(gr,g+gno,sizeof(graph));//copy set appearance
-    gr->labs.title.s=copy_string(NULL,g[gno].labs.title.s);
-    gr->labs.title.alt=copy_string(NULL,g[gno].labs.title.alt);
-    gr->labs.stitle.s=copy_string(NULL,g[gno].labs.stitle.s);
-    gr->labs.stitle.alt=copy_string(NULL,g[gno].labs.stitle.alt);
+    gr->labs.title.s_plotstring=copy_string(NULL,g[gno].labs.title.s_plotstring);
+    gr->labs.title.alt_plotstring=copy_string(NULL,g[gno].labs.title.alt_plotstring);
+    gr->labs.stitle.s_plotstring=copy_string(NULL,g[gno].labs.stitle.s_plotstring);
+    gr->labs.stitle.alt_plotstring=copy_string(NULL,g[gno].labs.stitle.alt_plotstring);
     }
 if (what==UNDO_COMPLETE || what&UNDO_AXIS)
 {
@@ -1740,10 +1740,10 @@ void deleteSavedGraph(graph * gr,int what)
     }
         if (what&UNDO_APPEARANCE || what==UNDO_COMPLETE)
         {
-        XCFREE(gr->labs.title.s);
-        XCFREE(gr->labs.stitle.s);
-        XCFREE(gr->labs.title.alt);
-        XCFREE(gr->labs.stitle.alt);
+        XCFREE(gr->labs.title.s_plotstring);
+        XCFREE(gr->labs.stitle.s_plotstring);
+        XCFREE(gr->labs.title.alt_plotstring);
+        XCFREE(gr->labs.stitle.alt_plotstring);
         }
     if (what==UNDO_COMPLETE || what&UNDO_AXIS)
     {
@@ -1779,10 +1779,10 @@ if (valid==false)
 tickmarks *t[MAXAXES];
 memcpy(t,g[gno].t,sizeof(tickmarks*)*MAXAXES);//save tickmarks adresses
 plotarr * pl=g[gno].p;//save adress of plotarrays
-char * s1=g[gno].labs.title.s;
-char * s2=g[gno].labs.stitle.s;
-char * s3=g[gno].labs.title.alt;
-char * s4=g[gno].labs.stitle.alt;
+char * s1=g[gno].labs.title.s_plotstring;
+char * s2=g[gno].labs.stitle.s_plotstring;
+char * s3=g[gno].labs.title.alt_plotstring;
+char * s4=g[gno].labs.stitle.alt_plotstring;
 if (what&UNDO_DATA || what==UNDO_COMPLETE)//clean up old sets
 {
 kill_all_sets(gno);
@@ -1792,10 +1792,10 @@ pl=g[gno].p;
     if (what==UNDO_COMPLETE || what&UNDO_APPEARANCE)
     {
     memcpy(g+gno,gr,sizeof(graph));//copy graph appearance
-    g[gno].labs.title.s=copy_string(s1,gr->labs.title.s);
-    g[gno].labs.stitle.s=copy_string(s2,gr->labs.stitle.s);
-    g[gno].labs.title.alt=copy_string(s3,gr->labs.title.alt);
-    g[gno].labs.stitle.alt=copy_string(s4,gr->labs.stitle.alt);
+    g[gno].labs.title.s_plotstring=copy_string(s1,gr->labs.title.s_plotstring);
+    g[gno].labs.stitle.s_plotstring=copy_string(s2,gr->labs.stitle.s_plotstring);
+    g[gno].labs.title.alt_plotstring=copy_string(s3,gr->labs.title.alt_plotstring);
+    g[gno].labs.stitle.alt_plotstring=copy_string(s4,gr->labs.stitle.alt_plotstring);
     }
 if (what&UNDO_APPEARANCE)//reinstall tickmark_adresses, because appearance does not mean tickmarks
 {
@@ -2273,10 +2273,10 @@ case OBJECT_STRING:
     if (sav_st!=NULL) delete sav_st;
     sav_st=new plotstr;
     memcpy(sav_st,pstr+id,sizeof(plotstr));//copy plotstr
-        if (sav_st->s!=NULL)//copy the actual string/text
+        if (sav_st->s_plotstring!=NULL)//copy the actual string/text
         {
-        sav_st->s=new char[strlen(pstr[id].s)+1];
-        strcpy(sav_st->s,pstr[id].s);
+        sav_st->s_plotstring=new char[strlen(pstr[id].s_plotstring)+1];
+        strcpy(sav_st->s_plotstring,pstr[id].s_plotstring);
         }
 break;
 }
@@ -2332,16 +2332,16 @@ break;
 case OBJECT_STRING:
     st=new plotstr*[2];
     nn->Description=QObject::tr("String edited");   
-    if (sav_st->s[0]=='\0')
+    if (sav_st->s_plotstring[0]=='\0')
     {
     nn->type=UNDO_TYPE_OBJECT_INSERTED;
     nn->Description=QObject::tr("String inserted");
     st[0]=new plotstr;
     memcpy(st[0],pstr+id,sizeof(plotstr));
-        if (st[0]->s!=NULL)
+        if (st[0]->s_plotstring!=NULL)
         {
-        st[0]->s=new char[strlen(pstr[id].s)+1];
-        strcpy(st[0]->s,pstr[id].s);
+        st[0]->s_plotstring=new char[strlen(pstr[id].s_plotstring)+1];
+        strcpy(st[0]->s_plotstring,pstr[id].s_plotstring);
         }
     }
     else
@@ -2351,10 +2351,10 @@ case OBJECT_STRING:
     }
     st[1]=new plotstr;
     memcpy(st[1],pstr+id,sizeof(plotstr));
-        if (st[1]->s!=NULL)
+        if (st[1]->s_plotstring!=NULL)
         {
-        st[1]->s=new char[strlen(pstr[id].s)+1];
-        strcpy(st[1]->s,pstr[id].s);
+        st[1]->s_plotstring=new char[strlen(pstr[id].s_plotstring)+1];
+        strcpy(st[1]->s_plotstring,pstr[id].s_plotstring);
         }
     nn->data=(void*)st;
 break;

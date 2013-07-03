@@ -284,7 +284,7 @@ void init(void)
 {
 stdFontList.clear();
 QFont stfont;
-stfont.fromString(QString("Times,10,-1,5,50,0,0,0,0,0"));
+stfont.fromString(QString("Helvetica,10,-1,5,50,0,0,0,0,0"));
 stdFontList << stfont;
 stfont.fromString(QString("Times,10,-1,5,50,1,0,0,0,0"));
 stdFontList << stfont;
@@ -292,7 +292,7 @@ stfont.fromString(QString("Times,10,-1,5,75,0,0,0,0,0"));
 stdFontList << stfont;
 stfont.fromString(QString("Times,10,-1,5,75,1,0,0,0,0"));
 stdFontList << stfont;
-stfont.fromString(QString("Helvetica,10,-1,5,50,0,0,0,0,0"));
+stfont.fromString(QString("Times,10,-1,5,50,0,0,0,0,0"));
 stdFontList << stfont;
 stfont.fromString(QString("Helvetica,10,-1,5,50,1,0,0,0,0"));
 stdFontList << stfont;
@@ -1235,13 +1235,13 @@ void copy_LaTeX_to_Grace(void)//copy the original LaTeX-texts into the Grace-var
     for (int i=0;i<number_of_graphs();i++)
     {
     //only copy here
-    g[i].labs.title.s = copy_string(g[i].labs.title.s, g[i].labs.title.alt);
-    g[i].labs.stitle.s = copy_string(g[i].labs.stitle.s, g[i].labs.stitle.alt);
+    g[i].labs.title.s_plotstring = copy_string(g[i].labs.title.s_plotstring, g[i].labs.title.alt_plotstring);
+    g[i].labs.stitle.s_plotstring = copy_string(g[i].labs.stitle.s_plotstring, g[i].labs.stitle.alt_plotstring);
         for (int j=0;j<MAXAXES;j++)
         {
         strcpy(g[i].t[j]->tl_appstr, g[i].t[j]->orig_tl_appstr);
         strcpy(g[i].t[j]->tl_prestr, g[i].t[j]->orig_tl_prestr);
-        g[i].t[j]->label.s = copy_string(g[i].t[j]->label.s, g[i].t[j]->label.alt);
+        g[i].t[j]->label.s_plotstring = copy_string(g[i].t[j]->label.s_plotstring, g[i].t[j]->label.alt_plotstring);
             for (int k=0;k<MAX_TICKS;k++)
             {
             g[i].t[j]->tloc[k].label = copy_string(g[i].t[j]->tloc[k].label, g[i].t[j]->tloc[k].orig_label);
@@ -1260,7 +1260,7 @@ void copy_LaTeX_to_Grace(void)//copy the original LaTeX-texts into the Grace-var
     }
     for (int i=0;i<maxstr;i++)
     {
-    pstr[i].s = copy_string(pstr[i].s,pstr[i].alt);
+    pstr[i].s_plotstring = copy_string(pstr[i].s_plotstring,pstr[i].alt_plotstring);
     }
 }
 
@@ -1270,13 +1270,13 @@ QString temp;
 //copy
     for (int i=0;i<number_of_graphs();i++)
     {
-    g[i].labs.title.alt = copy_string(g[i].labs.title.alt, g[i].labs.title.s);
-    g[i].labs.stitle.alt = copy_string(g[i].labs.stitle.alt, g[i].labs.stitle.s);
+    g[i].labs.title.alt_plotstring = copy_string(g[i].labs.title.alt_plotstring, g[i].labs.title.s_plotstring);
+    g[i].labs.stitle.alt_plotstring = copy_string(g[i].labs.stitle.alt_plotstring, g[i].labs.stitle.s_plotstring);
         for (int j=0;j<MAXAXES;j++)
         {
         strcpy(g[i].t[j]->orig_tl_appstr, g[i].t[j]->tl_appstr);
         strcpy(g[i].t[j]->orig_tl_prestr, g[i].t[j]->tl_prestr);
-        g[i].t[j]->label.alt = copy_string(g[i].t[j]->label.alt, g[i].t[j]->label.s);
+        g[i].t[j]->label.alt_plotstring = copy_string(g[i].t[j]->label.alt_plotstring, g[i].t[j]->label.s_plotstring);
             for (int k=0;k<MAX_TICKS;k++)
             {
             g[i].t[j]->tloc[k].orig_label = copy_string(g[i].t[j]->tloc[k].orig_label, g[i].t[j]->tloc[k].label);
@@ -1295,19 +1295,19 @@ QString temp;
     }
     for (int i=0;i<maxstr;i++)
     {
-    pstr[i].alt = copy_string(pstr[i].alt,pstr[i].s);
+    pstr[i].alt_plotstring = copy_string(pstr[i].alt_plotstring,pstr[i].s_plotstring);
     }
 //convert
 if (activateLaTeXsupport==true)
 {
     for (int i=0;i<number_of_graphs();i++)
     {
-    temp=QString(g[i].labs.title.s);
+    temp=QString(g[i].labs.title.s_plotstring);
     complete_LaTeX_to_Grace_Translator(temp);
-    g[i].labs.title.s = copy_string(g[i].labs.title.s, temp.toAscii().constData());
-    temp=QString(g[i].labs.stitle.s);
+    g[i].labs.title.s_plotstring = copy_string(g[i].labs.title.s_plotstring, temp.toAscii().constData());
+    temp=QString(g[i].labs.stitle.s_plotstring);
     complete_LaTeX_to_Grace_Translator(temp);
-    g[i].labs.stitle.s = copy_string(g[i].labs.stitle.s, temp.toAscii().constData());
+    g[i].labs.stitle.s_plotstring = copy_string(g[i].labs.stitle.s_plotstring, temp.toAscii().constData());
         for (int j=0;j<MAXAXES;j++)
         {
         temp=QString(g[i].t[j]->tl_appstr);
@@ -1316,9 +1316,9 @@ if (activateLaTeXsupport==true)
         temp=QString(g[i].t[j]->tl_prestr);
         complete_LaTeX_to_Grace_Translator(temp);
         strcpy(g[i].t[j]->tl_prestr, temp.toAscii().constData());
-        temp=QString(g[i].t[j]->label.s);
+        temp=QString(g[i].t[j]->label.s_plotstring);
         complete_LaTeX_to_Grace_Translator(temp);
-        g[i].t[j]->label.s = copy_string(g[i].t[j]->label.s, temp.toAscii().constData());
+        g[i].t[j]->label.s_plotstring = copy_string(g[i].t[j]->label.s_plotstring, temp.toAscii().constData());
             for (int k=0;k<MAX_TICKS;k++)
             {
             temp=QString(g[i].t[j]->tloc[k].label);
@@ -1347,9 +1347,9 @@ if (activateLaTeXsupport==true)
     }
     for (int i=0;i<maxstr;i++)
     {
-    temp=QString(pstr[i].s);
+    temp=QString(pstr[i].s_plotstring);
     complete_LaTeX_to_Grace_Translator(temp);
-    pstr[i].s = copy_string(pstr[i].s, temp.toAscii().constData());
+    pstr[i].s_plotstring = copy_string(pstr[i].s_plotstring, temp.toAscii().constData());
     }
 }
 }

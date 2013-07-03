@@ -664,7 +664,7 @@ void drawaxes(int gno)
             label1_just = tlabel1_just;
             label2_just = tlabel2_just;
         }
-        if (t->label.s && t->label.s[0])
+        if (t->label.s_plotstring && t->label.s_plotstring[0])
         {
 	    setcharsize(t->label.charsize);
 	    setfont(t->label.font);
@@ -681,7 +681,7 @@ void drawaxes(int gno)
                     + vp_label_offset1.x*ort_para.y
                     - vp_label_offset1.y*ort_perp.y;
 
-	        WriteString(vp_label, langle, label1_just, t->label.s);
+            WriteString(vp_label, langle, label1_just, t->label.s_plotstring);
 	    }
 
 	    /* Axis label on opposite side */
@@ -695,7 +695,7 @@ void drawaxes(int gno)
                     + vp_label_offset2.x*ort_para.y
                     + vp_label_offset2.y*ort_perp.y ;
 
-	        WriteString(vp_label, langle, label2_just, t->label.s);
+            WriteString(vp_label, langle, label2_just, t->label.s_plotstring);
 	    }
         }
 	/* End axis label stuff */
