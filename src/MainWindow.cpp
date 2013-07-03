@@ -1709,7 +1709,6 @@ FormPlotAppearance=new frmPlotAppearance(this);
 }
 
 FormPlotAppearance->init();
-FormPlotAppearance->flp->timestamp_font_item->setCurrentIndex(4); //Nimal Set helvetica as default font
 FormPlotAppearance->show();
 FormPlotAppearance->raise();
 FormPlotAppearance->activateWindow();
@@ -1747,8 +1746,6 @@ FormSetAppearance=new frmSetAppearance(this);
 FormSetAppearance->listSet->set_graph_number(get_cg(),false);
 }
 FormSetAppearance->init();
-//FormSetAppearance->flp->tabSy->cmbSymbFont->setCurrentIndex(4); //Nimal Set helvetica as default font
-//FormSetAppearance->flp->tabAnVa->cmbFont->setCurrentIndex(4);
 FormSetAppearance->show();
 FormSetAppearance->raise();
 FormSetAppearance->activateWindow();
@@ -1768,8 +1765,6 @@ FormAxisProperties=new frmAxisProp(this);
 }
 
 FormAxisProperties->create_axes_dialog(0);
-//FormAxisProperties->flp->tabMain->selTickLabelFont->setCurrentIndex(4);
-//FormAxisProperties->flp->tabLabelsBars->selLabelFont->setCurrentIndex(4);
 FormAxisProperties->show();
 FormAxisProperties->raise();
 FormAxisProperties->activateWindow();
@@ -1913,7 +1908,6 @@ if (FormFontTool==NULL)
 FormFontTool=new frmFontTool(this);
 }
 
-//FormFontTool->selFont->setCurrentIndex(4); //Nimal Set helvetica as default font
 FormFontTool->show();
 FormFontTool->raise();
 FormFontTool->activateWindow();
