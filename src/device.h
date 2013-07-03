@@ -61,7 +61,17 @@ extern "C" {
 typedef enum {
     PAGE_FORMAT_CUSTOM, 
     PAGE_FORMAT_USLETTER,
-    PAGE_FORMAT_A4     
+    PAGE_FORMAT_USLEGAL,
+    PAGE_FORMAT_USTABLOID,
+    PAGE_FORMAT_A4,
+    PAGE_FORMAT_A3,
+    PAGE_FORMAT_A2,
+    PAGE_FORMAT_A1,
+    PAGE_FORMAT_A0,
+    PAGE_FORMAT_B4,
+    PAGE_FORMAT_B5,
+    PAGE_FORMAT_B6
+
 } PageFormat;
 
 typedef struct {
