@@ -30,7 +30,12 @@
 ///#include <config.h>
 
 #include <stdlib.h>
+
+#ifdef _MSC_VER
+#else
 #include <unistd.h>
+#endif
+
 #include <QtGui>
 
 #include "MainWindow.h"

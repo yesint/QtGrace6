@@ -19,9 +19,9 @@
 #include <assert.h>
 #include <sys/stat.h>
 
-#include <graphutils.h>
-#include <files.h>
-#include <ssdata.h>
+#include "graphutils.h"
+#include "files.h"
+#include "ssdata.h"
 #define MAXERR 5
 /*
  * number of rows to allocate for each call to realloc
