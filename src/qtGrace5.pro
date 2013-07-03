@@ -7,13 +7,15 @@ macx:DEFINES += MAC_SYSTEM
 
 # For Linux Systems
 unix:!macx:DEFINES += LINUX_SYSTEM
+# Requires special Qt5 on Windows
+unix:QT += webkit
+unix:QT += webkitwidgets
+
+
 TRANSLATIONS += qt_grace_ger.ts
 QT += network
-QT += webkit
 QT += widgets
 QT += printsupport
-QT += webkit
-QT += webkitwidgets
 ICON = GraceIcon.icns
 !unix:RC_FILE = qtgrace.rc
 
@@ -115,9 +117,10 @@ HEADERS += MainWindow.h \
     ../type1/types.h \
     ../type1/util.h \
     ../type1/Xstuff.h \
-    undo_module.h \
-    ../type1/globals.h \
-    localConnection.h
+    undo_module.h 
+#	\
+#    ../type1/globals.h \
+#    localConnection.h
 SOURCES += allWidgets.cpp \
     qtgrace.cpp \
     MainWindow.cpp \
@@ -249,6 +252,7 @@ SOURCES += allWidgets.cpp \
     zeta.c \
     zetac.c \
     undo_module.cpp \
-    ListOfLatexCommands.cpp \
-    localConnection.cpp
+    ListOfLatexCommands.cpp
+#	\
+#    localConnection.cpp
 TARGET = ../bin/qtgrace
