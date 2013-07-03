@@ -67,6 +67,7 @@
 #define DEVICE_BMP 9
 #define DEVICE_METAFILE 10
 
+
 #define READ_SET_FORM 0
 #define READ_NETCDF_FORM 1
 #define READ_PROJECT_FORM 2
@@ -209,6 +210,7 @@ Q_OBJECT
 public:
 frmSpreadSheet2(QWidget * parent=0);
 
+//Nimal
 int allocated_rows,start_row;
 int visible_row_count;
 int number_of_rows,number_of_columns;
@@ -818,7 +820,7 @@ class frmDeviceSetup:public QDialog
 {
 Q_OBJECT
 public:
-frmDeviceSetup(QWidget * parent=0);
+frmDeviceSetup(int windowTitle, QWidget * parent=0);
 
 QPushButton * device_opts_item;
 QPushButton * wbut;
@@ -834,7 +836,8 @@ QMenuBar * menuBar;
 StdSelector * devices_item;
 StdSelector * page_orient_item;
 StdSelector * page_format_item;
-stdLineEdit * print_string_item;
+//NIMAL
+//stdLineEdit * print_string_item;
 stdLineEdit * printfile_item;
 stdLineEdit * page_x_item;
 stdLineEdit * page_y_item;
@@ -844,11 +847,11 @@ QCheckBox * chkDontChangeSize;
 QPushButton * cmdNativePrinterDialog;
 QPushButton * cmdDoPrint;
 
-QCheckBox * printto_item;
+//QCheckBox * printto_item;
 QCheckBox * fontaa_item;
 QCheckBox * devfont_item;
-
-frmDeviceOptions * DevOptions[6];
+//Nimal
+frmDeviceOptions * DevOptions[7];
 int cur_dev;
 QAction * actPrint,*actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
 
@@ -859,10 +862,11 @@ QGridLayout * layout1;
 QGridLayout * layout2;
 QVBoxLayout * layout3;
 QVBoxLayout * layout;
+
 public slots:
 void init(int dev);
 void CreateActions(void);
-void PrintToFileClicked(int i);
+//void PrintToFileClicked(int i);
 void DeviceChanged(int i);
 void SizeChanged(int i);
 void OrientationChanged(int i);
@@ -880,6 +884,8 @@ void doBrowse(void);
 void doDevOpt(void);
 void doNativePrinterDialog(void);
 void IOrequested(int type,QString file,bool exists,bool writeable,bool readable);
+
+
 };
 
 class frmPreferences:public QDialog

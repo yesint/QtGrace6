@@ -62,7 +62,7 @@ int * new_set_nos=NULL;
 extern bool useQtFonts;
 bool ApplyError=false;
 bool GlobalInhibitor=false;
-bool activateLaTeXsupport=false;
+bool activateLaTeXsupport=true; //Nimal changed to true
 bool immediateUpdate=false;
 bool updateRunning=false;
 int default_Print_Device=-1;//-1=last one
@@ -3619,7 +3619,7 @@ disconnect(strings_loc_item->cmbPositionSelect,SIGNAL(currentIndexChanged(int)),
     {
     pstring = &pstr[obj_id];
     //SetTextString(string_item, pstring->s);
-    string_item->SetTextToMemory(pstring->s,pstring->alt);
+    string_item->SetTextToMemory(pstring->s_plotstring,pstring->alt_plotstring);
     SetOptionChoice(strings_color_item, pstring->color);
     SetOptionChoice(strings_just_item, pstring->just);
     SetOptionChoice(strings_font_item, pstring->font );
@@ -3767,7 +3767,7 @@ void frmText_Props::doAccept(void)
         counter++;
         //}
         char * ch1,*ch2;
-        ch1=pstr[stringno].alt;
+        ch1=pstr[stringno].alt_plotstring;
         ch2=GetTextString(string_item);
         if (!(ch1==NULL || ch2==NULL))
         {
@@ -3779,11 +3779,11 @@ void frmText_Props::doAccept(void)
         else if (ch1!=ch2 || counter>0) changes=true;
         sprintf(dummy,"    string def \"%s\"",GetTextString(string_item));
         ListOfChanges << QString(dummy);
-        sprintf(dummy,"    string def \"%s\"",pstr[stringno].alt);
+        sprintf(dummy,"    string def \"%s\"",pstr[stringno].alt_plotstring);
         ListOfOldStates << QString(dummy);
         //}
             SaveObjectData(stringno,OBJECT_STRING);
-        string_item->DynSetMemoryToText(pstr[stringno].s,pstr[stringno].alt);
+        string_item->DynSetMemoryToText(pstr[stringno].s_plotstring,pstr[stringno].alt_plotstring);
         //pstr[stringno].s = copy_string(pstr[stringno].s, GetTextString(string_item));
 ///strings used
         pstr[stringno].color = GetOptionChoice(strings_color_item);
@@ -3829,7 +3829,7 @@ if (nr>0)
     errpos = scanner(command);
         if (ListOfChanges.at(i).contains(QString("string def")))
         {
-        string_item->DynSetMemoryToText(pstr[obj_id].s,pstr[obj_id].alt);
+        string_item->DynSetMemoryToText(pstr[obj_id].s_plotstring,pstr[obj_id].alt_plotstring);
         }
     }
     set_dirtystate();
@@ -5644,6 +5644,7 @@ void frmDeviceOptions::init(void)
         SetChoice(pnm_setup_format_item, pnm_setup_format);
         SetToggleButtonState(pnm_setup_rawbits_item, pnm_setup_rawbits);
     }
+
     else
     {
 
@@ -5680,6 +5681,7 @@ ApplyError=false;
     pnm_setup_format = GetChoice(pnm_setup_format_item);
     pnm_setup_rawbits = GetToggleButtonState(pnm_setup_rawbits_item);
     }
+
     else
     {
 
@@ -5698,24 +5700,90 @@ void frmDeviceOptions::doClose(void)
 hide();
 }
 
-frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
+frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent)
 {
 int number;
 QString entr[13];
 int i_entr[13];
 setFont(stdFont);
-setWindowTitle(tr("qtGrace: Device setup"));
+
+
+
+//Nimal
+if(windowTitle == 1){
+    setWindowTitle(tr("qtGrace: Screen Setup"));
+}else if (windowTitle == 2){
+    setWindowTitle(tr("qtGrace: Print"));
+}else if (windowTitle == 3){
+    setWindowTitle(tr("qtGrace: Export to File"));
+    }
+else{
+
+}
+//
+
 setWindowIcon(QIcon(*GraceIcon));
 cur_dev=0;
 
 CreateActions();
 
-grpDevSetup=new QGroupBox(tr("Device setup"),this);
+//Nimal
+if (windowTitle ==1){
+grpDevSetup=new QGroupBox(tr("Screen setup"),this);
+}else if (windowTitle == 2){
+    grpDevSetup=new QGroupBox(tr("Print"),this);
+}else if (windowTitle == 3){
+ grpDevSetup=new QGroupBox(tr("Export to file"),this);
+    }
+else{
+
+}
+
+
+
+
 grpOutput=new QGroupBox(tr("Output"),this);
-grpPage=new QGroupBox(tr("Page"),this);
+
+
+
+
+if (windowTitle ==1){
+grpPage=new QGroupBox(tr("Display"),this);
+}else if (windowTitle == 2){
+ grpPage=new QGroupBox(tr("Page"),this);
+}else if (windowTitle == 3){
+ grpPage=new QGroupBox(tr("Format size"),this);
+    }
+else{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 grpFonts=new QGroupBox(tr("Fonts"),this);
 
-device_opts_item=new QPushButton(tr("Device options..."),grpDevSetup);
+//Nimal
+
+if (windowTitle ==1){
+device_opts_item=new QPushButton(tr(""),grpDevSetup);
+}else if (windowTitle == 2){
+    device_opts_item=new QPushButton(tr(""),grpDevSetup);
+}else if (windowTitle == 3){
+device_opts_item=new QPushButton(tr("Format options..."),grpDevSetup);
+    }
+else{
+
+}
+
 connect(device_opts_item,SIGNAL(clicked()),this,SLOT(doDevOpt()));
 wbut=new QPushButton(tr("Browse..."),grpOutput);
 connect(wbut,SIGNAL(clicked()),this,SLOT(doBrowse()));
@@ -5741,12 +5809,26 @@ menuBar->addMenu(mnuOptions);
 menuBar->addSeparator();
 menuBar->addMenu(mnuHelp);
 
+
 number=number_of_devices();
 for (int i=0;i<number;i++)
 {
 entr[i]=get_device_name(i);
 }
-devices_item=new StdSelector(grpDevSetup,tr("Device:"),number,entr);
+
+//Nimal
+if (windowTitle ==1){
+devices_item=new StdSelector(grpDevSetup,tr(""),number,entr);
+}else if (windowTitle == 2){
+   devices_item=new StdSelector(grpDevSetup,tr("Print to:"),number,entr);
+}else if (windowTitle == 3){
+ devices_item=new StdSelector(grpDevSetup,tr("Select file format:"),number-1,entr); //-1 remove screen from list
+    }
+else{
+
+}
+
+
 connect(devices_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(DeviceChanged(int)));
 number=2;
 entr[0]=tr("Landscape");
@@ -5756,18 +5838,44 @@ i_entr[1]=PAGE_ORIENT_PORTRAIT;
 page_orient_item=new StdSelector(grpPage,tr("Orientation:"),number,entr);
 page_orient_item->setValues(i_entr);
 connect(page_orient_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(OrientationChanged(int)));
-number=3;
+//NIMAL
+number=12;
 entr[0]=tr("Custom");
-entr[1]=tr("Letter");
-entr[2]=tr("A4");
-i_entr[0]=PAGE_FORMAT_CUSTOM;
-i_entr[1]=PAGE_FORMAT_USLETTER;
-i_entr[2]=PAGE_FORMAT_A4;
+entr[1]=tr("A4");
+entr[2]=tr("A3");
+entr[3]=tr("A2");
+entr[4]=tr("A1");
+entr[5]=tr("A0");
+
+entr[6]=tr("B4");
+entr[7]=tr("B5");
+entr[8]=tr("B6");
+
+entr[9]=tr("US Letter");
+entr[10]=tr("US Legal");
+entr[11]=tr("US Tabloid");
+
+
+
+i_entr[0]=PAGE_FORMAT_A4;
+i_entr[1]=PAGE_FORMAT_A3;
+i_entr[2]=PAGE_FORMAT_A2;
+i_entr[3]=PAGE_FORMAT_A1;
+i_entr[4]=PAGE_FORMAT_A0;
+i_entr[5]=PAGE_FORMAT_B4;
+i_entr[6]=PAGE_FORMAT_B5;
+i_entr[7]=PAGE_FORMAT_B6;
+i_entr[8]=PAGE_FORMAT_CUSTOM;
+i_entr[9]=PAGE_FORMAT_USLETTER;
+i_entr[10]=PAGE_FORMAT_USLEGAL;
+i_entr[11]=PAGE_FORMAT_USTABLOID;
+
+//
 page_format_item=new StdSelector(grpPage,tr("Size:"),number,entr);
 connect(page_format_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(SizeChanged(int)));
-
-print_string_item=new stdLineEdit(grpOutput,tr("Print command:"));
-print_string_item->lenText->setText(QString(""));
+//Nimal
+//print_string_item=new stdLineEdit(grpOutput,tr("Print command:"));
+//print_string_item->lenText->setText(QString(""));
 printfile_item=new stdLineEdit(grpOutput,tr("File name:"));
 printfile_item->lenText->setText(QString(""));
 page_x_item=new stdLineEdit(grpPage,tr("Dimensions:"));
@@ -5780,24 +5888,76 @@ page_size_unit_item->addItem(tr("cm"));
 connect(page_size_unit_item,SIGNAL(currentIndexChanged(int)),this,SLOT(DimChanged(int)));
 chkDontChangeSize=new QCheckBox(tr("Don't reposition Graph(s)"),this);
 
-printto_item=new QCheckBox(tr("Print to file"),grpOutput);
-connect(printto_item,SIGNAL(stateChanged(int)),this,SLOT(PrintToFileClicked(int)));
+
+//Nimal
+/*
+if (windowTitle ==1){
+printto_item=new QCheckBox(tr(""),grpOutput);
+}else if (windowTitle == 2){
+printto_item=new QCheckBox(tr("Print"),grpOutput);
+}else if (windowTitle == 3){
+printto_item=new QCheckBox(tr("Export to file"),grpOutput);
+    }
+else{
+
+}
+
+
+
+
+connect(printto_item,SIGNAL(stateChanged(int)),this,SLOT(PrintToFileClicked(int)));*/
 fontaa_item=new QCheckBox(tr("Enable font antialiasing"),grpFonts);
 devfont_item=new QCheckBox(tr("Use device fonts"),grpFonts);
 devfont_item->setChecked(TRUE);
 
 actNativePrinterDialog=new QAction(this);
 connect(actNativePrinterDialog,SIGNAL(triggered()),this,SLOT(doNativePrinterDialog()));
+/*
+if (windowTitle ==1){
 
-cmdNativePrinterDialog=new QPushButton(tr("Open native printer dialog"),this);
-connect(cmdNativePrinterDialog,SIGNAL(clicked()),this,SLOT(doNativePrinterDialog()));
+}else if (windowTitle == 2){
+    cmdNativePrinterDialog=new QPushButton(tr("Open native printer dialog"),this);
+    connect(cmdNativePrinterDialog,SIGNAL(clicked()),this,SLOT(doNativePrinterDialog()));
+
+}else if (windowTitle == 3){
+
+    }
+else{
+
+}
+*/
+
+
+//Nimal
+if (windowTitle ==1){
+cmdDoPrint=new QPushButton(tr(""),this);
+}else if (windowTitle == 2){
 cmdDoPrint=new QPushButton(tr("Print to File"),this);
+}else if (windowTitle == 3){
+cmdDoPrint=new QPushButton(tr("Export"),this);
+    }
+else{
+
+}
 connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrint2()));
 
-buttonGroup=new stdButtonGroup(this);
-connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
-connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
-connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
+
+//Nimal - Enable/disable accept, apply, close buttons
+if (windowTitle ==1){
+
+    buttonGroup=new stdButtonGroup(this);
+    connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
+    connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
+    connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
+}else if (windowTitle == 2){
+
+}else if (windowTitle == 3){
+
+    }
+else{
+
+}
+
 
 for (int i=0;i<6;i++)
 DevOptions[i]=NULL;
@@ -5809,10 +5969,26 @@ layout0->addWidget(device_opts_item);
 grpDevSetup->setLayout(layout0);
 layout1=new QGridLayout();
 layout1->setMargin(STD_MARGIN);
-layout1->addWidget(printto_item,0,0,1,1);
-layout1->addWidget(cmdNativePrinterDialog,0,2,1,1);
+//Nimal
+//layout1->addWidget(printto_item,0,0,1,1);
+
+//Nimal
+/*if (windowTitle ==1){
+
+}else if (windowTitle == 2){
+   layout1->addWidget(cmdNativePrinterDialog,0,2,1,1);
+}else if (windowTitle == 3){
+
+    }
+else{
+
+}
+*/
+
+
 layout1->addWidget(cmdDoPrint,0,1,1,1);
-layout1->addWidget(print_string_item,1,0,1,3);
+//Nimal
+//layout1->addWidget(print_string_item,1,0,1,3);
 layout1->addWidget(printfile_item,2,0,1,2);
 layout1->addWidget(wbut,2,2);
 grpOutput->setLayout(layout1);
@@ -5838,7 +6014,19 @@ layout->addWidget(grpDevSetup);
 layout->addWidget(grpOutput);
 layout->addWidget(grpPage);
 layout->addWidget(grpFonts);
+
+//Nimal - Enable/disable accept, apply, close buttons
+if (windowTitle ==1){
 layout->addWidget(buttonGroup);
+}else if (windowTitle == 2){
+  // layout1->addWidget(cmdNativePrinterDialog,0,2,1,1);
+}else if (windowTitle == 3){
+
+    }
+else{
+
+}
+
 
 layout->setStretch(0,0);
 layout->setStretch(1,1);
@@ -5848,8 +6036,10 @@ layout->setStretch(4,1);
 layout->setStretch(5,0);
 setLayout(layout);
 
-printto_item->setChecked(TRUE);
-PrintToFileClicked(Qt::Checked);
+//printto_item->setChecked(TRUE);
+//PrintToFileClicked(Qt::Checked);
+
+
 page_format_item->setCurrentIndex(1);
 DeviceChanged(0);
 }
@@ -5860,10 +6050,11 @@ SetOptionChoice(devices_item, dev);
 DeviceChanged(dev);
 }
 
+
 void frmDeviceSetup::CreateActions(void)
 {
-actPrint=new QAction(tr("&Print"),this);
-actPrint->setShortcut(tr("Ctrl+P"));
+actPrint=new QAction(tr("&Export"),this);
+actPrint->setShortcut(tr("Ctrl+Alt+E"));
 connect(actPrint,SIGNAL(triggered()), this, SLOT(doPrint()));
 dsync_item=new QAction(tr("&Sync page size of all devices"),this);
 dsync_item->setCheckable(TRUE);
@@ -5883,21 +6074,23 @@ actHelpOnDevSetup=new QAction(tr("On &device setup"),this);
 connect(actHelpOnDevSetup,SIGNAL(triggered()), this, SLOT(doHelpOnDevSetup()));
 }
 
-void frmDeviceSetup::PrintToFileClicked(int i)
-{
-if (i==Qt::Checked)
-{
-print_string_item->setEnabled(FALSE);
-printfile_item->setEnabled(TRUE);
-wbut->setEnabled(TRUE);
-}
-else if (i==Qt::Unchecked)
-{
-print_string_item->setEnabled(TRUE);
-printfile_item->setEnabled(FALSE);
-wbut->setEnabled(FALSE);
-}
-}
+//void frmDeviceSetup::PrintToFileClicked(int i)
+//{
+//if (i==Qt::Checked)
+//{
+//    //Nimal
+//print_string_item->setEnabled(FALSE);
+//printfile_item->setEnabled(TRUE);
+//wbut->setEnabled(TRUE);
+//}
+//else if (i==Qt::Unchecked)
+//{
+//Nimal
+//    //print_string_item->setEnabled(TRUE);
+//printfile_item->setEnabled(TRUE);
+//wbut->setEnabled(TRUE);
+//}
+//}
 
 void frmDeviceSetup::DeviceChanged(int device_id)
 {
@@ -5938,40 +6131,55 @@ QString print_file_with_extension=get_filename_with_extension(device_id);
 strcpy(print_file,print_file_with_extension.toAscii().constData());
 
         xv_setstr(printfile_item, print_file);
-        xv_setstr(print_string_item, get_print_cmd());
+      //  xv_setstr(print_string_item, get_print_cmd());
 
         switch (dev.type) {
+
         case DEVICE_TERM:
             grpOutput->setVisible(false);
+            grpDevSetup->setVisible(false);
+            grpFonts->setVisible(true);
+            grpPage->setVisible(true);
+
             break;
         case DEVICE_FILE:
+            grpDevSetup->setVisible(true);
+            grpFonts->setVisible(true);
+            grpPage->setVisible(true);
             grpOutput->setVisible(true);
-            SetToggleButtonState(printto_item, true);
-            SetSensitive(printto_item, true);
-            //SetSensitive(printto_item, false);
-            SetSensitive(print_string_item, false);
-            //SetSensitive(rc_filesel, true);
             SetSensitive(printfile_item, true);
             SetSensitive(wbut, true);
+
+
+//            SetToggleButtonState(printto_item, true);
+//            SetSensitive(printto_item, true);
+            //SetSensitive(printto_item, false);
+          //  SetSensitive(print_string_item, false);
+            //SetSensitive(rc_filesel, true);
+            //SetSensitive(printfile_item, true);
+            //SetSensitive(wbut, true);
             break;
         case DEVICE_PRINT:
+            grpDevSetup->setVisible(true);
+            grpFonts->setVisible(true);
+            grpPage->setVisible(true);
             grpOutput->setVisible(true);
-            SetToggleButtonState(printto_item, get_ptofile());
-            SetSensitive(printto_item, true);
+            //SetToggleButtonState(printto_item, get_ptofile());
+            //SetSensitive(printto_item, true);
             if (get_ptofile() == true) {
                 //SetSensitive(rc_filesel, true);
                 SetSensitive(printfile_item, true);
                 SetSensitive(wbut, true);
-                SetSensitive(printto_item, true);
+//                SetSensitive(printto_item, true);
                 //SetSensitive(printto_item, false);
-                SetSensitive(print_string_item, false);
-            } else {
+                //SetSensitive(print_string_item, false);
+            }// else {
                 //SetSensitive(rc_filesel, false);
-                SetSensitive(printfile_item, false);
-                SetSensitive(wbut, false);
-                SetSensitive(printto_item, true);
-                SetSensitive(print_string_item, true);
-            }
+               // SetSensitive(printfile_item, true);
+               // SetSensitive(wbut, false);
+//                SetSensitive(printto_item, true);
+              //  SetSensitive(print_string_item, true);
+            //}
             break;
         }
 
@@ -6067,13 +6275,52 @@ void frmDeviceSetup::SizeChanged(int value)
     }
     switch (value) {
     case PAGE_FORMAT_USLETTER:
-        x = 612;
-        y = 792;
+        x = 595.00;
+        y = 770.00;
         break;
+        //Nimal
+    case PAGE_FORMAT_USLEGAL:
+        x = 595.00;
+        y = 980.00;
+        break;
+    case PAGE_FORMAT_USTABLOID:
+        x = 1067.00;
+        y = 1649.00;
+        break;
+
     case PAGE_FORMAT_A4:
         x = 595;
         y = 842;
         break;
+    case PAGE_FORMAT_A3:
+        x = 842;
+        y = 1180;
+        break;
+    case PAGE_FORMAT_A2:
+        x = 1180;
+        y = 1684;
+        break;
+    case PAGE_FORMAT_A1:
+        x = 1684;
+        y = 2360;
+        break;
+    case PAGE_FORMAT_A0:
+        x = 2360;
+        y = 3368;
+        break;
+    case PAGE_FORMAT_B4:
+        x = 688.8;
+        y = 973;
+        break;
+    case PAGE_FORMAT_B5:
+        x = 485.1;
+        y = 688.8;
+        break;
+    case PAGE_FORMAT_B6:
+        x = 344.4;
+        y = 485.1;
+        break;
+        //
     case PAGE_FORMAT_CUSTOM:
     default:
         return;
@@ -6210,18 +6457,20 @@ void frmDeviceSetup::doApply(void)
     SaveDeviceState(seldevice,GetToggleButtonState(dsync_item));
 
     dev = get_device_props(seldevice);
-
+//Nimal
     if (dev.type != DEVICE_TERM)
     {
         hdevice = seldevice;
-        set_ptofile(GetToggleButtonState(printto_item));
+        //set_ptofile(TRUE);
+        //set_ptofile(GetToggleButtonState(printto_item));
         if (get_ptofile())
-        {
+       {
+
             strcpy(print_file, xv_getstr(printfile_item));
         }
         else
         {
-            set_print_cmd(xv_getstr(print_string_item));
+            //set_print_cmd(xv_getstr(print_string_item));
         }
     }
 
@@ -6340,10 +6589,12 @@ hide();
 
 void frmDeviceSetup::doPrint2(void)
 {
-bool old_state=printto_item->isChecked();
+//bool old_state=printto_item->isChecked();
+
 doPrint();
-printto_item->setChecked(old_state);
-printto_item->setEnabled(true);
+
+//printto_item->setChecked(old_state);
+//printto_item->setEnabled(true);
 }
 
 void frmDeviceSetup::doPrint(void)
@@ -6478,6 +6729,7 @@ DevOptions[5]->init();
 DevOptions[5]->show();
 DevOptions[5]->raise();
 break;
+
 default:
 ;//Do nothing
 break;
@@ -6556,6 +6808,7 @@ setWindowIcon(QIcon(*GraceIcon));
 
 grpResponciveness=new QGroupBox(tr("Responsiveness"),this);
 noask_item=new QCheckBox(tr("Don't ask questions"),grpResponciveness);
+noask_item->setChecked(FALSE); //ask questions default Nimal
 dc_item=new QCheckBox(tr("Allow double clicks on canvas"),grpResponciveness);
 dc_item->setChecked(TRUE);
 number=3;
@@ -6570,9 +6823,9 @@ autoredraw_type_item->setChecked(TRUE);
 cursor_type_item=new QCheckBox(tr("Crosshair cursor"),grpResponciveness);
 ///chkShowHideWorkaround=new QCheckBox(tr("Show/Hide workaround"),grpResponciveness);
 grpRestrictions=new QGroupBox(tr("Restrictions"),this);
-max_path_item=new stdIntSelector(grpRestrictions,tr("Max drawing path length:"),0,1000000);
+max_path_item=new stdIntSelector(grpRestrictions,tr("Max drawing path length:"),0,1000000); //Nimal 20000
 max_path_item->spnInt->setSingleStep(1000);
-max_path_item->setValue(20000);
+max_path_item->setValue(1000000);
 safe_mode_item=new QCheckBox(tr("Run in safe mode"),grpRestrictions);
 safe_mode_item->setChecked(TRUE);
 grpScrollZoom=new QGroupBox(tr("Scroll/zoom"),this);
@@ -16724,6 +16977,7 @@ connect(tabSpec->selBarGap,SIGNAL(currentValueChanged(double)),SLOT(update4(doub
 
 //end immediate updates stuff
 init();
+
 }
 
 void frmGraph_App::newSelection(int i)
@@ -16740,6 +16994,7 @@ frmGraph_App::~frmGraph_App()
 
 void frmGraph_App::init(void)
 {
+
 listGraph->update_number_of_entries();
 int n=1;
 int values[2]={0,0};
@@ -16900,7 +17155,7 @@ int frmGraph_App::graphapp_aac_cb(void)
 /*
  *     int flipxy;
  */
-    
+
     graphtype = tabMain->selType->currentIndex();//GetChoice(graph_type_choice_item);
 
 /*v.xv1=atof(tabMain->ledCoords[0]->text().toAscii());
@@ -16921,7 +17176,7 @@ v.yv2=atof(tabMain->ledCoords[3]->text().toAscii());*/
     set_default_string(&labs.title);
     //set_plotstr_string(&labs.title, GetTextString(label_title_text_item));
 
-    tabMain->ledTitle->DynSetMemoryToText(labs.title.s,labs.title.alt);
+    tabMain->ledTitle->DynSetMemoryToText(labs.title.s_plotstring,labs.title.alt_plotstring);
     //strcpy(buf,tabMain->ledTitle->text().toAscii());
     //set_plotstr_string(&labs.title,buf);
 ///setting plotstring
@@ -16933,7 +17188,7 @@ v.yv2=atof(tabMain->ledCoords[3]->text().toAscii());*/
     set_default_string(&labs.stitle);
     //set_plotstr_string(&labs.stitle, GetTextString(label_subtitle_text_item));
 
-    tabMain->ledSubtitle->DynSetMemoryToText(labs.stitle.s,labs.stitle.alt);
+    tabMain->ledSubtitle->DynSetMemoryToText(labs.stitle.s_plotstring,labs.stitle.alt_plotstring);
     //strcpy(buf,tabMain->ledSubtitle->text().toAscii());
     //set_plotstr_string(&labs.stitle,buf);
 ///setting plotstring
@@ -17077,20 +17332,20 @@ ListOfChanges << QString(dummy);
 sprintf(dummy,"    title color %d",labs2.title.color);
 ListOfOldStates << QString(dummy);
 }
-if (!(labs.title.s==NULL && labs2.title.s==NULL))
-if ((labs.title.s!=NULL && labs2.title.s==NULL) || (labs.title.s==NULL && labs2.title.s!=NULL) || strcmp(labs.title.s,labs2.title.s))
+if (!(labs.title.s_plotstring==NULL && labs2.title.s_plotstring==NULL))
+if ((labs.title.s_plotstring!=NULL && labs2.title.s_plotstring==NULL) || (labs.title.s_plotstring==NULL && labs2.title.s_plotstring!=NULL) || strcmp(labs.title.s_plotstring,labs2.title.s_plotstring))
 {
-sprintf(dummy,"    title \"%s\"",labs.title.s);
+sprintf(dummy,"    title \"%s\"",labs.title.s_plotstring);
 ListOfChanges << QString(dummy);
-sprintf(dummy,"    title \"%s\"",labs2.title.s);
+sprintf(dummy,"    title \"%s\"",labs2.title.s_plotstring);
 ListOfOldStates << QString(dummy);
 }
-if (!(labs.stitle.s==NULL && labs2.stitle.s==NULL))
-if ((labs.stitle.s!=NULL && labs2.stitle.s==NULL) || (labs.stitle.s==NULL && labs2.stitle.s!=NULL) || strcmp(labs.stitle.s,labs2.stitle.s))
+if (!(labs.stitle.s_plotstring==NULL && labs2.stitle.s_plotstring==NULL))
+if ((labs.stitle.s_plotstring!=NULL && labs2.stitle.s_plotstring==NULL) || (labs.stitle.s_plotstring==NULL && labs2.stitle.s_plotstring!=NULL) || strcmp(labs.stitle.s_plotstring,labs2.stitle.s_plotstring))
 {
-sprintf(dummy,"    subtitle \"%s\"",labs.stitle.s);
+sprintf(dummy,"    subtitle \"%s\"",labs.stitle.s_plotstring);
 ListOfChanges << QString(dummy);
-sprintf(dummy,"    subtitle \"%s\"",labs2.stitle.s);
+sprintf(dummy,"    subtitle \"%s\"",labs2.stitle.s_plotstring);
 ListOfOldStates << QString(dummy);
 }
 if (f.type!=f2.type)
@@ -17328,8 +17583,8 @@ tabMain->chkStackChart->setChecked((bool)is_graph_stacked(gno));
 sprintf(buf, "%g", get_graph_znorm(gno));
 tabSpec->ledZnormal->setText(QString(buf));
 //xv_setstr(znorm_item, buf);
-tabMain->ledTitle->SetTextToMemory(g[gno].labs.title.s,g[gno].labs.title.alt);
-tabMain->ledSubtitle->SetTextToMemory(g[gno].labs.stitle.s,g[gno].labs.stitle.alt);
+tabMain->ledTitle->SetTextToMemory(g[gno].labs.title.s_plotstring,g[gno].labs.title.alt_plotstring);
+tabMain->ledSubtitle->SetTextToMemory(g[gno].labs.stitle.s_plotstring,g[gno].labs.stitle.alt_plotstring);
 
 /*tabMain->ledTitle->setText(QString(labs.title.s));
 tabMain->ledSubtitle->setText(QString(labs.stitle.s));*/
@@ -18144,7 +18399,7 @@ int frmAxis_Prop::axes_aac_cb(void)
     t->t_flag = tabMain->chkDisplTickMarks->isChecked();
     t->t_drawbar = tabMain->chkDisplAxixBar->isChecked();
 
-    tabMain->ledAxisLabel->DynSetMemoryToText(t->label.s,t->label.alt);
+    tabMain->ledAxisLabel->DynSetMemoryToText(t->label.s_plotstring,t->label.alt_plotstring);
     //strcpy(dummy,tabMain->ledAxisLabel->text().toAscii());
     //set_plotstr_string(&t->label, dummy);
 ///setting plotstring
@@ -18626,12 +18881,12 @@ int frmAxis_Prop::axes_aac_cb(void)
             sprintf(dummy,"    %s  bar linewidth %f",descr_axis,t2->t_drawbarlinew);
             ListOfOldStates << QString(dummy);
             }
-            if (!(t->label.s==NULL && t2->label.s==NULL))
-            if ((t->label.s!=NULL && t2->label.s==NULL) || (t->label.s==NULL && t2->label.s!=NULL) || (t->label.s!=NULL && t2->label.s!=NULL && strcmp(t->label.s,t2->label.s)))
+            if (!(t->label.s_plotstring==NULL && t2->label.s_plotstring==NULL))
+            if ((t->label.s_plotstring!=NULL && t2->label.s_plotstring==NULL) || (t->label.s_plotstring==NULL && t2->label.s_plotstring!=NULL) || (t->label.s_plotstring!=NULL && t2->label.s_plotstring!=NULL && strcmp(t->label.s_plotstring,t2->label.s_plotstring)))
             {
-            sprintf(dummy,"    %s  label \"%s\"",descr_axis,t->label.s);
+            sprintf(dummy,"    %s  label \"%s\"",descr_axis,t->label.s_plotstring);
             ListOfChanges << QString(dummy);
-            sprintf(dummy,"    %s  label \"%s\"",descr_axis,t2->label.s);
+            sprintf(dummy,"    %s  label \"%s\"",descr_axis,t2->label.s_plotstring);
             ListOfOldStates << QString(dummy);
             }
             if (t->offsx!=t2->offsx || t->offsy!=t2->offsy)
@@ -18947,7 +19202,7 @@ int frmAxis_Prop::axes_aac_cb(void)
         //the following commands are neccessary for LaTeX-support (because dynamic strings are coppied dynamically)
         if (i==get_cg() && j==curaxis)
         {
-        tabMain->ledAxisLabel->SetTextToMemory(g[i].t[j]->label.s,g[i].t[j]->label.alt);
+        tabMain->ledAxisLabel->SetTextToMemory(g[i].t[j]->label.s_plotstring,g[i].t[j]->label.alt_plotstring);
         tabTickLabels->ledAppend->SetTextToMemory(g[i].t[j]->tl_appstr,g[i].t[j]->orig_tl_appstr);
         tabTickLabels->ledPrepend->SetTextToMemory(g[i].t[j]->tl_prestr,g[i].t[j]->orig_tl_prestr);
             if (g[i].t[j]->t_spec == TICKS_SPEC_BOTH)
@@ -19129,7 +19384,7 @@ updateRunning=true;
 	tabMain->chkDisplTickLabels->setChecked((bool)t->tl_flag);
 	tabMain->chkDisplTickMarks->setChecked((bool)t->t_flag);
 	tabMain->chkDisplAxixBar->setChecked((bool)t->t_drawbar);
-        tabMain->ledAxisLabel->SetTextToMemory(g[gno].t[curaxis]->label.s,g[gno].t[curaxis]->label.alt);
+        tabMain->ledAxisLabel->SetTextToMemory(g[gno].t[curaxis]->label.s_plotstring,g[gno].t[curaxis]->label.alt_plotstring);
 //tabMain->ledAxisLabel->setText(QString(t->label.s));
 
         if (is_log_axis(gno, curaxis)) {
