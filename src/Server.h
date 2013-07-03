@@ -76,7 +76,7 @@ private:
     QString             readServer;
     QString             m_data;
 
-    bool                socket_connected_busy=false;
+    bool                socket_connected_busy;
     const char*         m_sendParam;
     int                 m_paramLen;
 
@@ -84,29 +84,29 @@ private:
     char                *dataSet1;
     char                *dataSet2;
     char                *dataSet3;
-    int                 command=0;
-    int                 dataLength = 0;
-    int                 mode = 0;
+    int                 command;
+    int                 dataLength;
+    int                 mode;
     int                 columns;
     int                 graphNo;
     int                 rows;
     int                 numGraphs;
     double*             xminPtr;
     double*             xmaxPtr;
-    double              xmin =0;
-    double              xmax =0;
+    double              xmin;
+    double              xmax;
     int                 printStrNameLength;
     string              printStrName;
-    int                 conditionToExitFunction = 0;
+    int                 conditionToExitFunction;
     char                *message;
-    quint16             countNoOfRead = 0;
-    quint16             newDataSetReady = 1;
+    quint16             countNoOfRead;
+    quint16             newDataSetReady;
     double              *x;
     double              *y;
-    int                 k=0;
-    bool                exchange_point_comma=false;//exchange ',' for '.' as decimal-seperator
+    int                 k;
+    bool                exchange_point_comma;//exchange ',' for '.' as decimal-seperator
     int                 new_set_no;
-    int                 *new_set_nos=NULL;
+    int                 *new_set_nos;
     graph               *g;
     QList<QFont>        stdFontList;
     QString             xValueStr;
@@ -122,16 +122,16 @@ private:
     QBuffer             buffer;
     QBuffer             xDataSetbuffer;
     QBuffer             yDataSetbuffer;
-    quint16             countNoOfReadData = 0;
+    quint16             countNoOfReadData;
     qint64              availableBytesFromSocket;
     bool                readSocketIsLocked;
-    bool                writeToTmpFile=true;
-    int                 gno=0;
-    int                 load = 0; //read single set
-    int                 cursource = 0; // read from temp file
+    bool                writeToTmpFile;
+    int                 gno;
+    int                 load; //read single set
+    int                 cursource; // read from temp file
     int                 paramLength;
-
-
+    int                 countNoOfDataSets;
+    int                 saveCountNoOfDataSets[10];
 };
 
 

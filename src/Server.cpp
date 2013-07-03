@@ -6,8 +6,26 @@
 
 extern bool startupphase;
 
+
 // initialize server
-LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent) {
+LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent),
+    socket_connected_busy(false),
+    command(0),dataLength(0),
+    graphNo(0),
+    xmin(0),
+    xmax(0),
+    conditionToExitFunction(0),
+    countNoOfRead(0),
+    newDataSetReady(1),
+    k(0),
+    exchange_point_comma(false),
+    new_set_nos(NULL),
+    countNoOfReadData(0),
+    writeToTmpFile(true),
+    gno(0),
+    load(0),
+    cursource(0),
+    countNoOfDataSets(0){
     //Read from Beast
     m_fromBeast = new QLocalServer(this);
 
@@ -16,14 +34,14 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
     if(listenOK)
         cout<< "Start the Server (listen OK)"<<endl;
 
-        else
+    else
 
         cout<< "Not able to start the Server"<<endl;
 
 
-m_fromBeast->setMaxPendingConnections(300);
+    m_fromBeast->setMaxPendingConnections(300);
 
-connect(m_fromBeast, SIGNAL(newConnection()), this, SLOT(readSocket()));
+    connect(m_fromBeast, SIGNAL(newConnection()), this, SLOT(readSocket()));
 
     //Buffer to save data from socket
     buffer.setBuffer(&dataFromBuffer);
@@ -31,7 +49,7 @@ connect(m_fromBeast, SIGNAL(newConnection()), this, SLOT(readSocket()));
 
     readSocketIsLocked=false;
 
-   //Write to Beasst
+    //Write to Beasst
     readServer = readServerName;
     m_toBeast =   new QLocalSocket(this);
     connect(m_toBeast, SIGNAL(connected()), this, SLOT(sendDataToGrace()));
@@ -41,11 +59,13 @@ connect(m_fromBeast, SIGNAL(newConnection()), this, SLOT(readSocket()));
     connect(m_toBeast, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
 
+
 }
 
 void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
     //qDebug() << "2) Connect to Server"+readServer;
     //qDebug() << "sendParam as int="<< *(int*)(sendParam);
+
     m_toBeast->abort();
     m_sendParam = sendParam;
     m_paramLen = sendLen;
@@ -66,7 +86,10 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
 }
 
 
+
 void LocalSocketIpcServer::readSocket() {
+
+
     //qDebug()<<"readSocket() START";
     if(readSocketIsLocked){
         //qDebug()<<"readSocket() SLEEPING because pervious invpcation has not finished yet";
@@ -102,15 +125,15 @@ void LocalSocketIpcServer::readSocket() {
     }
 
     while (clientConnection->bytesAvailable() < bytesNeeded){
-//qDebug()<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
+        //qDebug()<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
         clientConnection->waitForReadyRead();
     }
     //qDebug()<<"Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
 
 
 
-//    connect(clientConnection, SIGNAL(disconnected()),
-//            clientConnection, SLOT(deleteLater()));
+    //    connect(clientConnection, SIGNAL(disconnected()),
+    //            clientConnection, SLOT(deleteLater()));
 
     QDataStream in(clientConnection);
     in.setVersion(QDataStream::Qt_4_7);
@@ -172,7 +195,7 @@ void LocalSocketIpcServer::readSocket() {
         countNoOfRead = 0;
         buffer.write("\n");
         newDataSetReady=1;
-
+        countNoOfDataSets++;
         break;
 
 
@@ -190,11 +213,20 @@ void LocalSocketIpcServer::readSocket() {
         //set_page_geometry()
 
         writeDataToTmpFile();
+        //Update legend properties
+        for(int igno = 0; igno < graphNo+1; igno++){
+            for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets[igno]; iSetNo++){
+                set_legend_string(igno,iSetNo,get_legend_string(igno,iSetNo));
+                setcomment(igno,iSetNo,get_legend_string(igno,iSetNo));
+
+            }}
+
+        countNoOfDataSets = 0;
         countNoOfRead = 0;
         writeToTmpFile=false;
 
         break;
-}
+    }
     case 5://PS_FILENAME(5)
         //qDebug()<<"Run Command" << command;
         readPsFileName();
@@ -262,7 +294,6 @@ void LocalSocketIpcServer::readSocket() {
         //qDebug()<<"Run Command" << command;
         update_all();
         xdrawgraph();
-        countNoOfRead = 0;
 
         writeToTmpFile=true;
         countNoOfRead = 0;
@@ -338,10 +369,10 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
         //        command = newDataFromSocket[0];
         command = *((int*)(newDataFromSocket));
         //qDebug() << " The command is int, 4 bytes are "<<
-          //          (int)(newDataFromSocket[0]) << " " <<
-            //        (int)(newDataFromSocket[1]) << " " <<
-              //      (int)(newDataFromSocket[2]) << " " <<
-                //    (int)(newDataFromSocket[3]) << " ";
+        //          (int)(newDataFromSocket[0]) << " " <<
+        //        (int)(newDataFromSocket[1]) << " " <<
+        //      (int)(newDataFromSocket[2]) << " " <<
+        //    (int)(newDataFromSocket[3]) << " ";
         break;
 
     case 2: //Read data length
@@ -447,7 +478,7 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
     y = (double *) yData;
 
     if (newDataSetReady)
-    buffer.write("@TYPE xy");
+        buffer.write("@TYPE xy");
 
     //print double pointer elements
 
@@ -505,6 +536,7 @@ void LocalSocketIpcServer::readPsFileName(){
     /* set the printstring with the read data */
     if(dataSet1[0] != '\0'){
         printStrName = (string)dataSet1;
+        set_docname(dataSet1);
     }
     free(dataSet1);
     set_ptofile(TRUE);
@@ -540,7 +572,7 @@ void LocalSocketIpcServer::setScalingMode()
     case 1:
         /* autoscale all axis - default*/
         autoscale_graph(graphNo, 3);
-      //  update_all();
+        //  update_all();
         break;
 
     case 0:
@@ -556,7 +588,10 @@ void LocalSocketIpcServer::setScalingMode()
 
 }
 
-void LocalSocketIpcServer::writeDataToTmpFile()
+void LocalSocketIpcServer::
+
+
+writeDataToTmpFile()
 {
     //kill_all_sets(0);
     // kill_all_graphs();
@@ -589,8 +624,6 @@ void LocalSocketIpcServer::writeDataToTmpFile()
         new_set_no=0;
 
         getdata(gno, fileNameChar,cursource,load);
-
-
         update_all();
         buffer.close();
         dataFromBuffer.clear();
@@ -611,9 +644,18 @@ void LocalSocketIpcServer::writeDataToTmpFile()
 
 void LocalSocketIpcServer::setLayoutMode(){
 
-  graphNo = dataLength;
+    graphNo = dataLength;
     view v;
 
+    //Update legend properties
+
+    for(int iSetNo = 0; iSetNo < countNoOfDataSets; iSetNo++){
+        set_legend_string(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
+        setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
+    }
+
+    saveCountNoOfDataSets[graphNo]=countNoOfDataSets;
+    countNoOfDataSets = 0;
 
     v.xv1 = 0.15;
     v.xv2 = 1.21;
@@ -656,25 +698,25 @@ void LocalSocketIpcServer::setLayoutMode(){
                            0, 0);
 */
         break;
-}
+    }
     case 2: //overlay4
-       {
-           if(graphNo != 0)  { // Lay all on the first one.
-//#define GOVERLAY_SMART_AXES_DISABLED  0
-//#define GOVERLAY_SMART_AXES_NONE      1
-//#define GOVERLAY_SMART_AXES_X         2
-//#define GOVERLAY_SMART_AXES_Y         3
-//#define GOVERLAY_SMART_AXES_XY        4
-               overlay_graphs(graphNo, 0, 4);
-           }
+    {
+        if(graphNo != 0)  { // Lay all on the first one.
+            //#define GOVERLAY_SMART_AXES_DISABLED  0
+            //#define GOVERLAY_SMART_AXES_NONE      1
+            //#define GOVERLAY_SMART_AXES_X         2
+            //#define GOVERLAY_SMART_AXES_Y         3
+            //#define GOVERLAY_SMART_AXES_XY        4
+            overlay_graphs(graphNo, 0, 4);
+        }
 
-               set_graph_viewport(graphNo, v);
+        set_graph_viewport(graphNo, v);
 
         break;
-}
+    }
     case 1:
     {    // join, do nothing
-       set_graph_viewport(graphNo, v);
+        set_graph_viewport(graphNo, v);
         break;
     }
     case 0:{
