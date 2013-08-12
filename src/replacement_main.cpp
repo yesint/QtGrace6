@@ -76,7 +76,12 @@
 #include <QtWebKit>
 #include <QWebView>
 #include <QtWebKit/QWebView>
+
+#if QT_VERSION < 0x050000
+#else
 #include <QtWebKitWidgets>
+#endif
+
 #ifdef WINDOWS_SYSTEM
 #define O_NONBLOCK 0x0004
 #endif
