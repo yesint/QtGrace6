@@ -303,7 +303,9 @@ mnuFile->addAction(actExportToFile);
 //Nimal
 
 mnuFile->addSeparator();
-mnuFile->addAction(actPrintSetup);
+ cout << "Before mnuFile->addAction(actPrintSetup);"<< endl;
+ ////// mnuFile->addAction(actPrintSetup);
+ cout << "After  mnuFile->addAction(actPrintSetup);"<< endl;
 mnuFile->addAction(actPrint);
 mnuFile->addSeparator();
 mnuFile->addAction(actExit);
