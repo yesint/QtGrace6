@@ -33,6 +33,11 @@
  */
 
 /*#include <config.h>*/
+
+#include <iostream> 
+// Must be before others
+
+
 #include <math.h>
 
 #include <stdio.h>
