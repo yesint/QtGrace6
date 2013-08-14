@@ -692,7 +692,11 @@ mainWin->activateWindow();
 startupphase=false;
 
 int execVal=a->exec();
+
+if(mainWin&&mainWin->SocketConnection){
 delete  mainWin->SocketConnection;
+}
+
 return execVal;
 }
 

@@ -247,7 +247,8 @@ PatternPixmaps[i]=new QPixmap(tempIcon);
 }
 }
 
-MainWindow::MainWindow( QWidget *parent):QWidget( parent )
+MainWindow::MainWindow( QWidget *parent):QWidget( parent ),
+SocketConnection(NULL)
 {
 
 
