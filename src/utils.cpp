@@ -1188,6 +1188,7 @@ void errmsg(const char *buf)
 #ifdef NONE_GUI
     fprintf(stderr, "%s\n", buf);
 #else
+    fprintf(stderr, "%s\n", buf);
     //if (inwin) {
 	if (FormConsole==NULL)
 	{
