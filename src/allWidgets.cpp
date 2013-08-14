@@ -9123,7 +9123,7 @@ layout3->setMargin(STD_MARGIN);
 
 sprintf(buf, "Host: %s", bi_system());
 lblInfo[16]=new QLabel(QString(buf),grpBuildInfo);
-	sprintf(buf, "Time: %s", bi_date());
+		       sprintf(buf, "Time: %s ; \"allWidgets.cpp\" compiled %s %s ", bi_date(),__DATE__,__TIME__);
 lblInfo[17]=new QLabel(QString(buf),grpBuildInfo);
 	sprintf(buf, "GUI toolkit: %s ", bi_gui());
 lblInfo[18]=new QLabel(QString(buf),grpBuildInfo);
