@@ -49,7 +49,8 @@
 #include "graphutils.h"
 #include "parser.h"
 #include "noxprotos.h"
-
+#include "cmath.h"
+#include "globals.h"
 #include <iostream>
 
 using namespace std;

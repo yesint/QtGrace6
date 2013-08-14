@@ -60,6 +60,9 @@ I strongly recommend using them... they work very well.
 #include "utils.h"
 #include "noxprotos.h"
 
+#include "cmath.h"
+// M_PI
+
 #ifndef  HAVE_FFTW
 
 static int bit_swap(int i, int nu);

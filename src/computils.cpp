@@ -52,6 +52,9 @@ extern "C" double MAXNUM;
 #include "noxprotos.h"
 #include <iostream>
 
+#include "cmath.h"
+// M_PI
+
 using namespace std;
 
 static void forwarddiff(double *x, double *y, double *resx, double *resy, int n);

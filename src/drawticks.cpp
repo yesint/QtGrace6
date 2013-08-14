@@ -46,7 +46,7 @@
 #include "draw.h"
 #include "parser.h"
 #include "noxprotos.h"
-
+#include "cmath.h"
 using namespace std;
 
 int is_xaxis(int axis)
