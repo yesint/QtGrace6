@@ -136,7 +136,17 @@ void LocalSocketIpcServer::readSocket() {
     //            clientConnection, SLOT(deleteLater()));
 
     QDataStream in(clientConnection);
+    
+#if QT_VERSION >= 0x040700
     in.setVersion(QDataStream::Qt_4_7);
+#else
+    in.setVersion(QDataStream::Qt_4_0);
+#endif 	
+	
+	
+	
+	
+	
     if (clientConnection->bytesAvailable() < (int)sizeof(quint16)) {
         //qDebug()<<"readSocket() FAIL 2";
 
@@ -345,7 +355,17 @@ void LocalSocketIpcServer::sendDataToGrace(){
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
+    
+	
+#if QT_VERSION >= 0x040700
     out.setVersion(QDataStream::Qt_4_7);
+#else
+    out.setVersion(QDataStream::Qt_4_0);
+#endif 
+	
+	
+	
+	
     out.writeRawData(m_sendParam,m_paramLen);
     out.device()->seek(0);
     m_toBeast->write(block);
