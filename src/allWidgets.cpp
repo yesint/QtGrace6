@@ -32,7 +32,13 @@
 #include "undo_module.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _MSC_VER
+inline double rint(double x){return floor(x+0.5);}
+#else
 #include <unistd.h>
+#endif
+
 #include <string.h>
 #include <fcntl.h>
 
