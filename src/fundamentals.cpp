@@ -1586,7 +1586,7 @@ cmbColorSelect->setIconSize(QSize(82,16));
 int * real_colors=new int[4];
 int aux_cols;
 int map_entries=get_main_color_indices(&real_colors,&aux_cols);
-int rows=int(sqrt(map_entries));
+int rows=int(sqrt(map_entries*1.0));
 int cols=rows;
 int last_col=rows;
 if (rows*cols<map_entries)
@@ -1633,7 +1633,7 @@ cmbColorSelect->setCurrentIndex(i);
 
 void ColorSelector::updateColorIcons(int nr_of_cols,QPixmap ** ColorPixmaps,QString ** ColorNames)
 {
-int rows=int(sqrt(nr_of_cols));
+int rows=int(sqrt(nr_of_cols*1.0));
 int cols=rows;
 int last_col=rows;
 if (rows*cols<nr_of_cols)

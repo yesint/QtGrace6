@@ -618,7 +618,7 @@ char *create_fstring(int form, int prec, double loc, int type)
          * to give the value in multiples of the powers of 1024
          */       
         if (loc != 0.0) {
-            exponent = (int) floor(log2(fabs(loc)));
+            exponent = (int) floor(log(fabs(loc))/log(2.0));
             if (exponent < 10) {
                 exponent = 0;
             } else if (exponent > 80) {

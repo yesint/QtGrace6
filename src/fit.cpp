@@ -58,6 +58,11 @@
 #include "noxprotos.h"
 #include "as274c.h"
 
+#ifdef _MSC_VER
+#include <float.h>
+// _finite()
+#endif
+
 static char buf[256];
 
 
@@ -147,6 +152,10 @@ int fitcurve(double *x, double *y, int n, int ideg, double *coeff)
 		}
     }
 	/* check coefficients */
+	#ifdef _MSC_VER
+	#define finite(x) _finite(x)
+	#endif
+	
 	for (i = 0; i <= ideg; i++) {
 	    if (!finite(coeff[i])) {
 	        errmsg("Linear_regression - all values of x or y are the same");
