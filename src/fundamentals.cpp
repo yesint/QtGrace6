@@ -2817,6 +2817,7 @@ bool SetTableModel::insertRows(int row, int count, const QModelIndex & parent)
 beginInsertRows(parent,row,row+count-1);
 
 endInsertRows();
+return true;
 }
 
 bool SetTableModel::removeRows(int row, int count, const QModelIndex & parent)
@@ -2824,6 +2825,7 @@ bool SetTableModel::removeRows(int row, int count, const QModelIndex & parent)
 beginRemoveRows(parent,row,row+count-1);
 
 endRemoveRows();
+return true;
 }
 
 bool SetTableModel::insertColumns(int column, int count, const QModelIndex & parent)
