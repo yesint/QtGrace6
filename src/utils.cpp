@@ -1368,6 +1368,9 @@ void init_userhome(void)
 
 char *get_userhome(void)
 {
+    if(userhome==NULL)init_userhome();
+    // was missing. And if missing, it causes segm fault on win64 
+
     return userhome;
 }
 

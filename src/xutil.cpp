@@ -72,7 +72,7 @@ extern QPainter * GeneralPainter;
 extern MainWindow * mainWin;
 extern QImage * MainPixmap;
 
-extern int win_h, win_w;	/* declared in x11drv.c */
+extern unsigned int win_h, win_w;	/* declared in x11drv.c */
 
 extern int inpipe;
 extern "C" char batchfile[];
