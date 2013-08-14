@@ -11749,7 +11749,7 @@ hide();
 
 void frmHotLinks::newLinkFileSelected(int type,QString file,bool exists,bool writeable,bool readable)
 {
-char dummy[file.length()+1];
+char *dummy=new char[file.length()+1];// Win port
 strcpy(dummy,file.toAscii());
 /*//for testing -- maybe some tests needed (readable files...)
 cout << "type=" << type << endl;
@@ -11757,6 +11757,7 @@ cout << "file=" << dummy << endl;
 cout << "exists=" << exists << endl;
 cout << "writeable=" << writeable << endl;
 cout << "readable=" << readable << endl;*/
+delete[]dummy;
 FormSelectHotLink->hide();
 hotlink_file_item->setText(file);
 }
@@ -12147,9 +12148,10 @@ void frmEditBlockData::update_eblock(int gno)
     blockncols = get_blockncols();
     if (blockncols == 0) {
 	QString err=tr("Need to read block data first");
-	char dummy_err[err.length()+1];
+	char *dummy_err=new char[err.length()+1];// Win port
 	strcpy(dummy_err,err.toAscii());
 	errmsg(dummy_err);
+	delete [] dummy_err;
 	return;
     }
     blocklen = get_blocknrows();
@@ -19692,7 +19694,7 @@ void frmNetCDF::IOrequested(int type,QString file,bool exists,bool writeable,boo
 {
     char * filename=new char[file.length()+5];
     strcpy(filename,file.toAscii());
-    char dummy[strlen(filename)+30];
+    char *dummy=new char[strlen(filename)+30];// Win port
     sprintf(dummy,"%s%s.",tr("Can't open file ").toAscii().constData(),filename);
     if (exists==true && readable==true)
     {
@@ -19705,6 +19707,7 @@ void frmNetCDF::IOrequested(int type,QString file,bool exists,bool writeable,boo
     errwin(dummy);
     }
     delete[] filename;
+	delete[] dummy;
 }
 
 void frmNetCDF::doClose(void)
@@ -21494,8 +21497,8 @@ void frmBinaryFormatInput::doReadDataFromHeader(ifstream & ifi)
     char dummy[512];
     bool integer_type;
     double d_value;
-    long headerDatas[tabHeader->number_of_lines];
-    long double ldHeaderDatas[tabHeader->number_of_lines];
+    long *headerDatas=new long[tabHeader->number_of_lines];
+    long double* ldHeaderDatas=new long double[tabHeader->number_of_lines];
     char buffer[16];
     char * stringText=new char[2];
     int size,readbytes,global_size=0;
@@ -21868,6 +21871,8 @@ if (imp_set.points<=0 && imp_set.whole_size!=-1 && (imp_set.bytesize!=-1 || imp_
 }
 //cout << "points=" << imp_set.points << " whole=" << imp_set.whole_size << " byte=" << imp_set.bytesize << " bit=" << imp_set.bitsize << " global_size=" << global_size << endl;
 headersize=global_size;
+delete[]headerDatas;
+delete[]ldHeaderDatas;
 }
 
 void frmBinaryFormatInput::transmitInfos(void)
@@ -22072,7 +22077,7 @@ length-=position;//length without header
 ifi.seekg(position);//go to first byte after header
 //cout << "resulting length=" << length << endl;
 long size_of_one_point=0;
-long size_of_one_set[imp_set.channels];
+long *size_of_one_set=new long[imp_set.channels];
 long calc_samp_count;
     for (int i=0;i<imp_set.channels;i++)
     size_of_one_point+=(long)(imp_set.channel_size[i]);
@@ -22189,6 +22194,8 @@ break;
     cout << "error in reading: wrong count after eof: read=" << read << " points=" << *points_read << endl;
     *points_read=read;
     }
+
+	delete[]size_of_one_set;
 }
 
 frmSetEditor::frmSetEditor(QWidget * parent):QDialog(parent)

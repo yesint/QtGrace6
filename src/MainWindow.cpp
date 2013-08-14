@@ -1004,9 +1004,9 @@ FormOpenProject->activateWindow();
 
 void MainWindow::IOrequested(int type,QString file,bool exists,bool writeable,bool readable)
 {
-char dummy[file.length()+2];
+char* dummy=new char [file.length()+2]; // Windows port
 strcpy(dummy,file.toAscii());
-char dummy2[strlen(dummy)+35];
+char* dummy2=new char[strlen(dummy)+35]; // Windows port
 sprintf(dummy2,"%s%s",tr("Can't stat file ").toAscii().constData(),dummy);
 /*cout << "Origin(type)=" << type << endl;
 cout << "file to load=" << dummy << endl;

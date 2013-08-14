@@ -1169,7 +1169,7 @@ double rot=atan(cs->tm.cyx/cs->tm.cyy);// *180.0/3.1415927
 if (cs->tm.cxx<0.0) rot+=M_PI;
 double ca=cos(rot),sa=sin(rot);
 double size=sqrt(cs->tm.cxx*cs->tm.cxx+cs->tm.cyx*cs->tm.cyx);///MAGIC_FONT_SCALE;
-char dummy[cs->len+8];
+char *dummy=new char[cs->len+8]; // Windows port
 cs->s[cs->len]='\0';
 strcpy(dummy,cs->s);
 

@@ -2295,7 +2295,7 @@ showFilesLikeFilter();
 
 void FileSelector::doSetCWD(void)
 {
-char dummy[currentDir.length()];
+char *dummy=new char [currentDir.length()]; // Windows port
 strcpy(dummy,currentDir.toAscii());
 set_workingdir(dummy);
 }
