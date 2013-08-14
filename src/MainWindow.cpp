@@ -185,7 +185,7 @@ extern QCursor * kill_cursor;
 extern int cur_cursor;
 
 extern int action_flag;
-extern char print_file[];
+
 
 extern int max_history;
 extern int current_history;

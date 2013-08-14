@@ -60,7 +60,7 @@ extern void set_pagelayout(int layout);
 extern int new_set_no;
 
 /* graph definition */
-graph *g = NULL;
+
 extern int maxgraph;
 
 /* the current graph */

@@ -153,7 +153,7 @@ int NodeNr,used_Nodes,akt_Node;
 int max_node_nr;
 class undo_node * Node;
 
-extern graph * g;
+
 extern int maxstr;
 extern double * old_ddata[16];//to store some data temporarely
 extern int * old_idata[16];//to store some data temporarely

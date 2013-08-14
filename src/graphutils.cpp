@@ -46,7 +46,8 @@
 #include "graphutils.h"
 #include "noxprotos.h"
 
-extern char print_file[];
+
+
 
 static void auto_ticks(int gno, int axis);
 

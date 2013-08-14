@@ -75,7 +75,7 @@ extern QImage * MainPixmap;
 extern int win_h, win_w;	/* declared in x11drv.c */
 
 extern int inpipe;
-extern char batchfile[];
+extern "C" char batchfile[];
 
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;

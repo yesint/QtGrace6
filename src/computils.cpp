@@ -37,7 +37,7 @@
 ///#include <config.h>
 #include <cmath>
 #ifndef MAXNUM
-extern double MAXNUM;
+extern "C" double MAXNUM;
 #endif
 #include <cstdio>
 #include <cstdlib>

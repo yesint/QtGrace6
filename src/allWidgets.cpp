@@ -111,7 +111,7 @@ extern QBitmap * Qt_matrixOrder[8];
 extern QFont stdFont;
 extern frmIOForm * FormSelectHotLink;
 extern frmConsole * FormConsole;
-extern graph * g;
+
 extern void HelpCB(char *data);
 extern int get_cg(void);
 extern frmSetOperations * FormSetOPS;
@@ -208,10 +208,10 @@ extern int tight_bb;
 extern int pnm_setup_format;
 extern int pnm_setup_rawbits;
 
-extern graph * g;
+
 extern int maxgraph;
 extern int cursortype;
-extern char print_file[];
+
 int current_page_units = 0;
 #if defined WITH_XMHTML || defined WITH_LIBHELP
 extern int force_external_viewer;

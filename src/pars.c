@@ -955,7 +955,7 @@ static int vasgn_setno;
 static int alias_force = FALSE; /* controls whether aliases can override
                                                        existing keywords */
 
-extern char print_file[];
+
 extern char *close_input;
 
 static int filltype_obs;

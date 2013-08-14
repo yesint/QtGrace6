@@ -33,13 +33,13 @@
 #include <cmath>
 
 #ifndef MACHEP
-extern double MACHEP;
+extern  "C" double MACHEP;
 #endif
 #ifndef UFLOWTHRESH
-extern double UFLOWTHRESH;
+extern  "C" double UFLOWTHRESH;
 #endif
 #ifndef MAXNUM
-extern double MAXNUM;
+extern "C" double MAXNUM;
 #endif
 
 #include "f2c.h"

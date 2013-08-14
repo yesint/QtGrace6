@@ -56,7 +56,7 @@ extern bool activateLaTeXsupport;
 extern QStringList ListOfChanges;
 extern QStringList ListOfOldStates;
 
-extern graph * g;
+
 extern int maxgraph;
 extern int new_set_no;
 

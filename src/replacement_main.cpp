@@ -39,6 +39,8 @@
 //#endif
 
 /* for globals.h */
+//#include "globals.h"
+
 #define MAIN
 
 #include "globals.h"
@@ -96,8 +98,8 @@ extern QString ** ColorNames;
 extern MainWindow * mainWin;
 extern char user_home_dir[1024];
 extern char qt_grace_exe_dir[1024];
-extern char batchfile[];
-extern char print_file[];
+extern "C" char batchfile[];
+
 extern int install_cmap;
 extern QBitmap * patterns[MAXPATTERNS];
 extern Input_buffer *ib_tbl;

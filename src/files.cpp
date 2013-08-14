@@ -107,7 +107,7 @@ extern MainWindow * mainWin;
 extern int new_set_no;
 extern int * new_set_nos;
 extern int ReqUpdateColorSel;
-extern graph * g;
+
 extern QList<QFont> stdFontList;
 extern QTextCodec * FileCodec;
 
@@ -121,7 +121,8 @@ extern void update_default_props(void);
 extern void append_to_storage(int * len,int ** storage,int n,int * new_entries);
 extern void update_font_selectors(void);
 
-char *close_input;		/* name of real-time input to close */
+extern "C" char *close_input;		/* name of real-time input to close */
+char *close_input;
 
 struct timeval read_begin = {0l, 0l};	/* used to check too long inputs */
 
