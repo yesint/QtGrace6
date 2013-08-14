@@ -1512,6 +1512,7 @@ void update_set_lists(int gno)
  */
 void set_left_footer(char *s)
 {
+	return;
     if (s == NULL) {
         char * hbuf;
         char * buf;
@@ -1522,7 +1523,8 @@ void set_left_footer(char *s)
 //cout << "sizeof=" << hst.length()+1 << endl;
         strcpy(hbuf,hst.toAscii());
         sprintf(buf, "%s, %s, %s", hbuf, display_name(), get_docname());
-mainWin->statusBar->showMessage(QString(buf));
+//mainWin->statusBar->showMessage(QString(buf));
+//mainWin->statusBar->showMessage(QString("HELLOHELLOWIN64"));
         //SetLabel(statlab, buf);
     delete[] hbuf;
     delete[] buf;
