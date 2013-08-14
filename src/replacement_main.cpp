@@ -81,8 +81,15 @@
 //#include <QtWebKit/QWebView>
 // In Qt 5.0
 
+
+
+#ifdef _MSC_VER
+#else
 #include <QtWebKit>
 #include <QWebView>
+#endif
+
+
 #include <QtWebKit/QWebView>
 
 #if QT_VERSION < 0x050000
