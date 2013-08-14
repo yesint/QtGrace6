@@ -16,7 +16,8 @@ TRANSLATIONS += qt_grace_ger.ts
 QT += network
 QT += widgets
 QT += printsupport
-ICON = GraceIcon.icns
+#### ICON = GraceIcon.icns
+#### VC++ creates strange errors about ICON...
 !unix:RC_FILE = qtgrace.rc
 
 CONFIG += debug
