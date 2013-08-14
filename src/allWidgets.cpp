@@ -10725,11 +10725,22 @@ cutoff_Function_i[i]=ko[i].imag;
 delete[] ko;
 }
 
+
+double 
+asinh_portable(double x)
+{ 
+#ifdef _MSC_VER
+    return log(x+sqrt(x*x+1));
+#else
+    return asinh(x);
+#endif
+}
+
 void generateLowPass_Chebychev(double * f,int n,double f_cutoff,int order,double ripple,double * cutoff_Function_r,double * cutoff_Function_i)
 {
 struct komplex help1;
 struct komplex * ko=new struct komplex[n];
-double gamma=asinh(ripple)/order;//ripples are in dB
+double gamma=asinh_portable(ripple)/order;//ripples are in dB
 double ai,bi;
 double help;
 for (int i=0;i<n;i++)
