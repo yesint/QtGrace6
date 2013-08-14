@@ -700,6 +700,7 @@ delete  mainWin->SocketConnection;
 return execVal;
 }
 
+extern int object_edit_popup(int obj, int id);
 int object_edit_popup(int type, int id)
 {
     switch (type) {

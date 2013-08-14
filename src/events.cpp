@@ -65,7 +65,7 @@ extern frmGraphApp * FormGraphAppearance;
 extern frmPointExplorer * FormPointExplorer;
 extern frmLocatorProps * FormLocatorProps;
 extern void hide_rubber_lines(void);
-extern void object_edit_popup(int obj, int id);
+extern int object_edit_popup(int obj, int id);
 extern int region_def_under_way;
 extern int regiontype;
 extern QPoint VPoint2XPoint(VPoint vp);
