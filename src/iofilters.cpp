@@ -161,6 +161,11 @@ FILE *filter_read( char *fn )
 		fclose( in );
 		sprintf( buf, ifilt[i].command, fn );
 		fflush( stdout );
+
+#ifdef _MSC_VER		
+#define popen(x,y) _popen(x,y)		
+#endif
+		
 		return popen(grace_exe_path(buf), "r");
 	} else {
 		return in;

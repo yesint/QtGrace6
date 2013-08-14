@@ -37,7 +37,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _MSC_VER
+#include <direct.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <ctype.h>
 #include <string.h>
 
@@ -1278,6 +1284,11 @@ char *mybasename(const char *s)
 }
 
 static char workingdir[GR_MAXPATHLEN];
+
+#ifdef _MSC_VER
+#define chdir _chdir
+#define getcwd _getcwd
+#endif
 
 int set_workingdir(const char *wd)
 {

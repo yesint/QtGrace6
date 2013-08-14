@@ -37,11 +37,23 @@
 
 #include <cstdio>
 #include <cstdlib>
+
+#ifdef _MSC_VER
+#include <WinSock2.h> 
+// fd_set
+#include <time.h>
+// _tzset
+#include <io.h>
+#else
 #include <unistd.h>
+#include <sys/time.h>
+#endif
+
 #include <cstring>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
+
+
 //#include <sys/select.h>
 #include <cerrno>
 
@@ -236,6 +248,60 @@ if (read_data>0)
     }
 }
 }
+
+#ifdef _MSC_VER
+
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#else
+  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#endif
+
+struct timezone 
+{
+  int  tz_minuteswest; /* minutes W of Greenwich */
+  int  tz_dsttime;     /* type of dst correction */
+};
+
+int gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+  FILETIME ft;
+  unsigned __int64 tmpres = 0;
+  static int tzflag;
+
+  if (NULL != tv)
+  {
+    GetSystemTimeAsFileTime(&ft);
+
+    tmpres |= ft.dwHighDateTime;
+    tmpres <<= 32;
+    tmpres |= ft.dwLowDateTime;
+
+    /*converting file time to unix epoch*/
+    tmpres -= DELTA_EPOCH_IN_MICROSECS; 
+    tmpres /= 10;  /*convert into microseconds*/
+    tv->tv_sec = (long)(tmpres / 1000000UL);
+    tv->tv_usec = (long)(tmpres % 1000000UL);
+  }
+
+  if (NULL != tz)
+  {
+    if (!tzflag)
+    {
+      _tzset();
+      tzflag++;
+    }
+    tz->tz_minuteswest = _timezone / 60;
+    tz->tz_dsttime = _daylight;
+  }
+
+  return 0;
+}
+
+
+#endif
+
+
 
 /*
  * part of the time sliced already spent in milliseconds
@@ -758,6 +824,11 @@ static int read_long_line(FILE * fp, char **linebuf, int *buflen)
     return retval;
 }
 
+
+#ifndef S_ISREG
+#define S_ISREG(m)     (((m) & S_IFMT) == S_IFREG)
+#endif
+
 /* open a file for write */
 FILE *grace_openw(char *fn)
 {
@@ -884,6 +955,11 @@ char *grace_exe_path(char *fn)
         }
     }
 }
+
+#ifdef _MSC_VER
+#define popen _popen
+#define pclose _pclose
+#endif
 
 /* open a file for read */
 FILE *grace_openr(char *fn2, int src)

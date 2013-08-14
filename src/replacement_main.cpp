@@ -31,7 +31,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef _MSC_VER
+ #define STDIN_FILENO 0
+ #include <io.h>
+ // _open()
+#else
 #include <unistd.h>
+#endif
 #include <string.h>
 //#ifdef HAVE_FCNTL_H
 //#ifndef WINDOWS_SYSTEM
@@ -86,6 +92,10 @@
 
 #ifdef WINDOWS_SYSTEM
 #define O_NONBLOCK 0x0004
+#endif
+
+#ifdef _MSC_VER
+#define open _open
 #endif
 
 ///extern CMap_entry cmap_init[16];
