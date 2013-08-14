@@ -878,7 +878,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+
+#ifdef _MSC_VER
+#else
 #include <unistd.h>
+#endif
+
 #include <string.h>
 #include <ctype.h>
 #if defined(HAVE_SYS_PARAM_H)

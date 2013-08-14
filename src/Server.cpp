@@ -1,7 +1,12 @@
 #include "Server.h"
 #include "undo_module.h"
 //#include <MainWindow.h>
+#ifdef _MSC_VER
+#include <windows.h>
+// Sleep()
+#else
 #include <unistd.h>
+#endif
 #include <QtNetwork/QLocalSocket>
 
 extern bool startupphase;
@@ -339,7 +344,12 @@ void LocalSocketIpcServer::sendDataToGrace(){
     }
     socket_connected_busy=true;
 
+#ifdef _MSC_VER
+    Sleep(1);
+#else
     usleep(1000);
+#endif
+	
     std::cerr << "writeRawData "<<m_paramLen<<" bytes "<<std::endl;
     std::cerr << " data are: ";
     //if(m_len>0 && m_sendMessage [0] == 8) sleep(1);

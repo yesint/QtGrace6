@@ -38,7 +38,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+
+#ifdef _MSC_VER
+#else
 #include <unistd.h>
+#endif
+
+
 #include <string.h>
 #include <stdarg.h>
 
