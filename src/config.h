@@ -384,4 +384,10 @@
 #  define NDEBUG
 #endif
 
+
+#ifdef _MSC_VER
+#define rint(x)  floor((x)+0.5)
+#undef HAVE_GETTIMEOFDAY
+#endif
+
 #endif /* __CONFIG_H */

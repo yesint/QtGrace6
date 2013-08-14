@@ -61,6 +61,10 @@
 #  include "motifinc.h"
 #endif*/
 
+// #include "config.h" would affect HAVE_LIBJPEG
+// instead just handle rint() alone here: Windows port
+inline double rint(double x){return floor(x+0.5);}
+
 static void rstImagePnm(gdImagePtr ihandle, FILE *prstream);
 
 extern FILE *prstream;

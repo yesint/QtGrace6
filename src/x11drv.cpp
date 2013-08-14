@@ -56,6 +56,9 @@
 #include "noxprotos.h"
 #include "MainWindow.h"
 
+#include "config.h"
+// rint()
+
 extern bool useQPrinter;
 extern double GeneralPageZoomFactor;
 extern bool printing_in_file;

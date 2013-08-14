@@ -38,6 +38,10 @@
 
 #include <cstdio>
 
+#ifdef _MSC_VER
+#define rint(x)  floor((x)+0.5)
+#endif
+
 #include "globals.h"
 #include "utils.h"
 #include "draw.h"

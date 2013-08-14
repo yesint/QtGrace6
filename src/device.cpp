@@ -38,7 +38,7 @@
 #include "graphutils.h"
 #include "utils.h"
 #include "device.h"
-
+#define rint(x)  floor((x)+0.5)
 using namespace std;
 
 extern double GeneralPageZoomFactor;
