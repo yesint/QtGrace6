@@ -47,7 +47,7 @@
 #include "device.h"
 #include "noxprotos.h"
 
-#define rint(x)  floor((x)+0.5)
+#include "rint.h"
 
 static void put_regions(FILE * pp, int embed);
 static void put_objects(int gno, FILE * pp, int embed);

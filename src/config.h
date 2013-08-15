@@ -386,7 +386,7 @@
 
 
 #ifdef _MSC_VER
-#define rint(x)  floor((x)+0.5)
+#include "rint.h"
 #undef HAVE_GETTIMEOFDAY
 #endif
 

@@ -39,7 +39,7 @@
 #include <cstdio>
 
 #ifdef _MSC_VER
-#define rint(x)  floor((x)+0.5)
+#include "rint.h"
 #endif
 
 #include "globals.h"

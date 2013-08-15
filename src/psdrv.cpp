@@ -53,9 +53,7 @@
 #include "psdrv.h"
 #include "noxprotos.h"
 
-// #include "config.h" would affect HAVE_LIBJPEG
-// instead just handle rint() alone here: Windows port
-inline double rint(double x){return floor(x+0.5);}
+#include "rint.h"
 
 /*#ifndef NONE_GUI
 #  include "motifinc.h"

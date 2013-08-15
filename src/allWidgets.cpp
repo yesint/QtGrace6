@@ -34,7 +34,7 @@
 #include <stdlib.h>
 
 #ifdef _MSC_VER
-inline double rint(double x){return floor(x+0.5);}
+#include "rint.h"
 #else
 #include <unistd.h>
 #endif

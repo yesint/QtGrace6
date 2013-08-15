@@ -54,7 +54,7 @@
 #include <QPainter>
 #include <iostream>
 #include "MainWindow.h"
-inline double rint(double x){return floor(x+0.5);}
+#include "rint.h"
 FILE *prstream;
 
 extern MainWindow * mainWin;
