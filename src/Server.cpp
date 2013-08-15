@@ -63,13 +63,14 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 
     connect(m_toBeast, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
+	qDebug()<<"Done constructor";
 
 
 }
 
 void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
-    //qDebug() << "2) Connect to Server"+readServer;
-    //qDebug() << "sendParam as int="<< *(int*)(sendParam);
+    qDebug() << "2) Connect to Server"+readServer;
+    qDebug() << "sendParam as int="<< *(int*)(sendParam);
 
     m_toBeast->abort();
     m_sendParam = sendParam;
@@ -79,7 +80,7 @@ void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
 }
 
 LocalSocketIpcServer::~LocalSocketIpcServer() {
-    //qDebug() << "Server deletion";
+    qDebug() << "Server deletion";
 
     m_fromBeast->close();
     delete m_fromBeast;
@@ -95,12 +96,12 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
 void LocalSocketIpcServer::readSocket() {
 
 
-    //qDebug()<<"readSocket() START";
+    qDebug()<<"readSocket() START";
     if(readSocketIsLocked){
-        //qDebug()<<"readSocket() SLEEPING because pervious invpcation has not finished yet";
+        qDebug()<<"readSocket() SLEEPING because pervious invpcation has not finished yet";
         //sleep(1);
         qApp->processEvents();
-        //qDebug()<<"readSocket() ENDSLEEPING because pervious invpcation has not finished yet";
+        qDebug()<<"readSocket() ENDSLEEPING because pervious invpcation has not finished yet";
 
         // waiting because the previous call is not done
         // all the work it should do.
@@ -117,7 +118,7 @@ void LocalSocketIpcServer::readSocket() {
     countNoOfRead++;
 
     //Specifiy the amount of bytes to be read
-
+qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
     int bytesNeeded;
     if(countNoOfRead==1 || countNoOfRead==2 ||(command == 6 && countNoOfRead==3) || command == 8){
         bytesNeeded=(int)sizeof(quint32);
@@ -130,10 +131,10 @@ void LocalSocketIpcServer::readSocket() {
     }
 
     while (clientConnection->bytesAvailable() < bytesNeeded){
-        //qDebug()<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
-        clientConnection->waitForReadyRead();
+        qDebug()<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
+        clientConnection->waitForReadyRead(5000);
     }
-    //qDebug()<<"Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
+    qDebug()<<"Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
 
 
 
@@ -153,7 +154,7 @@ void LocalSocketIpcServer::readSocket() {
 	
 	
     if (clientConnection->bytesAvailable() < (int)sizeof(quint16)) {
-        //qDebug()<<"readSocket() FAIL 2";
+        qDebug()<<"readSocket() FAIL 2";
 
         return;
     }
@@ -166,27 +167,29 @@ void LocalSocketIpcServer::readSocket() {
     // come here correctly.
 
     int receivedFromRead=clientConnection->read(message,availableBytesFromSocket);
-    //qDebug()<<"Reads " << receivedFromRead << " bytes";
+    qDebug()<<"Reads " << receivedFromRead << " bytes";
+	for(int i=0;i<receivedFromRead;i++)
+	  qDebug()<<"Pos "<< i <<" byte="<< (int)(message[i]) ; 
 
     if(availableBytesFromSocket!=receivedFromRead){
         fprintf(stderr, "All available data not read!\n");
     }
 
-    //qDebug()<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes";
+    qDebug()<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes";
 
     /* read all data from socket */
 
     saveDataFromSocket(countNoOfRead);
 
     if (conditionToExitFunction) {
-        //qDebug()<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command;
+        qDebug()<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command;
         readSocketIsLocked=false; // should be unlocked when "returns" from
         // this function.
         return;
     }
 
     //Execute task from Beast
-    //qDebug()<<"Command No (" << command<< ")";
+    qDebug()<<"Command No (" << command<< ")";
     switch (command){
 
     case 1://Read PLOT_INFO(1)
@@ -326,7 +329,7 @@ void LocalSocketIpcServer::readSocket() {
         countNoOfRead = 0;
         break;
     }
-    //qDebug()<<"Command was performed " << command;
+    qDebug()<<"Command was performed " << command;
 
     readSocketIsLocked=false; // should be unlocked when "returns" from
     // this function.
