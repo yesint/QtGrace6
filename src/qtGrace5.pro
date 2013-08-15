@@ -178,7 +178,6 @@ SOURCES += allWidgets.cpp \
     t1delete.c \
     t1trans.c \
     ../type1/arith.c \
-    ../type1/bstring.c \
     ../type1/curves.c \
     ../type1/fontfcn.c \
     ../type1/hints.c \
@@ -256,4 +255,8 @@ SOURCES += allWidgets.cpp \
     ListOfLatexCommands.cpp
 #	\
 #    localConnection.cpp
+
+#    ../type1/bstring.c \
+
+
 TARGET = ../bin/qtgrace
