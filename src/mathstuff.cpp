@@ -244,3 +244,12 @@ double voigt(double gamma, double sigma, double x)
     
     return v;
 }
+
+
+// These are needed for Visual C++ compilation
+double ceil_wrap(double x){
+    return ceil(x);
+}; 
+double floor_wrap(double x){
+    return floor(x);
+}; 
