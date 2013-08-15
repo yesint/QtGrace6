@@ -72,6 +72,8 @@
 #include "MainWindow.h"
 #include "allWidgets.h"
 #include "QtGui/QPainter"
+#include "QtNetwork/QHostInfo"
+
 //#include <Qt>
 ///qtwebkit.h>
 //#include <Qt/qwebview.h>
@@ -89,8 +91,9 @@
 #include <QWebView>
 #endif
 
-
+#ifndef _MSC_VER
 #include <QtWebKit/QWebView>
+#endif
 
 #if QT_VERSION < 0x050000
 #else
