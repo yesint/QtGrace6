@@ -1516,7 +1516,7 @@ void update_set_lists(int gno)
 void set_left_footer(char *s)
 {
     cout << "set_left_footer:" ;
-    if(s) cout << s ; else cout < "NUUULLL";
+    if(s) cout << s ; else cout << "NUUULLL";
     cout << endl;
     
     if (s == NULL) {
