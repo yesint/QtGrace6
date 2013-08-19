@@ -1,5 +1,7 @@
 #ifdef _MSC_VER
 #include "rint.h"
+#include <cmath>
+
 double rint(double x)
 {
     //middle value point test
