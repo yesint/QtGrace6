@@ -106,7 +106,7 @@ moc_%.cpp: %.h
 
 all: default 
 
-clean: cleanparser
+clean:
 	rm -f $(ABI)/*.o $(BIN)   core  
 
 dir:
