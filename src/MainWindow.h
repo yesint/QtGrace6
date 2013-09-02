@@ -26,7 +26,7 @@
 #include <fstream>
 
 #include <QtGui>
-#include <QtNetwork>
+//#include <QtNetwork>
 
 #include "graphs.h"
 #include "draw.h"

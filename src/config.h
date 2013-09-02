@@ -384,4 +384,10 @@
 #  define NDEBUG
 #endif
 
+
+#ifdef _MSC_VER
+#include "rint.h"
+#undef HAVE_GETTIMEOFDAY
+#endif
+
 #endif /* __CONFIG_H */

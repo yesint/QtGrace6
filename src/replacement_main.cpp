@@ -31,7 +31,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef _MSC_VER
+ #define STDIN_FILENO 0
+ #include <io.h>
+ // _open()
+#else
 #include <unistd.h>
+#endif
 #include <string.h>
 //#ifdef HAVE_FCNTL_H
 //#ifndef WINDOWS_SYSTEM
@@ -39,6 +45,8 @@
 //#endif
 
 /* for globals.h */
+//#include "globals.h"
+
 #define MAIN
 
 #include "globals.h"
@@ -64,6 +72,8 @@
 #include "MainWindow.h"
 #include "allWidgets.h"
 #include "QtGui/QPainter"
+#include "QtNetwork/QHostInfo"
+
 //#include <Qt>
 ///qtwebkit.h>
 //#include <Qt/qwebview.h>
@@ -73,12 +83,29 @@
 //#include <QtWebKit/QWebView>
 // In Qt 5.0
 
+
+
+#ifdef _MSC_VER
+#else
 #include <QtWebKit>
 #include <QWebView>
+#endif
+
+#ifndef _MSC_VER
 #include <QtWebKit/QWebView>
+#endif
+
+#if QT_VERSION < 0x050000
+#else
 #include <QtWebKitWidgets>
+#endif
+
 #ifdef WINDOWS_SYSTEM
 #define O_NONBLOCK 0x0004
+#endif
+
+#ifdef _MSC_VER
+#define open _open
 #endif
 
 ///extern CMap_entry cmap_init[16];
@@ -91,8 +118,8 @@ extern QString ** ColorNames;
 extern MainWindow * mainWin;
 extern char user_home_dir[1024];
 extern char qt_grace_exe_dir[1024];
-extern char batchfile[];
-extern char print_file[];
+extern "C" char batchfile[];
+
 extern int install_cmap;
 extern QBitmap * patterns[MAXPATTERNS];
 extern Input_buffer *ib_tbl;
@@ -1488,6 +1515,10 @@ void update_set_lists(int gno)
  */
 void set_left_footer(char *s)
 {
+    cout << "set_left_footer:" ;
+    if(s) cout << s ; else cout << "NUUULLL";
+    cout << endl;
+    
     if (s == NULL) {
         char * hbuf;
         char * buf;
@@ -1498,7 +1529,11 @@ void set_left_footer(char *s)
 //cout << "sizeof=" << hst.length()+1 << endl;
         strcpy(hbuf,hst.toAscii());
         sprintf(buf, "%s, %s, %s", hbuf, display_name(), get_docname());
-mainWin->statusBar->showMessage(QString(buf));
+        cout << (int)(mainWin->isVisible()) << endl;
+        cout << (int)(mainWin->statusBar->isVisible()) << endl;
+        cout << buf << endl;
+        mainWin->statusBar->showMessage(QString(buf));
+        //mainWin->statusBar->showMessage(QString("HELLOHELLOWIN64"));
         //SetLabel(statlab, buf);
     delete[] hbuf;
     delete[] buf;

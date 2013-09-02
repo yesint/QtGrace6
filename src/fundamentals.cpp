@@ -56,7 +56,7 @@ extern bool activateLaTeXsupport;
 extern QStringList ListOfChanges;
 extern QStringList ListOfOldStates;
 
-extern graph * g;
+
 extern int maxgraph;
 extern int new_set_no;
 
@@ -1586,7 +1586,7 @@ cmbColorSelect->setIconSize(QSize(82,16));
 int * real_colors=new int[4];
 int aux_cols;
 int map_entries=get_main_color_indices(&real_colors,&aux_cols);
-int rows=int(sqrt(map_entries));
+int rows=int(sqrt(map_entries*1.0));
 int cols=rows;
 int last_col=rows;
 if (rows*cols<map_entries)
@@ -1633,7 +1633,7 @@ cmbColorSelect->setCurrentIndex(i);
 
 void ColorSelector::updateColorIcons(int nr_of_cols,QPixmap ** ColorPixmaps,QString ** ColorNames)
 {
-int rows=int(sqrt(nr_of_cols));
+int rows=int(sqrt(nr_of_cols*1.0));
 int cols=rows;
 int last_col=rows;
 if (rows*cols<nr_of_cols)
@@ -2295,7 +2295,7 @@ showFilesLikeFilter();
 
 void FileSelector::doSetCWD(void)
 {
-char dummy[currentDir.length()];
+char *dummy=new char [currentDir.length()]; // Windows port
 strcpy(dummy,currentDir.toAscii());
 set_workingdir(dummy);
 }
@@ -2817,6 +2817,7 @@ bool SetTableModel::insertRows(int row, int count, const QModelIndex & parent)
 beginInsertRows(parent,row,row+count-1);
 
 endInsertRows();
+return true;
 }
 
 bool SetTableModel::removeRows(int row, int count, const QModelIndex & parent)
@@ -2824,6 +2825,7 @@ bool SetTableModel::removeRows(int row, int count, const QModelIndex & parent)
 beginRemoveRows(parent,row,row+count-1);
 
 endRemoveRows();
+return true;
 }
 
 bool SetTableModel::insertColumns(int column, int count, const QModelIndex & parent)

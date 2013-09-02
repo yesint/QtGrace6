@@ -72,10 +72,10 @@ extern QPainter * GeneralPainter;
 extern MainWindow * mainWin;
 extern QImage * MainPixmap;
 
-extern int win_h, win_w;	/* declared in x11drv.c */
+extern unsigned int win_h, win_w;	/* declared in x11drv.c */
 
 extern int inpipe;
-extern char batchfile[];
+extern "C" char batchfile[];
 
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
@@ -643,10 +643,14 @@ void setpointer(VPoint vp)
 
 char *display_name(void)
 {
+	char * the_display_name;
     //return DisplayString(disp);
 #if QT_VERSION < 0x050000
-    return QDesktopServices::displayName(QDesktopServices::DesktopLocation).toAscii().data();
+	QString dn=QDesktopServices::displayName(QDesktopServices::DesktopLocation);
+	if(dn.isEmpty())the_display_name="";
+	else the_display_name=dn .toAscii().data();
 #else
-    return QStandardPaths::displayName(QStandardPaths::DesktopLocation).toAscii().data();
+    the_display_name= QStandardPaths::displayName(QStandardPaths::DesktopLocation).toAscii().data();
 #endif
+	return strdup(the_display_name);
 }

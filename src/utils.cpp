@@ -33,11 +33,22 @@
  */
 
 /*#include <config.h>*/
+
+#include <iostream> 
+// Must be before others
+
+
 #include <math.h>
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _MSC_VER
+#include <direct.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <ctype.h>
 #include <string.h>
 
@@ -612,7 +623,7 @@ char *create_fstring(int form, int prec, double loc, int type)
          * to give the value in multiples of the powers of 1024
          */       
         if (loc != 0.0) {
-            exponent = (int) floor(log2(fabs(loc)));
+            exponent = (int) floor(log(fabs(loc))/log(2.0));
             if (exponent < 10) {
                 exponent = 0;
             } else if (exponent > 80) {
@@ -1177,6 +1188,7 @@ void errmsg(const char *buf)
 #ifdef NONE_GUI
     fprintf(stderr, "%s\n", buf);
 #else
+    fprintf(stderr, "%s\n", buf);
     //if (inwin) {
 	if (FormConsole==NULL)
 	{
@@ -1279,6 +1291,11 @@ char *mybasename(const char *s)
 
 static char workingdir[GR_MAXPATHLEN];
 
+#ifdef _MSC_VER
+#define chdir _chdir
+#define getcwd _getcwd
+#endif
+
 int set_workingdir(const char *wd)
 {
     char buf[GR_MAXPATHLEN];
@@ -1352,6 +1369,9 @@ void init_userhome(void)
 
 char *get_userhome(void)
 {
+    if(userhome==NULL)init_userhome();
+    // was missing. And if missing, it causes segm fault on win64 
+
     return userhome;
 }
 

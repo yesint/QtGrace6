@@ -878,7 +878,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+
+#ifdef _MSC_VER
+#else
 #include <unistd.h>
+#endif
+
 #include <string.h>
 #include <ctype.h>
 #if defined(HAVE_SYS_PARAM_H)
@@ -955,7 +961,7 @@ static int vasgn_setno;
 static int alias_force = FALSE; /* controls whether aliases can override
                                                        existing keywords */
 
-extern char print_file[];
+
 extern char *close_input;
 
 static int filltype_obs;
@@ -13612,7 +13618,7 @@ symtab_entry ikey[] = {
 	{"BOTTOM", BOTTOM, NULL},
 	{"BOX", BOX, NULL},
 	{"CD", CD, NULL},
-	{"CEIL", FUNC_D, (void *) ceil},
+	{"CEIL", FUNC_D, (void *) ceil_wrap},
 	{"CENTER", CENTER, NULL},
 	{"CHAR", CHAR, NULL},
 	{"CHART", CHART, NULL},
@@ -13692,7 +13698,7 @@ symtab_entry ikey[] = {
 	{"FIT", FIT, NULL},
 	{"FIXED", FIXED, NULL},
 	{"FIXEDPOINT", FIXEDPOINT, NULL},
-	{"FLOOR", FUNC_D, (void *) floor},
+	{"FLOOR", FUNC_D, (void *) floor_wrap},
 	{"FLUSH", FLUSH, NULL},
 	{"FOCUS", FOCUS, NULL},
 	{"FOLLOWS", FOLLOWS, NULL},

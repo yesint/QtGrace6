@@ -42,9 +42,13 @@
 #include "graphs.h"
 ///#include "draw.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef MAIN
-#  define GLOBAL(var, type, val) type var = val
-#  define GLOBALARR(arr, type, dim, val) type arr[dim] = val
+#  define GLOBAL(var, type, val)  type var = val
+#  define GLOBALARR(arr, type, dim, val)  type arr[dim] = val
 
 /* target set */
 target target_set;
@@ -61,8 +65,13 @@ nonlopts nonl_opts;
 region rg[MAXREGION+1];
 
 #else
+
+
 #  define GLOBAL(var, type, val) extern type var
 #  define GLOBALARR(arr, type, dim, val) extern type arr[]
+
+
+
 
 extern target target_set;
 extern defaults grdefaults;
@@ -177,6 +186,11 @@ GLOBAL(safe_mode, int, TRUE);
 GLOBALARR(sendToBeast,char,512,"");
 GLOBALARR(readFromBeast,char,512,"");
 GLOBAL(connectToViewBeast,int,FALSE);
+GLOBALARR(print_file,char,GR_MAXPATHLEN,"");
+GLOBAL(g, graph *, NULL);
+#ifdef __cplusplus
+} // closing brace for extern "C"
 
+#endif
 
 #endif /* __GLOBALS_H_ */

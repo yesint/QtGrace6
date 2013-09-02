@@ -153,7 +153,7 @@ int NodeNr,used_Nodes,akt_Node;
 int max_node_nr;
 class undo_node * Node;
 
-extern graph * g;
+
 extern int maxstr;
 extern double * old_ddata[16];//to store some data temporarely
 extern int * old_idata[16];//to store some data temporarely
@@ -692,10 +692,15 @@ mainWin->activateWindow();
 startupphase=false;
 
 int execVal=a->exec();
+
+if(mainWin&&mainWin->SocketConnection){
 delete  mainWin->SocketConnection;
+}
+
 return execVal;
 }
 
+extern int object_edit_popup(int obj, int id);
 int object_edit_popup(int type, int id)
 {
     switch (type) {

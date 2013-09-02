@@ -38,6 +38,10 @@
 
 #include <cstdio>
 
+#ifdef _MSC_VER
+#include "rint.h"
+#endif
+
 #include "globals.h"
 #include "utils.h"
 #include "draw.h"
@@ -46,7 +50,8 @@
 #include "graphutils.h"
 #include "noxprotos.h"
 
-extern char print_file[];
+
+
 
 static void auto_ticks(int gno, int axis);
 

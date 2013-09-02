@@ -61,6 +61,9 @@
 #  include "motifinc.h"
 #endif*/
 
+
+#include "rint.h"
+
 static void rstImagePnm(gdImagePtr ihandle, FILE *prstream);
 
 extern FILE *prstream;

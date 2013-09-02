@@ -44,6 +44,7 @@
 #include "t1fonts.h"
 
 #include "noxprotos.h"
+#include "cmath.h"
 #include <QPainter>
 #define toAscii toLatin1
 using namespace std;

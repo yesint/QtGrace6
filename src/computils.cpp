@@ -37,7 +37,7 @@
 ///#include <config.h>
 #include <cmath>
 #ifndef MAXNUM
-extern double MAXNUM;
+extern "C" double MAXNUM;
 #endif
 #include <cstdio>
 #include <cstdlib>
@@ -51,6 +51,9 @@ extern double MAXNUM;
 #include "parser.h"
 #include "noxprotos.h"
 #include <iostream>
+
+#include "cmath.h"
+// M_PI
 
 using namespace std;
 

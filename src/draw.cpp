@@ -48,7 +48,7 @@
 #include "utils.h"
 #include "draw.h"
 #include <QtGui>
-
+#include "cmath.h"
 using namespace std;
 
 extern QPainter * GeneralPainter;

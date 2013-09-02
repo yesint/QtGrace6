@@ -54,7 +54,7 @@
 #include <QPainter>
 #include <iostream>
 #include "MainWindow.h"
-
+#include "rint.h"
 FILE *prstream;
 
 extern MainWindow * mainWin;
@@ -76,7 +76,7 @@ extern QString get_filename_with_extension(int device);
 
 using namespace std;
 
-char print_file[GR_MAXPATHLEN] = "";
+
 
 /*
  * draw all active graphs

@@ -38,7 +38,13 @@
 
 #include <cstdio>
 #include <cstdlib>
+
+
+#ifdef _MSC_VER
+#else
 #include <unistd.h>
+#endif
+
 #include <cstring>
 #include <cctype>
 #if defined(HAVE_SYS_PARAM_H)

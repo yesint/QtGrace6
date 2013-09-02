@@ -185,7 +185,7 @@ extern QCursor * kill_cursor;
 extern int cur_cursor;
 
 extern int action_flag;
-extern char print_file[];
+
 
 extern int max_history;
 extern int current_history;
@@ -247,7 +247,8 @@ void init_Patterns(void)
     }
 }
 
-MainWindow::MainWindow( QWidget *parent):QWidget( parent )
+MainWindow::MainWindow( QWidget *parent):QWidget( parent ),
+SocketConnection(NULL)
 {
 
 
@@ -300,7 +301,9 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuFile->addSeparator();
     mnuFile->addAction(actExportToFile);
     mnuFile->addSeparator();
-    mnuFile->addAction(actPrintSetup);
+ cout << "Before mnuFile->addAction(actPrintSetup);"<< endl;
+ ////// mnuFile->addAction(actPrintSetup);
+ cout << "After  mnuFile->addAction(actPrintSetup);"<< endl;
     mnuFile->addAction(actPrint);
     mnuFile->addSeparator();
     mnuFile->addAction(actExit);
@@ -999,9 +1002,9 @@ void MainWindow::Open(void)
 
 void MainWindow::IOrequested(int type,QString file,bool exists,bool writeable,bool readable)
 {
-    char dummy[file.length()+2];
+char* dummy=new char [file.length()+2]; // Windows port
     strcpy(dummy,file.toAscii());
-    char dummy2[strlen(dummy)+35];
+char* dummy2=new char[strlen(dummy)+35]; // Windows port
     sprintf(dummy2,"%s%s",tr("Can't stat file ").toAscii().constData(),dummy);
     /*cout << "Origin(type)=" << type << endl;
 cout << "file to load=" << dummy << endl;

@@ -38,7 +38,7 @@
 #include "graphutils.h"
 #include "utils.h"
 #include "device.h"
-
+#include "rint.h"
 using namespace std;
 
 extern double GeneralPageZoomFactor;
