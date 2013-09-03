@@ -13,24 +13,25 @@ extern bool startupphase;
 
 
 // initialize server
-LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent),
-    socket_connected_busy(false),
-    command(0),dataLength(0),
-    graphNo(0),
-    xmin(0),
-    xmax(0),
-    conditionToExitFunction(0),
-    countNoOfRead(0),
-    newDataSetReady(1),
-    k(0),
-    exchange_point_comma(false),
-    new_set_nos(NULL),
-    countNoOfReadData(0),
-    writeToTmpFile(true),
-    gno(0),
-    load(0),
-    cursource(0),
-    countNoOfDataSets(0){
+LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent)
+  ,socket_connected_busy(false)
+  ,command(0),dataLength(0)
+  ,graphNo(0)
+  ,xmin(0)
+  ,xmax(0)
+  ,conditionToExitFunction(0)
+  ,countNoOfRead(0)
+  ,newDataSetReady(1)
+  ,k(0)
+  ,exchange_point_comma(false)
+  ,new_set_nos(NULL)
+  ,countNoOfReadData(0)
+  ,writeToTmpFile(true)
+  ,gno(0)
+  ,load(0)
+  ,cursource(0)
+  ,countNoOfDataSets(0){
+
     //Read from Beast
     m_fromBeast = new QLocalServer(this);
 
@@ -108,9 +109,6 @@ void LocalSocketIpcServer::readSocket() {
     }
     readSocketIsLocked=true;
 
-    //if(killGraphEnable)
-    //    kill_graph(0);
-
     conditionToExitFunction = 0;
 
     QLocalSocket *clientConnection = m_fromBeast->nextPendingConnection();
@@ -137,10 +135,6 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
     qDebug()<<"Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
 
 
-
-    //    connect(clientConnection, SIGNAL(disconnected()),
-    //            clientConnection, SLOT(deleteLater()));
-
     QDataStream in(clientConnection);
     
 #if QT_VERSION >= 0x040700
@@ -158,7 +152,6 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
 
         return;
     }
-
 
     availableBytesFromSocket = clientConnection->bytesAvailable();
     message=new char[availableBytesFromSocket+1];
@@ -188,7 +181,7 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
         return;
     }
 
-    //Execute task from Beast
+    //Execute task from ViewBeast
     qDebug()<<"Command No (" << command<< ")";
     switch (command){
 
@@ -231,6 +224,7 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
         //set_page_geometry()
 
         writeDataToTmpFile();
+
         //Update legend properties
         for(int igno = 0; igno < graphNo+1; igno++){
             for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets[igno]; iSetNo++){
@@ -297,8 +291,6 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
         break;
     }
 
-
-
     case 42://KILL_CHILD(42)
         //qDebug()<<"Run Command" << command;
         /* kill me */
@@ -315,8 +307,6 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
 
         writeToTmpFile=true;
         countNoOfRead = 0;
-
-
 
         break;
     }
@@ -1085,7 +1075,8 @@ int LocalSocketIpcServer::getdata(int gno, char *fn, int src, int load_type)
     if (cur_version != 0) {
         /* a complete project */
         postprocess_project(cur_version);
-        autoscale_graph(gno, autoscale_onread); //Nimal: Always autoscale
+        autoscale_graph(gno, autoscale_onread); //2013-07-03 Always autoscale - Nimal Kailasanathan
+
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
         autoscale_graph(gno, autoscale_onread);
