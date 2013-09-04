@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="qtgrace"
 	ProjectGUID="{A13F1C63-7FFD-39D3-8FDE-3EEC153823FB}"
 	Keyword="Qt4VSv1.0"
@@ -139,7 +139,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot;,&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot;,&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot;,&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot;,&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot;,&quot;debug&quot;,..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default"
+				AdditionalIncludeDirectories="$(QT4INC);debug"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,WINDOWS_SYSTEM,QT_DLL,QT_GUI_LIB,QT_NETWORK_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -168,13 +168,13 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot; &quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
-				AdditionalDependencies="c:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\lib\qtmaind.lib c:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\lib\QtGuid4.lib c:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\lib\QtNetworkd4.lib c:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\lib\QtCored4.lib"
-				OutputFile="..\bin\qtgrace.exe"
+				AdditionalDependencies="$(QT4LIB)"
+				OutputFile="$(BEAST)\bin\WINDOWS64\qtgrace\bin\qtgraceDEB.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="c:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
-				SubSystem="2"
+				SubSystem="1"
 				LinkTimeCodeGeneration="0"
 				TargetMachine="17"
 			/>
@@ -944,8 +944,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC allWidgets.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 allWidgets.h -o debug\moc_allWidgets.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;allWidgets.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 allWidgets.h -o debug\moc_allWidgets.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;allWidgets.h"
 						Outputs="debug\moc_allWidgets.cpp"
 					/>
 				</FileConfiguration>
@@ -955,8 +955,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC allWidgets.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 allWidgets.h -o debug\moc_allWidgets.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;allWidgets.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 allWidgets.h -o debug\moc_allWidgets.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;allWidgets.h"
 						Outputs="debug\moc_allWidgets.cpp"
 					/>
 				</FileConfiguration>
@@ -966,8 +966,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC allWidgets.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 allWidgets.h -o release\moc_allWidgets.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;allWidgets.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 allWidgets.h -o release\moc_allWidgets.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;allWidgets.h"
 						Outputs="release\moc_allWidgets.cpp"
 					/>
 				</FileConfiguration>
@@ -977,8 +977,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC allWidgets.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 allWidgets.h -o release\moc_allWidgets.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;allWidgets.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 allWidgets.h -o release\moc_allWidgets.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;allWidgets.h"
 						Outputs="release\moc_allWidgets.cpp"
 					/>
 				</FileConfiguration>
@@ -1104,8 +1104,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC fundamentals.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 fundamentals.h -o debug\moc_fundamentals.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;fundamentals.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 fundamentals.h -o debug\moc_fundamentals.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;fundamentals.h"
 						Outputs="debug\moc_fundamentals.cpp"
 					/>
 				</FileConfiguration>
@@ -1115,8 +1115,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC fundamentals.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 fundamentals.h -o debug\moc_fundamentals.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;fundamentals.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 fundamentals.h -o debug\moc_fundamentals.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;fundamentals.h"
 						Outputs="debug\moc_fundamentals.cpp"
 					/>
 				</FileConfiguration>
@@ -1126,8 +1126,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC fundamentals.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 fundamentals.h -o release\moc_fundamentals.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;fundamentals.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 fundamentals.h -o release\moc_fundamentals.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;fundamentals.h"
 						Outputs="release\moc_fundamentals.cpp"
 					/>
 				</FileConfiguration>
@@ -1137,8 +1137,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC fundamentals.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 fundamentals.h -o release\moc_fundamentals.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;fundamentals.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 fundamentals.h -o release\moc_fundamentals.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;fundamentals.h"
 						Outputs="release\moc_fundamentals.cpp"
 					/>
 				</FileConfiguration>
@@ -1180,8 +1180,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC MainWindow.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 MainWindow.h -o debug\moc_MainWindow.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;MainWindow.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 MainWindow.h -o debug\moc_MainWindow.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;MainWindow.h"
 						Outputs="debug\moc_MainWindow.cpp"
 					/>
 				</FileConfiguration>
@@ -1191,8 +1191,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC MainWindow.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 MainWindow.h -o debug\moc_MainWindow.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;MainWindow.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 MainWindow.h -o debug\moc_MainWindow.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;MainWindow.h"
 						Outputs="debug\moc_MainWindow.cpp"
 					/>
 				</FileConfiguration>
@@ -1202,8 +1202,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC MainWindow.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 MainWindow.h -o release\moc_MainWindow.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;MainWindow.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 MainWindow.h -o release\moc_MainWindow.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;MainWindow.h"
 						Outputs="release\moc_MainWindow.cpp"
 					/>
 				</FileConfiguration>
@@ -1213,8 +1213,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC MainWindow.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 MainWindow.h -o release\moc_MainWindow.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;MainWindow.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 MainWindow.h -o release\moc_MainWindow.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;MainWindow.h"
 						Outputs="release\moc_MainWindow.cpp"
 					/>
 				</FileConfiguration>
@@ -1304,8 +1304,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC Server.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 Server.h -o debug\moc_Server.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;Server.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 Server.h -o debug\moc_Server.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;Server.h"
 						Outputs="debug\moc_Server.cpp"
 					/>
 				</FileConfiguration>
@@ -1315,8 +1315,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC Server.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 Server.h -o debug\moc_Server.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;Server.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;debug&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 Server.h -o debug\moc_Server.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;Server.h"
 						Outputs="debug\moc_Server.cpp"
 					/>
 				</FileConfiguration>
@@ -1326,8 +1326,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC Server.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 Server.h -o release\moc_Server.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;Server.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 Server.h -o release\moc_Server.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;Server.h"
 						Outputs="release\moc_Server.cpp"
 					/>
 				</FileConfiguration>
@@ -1337,8 +1337,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="MOC Server.h"
-						CommandLine="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 Server.h -o release\moc_Server.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="C:\cygwin\home\Beast\qt-win-opensource-src-4.5.3\bin\moc.exe;Server.h"
+						CommandLine="$(QT4HOME)\bin\moc.exe   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DWINDOWS_SYSTEM -DQT_DLL -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtCore&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtNetwork&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\QtGui&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include&quot; -I&quot;..\..\..\..\Beast\qt-win-opensource-src-4.5.3\include\ActiveQt&quot; -I&quot;release&quot; -I..\..\..\..\Beast\qt-win-opensource-src-4.5.3\mkspecs\default -D_MSC_VER=1500 -DWIN32 Server.h -o release\moc_Server.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QT4HOME)\bin\moc.exe ;Server.h"
 						Outputs="release\moc_Server.cpp"
 					/>
 				</FileConfiguration>
