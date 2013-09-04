@@ -874,6 +874,12 @@ char *grace_path(char *fn)
     } else {
         strcpy(buf, fn);
         
+		if(strlen(fn)>2){
+			if(fn[1]==':'){
+			   return fn; //  This is a Windows full path like "c:\abc"
+			}
+		}
+
         switch (fn[0]) {
         case '/':
         case '\0':
@@ -896,12 +902,24 @@ char *grace_path(char *fn)
             }
         }
         /* if we arrived here, the path is relative */
-///dirty work
-sprintf(buf,"%s/../%s",qt_grace_exe_dir,fn);
-        if (stat(buf, &statb) == 0) {
-            /* ok, we found it */
-            return buf;
-        }
+
+
+		// The original trick was sprintf(buf,"%s/../%s",qt_grace_exe_dir,fn);
+        // The trick does not work because "stat" does not accept "/../" on Windows
+ 		
+		QDir dir_above_bin(qt_grace_exe_dir);  // XXXqtgrace/bin
+		dir_above_bin.cdUp();  // becomes XXXqtgrace/
+		QString qs_dir_above_bin=dir_above_bin.path();
+		qs_dir_above_bin+="/";
+		qs_dir_above_bin+=fn; // Note that "fn" can be  a directory or file or a/b
+		// becomes  XXXqtgrace/a/b 
+		strcpy(buf, qs_dir_above_bin.toAscii());
+
+
+		if (stat(buf, &statb) == 0) {
+			/* ok, we found it */
+			return buf;
+		}
         
 	/* second try: in .grace/ in the current dir */
         strcpy(buf, ".grace/");

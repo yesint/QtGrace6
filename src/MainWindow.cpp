@@ -484,9 +484,25 @@ SocketConnection(NULL)
     cmdDraw->setGeometry(2,4,64,stdHeight1);
     connect(cmdDraw, SIGNAL(clicked()), this, SLOT(doDraw()));
     //convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
-    QString icondir=grace_path("fonts/icons/");
-    cmdZoom=new QPushButton(QIcon(icondir+"zoom.png"),"",toolBar1);
-    cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle"));
+    QString icondir=grace_path("fonts/icons");
+	icondir+="/";
+	QString iconfile=icondir+"zoom.png";
+	if(!QFile::exists(iconfile)){
+	  cout << "Cannot open icon  file " << iconfile.toStdString() <<endl;
+  	}
+	
+	QIcon tmp=QIcon(iconfile);
+	if(tmp.isNull()){
+		cout << "Failed to load icon " <<iconfile.toStdString() <<endl;
+		cout << ("Check your Qt plugin installation!")<<endl;
+	}
+
+	
+	cmdZoom=new QPushButton(QIcon(iconfile),"",toolBar1);
+	
+	
+	
+	cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle"));
     cmdZoom->setGeometry(cmdDraw->x()+stdDistance2,cmdDraw->y()+cmdDraw->height()+6,stdWidth2,stdHeight2);
     connect(cmdZoom, SIGNAL(clicked()), this, SLOT(doZoom()));
     //convertBitmapToPixmap(autoBitMap,&HelpPixmap);
