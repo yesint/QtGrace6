@@ -63,11 +63,15 @@ LIBS = 	-L$(XHOME)/lib64 \
 	-L$(XHOME)/lib \
         -lm \
         -L$(QT4HOME)/lib/$(ABI) $(QT4LIBS)  $(XTRLIBS) 
-INCLUDES += -I$(QT4HOME)/include/QtWebKit
+#INCLUDES += -I$(QT4HOME)/include/QtWebKit
+
+ifneq (,$(findstring -DQT5,$(commdef)))
+#INCLUDES += -I$(QT4HOME)/include/QtWebKitWidgets
+endif
 
 ifneq (,$(findstring LINUX,$(ABI)))
 CCFLAGS+=-DLINUX_SYSTEM
-LIBS+=-lQtWebKit
+#LIBS+=-lQtWebKit
 else
 CCFLAGS+=-DWINDOWS_SYSTEM
 endif
@@ -121,7 +125,7 @@ install: $(BIN)
 		echo "Manifsetr done";\
 		fi
 	if [ -f  $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT) ] ; then rm $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT); fi
-	cp -r ../fonts ../bin $(BINABIDIR)/qtgrace
+	cp -r ../fonts ../bin ../doc ../examples $(BINABIDIR)/qtgrace
 	cp $(BIN) $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT)
 
 
