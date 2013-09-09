@@ -22,7 +22,6 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,conditionToExitFunction(0)
   ,countNoOfRead(0)
   ,newDataSetReady(1)
- 
   ,exchange_point_comma(false)
   ,new_set_nos(NULL)
   ,countNoOfReadData(0)
