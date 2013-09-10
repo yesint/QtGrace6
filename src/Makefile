@@ -80,6 +80,7 @@ BIN=qtGrace$(ABI)
 
 default: 
 	$(MAKE) dir
+	$(MAKE) depend 
 	$(MAKE) $(BIN)
 
 info:
