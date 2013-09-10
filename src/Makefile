@@ -134,6 +134,11 @@ $(ABI)/makedepend.tail:
 	if [ ! -d $(ABI) ] ; then mkdir -p $(ABI) ; fi ;
 	touch $(ABI)/makedepend.tail
 
+#pars.c:pars.yacc
+#	bison 
+# Note: kdiff3 y.tab.c pars.c shows that pars.yacc was used for generating
+#  y.tab.c, but in 2008 this file was manually modified to pars.c.
+# How to fix ?
 
 .FORCE:
 	@echo FORCE
