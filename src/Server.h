@@ -103,7 +103,6 @@ private:
     quint16             newDataSetReady;
     double              *x;
     double              *y;
-    int                 k;
     bool                exchange_point_comma;//exchange ',' for '.' as decimal-seperator
     int                 new_set_no;
     int                 *new_set_nos;

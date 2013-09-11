@@ -13,24 +13,24 @@ extern bool startupphase;
 
 
 // initialize server
-LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent),
-    socket_connected_busy(false),
-    command(0),dataLength(0),
-    graphNo(0),
-    xmin(0),
-    xmax(0),
-    conditionToExitFunction(0),
-    countNoOfRead(0),
-    newDataSetReady(1),
-    k(0),
-    exchange_point_comma(false),
-    new_set_nos(NULL),
-    countNoOfReadData(0),
-    writeToTmpFile(true),
-    gno(0),
-    load(0),
-    cursource(0),
-    countNoOfDataSets(0){
+LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent)
+  ,socket_connected_busy(false)
+  ,command(0),dataLength(0)
+  ,graphNo(0)
+  ,xmin(0)
+  ,xmax(0)
+  ,conditionToExitFunction(0)
+  ,countNoOfRead(0)
+  ,newDataSetReady(1)
+  ,exchange_point_comma(false)
+  ,new_set_nos(NULL)
+  ,countNoOfReadData(0)
+  ,writeToTmpFile(true)
+  ,gno(0)
+  ,load(0)
+  ,cursource(0)
+  ,countNoOfDataSets(0){
+
     //Read from Beast
     m_fromBeast = new QLocalServer(this);
 
@@ -96,29 +96,26 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
 void LocalSocketIpcServer::readSocket() {
 
 
-    qDebug()<<"readSocket() START";
+   // qDebug()<<"readSocket() START";
     if(readSocketIsLocked){
-        qDebug()<<"readSocket() SLEEPING because pervious invpcation has not finished yet";
+     //   qDebug()<<"readSocket() SLEEPING because pervious invpcation has not finished yet";
         //sleep(1);
         qApp->processEvents();
-        qDebug()<<"readSocket() ENDSLEEPING because pervious invpcation has not finished yet";
+       // qDebug()<<"readSocket() ENDSLEEPING because pervious invpcation has not finished yet";
 
         // waiting because the previous call is not done
         // all the work it should do.
     }
     readSocketIsLocked=true;
 
-    //if(killGraphEnable)
-    //    kill_graph(0);
-
     conditionToExitFunction = 0;
 
-    QLocalSocket *clientConnection = m_fromBeast->nextPendingConnection();
+	QLocalSocket *clientConnection = m_fromBeast->nextPendingConnection();
 
     countNoOfRead++;
 
     //Specifiy the amount of bytes to be read
-qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
+//qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
     int bytesNeeded;
     if(countNoOfRead==1 || countNoOfRead==2 ||(command == 6 && countNoOfRead==3) || command == 8){
         bytesNeeded=(int)sizeof(quint32);
@@ -130,16 +127,12 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
         bytesNeeded= dataLength;
     }
 
-    while (clientConnection->bytesAvailable() < bytesNeeded){
-        qDebug()<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
+    while (clientConnection->bytesAvailable() != bytesNeeded){
+      //  qDebug()<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
         clientConnection->waitForReadyRead(5000);
     }
-    qDebug()<<"Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
+    //qDebug()<<"Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable();
 
-
-
-    //    connect(clientConnection, SIGNAL(disconnected()),
-    //            clientConnection, SLOT(deleteLater()));
 
     QDataStream in(clientConnection);
     
@@ -154,11 +147,10 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
 	
 	
     if (clientConnection->bytesAvailable() < (int)sizeof(quint16)) {
-        qDebug()<<"readSocket() FAIL 2";
+     //   qDebug()<<"readSocket() FAIL 2";
 
         return;
     }
-
 
     availableBytesFromSocket = clientConnection->bytesAvailable();
     message=new char[availableBytesFromSocket+1];
@@ -166,30 +158,35 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
     // 0-terminated character strings
     // come here correctly.
 
-    int receivedFromRead=clientConnection->read(message,availableBytesFromSocket);
-    qDebug()<<"Reads " << receivedFromRead << " bytes";
+//    int receivedFromRead=clientConnection->read(message,availableBytesFromSocket);
+	in.readRawData(message,availableBytesFromSocket);
+
+   /*qDebug()<<"Reads " << receivedFromRead << " bytes";
 	for(int i=0;i<receivedFromRead;i++)
 	  qDebug()<<"Pos "<< i <<" byte="<< (int)(message[i]) ; 
 
     if(availableBytesFromSocket!=receivedFromRead){
         fprintf(stderr, "All available data not read!\n");
     }
+*/
+    
 
-    qDebug()<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes";
+	//qDebug()<<"10:35 Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes";
 
+ 
     /* read all data from socket */
 
     saveDataFromSocket(countNoOfRead);
 
     if (conditionToExitFunction) {
-        qDebug()<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command;
+      //  qDebug()<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command;
         readSocketIsLocked=false; // should be unlocked when "returns" from
         // this function.
         return;
     }
 
-    //Execute task from Beast
-    qDebug()<<"Command No (" << command<< ")";
+    //Execute task from ViewBeast
+    //qDebug()<<"Command No (" << command<< ")";
     switch (command){
 
     case 1://Read PLOT_INFO(1)
@@ -231,6 +228,7 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
         //set_page_geometry()
 
         writeDataToTmpFile();
+
         //Update legend properties
         for(int igno = 0; igno < graphNo+1; igno++){
             for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets[igno]; iSetNo++){
@@ -271,6 +269,7 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
     case 7://REDRAW_AND_WRITEPS(7)
         //qDebug()<<"Run Command" << command;
         /* force a hardcopy */
+        hdevice=0;
         do_hardcopy();
         countNoOfRead = 0;
         break;
@@ -297,8 +296,6 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
         break;
     }
 
-
-
     case 42://KILL_CHILD(42)
         //qDebug()<<"Run Command" << command;
         /* kill me */
@@ -316,8 +313,6 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
         writeToTmpFile=true;
         countNoOfRead = 0;
 
-
-
         break;
     }
     default:
@@ -329,7 +324,7 @@ qDebug()<<"countNoOfRead="<<countNoOfRead<<" command="<<command;
         countNoOfRead = 0;
         break;
     }
-    qDebug()<<"Command was performed " << command;
+ //   qDebug()<<"Command was performed " << command;
 
     readSocketIsLocked=false; // should be unlocked when "returns" from
     // this function.
@@ -375,15 +370,12 @@ void LocalSocketIpcServer::sendDataToGrace(){
 #else
     out.setVersion(QDataStream::Qt_4_0);
 #endif 
-	
-	
-	
-	
+		
     out.writeRawData(m_sendParam,m_paramLen);
     out.device()->seek(0);
     m_toBeast->write(block);
     m_toBeast->flush();
-
+	m_toBeast->waitForBytesWritten(20000);
     socket_connected_busy=false;
 }
 
@@ -1085,10 +1077,11 @@ int LocalSocketIpcServer::getdata(int gno, char *fn, int src, int load_type)
     if (cur_version != 0) {
         /* a complete project */
         postprocess_project(cur_version);
-        autoscale_graph(gno, autoscale_onread); //Nimal: Always autoscale
+       // autoscale_graph(gno, autoscale_onread); //2013-07-03 Always autoscale - Nimal Kailasanathan
+
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
-        autoscale_graph(gno, autoscale_onread);
+        //autoscale_graph(gno, autoscale_onread);
     }
     set_project_version(save_version);
 

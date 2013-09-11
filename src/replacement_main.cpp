@@ -87,17 +87,17 @@
 
 #ifdef _MSC_VER
 #else
-#include <QtWebKit>
-#include <QWebView>
+//#include <QtWebKit>
+//#include <QWebView>
 #endif
 
 #ifndef _MSC_VER
-#include <QtWebKit/QWebView>
+//#include <QtWebKit/QWebView>
 #endif
 
 #if QT_VERSION < 0x050000
 #else
-#include <QtWebKitWidgets>
+//#include <QtWebKitWidgets>
 #endif
 
 #ifdef WINDOWS_SYSTEM
@@ -1719,9 +1719,20 @@ QDesktopServices::openUrl(helpUrl);//open in std-html-viewer
 }
 else
 {
-QWebView *view = new QWebView(0);
-view->load(helpUrl);
-view->show();
+
+#if 1
+   QDesktopServices::openUrl(helpUrl);//open in std-html-viewer
+#else
+   // Currently QWebView causes various incompatibilities on Linux
+   // where two Qt releases (Qt4+Qt5) are installed.
+   // They have very different layout of #include directories.
+   // Thus we skip Web View this until Qt5 is stabilized.
+   // QWebView *view = new QWebView(0);
+   //view->load(helpUrl);
+   // view->show();
+#endif
+
+
 }
 #endif
 return;

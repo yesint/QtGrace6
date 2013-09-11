@@ -63,11 +63,15 @@ LIBS = 	-L$(XHOME)/lib64 \
 	-L$(XHOME)/lib \
         -lm \
         -L$(QT4HOME)/lib/$(ABI) $(QT4LIBS)  $(XTRLIBS) 
-INCLUDES += -I$(QT4HOME)/include/QtWebKit
+#INCLUDES += -I$(QT4HOME)/include/QtWebKit
+
+ifneq (,$(findstring -DQT5,$(commdef)))
+#INCLUDES += -I$(QT4HOME)/include/QtWebKitWidgets
+endif
 
 ifneq (,$(findstring LINUX,$(ABI)))
 CCFLAGS+=-DLINUX_SYSTEM 
-LIBS+=-lQtWebKit
+#LIBS+=-lQtWebKit
 else
 CCFLAGS+=-DWINDOWS_SYSTEM -DHAVE_MEMCPY
 endif
@@ -76,6 +80,7 @@ BIN=qtGrace$(ABI)
 
 default: 
 	$(MAKE) dir
+	$(MAKE) depend 
 	$(MAKE) $(BIN)
 
 info:
@@ -121,7 +126,7 @@ install: $(BIN)
 		echo "Manifsetr done";\
 		fi
 	if [ -f  $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT) ] ; then rm $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT); fi
-	cp -r ../fonts ../bin $(BINABIDIR)/qtgrace
+	cp -r ../fonts ../bin ../doc ../examples $(BINABIDIR)/qtgrace
 	cp $(BIN) $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT)
 
 
@@ -129,6 +134,11 @@ $(ABI)/makedepend.tail:
 	if [ ! -d $(ABI) ] ; then mkdir -p $(ABI) ; fi ;
 	touch $(ABI)/makedepend.tail
 
+#pars.c:pars.yacc
+#	bison 
+# Note: kdiff3 y.tab.c pars.c shows that pars.yacc was used for generating
+#  y.tab.c, but in 2008 this file was manually modified to pars.c.
+# How to fix ?
 
 .FORCE:
 	@echo FORCE

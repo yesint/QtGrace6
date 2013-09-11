@@ -585,8 +585,8 @@ old_data[i]=0;
 }
     strcpy(user_home_dir,QDir::homePath().toAscii());
     strcpy(qt_grace_exe_dir,qApp->applicationDirPath().toAscii());
-
-    //define the available languages
+    
+	//define the available languages
     strcpy(translator_files[0],"-");
     strcpy(translator_files[1],"qt_grace_ger");
     strcpy(translator_languages[0],"English");
