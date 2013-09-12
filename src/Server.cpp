@@ -269,6 +269,9 @@ void LocalSocketIpcServer::readSocket() {
     case 7://REDRAW_AND_WRITEPS(7)
         //qDebug()<<"Run Command" << command;
         /* force a hardcopy */
+        set_pagelayout(PAGE_FIXED);
+        update_all();
+
         hdevice=0;
         do_hardcopy();
         countNoOfRead = 0;
