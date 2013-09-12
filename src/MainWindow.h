@@ -80,14 +80,13 @@ void dragEnterEvent(QDragEnterEvent *event);
 void dropEvent(QDropEvent *event);
 };
 
+
 class MainWindow : public QWidget
 {
 Q_OBJECT
 
-    //NEW SERVER CODE
 public:
     LocalSocketIpcServer *SocketConnection;
-    //END SERVER CODE NEW
 
 public:
 int windowWidth,windowHeight;
