@@ -1324,10 +1324,13 @@ void postprocess_project(int version)
     
     if (version <= 40102) {
 ///#ifndef NONE_GUI
-        set_pagelayout(PAGE_FIXED);
+        //2013-08-12 Nimalendiran Kailasanathan changes from PAGE_FIXED to PAGE_FREE and
+        //disabled rescale of viewport
+        set_pagelayout(PAGE_FREE);
 ///#endif
-        get_page_viewport(&ext_x, &ext_y);
+   /*   get_page_viewport(&ext_x, &ext_y);
         rescale_viewport(ext_x, ext_y);
+        */
     }
 
     for (gno = 0; gno < number_of_graphs(); gno++) {
