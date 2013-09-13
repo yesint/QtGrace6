@@ -109,8 +109,8 @@ static Device_entry dev_ps = {DEVICE_PRINT,
           ps_op_parser,
           ps_gui_setup,
           "ps",
-          TRUE,
           FALSE,
+          TRUE,
           {3300, 2550, 300.0},
           NULL
          };
@@ -122,7 +122,7 @@ static Device_entry dev_eps = {DEVICE_FILE,
           eps_gui_setup,
           "eps",
           TRUE,
-          FALSE,
+          TRUE,
           {2500, 2500, 300.0},
           NULL
          };

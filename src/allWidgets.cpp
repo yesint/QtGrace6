@@ -5870,8 +5870,9 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     chkDontChangeSize=new QCheckBox(tr("Don't reposition Graph(s)"),this);
 
     fontaa_item=new QCheckBox(tr("Enable font antialiasing"),grpFonts);
+    fontaa_item->setChecked(TRUE);
     devfont_item=new QCheckBox(tr("Use device fonts"),grpFonts);
-    devfont_item->setChecked(TRUE);
+    devfont_item->setChecked(FALSE);
 
     actNativePrinterDialog=new QAction(this);
     connect(actNativePrinterDialog,SIGNAL(triggered()),this,SLOT(doNativePrinterDialog()));
@@ -6359,7 +6360,7 @@ void frmDeviceSetup::doApply(void)
     SaveDeviceState(seldevice,GetToggleButtonState(dsync_item));
 
     dev = get_device_props(seldevice);
-    //Nimal
+
     if (dev.type != DEVICE_TERM)
     {
         hdevice = seldevice;
