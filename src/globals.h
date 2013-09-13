@@ -186,6 +186,8 @@ GLOBAL(safe_mode, int, TRUE);
 GLOBALARR(sendToBeast,char,512,"");
 GLOBALARR(readFromBeast,char,512,"");
 GLOBAL(connectToViewBeast,int,FALSE);
+GLOBAL(hideMainWindow, int, FALSE);
+
 GLOBALARR(print_file,char,GR_MAXPATHLEN,"");
 GLOBAL(g, graph *, NULL);
 #ifdef __cplusplus

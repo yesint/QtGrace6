@@ -489,7 +489,7 @@ int main( int argc, char **argv )
 
     QApplication * a=new QApplication( argc, argv );
 
-a->setQuitOnLastWindowClosed(false);
+
 
     //At first: Initialize everything with NULL-pointers
     useQPrinter=false;
@@ -679,7 +679,10 @@ device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
 device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;*/
 
     mainWin->mainArea->completeRedraw();
-    mainWin->show();
+
+    if(!hideMainWindow)
+        mainWin->show();
+
     clear_dirtystate();
     CheckActive();
 

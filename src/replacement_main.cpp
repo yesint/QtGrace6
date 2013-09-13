@@ -601,6 +601,9 @@ sprintf(dummy,"%s/gracerc",qt_grace_exe_dir);
 
     cur_graph = get_cg();
     cout<<"Starting args analysis"<<endl;
+    for (i = 1; i < argc; i++) {
+        cout << i << " " << argv[i]<<endl;
+    }
     if (argc >= 2) {
 	for (i = 1; i < argc; i++) {
 	    if (argv[i][0] == '-' && argv[i][1] != '\0') {
@@ -1000,21 +1003,27 @@ sprintf(dummy,"%s/gracerc",qt_grace_exe_dir);
 			set_graph_viewport(cur_graph, v);
 		    }
 
-            //NIMAL
-          }   else if (argmatch(argv[i], "-connectToViewBeast", 2)) {
-                        i++;
-                        if (i > argc - 2) {
-                        fprintf(stderr, "Missing parameter(s) to start View Beast connection\n");
-                        usage(stderr, argv[0]);
-                        } else {
+            //2013-13-09 Nimalendiran Kailasanathan added command to hide qtGrace main application window and communication
+            //with ViewBeast
+               }   else if (argmatch(argv[i], "-connectToViewBeast", 2)) {
+                   i++;
+                   if (i > argc - 2) {
+                       fprintf(stderr, "Missing parameter(s) to start View Beast connection\n");
+                       usage(stderr, argv[0]);
+                   } else {
 
-                            connectToViewBeast = TRUE;
-                            strcpy(sendToBeast, argv[i++]);
-                            strcpy(readFromBeast, argv[i++]);
-                        }
-                    }
+                       connectToViewBeast = TRUE;
+                       strcpy(sendToBeast, argv[i++]);
+                       strcpy(readFromBeast, argv[i]);
+                   }
+               }
 
-        else if (argmatch(argv[i], "-world", 2)) {
+               else if (argmatch(argv[i], "-hideMainWindow", 15)) {
+                   cout<<"HideMainWindow"<<endl;
+                   hideMainWindow = TRUE;}
+
+
+               else if (argmatch(argv[i], "-world", 2)) {
 		    i++;
 		    if (i > argc - 4) {
 			fprintf(stderr, "Missing parameter(s) for world setting\n");
@@ -1101,7 +1110,7 @@ sprintf(dummy,"%s/gracerc",qt_grace_exe_dir);
  * just plot the graph and quit
  */
     if (gracebat == TRUE) {
-	if (hdevice == 0) {
+    if (hdevice == 2) {
             errmsg(QObject::tr("Terminal device can't be used for batch plotting").toAscii().constData());
 	    exit(1);
 	}
@@ -1209,6 +1218,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        using the current set type from columns\n");
     fprintf(stream, "                                        given in the argument\n");
     fprintf(stream, "-connectToViewBeast [Server1 Server2] start connection to ViewBeast\n");
+    fprintf(stream, "-hideMainWindow                       hide the qtGrace application window\n");
     fprintf(stream, "-datehint  [iso|european|us\n");
     fprintf(stream, "            |days|seconds|nohint]     Set the hint for dates analysis\n");
     fprintf(stream, "                                        (it is only a hint for the parser)\n");
