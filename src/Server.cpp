@@ -35,8 +35,8 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
     m_fromBeast = new QLocalServer(this);
 
 
-   /* bool listenOK=m_fromBeast->listen(writeServerName);
-    if(listenOK)
+    bool listenOK=m_fromBeast->listen(writeServerName);
+  /*  if(listenOK)
         cout<< "Start the Server (listen OK)"<<endl;
 
     else
