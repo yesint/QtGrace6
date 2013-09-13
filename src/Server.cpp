@@ -35,14 +35,14 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
     m_fromBeast = new QLocalServer(this);
 
 
-    bool listenOK=m_fromBeast->listen(writeServerName);
+   /* bool listenOK=m_fromBeast->listen(writeServerName);
     if(listenOK)
         cout<< "Start the Server (listen OK)"<<endl;
 
     else
 
         cout<< "Not able to start the Server"<<endl;
-
+*/
 
     m_fromBeast->setMaxPendingConnections(300);
 

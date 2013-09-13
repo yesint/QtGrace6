@@ -1212,7 +1212,7 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 {
     if (noask)
     {
-	cout << "oops... noask=true" << endl;
+    //cout << "oops... noask=true" << endl;
 	return 1;
     }
 return yesnowin(msg, s1, s2, help_anchor);

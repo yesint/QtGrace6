@@ -1270,7 +1270,7 @@ if (used_Nodes==0) return false;//no Nodes to Undo
     }
     else
     {
-    cout << "used_Nodes<0 !?" << endl;
+    //cout << "used_Nodes<0 !?" << endl;
     }
 return false;
 }
@@ -1287,7 +1287,7 @@ if (used_Nodes==0) return false;//no Nodes to Undo or Redo
     }
     else
     {
-    cout << "used_Nodes<0 !?" << endl;
+    //cout << "used_Nodes<0 !?" << endl;
     }
 return false;
 }

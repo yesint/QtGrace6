@@ -600,9 +600,9 @@ sprintf(dummy,"%s/gracerc",qt_grace_exe_dir);
     new_project(NULL);
 
     cur_graph = get_cg();
-    cout<<"Starting args analysis"<<endl;
+   // cout<<"Starting args analysis"<<endl;
     for (i = 1; i < argc; i++) {
-        cout << i << " " << argv[i]<<endl;
+     //   cout << i << " " << argv[i]<<endl;
     }
     if (argc >= 2) {
 	for (i = 1; i < argc; i++) {
@@ -1525,10 +1525,10 @@ void update_set_lists(int gno)
  */
 void set_left_footer(char *s)
 {
-    cout << "set_left_footer:" ;
+    /*cout << "set_left_footer:" ;
     if(s) cout << s ; else cout << "NUUULLL";
     cout << endl;
-    
+    */
     if (s == NULL) {
         char * hbuf;
         char * buf;
@@ -1539,9 +1539,9 @@ void set_left_footer(char *s)
 //cout << "sizeof=" << hst.length()+1 << endl;
         strcpy(hbuf,hst.toAscii());
         sprintf(buf, "%s, %s, %s", hbuf, display_name(), get_docname());
-        cout << (int)(mainWin->isVisible()) << endl;
-        cout << (int)(mainWin->statusBar->isVisible()) << endl;
-        cout << buf << endl;
+     //   cout << (int)(mainWin->isVisible()) << endl;
+     //   cout << (int)(mainWin->statusBar->isVisible()) << endl;
+     //   cout << buf << endl;
         mainWin->statusBar->showMessage(QString(buf));
         //mainWin->statusBar->showMessage(QString("HELLOHELLOWIN64"));
         //SetLabel(statlab, buf);
