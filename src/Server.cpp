@@ -286,16 +286,11 @@ void LocalSocketIpcServer::readSocket() {
         countNoOfRead = 0;
         break;
 
-    case 9://Delete connection to Beast(9)
+    case 9://Close connection to Beast(9)
     {
         qDebug()<<"Run Command" << command;
         m_fromBeast->close();
-        delete m_fromBeast;
-        m_fromBeast = NULL;
-
         m_toBeast->abort();
-        delete m_toBeast;
-        m_toBeast = NULL;
         break;
     }
 
