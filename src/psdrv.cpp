@@ -109,7 +109,7 @@ static Device_entry dev_ps = {DEVICE_PRINT,
           ps_op_parser,
           ps_gui_setup,
           "ps",
-          FALSE,
+          TRUE,
           TRUE,
           {3300, 2550, 300.0},
           NULL

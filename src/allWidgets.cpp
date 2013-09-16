@@ -5872,7 +5872,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     fontaa_item=new QCheckBox(tr("Enable font antialiasing"),grpFonts);
     fontaa_item->setChecked(TRUE);
     devfont_item=new QCheckBox(tr("Use device fonts"),grpFonts);
-    devfont_item->setChecked(FALSE);
+
 
     actNativePrinterDialog=new QAction(this);
     connect(actNativePrinterDialog,SIGNAL(triggered()),this,SLOT(doNativePrinterDialog()));
