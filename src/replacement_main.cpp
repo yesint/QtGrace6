@@ -1019,7 +1019,7 @@ sprintf(dummy,"%s/gracerc",qt_grace_exe_dir);
                }
 
                else if (argmatch(argv[i], "-hideMainWindow", 15)) {
-                   cout<<"HideMainWindow"<<endl;
+
                    hideMainWindow = TRUE;}
 
 
