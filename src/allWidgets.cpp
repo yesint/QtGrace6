@@ -250,7 +250,7 @@ char command[1024];
 nonlprefs nonl_prefs = {TRUE, LOAD_VALUES, 10, 0.0, 1.0};
 
 int outputQuality=75;
-bool outputGrayscale=false;
+//bool outputGrayscale=false;
 int init_null(void){return 0;}	    /* function to initialize device */
 int parser_null(char * v){return 0;}  /* function to parse device-specific commands */
 void setup_null(void){;}    /* function (GUI interface) to setup device */
@@ -5525,8 +5525,8 @@ frmDeviceOptions::frmDeviceOptions(int device,QWidget * parent):QDialog(parent)
     layout5->addWidget(chkOptimize);
     chkProgressive=new QCheckBox(tr("Progressive"),grpJPEGoptions);
     layout5->addWidget(chkProgressive);
-    chkJPG_Grayscale=new QCheckBox(tr("Grayscale"),grpJPEGoptions);
-    layout5->addWidget(chkJPG_Grayscale);
+    // chkJPG_Grayscale=new QCheckBox(tr("Grayscale"),grpJPEGoptions);
+    // layout5->addWidget(chkJPG_Grayscale);
     grpJPEGoptions->setLayout(layout5);
     grpJPEGoptions->setVisible(FALSE);
     grpJPEGadvoptions=new QGroupBox(tr("JPEG advanced options"),this);
@@ -5566,8 +5566,8 @@ frmDeviceOptions::frmDeviceOptions(int device,QWidget * parent):QDialog(parent)
     sldQuality=new stdSlider(grpBMPoptions,tr("Quality"),0,100);
     layout8->addWidget(sldQuality);
     sldQuality->setValue(outputQuality);
-    chkGrayscale=new QCheckBox(tr("Grayscale"),grpBMPoptions);
-    layout8->addWidget(chkGrayscale);
+    //   chkGrayscale=new QCheckBox(tr("Grayscale"),grpBMPoptions);
+    //layout8->addWidget(chkGrayscale);
     grpBMPoptions->setLayout(layout8);
     grpBMPoptions->setVisible(FALSE);
 
@@ -5626,7 +5626,7 @@ void frmDeviceOptions::init(void)
     if (Device==DEVICE_BMP)
     {
         sldQuality->setValue(outputQuality);
-        chkGrayscale->setChecked(outputGrayscale);
+        //    chkGrayscale->setChecked(outputGrayscale);
     }
     else if (Device==DEVICE_PS)
     {
@@ -5663,7 +5663,7 @@ void frmDeviceOptions::doApply(void)
     if (Device==DEVICE_BMP)
     {
         outputQuality=sldQuality->value();
-        outputGrayscale=chkGrayscale->isChecked();
+        // outputGrayscale=chkGrayscale->isChecked();
     }
     else if (Device==DEVICE_PS)
     {
@@ -9020,7 +9020,7 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
 
     sprintf(buf, "Host: %s", bi_system());
     lblInfo[16]=new QLabel(QString(buf),grpBuildInfo);
-		       sprintf(buf, "Time: %s ; \"allWidgets.cpp\" compiled %s %s ", bi_date(),__DATE__,__TIME__);
+    sprintf(buf, "Time: %s ; \"allWidgets.cpp\" compiled %s %s ", bi_date(),__DATE__,__TIME__);
     lblInfo[17]=new QLabel(QString(buf),grpBuildInfo);
     sprintf(buf, "GUI toolkit: %s ", bi_gui());
     lblInfo[18]=new QLabel(QString(buf),grpBuildInfo);
@@ -10637,7 +10637,7 @@ void generateLowPass_Chebychev(double * f,int n,double f_cutoff,int order,double
 {
     struct komplex help1;
     struct komplex * ko=new struct komplex[n];
-double gamma=asinh_portable(ripple)/order;//ripples are in dB
+    double gamma=asinh_portable(ripple)/order;//ripples are in dB
     double ai,bi;
     double help;
     for (int i=0;i<n;i++)
@@ -11663,7 +11663,7 @@ void frmHotLinks::doClose()
 
 void frmHotLinks::newLinkFileSelected(int type,QString file,bool exists,bool writeable,bool readable)
 {
-char *dummy=new char[file.length()+1];// Win port
+    char *dummy=new char[file.length()+1];// Win port
     strcpy(dummy,file.toAscii());
     /*//for testing -- maybe some tests needed (readable files...)
 cout << "type=" << type << endl;
@@ -11671,7 +11671,7 @@ cout << "file=" << dummy << endl;
 cout << "exists=" << exists << endl;
 cout << "writeable=" << writeable << endl;
 cout << "readable=" << readable << endl;*/
-delete[]dummy;
+    delete[]dummy;
     FormSelectHotLink->hide();
     hotlink_file_item->setText(file);
 }
@@ -12062,10 +12062,10 @@ void frmEditBlockData::update_eblock(int gno)
     blockncols = get_blockncols();
     if (blockncols == 0) {
         QString err=tr("Need to read block data first");
-	char *dummy_err=new char[err.length()+1];// Win port
+        char *dummy_err=new char[err.length()+1];// Win port
         strcpy(dummy_err,err.toAscii());
         errmsg(dummy_err);
-	delete [] dummy_err;
+        delete [] dummy_err;
         return;
     }
     blocklen = get_blocknrows();
@@ -19621,7 +19621,7 @@ void frmNetCDF::IOrequested(int type,QString file,bool exists,bool writeable,boo
         errwin(dummy);
     }
     delete[] filename;
-	delete[] dummy;
+    delete[] dummy;
 }
 
 void frmNetCDF::doClose(void)
@@ -21785,8 +21785,8 @@ void frmBinaryFormatInput::doReadDataFromHeader(ifstream & ifi)
     }
     //cout << "points=" << imp_set.points << " whole=" << imp_set.whole_size << " byte=" << imp_set.bytesize << " bit=" << imp_set.bitsize << " global_size=" << global_size << endl;
     headersize=global_size;
-delete[]headerDatas;
-delete[]ldHeaderDatas;
+    delete[]headerDatas;
+    delete[]ldHeaderDatas;
 }
 
 void frmBinaryFormatInput::transmitInfos(void)
@@ -21991,7 +21991,7 @@ void readBinaryFromFile(ifstream & ifi,importSettings imp_set,double *** data,in
     ifi.seekg(position);//go to first byte after header
     //cout << "resulting length=" << length << endl;
     long size_of_one_point=0;
-long *size_of_one_set=new long[imp_set.channels];
+    long *size_of_one_set=new long[imp_set.channels];
     long calc_samp_count;
     for (int i=0;i<imp_set.channels;i++)
         size_of_one_point+=(long)(imp_set.channel_size[i]);
@@ -22109,7 +22109,7 @@ long *size_of_one_set=new long[imp_set.channels];
         *points_read=read;
     }
 
-	delete[]size_of_one_set;
+    delete[]size_of_one_set;
 }
 
 frmSetEditor::frmSetEditor(QWidget * parent):QDialog(parent)
