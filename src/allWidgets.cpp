@@ -5812,6 +5812,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
 
     if (windowTitle ==1){
         devices_item=new StdSelector(grpDevSetup,tr(""),number,entr);
+        emit devices_item->currentIndexChanged(9); //use screen from devices item
     }else if (windowTitle == 2){
         devices_item=new StdSelector(grpDevSetup,tr("Print to:"),number,entr);
     }else if (windowTitle == 3){
