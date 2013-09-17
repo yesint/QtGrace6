@@ -879,7 +879,7 @@ void read_settings(void)
     FormPreferences->autoredraw_type_item->setChecked(allPrefs->value(QString("autoredraw"),QVariant(true)).toBool());
     FormPreferences->cursor_type_item->setChecked(allPrefs->value(QString("crosshaircursor"),QVariant(false)).toBool());
 
-    FormPreferences->max_path_item->setValue(allPrefs->value(QString("maxdrawpathlength"),QVariant(20000)).toInt());
+    FormPreferences->max_path_item->setValue(allPrefs->value(QString("maxdrawpathlength"),QVariant(1000000)).toInt());
     FormPreferences->safe_mode_item->setChecked(allPrefs->value(QString("runinsafemode"),QVariant(true)).toBool());
 
     FormPreferences->scrollper_item->setValue(allPrefs->value(QString("scrollpercent"),QVariant(5)).toInt());
@@ -911,11 +911,11 @@ void read_settings(void)
     allPrefs->beginGroup(QString("General"));
     stdOutputFormat=allPrefs->value(QString("lastOutputFormat"),QVariant(1)).toInt();
     undo_active=allPrefs->value(QString("activateUndoRecords"),QVariant(false)).toBool();///undo deactivated as a default
-    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(false)).toBool();
+    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(true)).toBool();
     ExtraPreferences->chkActivateLaTeXSupport->setChecked(activateLaTeXsupport);
     immediateUpdate=allPrefs->value(QString("ImmediateUpdates"),QVariant(false)).toBool();
     ExtraPreferences->chkImmediateUpdate->setChecked(immediateUpdate);
-    default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(-1)).toInt();
+    default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(0)).toInt();
     ExtraPreferences->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);
     //no paint device yet --> we have to disconnect this, because redraw is inpossible now
     mainWin->disconnect(mainWin->sldPageZoom,SIGNAL(valueChanged(int)),mainWin,SLOT(doPageZoom(int)));
@@ -951,7 +951,6 @@ void read_settings(void)
             FormDeviceSetup->devices_item->setCurrentIndex(default_Print_Device);
     }
     FormDeviceSetup->hide();
-    //Nimal
     //   FormDeviceSetup->print_string_item->setText( allPrefs->value(QString("PrintCommand"),QVariant("lpr")).toString() );
     FormDeviceSetup->doApply();
 
@@ -964,7 +963,7 @@ void read_settings(void)
 void write_settings(void)
 {
     /*allPrefs=new QSettings(QString("Grace"),QString("qtGrace"));
-allPrefs->setPath(QSettings::IniFormat,QSettings::UserScope,qt_grace_exe_dir);*/
+	allPrefs->setPath(QSettings::IniFormat,QSettings::UserScope,qt_grace_exe_dir);*/
     allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
     allPrefs->beginGroup(QString("Preferences"));
     allPrefs->setValue(QString("dontaskquestions"),QVariant(FormPreferences->noask_item->isChecked()));
