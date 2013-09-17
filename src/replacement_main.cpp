@@ -1019,7 +1019,7 @@ int replacement_main(int argc, char **argv)
                     }
 
                     else if (argmatch(argv[i], "-hideMainWindow", 15)) {
-                        cout<<"HideMainWindow"<<endl;
+
                         hideMainWindow = TRUE;}
 
 
