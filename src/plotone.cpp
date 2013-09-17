@@ -216,7 +216,7 @@ tmpnam(fname);
 #endif
     } else {
         if (truncated_out == TRUE) {
-            errmsg("Output is truncated - tune device dimensions");
+			errmsg("Graph exceeds selected format size. Please resize graph or select a new format size. If you just want to scale the graph to fit the page, then go to options and enable: ´Rescale plot on page size change´");
         }
     }
     
