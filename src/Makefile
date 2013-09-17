@@ -70,10 +70,10 @@ ifneq (,$(findstring -DQT5,$(commdef)))
 endif
 
 ifneq (,$(findstring LINUX,$(ABI)))
-CCFLAGS+=-DLINUX_SYSTEM
+CCFLAGS+=-DLINUX_SYSTEM 
 #LIBS+=-lQtWebKit
 else
-CCFLAGS+=-DWINDOWS_SYSTEM
+CCFLAGS+=-DWINDOWS_SYSTEM -DHAVE_MEMCPY
 endif
 
 BIN=qtGrace$(ABI)
