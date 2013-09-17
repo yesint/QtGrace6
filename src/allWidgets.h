@@ -210,7 +210,6 @@ Q_OBJECT
 public:
 frmSpreadSheet2(QWidget * parent=0);
 
-//Nimal
 int allocated_rows,start_row;
 int visible_row_count;
 int number_of_rows,number_of_columns;
@@ -836,7 +835,7 @@ QMenuBar * menuBar;
 StdSelector * devices_item;
 StdSelector * page_orient_item;
 StdSelector * page_format_item;
-//NIMAL
+
 //stdLineEdit * print_string_item;
 stdLineEdit * printfile_item;
 stdLineEdit * page_x_item;
@@ -850,7 +849,7 @@ QPushButton * cmdDoPrint;
 //QCheckBox * printto_item;
 QCheckBox * fontaa_item;
 QCheckBox * devfont_item;
-//Nimal
+
 frmDeviceOptions * DevOptions[7];
 int cur_dev;
 QAction * actPrint,*actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;

@@ -5812,7 +5812,6 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
 
     if (windowTitle ==1){
         devices_item=new StdSelector(grpDevSetup,tr(""),number,entr);
-        emit devices_item->currentIndexChanged(9); //use screen from devices item
     }else if (windowTitle == 2){
         devices_item=new StdSelector(grpDevSetup,tr("Print to:"),number,entr);
     }else if (windowTitle == 3){
@@ -5969,7 +5968,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     setLayout(layout);
 
     page_format_item->setCurrentIndex(1);
-    DeviceChanged(0);
+    DeviceChanged(9);
 }
 
 void frmDeviceSetup::init(int dev)
@@ -6061,10 +6060,10 @@ void frmDeviceSetup::DeviceChanged(int device_id)
         SetSensitive(wbut, true);
 
 
-        //            SetToggleButtonState(printto_item, true);
-        //            SetSensitive(printto_item, true);
+        //SetToggleButtonState(printto_item, true);
+        //SetSensitive(printto_item, true);
         //SetSensitive(printto_item, false);
-        //  SetSensitive(print_string_item, false);
+        //SetSensitive(print_string_item, false);
         //SetSensitive(rc_filesel, true);
         //SetSensitive(printfile_item, true);
         //SetSensitive(wbut, true);
@@ -6080,7 +6079,7 @@ void frmDeviceSetup::DeviceChanged(int device_id)
             //SetSensitive(rc_filesel, true);
             SetSensitive(printfile_item, true);
             SetSensitive(wbut, true);
-            //                SetSensitive(printto_item, true);
+            //SetSensitive(printto_item, true);
             //SetSensitive(printto_item, false);
             //SetSensitive(print_string_item, false);
         }// else {
