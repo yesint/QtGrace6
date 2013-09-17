@@ -53,7 +53,7 @@ static Device_entry dev_mf = {DEVICE_FILE,
           NULL,
           "gmf",
           TRUE,
-          FALSE,
+          TRUE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
           NULL
          };

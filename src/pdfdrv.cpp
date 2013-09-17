@@ -96,7 +96,7 @@ static Device_entry dev_pdf = {DEVICE_FILE,
           pdf_gui_setup,
           "pdf",
           TRUE,
-          FALSE,
+          TRUE,
           {3300, 2550, 300.0},
           NULL
          };

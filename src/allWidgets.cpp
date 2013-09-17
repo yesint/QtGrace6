@@ -698,7 +698,7 @@ static Device_entry dev_jpg = {DEVICE_FILE,
                                parser_null,
                                setup_null,
                                "jpg",
-                               FALSE,
+                               TRUE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL
@@ -710,7 +710,7 @@ static Device_entry dev_png = {DEVICE_FILE,
                                parser_null,
                                setup_null,
                                "png",
-                               FALSE,
+                               TRUE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL
@@ -722,7 +722,7 @@ static Device_entry dev_bmp = {DEVICE_FILE,
                                parser_null,
                                setup_null,
                                "bmp",
-                               FALSE,
+                               TRUE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL
@@ -5968,16 +5968,8 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     setLayout(layout);
 
     page_format_item->setCurrentIndex(1);
-
-    #ifdef _MSC_VER
-		DeviceChanged(8);
-	#else
-		DeviceChanged(9); //JPEG format included 
-	#endif
-
-	
-	
-}
+	DeviceChanged(0);
+    }
 
 void frmDeviceSetup::init(int dev)
 {
