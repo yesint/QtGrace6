@@ -738,8 +738,14 @@ static Device_entry dev_bmp = {DEVICE_FILE,
 
 void register_qt_devices(void)
 {
-    register_device(dev_jpg);
-    register_device(dev_png);
+   
+#ifdef _MSC_VER 
+	//Missing JPEG libraries for Windows
+	#else
+register_device(dev_jpg);
+#endif
+	
+	register_device(dev_png);
     register_device(dev_bmp);
 }
 
@@ -6711,7 +6717,7 @@ frmPreferences::frmPreferences(QWidget * parent):QDialog(parent)
 
     grpResponciveness=new QGroupBox(tr("Responsiveness"),this);
     noask_item=new QCheckBox(tr("Don't ask questions"),grpResponciveness);
-    noask_item->setChecked(FALSE); //ask questions default Nimal
+    noask_item->setChecked(FALSE); //ask questions default - Nimal
     dc_item=new QCheckBox(tr("Allow double clicks on canvas"),grpResponciveness);
     dc_item->setChecked(TRUE);
     number=3;
@@ -6726,7 +6732,7 @@ frmPreferences::frmPreferences(QWidget * parent):QDialog(parent)
     cursor_type_item=new QCheckBox(tr("Crosshair cursor"),grpResponciveness);
     ///chkShowHideWorkaround=new QCheckBox(tr("Show/Hide workaround"),grpResponciveness);
     grpRestrictions=new QGroupBox(tr("Restrictions"),this);
-    max_path_item=new stdIntSelector(grpRestrictions,tr("Max drawing path length:"),0,1000000); //Nimal 20000
+    max_path_item=new stdIntSelector(grpRestrictions,tr("Max drawing path length:"),0,1000000); //changed from 20000 - Nimal
     max_path_item->spnInt->setSingleStep(1000);
     max_path_item->setValue(1000000);
     safe_mode_item=new QCheckBox(tr("Run in safe mode"),grpRestrictions);
