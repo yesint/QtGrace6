@@ -1317,7 +1317,7 @@ useQtFunctions=false;
                 } else {
                     vptmp = cs->start;
                 }
-                if (devputtext == NULL || (curdevice==9 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimal
+                if (devputtext == NULL || (curdevice==9 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimal Kailasanathan
                     errmsg("Device has no built-in fonts");
                 } else {
                     (*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);

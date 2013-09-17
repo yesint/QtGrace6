@@ -1075,11 +1075,11 @@ int LocalSocketIpcServer::getdata(int gno, char *fn, int src, int load_type)
     if (cur_version != 0) {
         /* a complete project */
         postprocess_project(cur_version);
-       // autoscale_graph(gno, autoscale_onread); //2013-07-03 Always autoscale - Nimal Kailasanathan
+       // autoscale_graph(gno, autoscale_onread); //2013-07-03 disable - Nimal Kailasanathan
 
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
-        //autoscale_graph(gno, autoscale_onread);
+        //autoscale_graph(gno, autoscale_onread); //2013-07-03 disable - Nimal Kailasanathan
     }
     set_project_version(save_version);
 

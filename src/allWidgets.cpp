@@ -738,14 +738,14 @@ static Device_entry dev_bmp = {DEVICE_FILE,
 
 void register_qt_devices(void)
 {
-   
+
 #ifdef _MSC_VER 
-	//Missing JPEG libraries for Windows
-	#else
-register_device(dev_jpg);
+    //Missing JPEG libraries for Windows
+#else
+    register_device(dev_jpg);
 #endif
-	
-	register_device(dev_png);
+
+    register_device(dev_png);
     register_device(dev_bmp);
 }
 
@@ -5765,7 +5765,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
 
     grpFonts=new QGroupBox(tr("Fonts"),this);
 
-    //2013-07-03 Changed window titles- Nimal Kailasanathan
+    //2013-07-03 Changed window titles - Nimal Kailasanathan
 
     if (windowTitle ==1){
         device_opts_item=new QPushButton(tr(""),grpDevSetup);
@@ -5832,7 +5832,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     page_orient_item=new StdSelector(grpPage,tr("Orientation:"),number,entr);
     page_orient_item->setValues(i_entr);
     connect(page_orient_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(OrientationChanged(int)));
-    //2013-07-03 Added new page formats- Nimal Kailasanathan
+    //2013-07-03 Added new page formats - Nimal Kailasanathan
     number=12;
 
     entr[0]=tr("Custom");
