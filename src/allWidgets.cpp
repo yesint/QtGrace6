@@ -5812,7 +5812,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
 
     if (windowTitle ==1){
         devices_item=new StdSelector(grpDevSetup,tr(""),number,entr);
-    }else if (windowTitle == 2){
+	}else if (windowTitle == 2){
         devices_item=new StdSelector(grpDevSetup,tr("Print to:"),number,entr);
     }else if (windowTitle == 3){
         devices_item=new StdSelector(grpDevSetup,tr("Select file format:"),number-1,entr); //-1 remove screen from list
@@ -5968,7 +5968,15 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     setLayout(layout);
 
     page_format_item->setCurrentIndex(1);
-    DeviceChanged(9);
+
+    #ifdef _MSC_VER
+		DeviceChanged(8);
+	#else
+		DeviceChanged(9); //JPEG format included 
+	#endif
+
+	
+	
 }
 
 void frmDeviceSetup::init(int dev)
