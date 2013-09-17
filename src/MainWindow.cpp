@@ -1854,13 +1854,15 @@ void MainWindow::ShowToolBar(void)
 void MainWindow::PageSetup(void)
 {
     FormDeviceSetup=new frmDeviceSetup(1,this);
-    //if (FormDeviceSetup==NULL)
-    //{
-
-    //}
     FormDeviceSetup->show();
-    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("BMP"));
-    FormDeviceSetup->raise();
+
+#ifdef _MSC_VER
+FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PNG")); //weird: to have the Screen as default, write select the item Screen-2, in this case PNG    
+#else
+ FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("BMP")); //weird: to have the Screen as default, write select the item Screen-2, in this case PNG
+#endif
+	
+	FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
 }
 
