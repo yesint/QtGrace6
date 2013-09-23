@@ -137,6 +137,7 @@ void do_hardcopy(void)
 {
     char tbuf[128], *s;
     char fname[GR_MAXPATHLEN];
+
     view v;
     double vx, vy;
     int truncated_out;
@@ -169,17 +170,30 @@ void do_hardcopy(void)
         /* VMS doesn't like extensionless files */
         strcat(fname, ".prn");
     }
-    
-    prstream = grace_openw(fname);
-    
+  QTemporaryFile file;
+  file.open();
+  QString fileN;
+  fileN = file.fileName()+".svg";
+  QByteArray byteArray = fileN.toUtf8();
+  char *cTempFileName = byteArray.data();
+
+    Device_entry dev;
+    dev = get_device_props(hdevice);
+    if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"PNG"))
+    {
+prstream = grace_openw(fname);
+     prstream = grace_openw(cTempFileName);
+
+    }else{
+        prstream = grace_openw(fname);
+    }
+
     if (prstream == NULL)
     {
         return;
     }
     
     /*Checks for Qt-stuff*/
-    Device_entry dev;
-    dev = get_device_props(hdevice);
     int save_focus_flag=draw_focus_flag;
     int old_dev=curdevice;
     //cout << "dev.name=" << dev.name << " vergl=" << !strcmp(dev.name,"JPEG") << endl;
@@ -207,7 +221,12 @@ void do_hardcopy(void)
     }
     
     if (get_ptofile() == FALSE) {
-        sprintf(tbuf, "%s %s", get_print_cmd(), fname);
+        if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"PNG"))
+        {
+        sprintf(tbuf, "%s %s", get_print_cmd(), cTempFileName);
+        }else{sprintf(tbuf, "%s %s", get_print_cmd(), fname);
+
+            }
         if (truncated_out == FALSE ||
                 yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
             system_wrap(tbuf);
@@ -253,21 +272,13 @@ void do_hardcopy(void)
     if(!strcmp(dev.name,"PDF"))
     {
 
-        QString fileName;
-        fileName = QString(fname);
-
-        QFile file(fileName);
-
-        //Remove pdf extension and add svg
-        fileName = fileName.left(fileName.lastIndexOf("."));
-        file.rename(fileName+".svg");
-
+       QString fileName = QString(cTempFileName);
         //Read svg file and convert to pdf
-        QSvgRenderer renderer(fileName+".svg");
+        QSvgRenderer renderer(fileName);
 
         QPrinter printer;
         printer.setOutputFormat(QPrinter::PdfFormat);
-        printer.setOutputFileName(fileName+".pdf");
+        printer.setOutputFileName(fname);
 
         printer.setPaperSize(renderer.defaultSize(),QPrinter::DevicePixel);
         printer.setPageMargins(0.0,0.0,0.0,0.0,QPrinter::DevicePixel);
@@ -277,8 +288,7 @@ void do_hardcopy(void)
 
         renderer.render(&painter);
         painter.end();
-
-        QFile::remove(fileName+".svg");
+        file.close();
 
 
     }
@@ -287,17 +297,9 @@ void do_hardcopy(void)
     if(!strcmp(dev.name,"PNG"))
     {
 
-        QString fileName;
-        fileName = QString(fname);
-
-        QFile file(fileName);
-
-        //Remove pdf extension and add svg
-        fileName = fileName.left(fileName.lastIndexOf("."));
-        file.rename(fileName+".svg");
-
-        //Read svg file and convert to png
-        QSvgRenderer renderer(fileName+".svg");
+        QString fileName = QString(cTempFileName);
+         //Read svg file and convert to png
+         QSvgRenderer renderer(fileName);
 
         // Prepare a QImage with desired characteritisc
         QImage image(renderer.defaultSize()*png_setup_res/100, QImage::Format_RGB32);
@@ -306,9 +308,9 @@ void do_hardcopy(void)
         renderer.render(&painter);
 
         // Save, image format based on file extension
-        image.save(fileName+".png");
+        image.save(fname);
         painter.end();
-        QFile::remove(fileName+".svg");
+        file.close();
 
 
     }

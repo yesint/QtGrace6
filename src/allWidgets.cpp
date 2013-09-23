@@ -670,6 +670,10 @@ int find_dev_nr(char * dev_name)/*my own number of devices*/
     {
         nr=DEVICE_BMP;
     }*/
+    if (!strcmp(dev_name,"PDF"))
+    {
+        nr=DEVICE_PDF;
+    }
     if (!strcmp(dev_name,"EPS"))
     {
         nr=DEVICE_EPS;
@@ -748,7 +752,7 @@ void register_qt_devices(void)
 
     //    register_device(dev_jpg);
     //    register_device(dev_bmp);
-          register_device(dev_png);
+    register_device(dev_png);
 }
 
 frmEditColumnProp::frmEditColumnProp(QWidget * parent):QDialog(parent)
@@ -5678,8 +5682,8 @@ void frmDeviceOptions::doApply(void)
     {
 
 
-      png_setup_res = GetSpinChoice(chkResolution);
-     //Nimal
+        png_setup_res = GetSpinChoice(chkResolution);
+        //Nimal
     }
     if (Device==DEVICE_PS)
     {
@@ -5883,6 +5887,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     page_x_item=new stdLineEdit(grpPage,tr("Dimensions:"));
     page_y_item=new stdLineEdit(grpPage,tr("x"));
     dev_res_item=new stdLineEdit(grpPage,tr("Resolution (dpi):"));
+dev_res_item->hide();
     page_size_unit_item=new QComboBox(grpPage);
     page_size_unit_item->addItem(tr("pix"));
     page_size_unit_item->addItem(tr("in"));
@@ -6510,10 +6515,10 @@ void frmDeviceSetup::doApply(void)
         delete[] gnos;
     }
 
-    orig_page_w=device_table[0].pg.width;//save original size
-    orig_page_h=device_table[0].pg.height;
-    device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
-    device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;
+    orig_page_w=device_table[5].pg.width;//save original size
+    orig_page_h=device_table[5].pg.height;
+    device_table[5].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
+    device_table[5].pg.height=orig_page_h*GeneralPageZoomFactor;
 
     if (do_redraw)
     {

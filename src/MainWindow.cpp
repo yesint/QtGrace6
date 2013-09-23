@@ -1171,7 +1171,7 @@ void MainWindow::ExportToFile(void)
 {
     FormDeviceSetup=new frmDeviceSetup(3,this);
     FormDeviceSetup->show();
-    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PDF")); //Set postript file as default in export file menu
+    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PDF")); //Set PDF file as default in export file menu
     FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
 
@@ -1188,11 +1188,11 @@ void MainWindow::PrintSetup(void)
 void MainWindow::Print(void)
 {
     printing_in_file=true;
-    device_table[0].pg.width=orig_page_w;//use original page size
-    device_table[0].pg.height=orig_page_h;
+    device_table[5].pg.width=orig_page_w;//use original page size
+    device_table[5].pg.height=orig_page_h;
     do_hardcopy();
-    device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
-    device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;
+    device_table[5].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
+    device_table[5].pg.height=orig_page_h*GeneralPageZoomFactor;
     printing_in_file=false;
     mainArea->completeRedraw();
 
@@ -2113,8 +2113,8 @@ void MainWindow::doCy(void)
 void MainWindow::doPageZoom(int i)
 {
     GeneralPageZoomFactor=pow(10.0,i*sldPageZoom->ScalingFactor);
-    device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;
-    device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;
+    device_table[5].pg.width=orig_page_w*GeneralPageZoomFactor;
+    device_table[5].pg.height=orig_page_h*GeneralPageZoomFactor;
     mainArea->completeRedraw();
 }
 

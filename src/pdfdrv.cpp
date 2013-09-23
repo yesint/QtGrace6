@@ -49,7 +49,7 @@ static Device_entry dev_pdf = {
     "pdf",
     TRUE,
     TRUE,
-    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72},
     NULL
 };
 

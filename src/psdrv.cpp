@@ -111,7 +111,7 @@ static Device_entry dev_ps = {DEVICE_PRINT,
           "ps",
           TRUE,
           TRUE,
-          {3300, 2550, 300.0},
+          {3300, 2550, 72},
           NULL
          };
 
@@ -123,7 +123,7 @@ static Device_entry dev_eps = {DEVICE_FILE,
           "eps",
           TRUE,
           TRUE,
-          {2500, 2500, 300.0},
+          {2500, 2500, 72},
           NULL
          };
 
