@@ -5561,7 +5561,7 @@ frmDeviceOptions::frmDeviceOptions(int device,QWidget * parent):QDialog(parent)
 
     layout7=new QVBoxLayout;
     layout7->setMargin(STD_MARGIN);
-    chkResolution=new stdIntSelector(grpPNGoptions,tr("Resolution:"),0,2000);
+    chkResolution=new stdIntSelector(grpPNGoptions,tr("Quality:"),0,2000);
     chkResolution->setValue(1000);
     layout7->addWidget(chkResolution);
     layout7->addWidget(description);
