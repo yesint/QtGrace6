@@ -55,17 +55,23 @@
 #define SAMPLING_MESH   0
 #define SAMPLING_SET    1
 
-#define DEVICE_X11 0
-#define DEVICE_DUMMY 1
+//#define DEVICE_X11 0
+//#define DEVICE_DUMMY 1
+#define DEVICE_PDF 0
+#define DEVICE_PNG 1
 #define DEVICE_PS 2
 #define DEVICE_EPS 3
-#define DEVICE_MIF 4
-#define DEVICE_SVG 5
-#define DEVICE_PNM 6
-#define DEVICE_JPEG 7
-#define DEVICE_PNG 8
-#define DEVICE_BMP 9
-#define DEVICE_METAFILE 10
+#define DEVICE_SVG 4
+#define DEVICE_SCREEN 5
+//#define DEVICE_MIF 2
+//#define DEVICE_PNM 4
+//#define DEVICE_JPEG 5
+//#define DEVICE_BMP 7
+//#define DEVICE_METAFILE 8
+
+
+
+
 
 
 #define READ_SET_FORM 0
@@ -795,15 +801,31 @@ StdSelector * selDCT;
 QVBoxLayout * layout6;
 
 QGroupBox * grpPNGoptions;
-QCheckBox * chkInterlaced;
-QCheckBox * chkTransparent;
-stdIntSelector * selCompression;
+QLabel    * description;
+stdIntSelector * chkResolution;
 QVBoxLayout * layout7;
 
 QGroupBox * grpBMPoptions;
 stdSlider * sldQuality;
 QCheckBox * chkGrayscale;
 QVBoxLayout * layout8;
+
+QGroupBox * grpPage;
+QGroupBox * grpOptions;
+QGroupBox * grpFonts;
+QVBoxLayout * layout9;
+QGridLayout * layout10;
+QGridLayout * layout11;
+stdLineEdit * printfile_item;
+StdSelector * page_orient_item;
+StdSelector * page_format_item;
+stdLineEdit * page_x_item;
+stdLineEdit * page_y_item;
+stdLineEdit * dev_res_item;
+QComboBox * page_size_unit_item;
+QCheckBox * chkDontChangeSize;
+
+
 
 stdButtonGroup * buttonGroup;
 
@@ -813,6 +835,10 @@ void init(void);
 void doApply(void);
 void doAccept(void);
 void doClose(void);
+
+
+
+
 };
 
 class frmDeviceSetup:public QDialog
@@ -827,6 +853,7 @@ QGroupBox * grpDevSetup;
 QGroupBox * grpOutput;
 QGroupBox * grpPage;
 QGroupBox * grpFonts;
+QGroupBox * grpOptions;
 QMenu * mnuFile;
 QMenu * mnuOptions;
 QMenu * mnuHelp;
@@ -850,7 +877,11 @@ QPushButton * cmdDoPrint;
 QCheckBox * fontaa_item;
 QCheckBox * devfont_item;
 
-frmDeviceOptions * DevOptions[7];
+QCheckBox * scale_item;
+QCheckBox * high_res_item;
+QCheckBox * sync_item;
+
+frmDeviceOptions * DevOptions[8];
 int cur_dev;
 QAction * actPrint,*actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
 
@@ -860,6 +891,7 @@ QHBoxLayout * layout0;
 QGridLayout * layout1;
 QGridLayout * layout2;
 QVBoxLayout * layout3;
+QVBoxLayout * layout4;
 QVBoxLayout * layout;
 
 public slots:

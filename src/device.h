@@ -37,8 +37,8 @@
 #include "t1fonts.h"
 
 /* default dimensions of the canvas */
-#define DEFAULT_PAGE_WIDTH  600
-#define DEFAULT_PAGE_HEIGHT 600
+#define DEFAULT_PAGE_WIDTH  733
+#define DEFAULT_PAGE_HEIGHT 538
 
 #define MM_PER_INCH	25.4
 #define CM_PER_INCH	(MM_PER_INCH/10)

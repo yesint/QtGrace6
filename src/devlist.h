@@ -47,15 +47,15 @@ int register_eps_drv(void);
 int register_mf_drv(void);
 int register_mif_drv(void);
 int register_svg_drv(void);
-#ifdef HAVE_LIBPDF
 int register_pdf_drv(void);
-#endif
+int register_high_png_drv(void);
+/*
 int register_pnm_drv(void);
 #ifdef HAVE_LIBJPEG
 int register_jpg_drv(void);
 #endif
 #ifdef HAVE_LIBPNG
-int register_png_drv(void);
-#endif
 
+#endif
+*/
 #endif /* __DEVLIST_H_ */

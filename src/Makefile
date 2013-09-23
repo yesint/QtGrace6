@@ -63,10 +63,12 @@ LIBS = 	-L$(XHOME)/lib64 \
 	-L$(XHOME)/lib \
         -lm \
         -L$(QT4HOME)/lib/$(ABI) $(QT4LIBS)  $(XTRLIBS) 
-#INCLUDES += -I$(QT4HOME)/include/QtWebKit
+INCLUDES += -I$(QT4HOME)/include/QtSvg
+
 
 ifneq (,$(findstring -DQT5,$(commdef)))
 #INCLUDES += -I$(QT4HOME)/include/QtWebKitWidgets
+QT4LIBS += -lQt5Svg
 endif
 
 ifneq (,$(findstring LINUX,$(ABI)))

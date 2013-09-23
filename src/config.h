@@ -325,7 +325,7 @@
 /* #undef HAVE_FFTW */
 
 /* Define if PNG library is available */
-#define HAVE_LIBPNG 1
+#define HAVE_LIBPNG 0
 
 /* Define if JPEG library is available */
 #define HAVE_LIBJPEG 1

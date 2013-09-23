@@ -1171,7 +1171,7 @@ void MainWindow::ExportToFile(void)
 {
     FormDeviceSetup=new frmDeviceSetup(3,this);
     FormDeviceSetup->show();
-    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("JPEG")); //? write the two formats before the one you want as default in the format list (BMP is the default)
+    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PDF")); //Set postript file as default in export file menu
     FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
 
@@ -1855,13 +1855,7 @@ void MainWindow::PageSetup(void)
 {
     FormDeviceSetup=new frmDeviceSetup(1,this);
     FormDeviceSetup->show();
-
-#ifdef _MSC_VER
-FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PNG")); //weird: to have the Screen as default, write select the item Screen-2, in this case PNG    
-#else
- FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("BMP")); //weird: to have the Screen as default, write select the item Screen-2, in this case PNG
-#endif
-	
+    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("SCREEN")); //Set screen as default for display settings
 	FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
 }

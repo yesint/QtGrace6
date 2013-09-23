@@ -10,6 +10,7 @@ unix:!macx:DEFINES += LINUX_SYSTEM
 TRANSLATIONS += qt_grace_ger.ts
 QT += network
 QT += webkit
+QT += svg
 ICON = GraceIcon.icns
 !unix:RC_FILE = qtgrace.rc
 

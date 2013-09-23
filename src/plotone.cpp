@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2003 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
+ *
  * Modified by Andreas Winter 2008-2012
- * 
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -55,6 +55,7 @@
 #include <iostream>
 #include "MainWindow.h"
 #include "rint.h"
+#include <QSvgRenderer>
 FILE *prstream;
 
 extern MainWindow * mainWin;
@@ -69,7 +70,7 @@ extern bool startupphase;
 extern bool useQtFonts;
 extern QList<QFont> stdFontList;
 int RotationAngle;
-
+int png_setup_res = 100;
 extern void WriteQtString(VPoint vp,int rot,int just,char * s);
 extern void WriteQtString(VPoint vp,int rot,int just,char * s,double charSize,int font,int color);
 extern QString get_filename_with_extension(int device);
@@ -124,8 +125,8 @@ void drawgraph(void)
     mainWin->mainArea->contentChanged=true;
     if (!startupphase)
     {
-    mainWin->mainArea->repaint();
-    qApp->processEvents();
+        mainWin->mainArea->repaint();
+        qApp->processEvents();
     }
 }
 
@@ -160,10 +161,10 @@ void do_hardcopy(void)
             return;
         }
 #ifdef WINDOWS_SYSTEM
-tmpnam(fname);
+        tmpnam(fname);
 #else
         strcat(fname,"XXXXXX");
-	mkstemp(fname);
+        mkstemp(fname);
 #endif
         /* VMS doesn't like extensionless files */
         strcat(fname, ".prn");
@@ -181,17 +182,17 @@ tmpnam(fname);
     dev = get_device_props(hdevice);
     int save_focus_flag=draw_focus_flag;
     int old_dev=curdevice;
-//cout << "dev.name=" << dev.name << " vergl=" << !strcmp(dev.name,"JPEG") << endl;
-    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))
+    //cout << "dev.name=" << dev.name << " vergl=" << !strcmp(dev.name,"JPEG") << endl;
+    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP"))
     {
-    select_device(0);
-    /*plot on display and copy to file later*/
-//cout << "draw_focus_flag=FALSE;" << endl;
-    draw_focus_flag=FALSE;
+        select_device(0);
+        /*plot on display and copy to file later*/
+        //cout << "draw_focus_flag=FALSE;" << endl;
+        draw_focus_flag=FALSE;
     }
     else
     {
-    select_device(hdevice);
+        select_device(hdevice);
     }
     drawgraph();
     
@@ -208,15 +209,15 @@ tmpnam(fname);
     if (get_ptofile() == FALSE) {
         sprintf(tbuf, "%s %s", get_print_cmd(), fname);
         if (truncated_out == FALSE ||
-            yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
+                yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
             system_wrap(tbuf);
         }
 #ifndef PRINT_CMD_UNLINKS
-///        unlink(fname);
+        ///        unlink(fname);
 #endif
     } else {
         if (truncated_out == TRUE) {
-			errmsg("Graph exceeds selected format size. Please resize graph or select a new format size. If you just want to scale the graph to fit the page, then go to options and enable: ´Rescale plot on page size change´");
+            errmsg("Graph exceeds selected format size. Please resize graph or select a new format size. If you just want to scale the graph to fit the page, then go to options and enable: ´Rescale plot on page size change´");
         }
     }
     
@@ -226,27 +227,98 @@ tmpnam(fname);
         cout << ba.at(i).constData() << endl;
     }*/
 
-    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))
+    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP"))
     {
-    /*cout << "Qt plotting routine 2nd half" << endl;
+        /*cout << "Qt plotting routine 2nd half" << endl;
     plot on display and copy to file later*/
-    QPixmap pm;
-    if (monomode == FALSE)
-    pm=QPixmap::fromImage(*MainPixmap,Qt::AutoColor | Qt::DiffuseAlphaDither);
-    else
-    pm=QPixmap::fromImage(*MainPixmap,Qt::MonoOnly | Qt::DiffuseAlphaDither);
-//cout << "dev.name=" << dev.name << " printfile=" << print_file  << " quality=" << dev.pg.dpi << " outQ=" << outputQuality << endl;
-//cout << (*MainPixmap).width() << " " << (*MainPixmap).height() << " " << pm.width() << " " << pm.height() << endl;
-    /// bool ret=pm.save(QString(print_file),dev.name,outputQuality);
-    bool ret=MainPixmap->save(QString(print_file),dev.name,outputQuality);
-//cout << "ret=" << ret << endl;
-    select_device(old_dev);
-    draw_focus_flag=save_focus_flag;
-    printing_in_file=false;
-    drawgraph();
+        QPixmap pm;
+        if (monomode == FALSE)
+            pm=QPixmap::fromImage(*MainPixmap,Qt::AutoColor | Qt::DiffuseAlphaDither);
+        else
+            pm=QPixmap::fromImage(*MainPixmap,Qt::MonoOnly | Qt::DiffuseAlphaDither);
+        //cout << "dev.name=" << dev.name << " printfile=" << print_file  << " quality=" << dev.pg.dpi << " outQ=" << outputQuality << endl;
+        //cout << (*MainPixmap).width() << " " << (*MainPixmap).height() << " " << pm.width() << " " << pm.height() << endl;
+        /// bool ret=pm.save(QString(print_file),dev.name,outputQuality);
+        bool ret=MainPixmap->save(QString(print_file),dev.name,outputQuality);
+        //cout << "ret=" << ret << endl;
+        select_device(old_dev);
+        draw_focus_flag=save_focus_flag;
+        printing_in_file=false;
+        drawgraph();
     }
     else
-    select_device(tdevice);
+        select_device(tdevice);
+
+
+    if(!strcmp(dev.name,"PDF"))
+    {
+
+        QString fileName;
+        fileName = QString(fname);
+
+        QFile file(fileName);
+
+        //Remove pdf extension and add svg
+        fileName = fileName.left(fileName.lastIndexOf("."));
+        file.rename(fileName+".svg");
+
+        //Read svg file and convert to pdf
+        QSvgRenderer renderer(fileName+".svg");
+
+        QPrinter printer;
+        printer.setOutputFormat(QPrinter::PdfFormat);
+        printer.setOutputFileName(fileName+".pdf");
+
+        printer.setPaperSize(renderer.defaultSize(),QPrinter::DevicePixel);
+        printer.setPageMargins(0.0,0.0,0.0,0.0,QPrinter::DevicePixel);
+        printer.setResolution(300);
+
+        QPainter painter(&printer);
+
+        renderer.render(&painter);
+        painter.end();
+
+        QFile::remove(fileName+".svg");
+
+
+    }
+
+
+    if(!strcmp(dev.name,"PNG"))
+    {
+
+        QString fileName;
+        fileName = QString(fname);
+
+        QFile file(fileName);
+
+        //Remove pdf extension and add svg
+        fileName = fileName.left(fileName.lastIndexOf("."));
+        file.rename(fileName+".svg");
+
+        //Read svg file and convert to png
+        QSvgRenderer renderer(fileName+".svg");
+
+        // Prepare a QImage with desired characteritisc
+        QImage image(renderer.defaultSize()*png_setup_res/100, QImage::Format_RGB32);
+        // Get QPainter that paints to the image
+        QPainter painter(&image);
+        renderer.render(&painter);
+
+        // Save, image format based on file extension
+        image.save(fileName+".png");
+        painter.end();
+        QFile::remove(fileName+".svg");
+
+
+    }
+
+
+
+
+
+
+
 }
 
 void plotone(int gno)
@@ -407,33 +479,33 @@ void draw_pie_chart(int gno)
                     }
                     setpen(pen);
                     DrawFilledArc(vp1, vp2,
-                        (int) rint(180.0/M_PI*start_angle),
-                        (int) rint(180.0/M_PI*stop_angle),
-                        ARCFILL_PIESLICE);
+                                  (int) rint(180.0/M_PI*start_angle),
+                                  (int) rint(180.0/M_PI*stop_angle),
+                                  ARCFILL_PIESLICE);
                     
                     setpen(p.sympen);
                     setlinewidth(p.symlinew);
                     setlinestyle(p.symlines);
                     DrawPolyline(vps, 3, POLYLINE_OPEN);
                     DrawArc(vp1, vp2,
-                        (int) rint(180.0/M_PI*start_angle),
-                        (int) rint(180.0/M_PI*stop_angle));
+                            (int) rint(180.0/M_PI*start_angle),
+                            (int) rint(180.0/M_PI*stop_angle));
 
                     avalue = p.avalue;
 
                     if (avalue.active == TRUE) {
 
                         vpa.x = vpc.x + ((1 + e[i])*r + avalue.offset.y)*
-                            cos((start_angle + stop_angle)/2.0);
+                                cos((start_angle + stop_angle)/2.0);
                         vpa.y = vpc.y + ((1 + e[i])*r + avalue.offset.y)*
-                            sin((start_angle + stop_angle)/2.0);
+                                sin((start_angle + stop_angle)/2.0);
 
                         strcpy(str, avalue.prestr);
 
                         switch(avalue.type) {
                         case AVALUE_TYPE_X:
-                            strcat(str, create_fstring(avalue.format, avalue.prec, x[i], 
-                                                                 LFORMAT_TYPE_EXTENDED));
+                            strcat(str, create_fstring(avalue.format, avalue.prec, x[i],
+                                                       LFORMAT_TYPE_EXTENDED));
                             break;
                         case AVALUE_TYPE_STRING:
                             if (p.data.s != NULL && p.data.s[i] != NULL) {
@@ -507,9 +579,9 @@ void xyplot(int gno)
     switch (get_graph_type(gno)) {
     case GRAPH_XY:
         for (i = 0; i < number_of_sets(gno); i++) {
-	colorNumber=getpen().color;
-	rgbColor=get_rgb(colorNumber);
-	linePen=QPen(QColor(rgbColor->red,rgbColor->blue,rgbColor->green));
+            colorNumber=getpen().color;
+            rgbColor=get_rgb(colorNumber);
+            linePen=QPen(QColor(rgbColor->red,rgbColor->blue,rgbColor->green));
             if (is_set_drawable(gno, i)) {
                 get_graph_plotarr(gno, i, &p);
                 switch (dataset_type(gno, i)) {
@@ -615,7 +687,7 @@ void xyplot(int gno)
                 if (x_ok != TRUE) {
                     char buf[128];
                     sprintf(buf, "Set G%d.S%d has different abscissas, "
-                                 "skipped from the chart.", gno, i);
+                            "skipped from the chart.", gno, i);
                     errmsg(buf);
                     continue;
                 }
@@ -786,7 +858,7 @@ void draw_ref_point(int gno)
     WPoint wp;
     VPoint vp;
     
-    if (is_refpoint_active(gno)) {      
+    if (is_refpoint_active(gno)) {
         get_graph_locator(gno, &locator);
         wp.x = locator.dsx;
         wp.y = locator.dsy;
@@ -984,7 +1056,7 @@ void drawsetfill(int gno, int setno, plotarr *p,
             errmsg("Can't xmalloc in drawsetfill");
             return;
         }
- 
+
         for (i = 0; i < setlen; i++) {
             wptmp.x = x[i];
             wptmp.y = y[i];
@@ -992,14 +1064,14 @@ void drawsetfill(int gno, int setno, plotarr *p,
                 wptmp.y += refy[i];
             }
             vps[i] = Wpoint2Vpoint(wptmp);
-    	    vps[i].x += offset;
+            vps[i].x += offset;
         }
         if (stacked_chart == TRUE && p->filltype == SETFILL_BASELINE) {
             for (i = 0; i < setlen; i++) {
                 wptmp.x = x[setlen - i - 1];
                 wptmp.y = refy[setlen - i - 1];
                 vps[setlen + i] = Wpoint2Vpoint(wptmp);
-    	        vps[setlen + i].x += offset;
+                vps[setlen + i].x += offset;
             }
         }
         break;
@@ -1011,7 +1083,7 @@ void drawsetfill(int gno, int setno, plotarr *p,
             errmsg("Can't xmalloc in drawsetfill");
             return;
         }
- 
+
         for (i = 0; i < setlen; i++) {
             wptmp.x = x[i];
             wptmp.y = y[i];
@@ -1019,7 +1091,7 @@ void drawsetfill(int gno, int setno, plotarr *p,
                 wptmp.y += refy[i];
             }
             vps[2*i] = Wpoint2Vpoint(wptmp);
-    	    vps[2*i].x += offset;
+            vps[2*i].x += offset;
         }
         for (i = 1; i < len; i += 2) {
             if (line_type == LINE_TYPE_LEFTSTAIR) {
@@ -1034,7 +1106,7 @@ void drawsetfill(int gno, int setno, plotarr *p,
     default:
         return;
     }
-///I added something here to be able to fill the area between two sets!
+    ///I added something here to be able to fill the area between two sets!
     switch (p->filltype) {
     case SETFILL_POLYGON:
         polylen = len;
@@ -1049,11 +1121,11 @@ void drawsetfill(int gno, int setno, plotarr *p,
             wptmp.x = MIN2(xmax, w.xg2);
             wptmp.y = ybase;
             vps[len] = Wpoint2Vpoint(wptmp);
-    	    vps[len].x += offset;
+            vps[len].x += offset;
             wptmp.x = MAX2(xmin, w.xg1);
             wptmp.y = ybase;
             vps[len + 1] = Wpoint2Vpoint(wptmp);
-    	    vps[len + 1].x += offset;
+            vps[len + 1].x += offset;
         }
         break;
     default:
@@ -1063,25 +1135,25 @@ void drawsetfill(int gno, int setno, plotarr *p,
     
     setpen(p->setfillpen);
     setfillrule(p->fillrule);
-        if (p->filltype==SETFILL_POLYGON && is_set_active(gno,p->polygone_base_set))
-        {
+    if (p->filltype==SETFILL_POLYGON && is_set_active(gno,p->polygone_base_set))
+    {
         len_poly_base=getsetlength(gno,p->polygone_base_set);
         vps = (VPoint *) xrealloc(vps,(polylen+len_poly_base) * sizeof(VPoint));
         x = getcol(gno,p->polygone_base_set,0);
         y = getcol(gno,p->polygone_base_set,1);
-            for (i=0;i<len_poly_base;i++)
+        for (i=0;i<len_poly_base;i++)
+        {
+            wptmp.x = x[len_poly_base-1-i];
+            wptmp.y = y[len_poly_base-1-i];
+            if (stacked_chart == TRUE)
             {
-                wptmp.x = x[len_poly_base-1-i];
-                wptmp.y = y[len_poly_base-1-i];
-                if (stacked_chart == TRUE)
-                {
                 wptmp.y += refy[i];
-                }
-                vps[polylen-2+i] = Wpoint2Vpoint(wptmp);
-                vps[polylen-2+i].x += offset;
             }
-        polylen+=len_poly_base-2;
+            vps[polylen-2+i] = Wpoint2Vpoint(wptmp);
+            vps[polylen-2+i].x += offset;
         }
+        polylen+=len_poly_base-2;
+    }
     DrawPolygon(vps, polylen);
     
     xfree(vps);
@@ -1139,7 +1211,7 @@ void drawsetline(int gno, int setno, plotarr *p,
         lw = 0.0;
     }
     
-/* draw the line */
+    /* draw the line */
     if (ly != 0 && p->linepen.pattern != 0) {
         
         switch (line_type) {
@@ -1158,7 +1230,7 @@ void drawsetline(int gno, int setno, plotarr *p,
                     wp.y += refy[i];
                 }
                 vpstmp[i] = Wpoint2Vpoint(wp);
-    	        vpstmp[i].x += offset;
+                vpstmp[i].x += offset;
                 
                 vpstmp[i].y -= lw/2.0;
             }
@@ -1173,14 +1245,14 @@ void drawsetline(int gno, int setno, plotarr *p,
                     wp.y += refy[i];
                 }
                 vps[0] = Wpoint2Vpoint(wp);
-    	        vps[0].x += offset;
+                vps[0].x += offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
                     wp.y += refy[i + 1];
                 }
                 vps[1] = Wpoint2Vpoint(wp);
-    	        vps[1].x += offset;
+                vps[1].x += offset;
                 
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
@@ -1196,21 +1268,21 @@ void drawsetline(int gno, int setno, plotarr *p,
                     wp.y += refy[i];
                 }
                 vps[0] = Wpoint2Vpoint(wp);
-    	        vps[0].x += offset;
+                vps[0].x += offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
                     wp.y += refy[i + 1];
                 }
                 vps[1] = Wpoint2Vpoint(wp);
-    	        vps[1].x += offset;
+                vps[1].x += offset;
                 wp.x = x[i + 2];
                 wp.y = y[i + 2];
                 if (stacked_chart == TRUE) {
                     wp.y += refy[i + 2];
                 }
                 vps[2] = Wpoint2Vpoint(wp);
-    	        vps[2].x += offset;
+                vps[2].x += offset;
                 DrawPolyline(vps, 3, POLYLINE_OPEN);
                 
                 vps[0].y -= lw/2.0;
@@ -1224,14 +1296,14 @@ void drawsetline(int gno, int setno, plotarr *p,
                     wp.y += refy[i];
                 }
                 vps[0] = Wpoint2Vpoint(wp);
-    	        vps[0].x += offset;
+                vps[0].x += offset;
                 wp.x = x[i + 1];
                 wp.y = y[i + 1];
                 if (stacked_chart == TRUE) {
                     wp.y += refy[i + 1];
                 }
                 vps[1] = Wpoint2Vpoint(wp);
-    	        vps[1].x += offset;
+                vps[1].x += offset;
                 
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
@@ -1254,7 +1326,7 @@ void drawsetline(int gno, int setno, plotarr *p,
                     wp.y += refy[i];
                 }
                 vpstmp[2*i] = Wpoint2Vpoint(wp);
-    	        vpstmp[2*i].x += offset;
+                vpstmp[2*i].x += offset;
             }
             for (i = 1; i < len; i += 2) {
                 if (line_type == LINE_TYPE_LEFTSTAIR) {
@@ -1283,32 +1355,32 @@ void drawsetline(int gno, int setno, plotarr *p,
                 wp.y = ybase;
             }
             vps[0] = Wpoint2Vpoint(wp);
-    	    vps[0].x += offset;
+            vps[0].x += offset;
             wp.x = x[i];
             wp.y = y[i];
             if (stacked_chart == TRUE) {
                 wp.y += refy[i];
             }
             vps[1] = Wpoint2Vpoint(wp);
-    	    vps[1].x += offset;
+            vps[1].x += offset;
             
             vps[1].y -= lw/2.0;
- 
+
             DrawLine(vps[0], vps[1]);
         }
     }
     
     getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
-       
+
     if (p->baseline == TRUE && stacked_chart != TRUE) {
         wp.x = xmin;
         wp.y = ybase;
         vps[0] = Wpoint2Vpoint(wp);
-    	vps[0].x += offset;
+        vps[0].x += offset;
         wp.x = xmax;
         vps[1] = Wpoint2Vpoint(wp);
-    	vps[1].x += offset;
- 
+        vps[1].x += offset;
+
         DrawLine(vps[0], vps[1]);
     }
 }    
@@ -1360,8 +1432,8 @@ void drawsetsyms(int gno, int setno, plotarr *p,
     setclipping(FALSE);
     
     if ((p->sympen.pattern != 0 && p->symlines != 0) ||
-                        (p->symfillpen.pattern != 0)) {
-              
+            (p->symfillpen.pattern != 0)) {
+
         Pen fillpen;
         
         setlinewidth(p->symlinew);
@@ -1377,9 +1449,9 @@ void drawsetsyms(int gno, int setno, plotarr *p,
             if (!is_validWPoint(wp)){
                 continue;
             }
-        
+
             vp = Wpoint2Vpoint(wp);
-    	    vp.x += offset;
+            vp.x += offset;
             
             if (z) {
                 symsize = z[i]/znorm;
@@ -1396,17 +1468,17 @@ void drawsetsyms(int gno, int setno, plotarr *p,
             }
             fillpen.pattern = p->symfillpen.pattern;
             if (drawxysym(vp, symsize, sy, p->sympen, fillpen, p->symchar)
-                != RETURN_SUCCESS) {
+                    != RETURN_SUCCESS) {
                 return;
             }
-        } 
+        }
     }
 }
 
 
 /* draw the annotative values */
 void drawsetavalues(int gno, int setno, plotarr *p,
-                 int refn, double *refx, double *refy, double offset)
+                    int refn, double *refx, double *refy, double offset)
 {
     int i;
     int setlen;
@@ -1462,7 +1534,7 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         
         vp.x += avalue.offset.x;
         vp.y += avalue.offset.y;
-    	vp.x += offset;
+        vp.x += offset;
         
         strcpy(str, avalue.prestr);
         
@@ -1470,19 +1542,19 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         case AVALUE_TYPE_NONE:
             break;
         case AVALUE_TYPE_X:
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.x, 
-                                                 LFORMAT_TYPE_EXTENDED));
+            strcat(str, create_fstring(avalue.format, avalue.prec, wp.x,
+                                       LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_Y:
             strcat(str, create_fstring(avalue.format, avalue.prec, wp.y,
-                                                 LFORMAT_TYPE_EXTENDED));
+                                       LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_XY:
             strcat(str, create_fstring(avalue.format, avalue.prec, wp.x,
-                                                 LFORMAT_TYPE_EXTENDED));
+                                       LFORMAT_TYPE_EXTENDED));
             strcat(str, ", ");
             strcat(str, create_fstring(avalue.format, avalue.prec, wp.y,
-                                                 LFORMAT_TYPE_EXTENDED));
+                                       LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_STRING:
             if (p->data.s != NULL && p->data.s[i] != NULL) {
@@ -1491,8 +1563,8 @@ void drawsetavalues(int gno, int setno, plotarr *p,
             break;
         case AVALUE_TYPE_Z:
             if (z != NULL) {
-                strcat(str, create_fstring(avalue.format, avalue.prec, z[i], 
-                                                 LFORMAT_TYPE_EXTENDED));
+                strcat(str, create_fstring(avalue.format, avalue.prec, z[i],
+                                           LFORMAT_TYPE_EXTENDED));
             }
             break;
         default:
@@ -1504,11 +1576,11 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         
         setcolor(avalue.color);
         WriteString(vp, avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
-    } 
+    }
 }
 
 void drawseterrbars(int gno, int setno, plotarr *p,
-                 int refn, double *refx, double *refy, double offset)
+                    int refn, double *refx, double *refy, double offset)
 {
     int i, n;
     double *x, *y;
@@ -1717,14 +1789,14 @@ void drawsetbars(int gno, int setno, plotarr *p,
     setlinewidth(p->symlinew);
     setlinestyle(p->symlines);
     if (get_graph_type(gno) == GRAPH_CHART &&
-        p->symlines != 0 && p->sympen.pattern != 0) {
+            p->symlines != 0 && p->sympen.pattern != 0) {
         lw = getlinewidth();
     } else {
         lw = 0.0;
     }
 
     if (p->symfillpen.pattern != 0) {
-	setpen(p->symfillpen);
+        setpen(p->symfillpen);
         for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1732,18 +1804,18 @@ void drawsetbars(int gno, int setno, plotarr *p,
             } else {
                 wp.y = ybase;
             }
-    	    vp1 = Wpoint2Vpoint(wp);
+            vp1 = Wpoint2Vpoint(wp);
             vp1.x -= bw;
-    	    vp1.x += offset;
+            vp1.x += offset;
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y += y[i];
             } else {
                 wp.y = y[i];
             }
-    	    vp2 = Wpoint2Vpoint(wp);
+            vp2 = Wpoint2Vpoint(wp);
             vp2.x += bw;
-    	    vp2.x += offset;
+            vp2.x += offset;
             
             vp1.x += lw/2.0;
             vp2.x -= lw/2.0;
@@ -1761,18 +1833,18 @@ void drawsetbars(int gno, int setno, plotarr *p,
             } else {
                 wp.y = ybase;
             }
-    	    vp1 = Wpoint2Vpoint(wp);
+            vp1 = Wpoint2Vpoint(wp);
             vp1.x -= bw;
-    	    vp1.x += offset;
+            vp1.x += offset;
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y += y[i];
             } else {
                 wp.y = y[i];
             }
-    	    vp2 = Wpoint2Vpoint(wp);
+            vp2 = Wpoint2Vpoint(wp);
             vp2.x += bw;
-    	    vp2.x += offset;
+            vp2.x += offset;
 
             vp1.x += lw/2.0;
             vp2.x -= lw/2.0;
@@ -1931,7 +2003,7 @@ void drawsetboxplot(plotarr *p)
 }
 
 int drawxysym(VPoint vp, double size, int symtype,
-    Pen sympen, Pen symfillpen, char s)
+              Pen sympen, Pen symfillpen, char s)
 {
     double symsize;
     VPoint vps[4];
@@ -2200,7 +2272,7 @@ void draw_string(int gno, int i)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-/*if (curdevice==0 && useQtFonts==true)
+        /*if (curdevice==0 && useQtFonts==true)
 {
 vp.x+=0.2;
 WriteQtString(vp, pstr.rot, pstr.just, pstr.s,pstr.charsize,pstr.font,pstr.color);
@@ -2284,7 +2356,7 @@ void draw_ellipse(int gno, int i)
     ellipsetype b;
 
     b = ellip[i];
-        
+
     if (gno != -2) {
         if (b.loctype == COORD_WORLD && b.gno != gno) {
             return;
@@ -2482,13 +2554,13 @@ void draw_region(int r)
     set_default_arrow(&arrow);
     
     this_one=&rg[r];
-	
+
     //cout << "Region " << r << " Punkte=" << this_one->n << endl;
     
-	switch (this_one->type) {
+    switch (this_one->type) {
     case REGION_POLYI:
     case REGION_POLYO:
-	
+
         if (this_one->x != NULL && this_one->y != NULL && this_one->n >= 2) {
             vpstmp = (VPoint*)xmalloc (this_one->n*sizeof(VPoint));
             if (vpstmp == NULL) {
@@ -2501,7 +2573,7 @@ void draw_region(int r)
                     vpstmp[i] = Wpoint2Vpoint(wptmp);
                 }
                 DrawPolyline(vpstmp, this_one->n, POLYLINE_CLOSED);
-		xfree(vpstmp);
+                xfree(vpstmp);
             }
         }
         return;
@@ -2524,27 +2596,27 @@ void draw_region(int r)
     case REGION_HORIZI:
     case REGION_HORIZO:
         wp1.x=this_one->x1;
-	wp1.y=this_one->y1;
-	wp2.x=this_one->x1;
-	wp2.y=this_one->y2;
+        wp1.y=this_one->y1;
+        wp2.x=this_one->x1;
+        wp2.y=this_one->y2;
         wp3.x=this_one->x2;
-	wp3.y=this_one->y1;
-	wp4.x=this_one->x2;
-	wp4.y=this_one->y2;
-	rgndouble=1;
-	break;
+        wp3.y=this_one->y1;
+        wp4.x=this_one->x2;
+        wp4.y=this_one->y2;
+        rgndouble=1;
+        break;
     case REGION_VERTI:
     case REGION_VERTO:
         wp1.x=this_one->x1;
-	wp1.y=this_one->y1;
-	wp2.x=this_one->x2;
-	wp2.y=this_one->y1;
+        wp1.y=this_one->y1;
+        wp2.x=this_one->x2;
+        wp2.y=this_one->y1;
         wp3.x=this_one->x1;
-	wp3.y=this_one->y2;
-	wp4.x=this_one->x2;
-	wp4.y=this_one->y2;
-	rgndouble=1;
-	break;
+        wp3.y=this_one->y2;
+        wp4.x=this_one->x2;
+        wp4.y=this_one->y2;
+        rgndouble=1;
+        break;
     default:
         errmsg("Internal error in draw_region");
         return;
@@ -2618,7 +2690,7 @@ void dolegend(int gno)
             if (p.symsize > maxsymsize) {
                 maxsymsize = p.symsize;
             }
-        }  
+        }
     }
     
     if (draw_flag == FALSE) {
@@ -2629,7 +2701,7 @@ void dolegend(int gno)
         lock_dirtystate(FALSE);
         return;
     }
-        
+
     setclipping(FALSE);
     
     if (l.loctype == COORD_WORLD) {
@@ -2681,7 +2753,7 @@ void dolegend(int gno)
     /* correction */
     vp.x += (vp.x - v.xv1) + 0.01*l.hgap;
     vp.y += (vp.y - v.yv2) - 0.01*l.vgap;
-   
+
     reset_bbox(BBOX_TYPE_TEMP);
     update_bbox(BBOX_TYPE_TEMP, vp);
 
@@ -2725,16 +2797,16 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
             
             setfont(p.charfont);
             
-            if (l.len != 0 && p.lines != 0 && p.linet != 0) { 
+            if (l.len != 0 && p.lines != 0 && p.linet != 0) {
                 setpen(p.linepen);
                 setlinewidth(p.linew);
                 setlinestyle(p.lines);
                 DrawLine(vp, vp2);
-        
+
                 setlinewidth(p.symlinew);
                 setlinestyle(p.symlines);
                 if (p.type == SET_BAR   || p.type == SET_BOXPLOT ||
-                    p.type == SET_BARDY || p.type == SET_BARDYDY) {
+                        p.type == SET_BARDY || p.type == SET_BARDYDY) {
                     drawlegbarsym(vp, p.symsize, p.sympen, p.symfillpen);
                     drawlegbarsym(vp2, p.symsize, p.sympen, p.symfillpen);
                 } else {
@@ -2749,7 +2821,7 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
                 setlinewidth(p.symlinew);
                 setlinestyle(p.symlines);
                 if (p.type == SET_BAR   || p.type == SET_BOXPLOT ||
-                    p.type == SET_BARDY || p.type == SET_BARDYDY) {
+                        p.type == SET_BARDY || p.type == SET_BARDYDY) {
                     drawlegbarsym(vptmp, p.symsize, p.sympen, p.symfillpen);
                 } else {
                     drawxysym(vptmp, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);

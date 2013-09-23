@@ -32,6 +32,7 @@
 #include "undo_module.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "svgdrv.h"
 
 #ifdef _MSC_VER
 #include "rint.h"
@@ -41,7 +42,7 @@
 
 #include <string.h>
 #include <fcntl.h>
-
+#include <QSvgRenderer>
 #define OPTYPE_COPY 0
 #define OPTYPE_MOVE 1
 #define OPTYPE_SWAP 2
@@ -213,6 +214,7 @@ extern int eps_setup_docdata;
 extern int tight_bb;
 extern int pnm_setup_format;
 extern int pnm_setup_rawbits;
+extern int png_setup_res;
 
 
 extern int maxgraph;
@@ -660,15 +662,15 @@ void strToUpper(char * tar,char * ch)
 int find_dev_nr(char * dev_name)/*my own number of devices*/
 {
     int nr=-1;
-    if (!strcmp(dev_name,"JPEG"))
+    /* if (!strcmp(dev_name,"JPEG"))
     {
         nr=DEVICE_JPEG;
     }
     else if (!strcmp(dev_name,"BMP"))
     {
         nr=DEVICE_BMP;
-    }
-    else if (!strcmp(dev_name,"EPS"))
+    }*/
+    if (!strcmp(dev_name,"EPS"))
     {
         nr=DEVICE_EPS;
     }
@@ -676,17 +678,17 @@ int find_dev_nr(char * dev_name)/*my own number of devices*/
     {
         nr=DEVICE_PS;
     }
-    else if (!strcmp(dev_name,"PNM"))
+    /* else if (!strcmp(dev_name,"PNM"))
     {
         nr=DEVICE_PNM;
-    }
+    }*/
     else if (!strcmp(dev_name,"PNG"))
     {
         nr=DEVICE_PNG;
     }
-    else if (!strcmp(dev_name,"X11"))
+    else if (!strcmp(dev_name,"SCREEN"))
     {
-        nr=0;
+        nr=DEVICE_SCREEN;
     }
     return nr;
 }
@@ -704,17 +706,20 @@ static Device_entry dev_jpg = {DEVICE_FILE,
                                NULL
                               };
 
-static Device_entry dev_png = {DEVICE_FILE,
-                               "PNG",
-                               init_null,
-                               parser_null,
-                               setup_null,
-                               "png",
-                               TRUE,
-                               TRUE,
-                               {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-                               NULL
-                              };
+
+static Device_entry dev_png = {
+    DEVICE_FILE,
+    "PNG",
+    svginitgraphics,
+    NULL,
+    setup_null,
+    "png",
+    TRUE,
+    TRUE,
+    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+    NULL
+};
+
 
 static Device_entry dev_bmp = {DEVICE_FILE,
                                "BMP",
@@ -739,14 +744,11 @@ static Device_entry dev_bmp = {DEVICE_FILE,
 void register_qt_devices(void)
 {
 
-#ifdef _MSC_VER 
-    //Missing JPEG libraries for Windows
-#else
-    register_device(dev_jpg);
-#endif
 
-    register_device(dev_png);
-    register_device(dev_bmp);
+
+    //    register_device(dev_jpg);
+    //    register_device(dev_bmp);
+          register_device(dev_png);
 }
 
 frmEditColumnProp::frmEditColumnProp(QWidget * parent):QDialog(parent)
@@ -5554,15 +5556,15 @@ frmDeviceOptions::frmDeviceOptions(int device,QWidget * parent):QDialog(parent)
     grpJPEGadvoptions->setVisible(FALSE);
 
     grpPNGoptions=new QGroupBox(tr("PNG options"),this);
+    description = new QLabel;
+    description->setText(QString("100: screen resolution.\n >100: higher than the screen resolution \n <100: lower than the screen resoultion"));
+
     layout7=new QVBoxLayout;
     layout7->setMargin(STD_MARGIN);
-    chkInterlaced=new QCheckBox(tr("Interlaced"),grpPNGoptions);
-    layout7->addWidget(chkInterlaced);
-    chkTransparent=new QCheckBox(tr("Transparent"),grpPNGoptions);
-    layout7->addWidget(chkTransparent);
-    selCompression=new stdIntSelector(grpPNGoptions,tr("Compression:"),0,9);
-    selCompression->setValue(4);
-    layout7->addWidget(selCompression);
+    chkResolution=new stdIntSelector(grpPNGoptions,tr("Resolution:"),0,2000);
+    chkResolution->setValue(1000);
+    layout7->addWidget(chkResolution);
+    layout7->addWidget(description);
     grpPNGoptions->setLayout(layout7);
     grpPNGoptions->setVisible(FALSE);
 
@@ -5586,6 +5588,12 @@ frmDeviceOptions::frmDeviceOptions(int device,QWidget * parent):QDialog(parent)
     layout->setMargin(STD_MARGIN);
     switch (device)
     {
+    case DEVICE_PNG:
+        setWindowTitle(tr("qtGrace: PNG options"));
+        grpPNGoptions->setVisible(TRUE);
+        layout->addWidget(grpPNGoptions);
+        break;
+
     case DEVICE_PS:
         setWindowTitle(tr("qtGrace: PS options"));
         grpPSoptions->setVisible(TRUE);
@@ -5600,41 +5608,41 @@ frmDeviceOptions::frmDeviceOptions(int device,QWidget * parent):QDialog(parent)
         grpEPSoptions->setVisible(TRUE);
         layout->addWidget(grpEPSoptions);
         break;
-    case DEVICE_PNM:
-        setWindowTitle(tr("qtGrace: PNM options"));
-        grpPNMoptions->setVisible(TRUE);
-        layout->addWidget(grpPNMoptions);
-        break;
-    case DEVICE_JPEG:
-        setWindowTitle(tr("qtGrace: JPEG options"));
-        grpJPEGoptions->setVisible(TRUE);
-        grpJPEGadvoptions->setVisible(TRUE);
-        layout->addWidget(grpJPEGoptions);
-        layout->addWidget(grpJPEGadvoptions);
-        break;
-    case DEVICE_PNG:
-        setWindowTitle(tr("qtGrace: PNG options"));
-        grpPNGoptions->setVisible(TRUE);
-        layout->addWidget(grpPNGoptions);
-        break;
+
+    }
+
+    /*case DEVICE_PNM:
+    setWindowTitle(tr("qtGrace: PNM options"));
+    grpPNMoptions->setVisible(TRUE);
+    layout->addWidget(grpPNMoptions);
+    break;
+case DEVICE_JPEG:
+    setWindowTitle(tr("qtGrace: JPEG options"));
+    grpJPEGoptions->setVisible(TRUE);
+    grpJPEGadvoptions->setVisible(TRUE);
+    layout->addWidget(grpJPEGoptions);
+    layout->addWidget(grpJPEGadvoptions);
+    break;
     case DEVICE_BMP:
         setWindowTitle(tr("qtGrace: BMP options"));
         grpBMPoptions->setVisible(TRUE);
         layout->addWidget(grpBMPoptions);
-        break;
-    }
+        break;*/
+
+
     layout->addWidget(buttonGroup);
     setLayout(layout);
 }
 
 void frmDeviceOptions::init(void)
 {
-    if (Device==DEVICE_BMP)
+    /*if (Device==DEVICE_BMP)
     {
         sldQuality->setValue(outputQuality);
         //    chkGrayscale->setChecked(outputGrayscale);
-    }
-    else if (Device==DEVICE_PS)
+    }*/
+
+    if (Device==DEVICE_PS)
     {
         SetToggleButtonState(ps_setup_grayscale_item, ps_setup_grayscale);
         SetToggleButtonState(ps_setup_level2_item, ps_setup_level2);
@@ -5651,11 +5659,11 @@ void frmDeviceOptions::init(void)
         SetToggleButtonState(eps_setup_tight_bb_item, eps_setup_tight_bb);
         SetOptionChoice(eps_setup_docdata_item, eps_setup_docdata);
     }
-    else if (Device==DEVICE_PNM)
+    /*else if (Device==DEVICE_PNM)
     {
         SetChoice(pnm_setup_format_item, pnm_setup_format);
         SetToggleButtonState(pnm_setup_rawbits_item, pnm_setup_rawbits);
-    }
+    }*/
 
     else
     {
@@ -5666,12 +5674,14 @@ void frmDeviceOptions::init(void)
 void frmDeviceOptions::doApply(void)
 {
     ApplyError=false;
-    if (Device==DEVICE_BMP)
+    if (Device==DEVICE_PNG)
     {
-        outputQuality=sldQuality->value();
-        // outputGrayscale=chkGrayscale->isChecked();
+
+
+      png_setup_res = GetSpinChoice(chkResolution);
+     //Nimal
     }
-    else if (Device==DEVICE_PS)
+    if (Device==DEVICE_PS)
     {
         ps_setup_grayscale = GetToggleButtonState(ps_setup_grayscale_item);
         ps_setup_level2    = GetToggleButtonState(ps_setup_level2_item);
@@ -5688,11 +5698,11 @@ void frmDeviceOptions::doApply(void)
         eps_setup_tight_bb = GetToggleButtonState(eps_setup_tight_bb_item);
         eps_setup_docdata = GetOptionChoice(eps_setup_docdata_item);
     }
-    else if (Device==DEVICE_PNM)
+    /*else if (Device==DEVICE_PNM)
     {
         pnm_setup_format = GetChoice(pnm_setup_format_item);
         pnm_setup_rawbits = GetToggleButtonState(pnm_setup_rawbits_item);
-    }
+    }*/
 
     else
     {
@@ -5773,10 +5783,15 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
         device_opts_item=new QPushButton(tr(""),grpDevSetup);
     }else if (windowTitle == 3){
         device_opts_item=new QPushButton(tr("Format options..."),grpDevSetup);
+
     }
     else{
 
     }
+
+    grpOptions=new QGroupBox(tr("Options"),this);
+
+
 
     connect(device_opts_item,SIGNAL(clicked()),this,SLOT(doDevOpt()));
     wbut=new QPushButton(tr("Browse..."),grpOutput);
@@ -5788,10 +5803,10 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     mnuFile->addAction(actPrint);
     mnuFile->addSeparator();
     mnuFile->addAction(actClose);
-    mnuOptions=new QMenu("&Options",this);
+    /*mnuOptions=new QMenu("&Options",this);
     mnuOptions->setTearOffEnabled(TRUE);
     mnuOptions->addAction(dsync_item);
-    mnuOptions->addAction(psync_item);
+    mnuOptions->addAction(psync_item);*/
     mnuHelp=new QMenu("&Help",this);
     mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(actHelpOnContext);
@@ -5799,7 +5814,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     mnuHelp->addAction(actHelpOnDevSetup);
 
     menuBar->addMenu(mnuFile);
-    menuBar->addMenu(mnuOptions);
+    //menuBar->addMenu(mnuOptions);
     menuBar->addSeparator();
     menuBar->addMenu(mnuHelp);
 
@@ -5812,7 +5827,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
 
     if (windowTitle ==1){
         devices_item=new StdSelector(grpDevSetup,tr(""),number,entr);
-	}else if (windowTitle == 2){
+    }else if (windowTitle == 2){
         devices_item=new StdSelector(grpDevSetup,tr("Print to:"),number,entr);
     }else if (windowTitle == 3){
         devices_item=new StdSelector(grpDevSetup,tr("Select file format:"),number-1,entr); //-1 remove screen from list
@@ -5880,6 +5895,20 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     devfont_item=new QCheckBox(tr("Use device fonts"),grpFonts);
 
 
+    //NEW OPTIONS
+
+    scale_item=new QCheckBox(tr("&Rescale plot on page size change"),grpOptions);
+    scale_item->setChecked(TRUE);
+    connect(scale_item,SIGNAL(stateChanged(int)), this, SLOT(doRescalePlot()));
+
+
+    //  high_res_item=new QCheckBox(tr("high res"),grpOptions);
+
+    sync_item=new QCheckBox(tr("&Sync page size of all devices"),grpOptions);
+    sync_item->setChecked(TRUE);
+    connect(sync_item,SIGNAL(stateChanged(int)), this, SLOT(doSyncPage()));
+
+
     actNativePrinterDialog=new QAction(this);
     connect(actNativePrinterDialog,SIGNAL(triggered()),this,SLOT(doNativePrinterDialog()));
 
@@ -5940,6 +5969,12 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     layout3->addWidget(fontaa_item);
     layout3->addWidget(devfont_item);
     grpFonts->setLayout(layout3);
+    layout4=new QVBoxLayout();
+    layout4->setMargin(STD_MARGIN);
+    layout4->addWidget(scale_item);
+    //layout4->addWidget(high_res_item);
+    layout4->addWidget(sync_item);
+    grpOptions->setLayout(layout4);
     layout=new QVBoxLayout();
     layout->setMargin(STD_MARGIN);
     layout->addWidget(menuBar);
@@ -5947,6 +5982,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     layout->addWidget(grpOutput);
     layout->addWidget(grpPage);
     layout->addWidget(grpFonts);
+    layout->addWidget(grpOptions);
 
     if (windowTitle ==1){
         layout->addWidget(buttonGroup);
@@ -5968,8 +6004,8 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     setLayout(layout);
 
     page_format_item->setCurrentIndex(1);
-	DeviceChanged(0);
-    }
+    DeviceChanged(0);
+}
 
 void frmDeviceSetup::init(int dev)
 {
@@ -5983,7 +6019,7 @@ void frmDeviceSetup::CreateActions(void)
     actPrint=new QAction(tr("&Export"),this);
     actPrint->setShortcut(tr("Ctrl+Alt+E"));
     connect(actPrint,SIGNAL(triggered()), this, SLOT(doPrint()));
-    dsync_item=new QAction(tr("&Sync page size of all devices"),this);
+    /*dsync_item=new QAction(tr("&Sync page size of all devices"),this);
     dsync_item->setCheckable(TRUE);
     dsync_item->setChecked(TRUE);
     connect(dsync_item,SIGNAL(triggered()), this, SLOT(doSyncPage()));
@@ -5991,6 +6027,7 @@ void frmDeviceSetup::CreateActions(void)
     psync_item->setCheckable(TRUE);
     psync_item->setChecked(FALSE);
     connect(psync_item,SIGNAL(triggered()), this, SLOT(doRescalePlot()));
+    */
     actClose=new QAction(tr("&Close"),this);
     actClose->setShortcut(tr("Esc"));
     connect(actClose,SIGNAL(triggered()), this, SLOT(doClose()));
@@ -6047,14 +6084,16 @@ void frmDeviceSetup::DeviceChanged(int device_id)
     case DEVICE_TERM:
         grpOutput->setVisible(false);
         grpDevSetup->setVisible(false);
-        grpFonts->setVisible(true);
+        grpOptions->setVisible(true);
         grpPage->setVisible(true);
+        grpFonts->setVisible(true);
 
         break;
     case DEVICE_FILE:
         grpDevSetup->setVisible(true);
         grpFonts->setVisible(true);
-        grpPage->setVisible(true);
+        grpOptions->setVisible(false);
+        grpPage->setVisible(false);
         grpOutput->setVisible(true);
         SetSensitive(printfile_item, true);
         SetSensitive(wbut, true);
@@ -6071,7 +6110,8 @@ void frmDeviceSetup::DeviceChanged(int device_id)
     case DEVICE_PRINT:
         grpDevSetup->setVisible(true);
         grpFonts->setVisible(true);
-        grpPage->setVisible(true);
+        grpOptions->setVisible(false);
+        grpPage->setVisible(false);
         grpOutput->setVisible(true);
         //SetToggleButtonState(printto_item, get_ptofile());
         //SetSensitive(printto_item, true);
@@ -6363,7 +6403,7 @@ void frmDeviceSetup::doApply(void)
 
     stdOutputFormat = seldevice = GetOptionChoice(devices_item);
 
-    SaveDeviceState(seldevice,GetToggleButtonState(dsync_item));
+    SaveDeviceState(seldevice,GetToggleButtonState(sync_item));
 
     dev = get_device_props(seldevice);
 
@@ -6424,11 +6464,11 @@ void frmDeviceSetup::doApply(void)
 
     pg.dpi = dpi;
 
-    if (GetToggleButtonState(dsync_item) == TRUE)
+    if (GetToggleButtonState(sync_item) == TRUE)
     {
         set_page_dimensions((int) rint(72.0*pg.width/pg.dpi),
                             (int) rint(72.0*pg.height/pg.dpi),
-                            GetToggleButtonState(psync_item) == TRUE);
+                            GetToggleButtonState(scale_item) == TRUE);
         do_redraw = TRUE;
     }
 
@@ -6445,7 +6485,7 @@ void frmDeviceSetup::doApply(void)
         do_redraw = TRUE;
     }
 
-    DeviceModified(seldevice,GetToggleButtonState(dsync_item));
+    DeviceModified(seldevice,GetToggleButtonState(sync_item));
 
     cur_pg=get_page_geometry();
     new_small=cur_pg.width<cur_pg.height?cur_pg.width:cur_pg.height;
@@ -6578,75 +6618,80 @@ void frmDeviceSetup::doDevOpt(void)
 
     switch (dev_nr)
     {
-    case DEVICE_PS:
-        if (DevOptions[0]==NULL)
-        {
-            DevOptions[0]=new frmDeviceOptions(DEVICE_PS,this);
-        }
-        DevOptions[0]->init();
-        DevOptions[0]->show();
-        DevOptions[0]->raise();
-        break;
-    case DEVICE_EPS:
+    case DEVICE_PNG:
         if (DevOptions[1]==NULL)
         {
-            DevOptions[1]=new frmDeviceOptions(DEVICE_EPS,this);
+            DevOptions[1]=new frmDeviceOptions(DEVICE_PNG,this);
         }
         DevOptions[1]->init();
         DevOptions[1]->show();
         DevOptions[1]->raise();
         break;
-    case DEVICE_PNM:
+    case DEVICE_PS:
         if (DevOptions[2]==NULL)
         {
-            DevOptions[2]=new frmDeviceOptions(DEVICE_PNM,this);
+            DevOptions[2]=new frmDeviceOptions(DEVICE_PS,this);
+
         }
         DevOptions[2]->init();
         DevOptions[2]->show();
         DevOptions[2]->raise();
         break;
-    case DEVICE_JPEG:
+
+
+
+    case DEVICE_EPS:
         if (DevOptions[3]==NULL)
         {
-            //DevOptions[3]=new frmDeviceOptions(DEVICE_JPEG,this);
-            DevOptions[3]=new frmDeviceOptions(DEVICE_BMP,this);
-            DevOptions[3]->setWindowTitle(tr("qtGrace: JPEG options"));
-            DevOptions[3]->grpBMPoptions->setTitle(tr("JPEG options"));
+            DevOptions[3]=new frmDeviceOptions(DEVICE_EPS,this);
         }
         DevOptions[3]->init();
         DevOptions[3]->show();
         DevOptions[3]->raise();
-        break;
-    case DEVICE_PNG:
-        if (DevOptions[4]==NULL)
-        {
-            //DevOptions[4]=new frmDeviceOptions(DEVICE_PNG,this);
-            DevOptions[4]=new frmDeviceOptions(DEVICE_BMP,this);
-            DevOptions[4]->setWindowTitle(tr("qtGrace: PNG options"));
-            DevOptions[4]->grpBMPoptions->setTitle(tr("PNG options"));
-        }
-        DevOptions[4]->init();
-        DevOptions[4]->show();
-        DevOptions[4]->raise();
-        break;
-    case DEVICE_BMP:
-        if (DevOptions[5]==NULL)
-        {
-            DevOptions[5]=new frmDeviceOptions(DEVICE_BMP,this);
-        }
-        DevOptions[5]->init();
-        DevOptions[5]->show();
-        DevOptions[5]->raise();
         break;
 
     default:
         ;//Do nothing
         break;
     }
+
+    /*case DEVICE_PNM:
+    if (DevOptions[2]==NULL)
+    {
+        DevOptions[2]=new frmDeviceOptions(DEVICE_PNM,this);
+    }
+    DevOptions[2]->init();
+    DevOptions[2]->show();
+    DevOptions[2]->raise();
+    break;
+case DEVICE_JPEG:
+    if (DevOptions[3]==NULL)
+    {
+        //DevOptions[3]=new frmDeviceOptions(DEVICE_JPEG,this);
+        DevOptions[3]=new frmDeviceOptions(DEVICE_BMP,this);
+        DevOptions[3]->setWindowTitle(tr("qtGrace: JPEG options"));
+        DevOptions[3]->grpBMPoptions->setTitle(tr("JPEG options"));
+    }
+    DevOptions[3]->init();
+    DevOptions[3]->show();
+    DevOptions[3]->raise();
+    break;
+    case DEVICE_BMP:
+    if (DevOptions[5]==NULL)
+    {
+        DevOptions[5]=new frmDeviceOptions(DEVICE_BMP,this);
+    }
+    DevOptions[5]->init();
+    DevOptions[5]->show();
+    DevOptions[5]->raise();
+    break;
+*/
 }
 
 void frmDeviceSetup::doNativePrinterDialog(void)
 {
+
+
     static char dummy[1024];
     this->hide();
 
@@ -6705,6 +6750,7 @@ void frmDeviceSetup::doNativePrinterDialog(void)
         this->show();
     }
     useQPrinter=false;
+
 }
 
 frmPreferences::frmPreferences(QWidget * parent):QDialog(parent)

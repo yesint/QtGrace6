@@ -1320,26 +1320,20 @@
 				/* No patterned texts yet */
 				setpattern(1);
 				setcolor(cs->color);
-				if (dev.devfonts == TRUE) {
+                if (dev.devfonts == TRUE) {
 					if (cs->advancing == TEXT_ADVANCING_RL) {
 						vptmp = cs->stop;
 					} else {
 						vptmp = cs->start;
 					}
 	                
-					 #ifdef _MSC_VER
-			if (devputtext == NULL || (curdevice==8 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimal Kailasanathan
-						errmsg("Device has no built-in fonts");
-					} else {
-						(*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);
-					}
-		#else
-			if (devputtext == NULL || (curdevice==9 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimal Kailasanathan
+
+            if (devputtext == NULL || (curdevice==6 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimal Kailasanathan
 						errmsg("Device has no built-in fonts");
 					} else {
 						(*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);
 					} 
-		#endif
+
 					
 
 

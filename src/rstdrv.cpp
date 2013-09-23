@@ -45,7 +45,7 @@
 #include "patterns.h"
 #include "rstdrv.h"
 #include "noxprotos.h"
-
+#include "svgdrv.h"
 #include "gd.h"
 
 #ifdef HAVE_LIBJPEG
@@ -131,19 +131,19 @@ static Device_entry dev_jpg = {DEVICE_FILE,
          };
 #endif
 
-#ifdef HAVE_LIBPNG
-static Device_entry dev_png = {DEVICE_FILE,
-          "PNG",
-          pnginitgraphics,
-          png_op_parser,
-          png_gui_setup,
-          "png",
-          TRUE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          NULL
-         };
-#endif
+
+static Device_entry dev_png = {
+    DEVICE_FILE,
+    "PNG",
+    svginitgraphics,
+    NULL,
+    NULL,
+    "png",
+    TRUE,
+    TRUE,
+    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+    NULL
+};
 
 int register_pnm_drv(void)
 {
@@ -157,12 +157,12 @@ int register_jpg_drv(void)
 }
 #endif
 
-#ifdef HAVE_LIBPNG
-int register_png_drv(void)
+
+int register_high_png_drv(void)
 {
     return register_device(dev_png);
 }
-#endif
+
 
 static void rst_updatecmap(void)
 {
