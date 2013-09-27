@@ -39,6 +39,8 @@ char SystemsDecimalPoint='.';
 DrawProps draw_props = {{1, 1}, 0, TRUE, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
 int maxgraph;
 bool useQtFonts=false;
+bool hdeviceFlag;
+int hardCopyDeviceNr;
 QList<QFont> stdFontList;
 QFont stdFont;
 QFontMetrics stdFontMetrics(stdFont);
@@ -916,6 +918,9 @@ void read_settings(void)
     immediateUpdate=allPrefs->value(QString("ImmediateUpdates"),QVariant(false)).toBool();
     ExtraPreferences->chkImmediateUpdate->setChecked(immediateUpdate);
     default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(0)).toInt();
+    if(hdeviceFlag){
+        default_Print_Device=hardCopyDeviceNr;
+    }
     ExtraPreferences->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);
     //no paint device yet --> we have to disconnect this, because redraw is inpossible now
     mainWin->disconnect(mainWin->sldPageZoom,SIGNAL(valueChanged(int)),mainWin,SLOT(doPageZoom(int)));
@@ -963,7 +968,7 @@ void read_settings(void)
 void write_settings(void)
 {
     /*allPrefs=new QSettings(QString("Grace"),QString("qtGrace"));
-	allPrefs->setPath(QSettings::IniFormat,QSettings::UserScope,qt_grace_exe_dir);*/
+    allPrefs->setPath(QSettings::IniFormat,QSettings::UserScope,qt_grace_exe_dir);*/
     allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
     allPrefs->beginGroup(QString("Preferences"));
     allPrefs->setValue(QString("dontaskquestions"),QVariant(FormPreferences->noask_item->isChecked()));

@@ -245,6 +245,8 @@ void LocalSocketIpcServer::readSocket() {
     }
     case 5://PS_FILENAME(5)
         //qDebug()<<"Run Command" << command;
+
+       //hdevice=1;
         readPsFileName();
         countNoOfRead = 0;
         break;
@@ -272,7 +274,8 @@ void LocalSocketIpcServer::readSocket() {
         set_pagelayout(PAGE_FIXED);
         update_all();
 
-        hdevice=0;
+
+
         do_hardcopy();
         countNoOfRead = 0;
         break;

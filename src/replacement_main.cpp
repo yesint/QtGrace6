@@ -150,6 +150,8 @@ extern bool display_help_externally;
 extern bool immediateUpdate;
 extern bool updateRunning;
 extern bool useQtFonts;
+extern bool hdeviceFlag;
+extern int hardCopyDeviceNr;
 extern QList<QFont> stdFontList;
 
 extern void copy_Grace_to_LaTeX(void);
@@ -446,7 +448,7 @@ int replacement_main(int argc, char **argv)
     int remove_flag = FALSE;	/* remove file after read */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
-
+    hdeviceFlag = false;
     char fd_name[GR_MAXPATHLEN];
 
     int wpp, hpp;
@@ -599,7 +601,7 @@ int replacement_main(int argc, char **argv)
     cur_graph = get_cg();
     // cout<<"Starting args analysis"<<endl;
     for (i = 1; i < argc; i++) {
-        //   cout << i << " " << argv[i]<<endl;
+           cout << i << " " << argv[i]<<endl;
     }
     if (argc >= 2) {
         for (i = 1; i < argc; i++) {
@@ -797,14 +799,32 @@ int replacement_main(int argc, char **argv)
                         monomode = TRUE;
 #endif
                     } else if (argmatch(argv[i], "-hdevice", 5)) {
+
+                        hardCopyDeviceNr = 0;
                         i++;
                         if (i == argc) {
                             fprintf(stderr, "Missing argument for hardcopy device select flag\n");
                             usage(stderr, argv[0]);
                         } else {
+                            fprintf(stderr, "argv[i]=%s\n",argv[i]);
                             if (set_printer_by_name(argv[i]) != RETURN_SUCCESS) {
+                                  hdeviceFlag = false;
                                 errmsg(QObject::tr("Unknown or unsupported device").toAscii().constData());
                                 exit(1);
+                            }else{
+                                hdeviceFlag = true;
+
+                                if(!strcmp("PDF",argv[i])){
+                                hardCopyDeviceNr = 0;
+                            }else if(!strcmp("PNG",argv[i])){
+                                     hardCopyDeviceNr = 1;
+                            }else if(!strcmp("PostScript",argv[i])){
+                                     hardCopyDeviceNr = 2;
+                            }else if(!strcmp("EPS",argv[i])){
+                                     hardCopyDeviceNr = 3;
+                            }else if(!strcmp("SVG",argv[i])){
+                                     hardCopyDeviceNr = 4;
+                            }
                             }
                         }
                     } else if (argmatch(argv[i], "-log", 2)) {
@@ -1107,7 +1127,7 @@ int replacement_main(int argc, char **argv)
      * just plot the graph and quit
      */
     if (gracebat == TRUE) {
-        if (hdevice == 2) {
+        if (hdevice == 5) {
             errmsg(QObject::tr("Terminal device can't be used for batch plotting").toAscii().constData());
             exit(1);
         }

@@ -49,7 +49,7 @@ char * stop_com;
 int nr_of_exp_args;
 };
 
-#define NUMBER_OF_LATEX_COMMANDS 82
+#define NUMBER_OF_LATEX_COMMANDS 78
 
 struct LatexCommands allCommands[NUMBER_OF_LATEX_COMMANDS]=
 {
@@ -93,7 +93,7 @@ struct LatexCommands allCommands[NUMBER_OF_LATEX_COMMANDS]=
     {"Xi",'x',"X"},
     {"Pi",'x',"P"},
     {"Sigma",'x',"S"},
-    {"Upsilon",'x',"\\c!\\C"},
+    //{"Upsilon",'x',"\\c!\\C"},
     {"Phi",'x',"F"},
     {"Psi",'x',"Y"},
     {"Omega",'x',"W"},
@@ -106,7 +106,7 @@ struct LatexCommands allCommands[NUMBER_OF_LATEX_COMMANDS]=
     {"exists",'x',"$"},
     {"surd",'x',"\\cV\\C"},
     {"Rightarrow",'x',"\\c^\\C"},
-    {"Leftarrow",'x',"\\c\\\\C"},
+    {"Leftarrow",'x',"\\c\\\\\\C"},
     {"propto",'x',"\\c5\\C"},
     //50
     {"partial",'x',"\\c6\\C"},
@@ -136,14 +136,14 @@ struct LatexCommands allCommands[NUMBER_OF_LATEX_COMMANDS]=
     {"Im",'x',"\\cA\\C"},
     {"neq",'x',"\\c9\\C"},
     {"sim",'x',"~"},
-    {"hbar",'1',"h\\h{-0.55}\\v{-0.04}\\c/\\C\\h{0.3}\\v{0.04}"},
+  //  {"hbar",'1',"h\\h{-0.55}\\v{-0.04}\\c/\\C\\h{0.3}\\v{0.04}"},
     {"oint",'x',"\\h{0.1}\\cr\\C\\f{Courier}\\h{-0.425}\\v{0.2}o\\v{-0.2}"},
-    {"odot",'x',"\\h{0.2}\\v{0.05}\\cW\\C\\f{Courier}\\h{-0.435}\\v{0.055}o\\v{-0.105}"},
+  //  {"odot",'x',"\\h{0.2}\\v{0.05}\\cW\\C\\f{Courier}\\h{-0.435}\\v{0.055}o\\v{-0.105}"},
     {"circ",'x',"o"},
     {"leftrightarrow",'x',"\\c+\\C"},
     //80
     {"Leftrightarrow",'x',"\\c[\\C"},
-    {"AA",'0',"\\cE\\C"}
+   // {"AA",'0',"\\cE\\C"}
 };
 
 #define NUMBER_OF_SPECIAL_LATEX_COMMANDS 6
