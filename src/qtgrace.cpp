@@ -286,7 +286,7 @@ void init(void)
 {
     stdFontList.clear();
     QFont stfont;
-    stfont.fromString(QString("Helvetica,10,-1,5,50,0,0,0,0,0"));
+    stfont.fromString(QString("Times,10,-1,5,50,0,0,0,0,0"));
     stdFontList << stfont;
     stfont.fromString(QString("Times,10,-1,5,50,1,0,0,0,0"));
     stdFontList << stfont;
@@ -294,7 +294,7 @@ void init(void)
     stdFontList << stfont;
     stfont.fromString(QString("Times,10,-1,5,75,1,0,0,0,0"));
     stdFontList << stfont;
-    stfont.fromString(QString("Times,10,-1,5,50,0,0,0,0,0"));
+    stfont.fromString(QString("Helvetica,10,-1,5,50,0,0,0,0,0"));
     stdFontList << stfont;
     stfont.fromString(QString("Helvetica,10,-1,5,50,1,0,0,0,0"));
     stdFontList << stfont;

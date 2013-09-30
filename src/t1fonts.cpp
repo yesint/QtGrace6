@@ -163,7 +163,7 @@
 			map_font_by_name("Times-Bold", 1);
 			map_font_by_name("Times-Italic", 2);
 			map_font_by_name("Times-BoldItalic", 3);
-            map_font_by_name("Helvetica", 4); //Set to default - Nimal
+            map_font_by_name("Helvetica", 4);
             map_font_by_name("Helvetica-Bold", 5);
 			map_font_by_name("Helvetica-Oblique", 6);
 			map_font_by_name("Helvetica-BoldOblique", 7);
