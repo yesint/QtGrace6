@@ -154,7 +154,7 @@ GLOBAL(line_a_lL_ff, double, 1.0);
 GLOBAL(line_loctype, int, COORD_VIEW);
 
 GLOBAL(string_color, int, 1);
-GLOBAL(string_font, int, 0);
+GLOBAL(string_font, int, 4);
 GLOBAL(string_rot, int, 0);
 GLOBAL(string_just, int, 0);
 GLOBAL(string_size, double, 1.0);
