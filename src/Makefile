@@ -129,7 +129,7 @@ install: $(BIN)
 		fi
 	if [ -f  $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT) ] ; then rm $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT); fi
 	cp -r ../fonts ../bin ../doc ../examples $(BINABIDIR)/qtgrace
-	cp $(BIN) $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT)
+	mv $(BIN) $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT)
 
 
 $(ABI)/makedepend.tail:
