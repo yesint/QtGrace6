@@ -8,7 +8,7 @@
  * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
- * 
+ * Modifications of Andreas Winter 2008 are inserted here by Nimal and Vadim
  * 
  *                           All Rights Reserved
  * 
@@ -36,8 +36,8 @@
 
 #include "cmath.h"
 
-#include <cstdio>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 #ifdef _MSC_VER
@@ -45,8 +45,8 @@
 #include <unistd.h>
 #endif
 
-#include <cstring>
-#include <cctype>
+#include <string.h>
+#include <ctype.h>
 #if defined(HAVE_SYS_PARAM_H)
 #  include <sys/param.h>
 #endif
@@ -68,8 +68,17 @@
 #include "dlmodule.h"
 #include "t1fonts.h"
 #include "ssdata.h"
-#include "protos.h"
-#include "noxparser.h"
+
+  /// #include "protos.h"
+  /// #include "noxparser.h"  // REMOVED
+
+
+  // Inserted
+#include "noxprotos.h"
+#define PURE_C_PARSER 1
+#include "parser.h"
+#undef PURE_C_PARSER
+
 #include "mathstuff.h"
 
 #define MAX_PARS_STRING_LENGTH  4096
@@ -747,7 +756,7 @@ expr:	NUMBER {
 	}
 	| RAND
 	{
-	    $$ = drand48();
+	    $$ = rand();//drand48();
 	}
 	| FUNC_I '(' iexpr ')'
 	{
@@ -1093,7 +1102,7 @@ vexpr:
 		yyerror("Invalid index range");
             } else {
                 int len = stop - start + 1;
-	        double *ptr = (double*)xmalloc(len*sizeof(double)));
+            double *ptr = (double*)xmalloc(len*sizeof(double*));
                 if ($$->data == NULL) {
                     yyerror("Not enough memory");
                 } else {
@@ -1114,7 +1123,7 @@ vexpr:
             if (len < 1) {
                 yyerror("npoints must be > 0");
             } else {
-                double *ptr = allocate_index_data(len);
+	      double *ptr = (double*)allocate_index_data(len);
                 if (ptr == NULL) {
                     errmsg("Malloc failed");
                     return 1;
@@ -1132,7 +1141,7 @@ vexpr:
             if (len < 2) {
                 yyerror("npoints must be > 1");
             } else {
-                double *ptr = allocate_mesh($3, $5, len);
+	      double *ptr = (double*) allocate_mesh($3, $5, len);
                 if (ptr == NULL) {
                     errmsg("Malloc failed");
                     return 1;
@@ -1157,7 +1166,7 @@ vexpr:
                 $$->type = GRARR_TMP;
             }
             for (i = 0; i < $$->length; i++) {
-		$$->data[i] = drand48();
+		$$->data[i] =  rand();//drand48();
 	    }
 	}
 	| REGNUM '(' selectset ')'
@@ -1175,7 +1184,7 @@ vexpr:
 
             len = getsetlength($3->gno, $3->setno);
             $$ = &freelist[fcnt++];
-	    $$->data = (double*)xmalloc(len*sizeof(double));
+	    $$->data = (double*)xmalloc(len*sizeof(double*));
             if ($$->data == NULL) {
                 errmsg("Not enough memory");
                 return 1;
@@ -2677,7 +2686,7 @@ parmset:
 	}
 	| DEFAULT color_select {
 	    grdefaults.color = $2;
-	    box_color = ellipse_color = line_color = string_color = $2;
+        box_color = ellipse_color = line_color = string_color = $2;
 	}
 	| DEFAULT pattern_select {
 	    grdefaults.pattern = $2;
@@ -3098,7 +3107,7 @@ actions:
 	| UPDATEALL {
 #ifndef NONE_GUI
             if (inwin) {
-///                update_all();
+	      /*                update_all();*/
             }
 #endif
         }
@@ -3174,7 +3183,7 @@ actions:
 	| HELP sexpr {
 #ifndef NONE_GUI
             if (inwin) {
-///                HelpCB($2);
+	      /*                HelpCB($2);*/
             }
             xfree($2);
 #endif
@@ -3182,7 +3191,7 @@ actions:
 	| HELP {
 #ifndef NONE_GUI
             if (inwin) {
-///                HelpCB("doc/UsersGuide.html");
+	      /*                HelpCB("doc/UsersGuide.html");*/
             }
 #endif
 	}
@@ -3549,7 +3558,7 @@ actions:
 options:
         PAGE LAYOUT pagelayout {
 #ifndef NONE_GUI
-///            set_pagelayout($3);
+	  /*            set_pagelayout($3);*/
 #endif
         }
 	| AUTO REDRAW onoff {
@@ -5252,7 +5261,7 @@ symtab_entry ikey[] = {
 	{"BOTTOM", BOTTOM, NULL},
 	{"BOX", BOX, NULL},
 	{"CD", CD, NULL},
-	{"CEIL", FUNC_D, (void *) ceil},
+	{"CEIL", FUNC_D, (void *) ceil_wrap},
 	{"CENTER", CENTER, NULL},
 	{"CHAR", CHAR, NULL},
 	{"CHART", CHART, NULL},
@@ -5332,7 +5341,7 @@ symtab_entry ikey[] = {
 	{"FIT", FIT, NULL},
 	{"FIXED", FIXED, NULL},
 	{"FIXEDPOINT", FIXEDPOINT, NULL},
-	{"FLOOR", FUNC_D, (void *) floor},
+	{"FLOOR", FUNC_D, (void *) floor_wrap},
 	{"FLUSH", FLUSH, NULL},
 	{"FOCUS", FOCUS, NULL},
 	{"FOLLOWS", FOLLOWS, NULL},
