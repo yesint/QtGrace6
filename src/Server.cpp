@@ -63,7 +63,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 
     connect(m_toBeast, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socket_error(QLocalSocket::LocalSocketError)));
-	qDebug()<<"Done constructor";
+    //qDebug()<<"Done constructor";
 
 
 }
