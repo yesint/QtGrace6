@@ -803,10 +803,10 @@ int replacement_main(int argc, char **argv)
                         hardCopyDeviceNr = 0;
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for hardcopy device select flag\n");
+                           // fprintf(stderr, "Missing argument for hardcopy device select flag\n");
                             usage(stderr, argv[0]);
                         } else {
-                            fprintf(stderr, "argv[i]=%s\n",argv[i]);
+                            //fprintf(stderr, "argv[i]=%s\n",argv[i]);
                             if (set_printer_by_name(argv[i]) != RETURN_SUCCESS) {
                                   hdeviceFlag = false;
                                 errmsg(QObject::tr("Unknown or unsupported device").toAscii().constData());
