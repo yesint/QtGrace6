@@ -1881,11 +1881,16 @@ void MainWindow::Commands(void)
     FormCommands->activateWindow();
 }
 
+
+
+
 void MainWindow::PointExplorer(void)
 {
+
     if (FormPointExplorer==NULL)
     {
         FormPointExplorer=new frmPointExplorer(this);
+
     }
     FormPointExplorer->init();
     FormPointExplorer->show();
@@ -3201,6 +3206,8 @@ void MainArea::mouseMoveEvent( QMouseEvent * e)
 
 void MainArea::mousePressEvent(QMouseEvent * e)
 {
+
+
     e->accept();
     QCursor curs=cursor();
     QCursor curs2(Qt::WhatsThisCursor);
@@ -3283,6 +3290,17 @@ void MainArea::mouseReleaseEvent(QMouseEvent * e )
 {
     //special_XEvent event=QMouseToXEvent(e);
     mainWin->mouseReleaseEvent(e);
+
+    //BUG 1907: The points are updated using single left click on the mouse, when the Point Explorer Window is open.
+    //However, this functionality cause the axis properties dialogs to open on a single click as well (only when using the Point Explorer Window).
+    if(FormPointExplorer!=NULL)
+        if(FormPointExplorer->isVisible()){
+            {special_XEvent event=QMouseToXEvent(e);
+                event.doubleClick=true;
+                event.type=QEvent::MouseButtonPress;
+                processClickCommand(event);
+            }
+        }
 }
 
 void MainArea::keyPressEvent( QKeyEvent * e )

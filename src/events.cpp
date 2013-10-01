@@ -246,7 +246,7 @@ updateRunning=true;
 	x = event->xbutton.x;
 	y = event->xbutton.y;
 	vp = xlibdev2VPoint(x, y);
-	getpoints(&vp);
+        getpoints(&vp);
         //cout << x << " " << y << endl;
         switch (event->xbutton.button)
         {
@@ -258,10 +258,19 @@ updateRunning=true;
             } else {
                 dbl_click = FALSE;
             }*/
+//            if(FormPointExplorer==NULL){
+//                dbl_click=event->doubleClick;
+//            }else{
+//                dbl_click=TRUE;
+//                allow_dc = TRUE;
 
-            dbl_click=event->doubleClick;
+//            }
 
-            switch (action_flag)
+          dbl_click=event->doubleClick;
+
+
+
+          switch (action_flag)
             {
             case 0:
                 if (dbl_click == TRUE && allow_dc == TRUE)
@@ -271,7 +280,7 @@ updateRunning=true;
                     {
                         xlibVPoint2dev(anchor_vp, &anchor_x, &anchor_y);
                         set_action(VIEW_2ND);
-	                select_region(anchor_x, anchor_y, x, y, 0);
+                    select_region(anchor_x, anchor_y, x, y, 0);
                         get_graph_viewport(cg,&bb);
                         ShiftRect=QRect(xconvxlib(bb.xv1),yconvxlib(bb.yv2),xconvxlib(bb.xv2)-xconvxlib(bb.xv1),yconvxlib(bb.yv1)-yconvxlib(bb.yv2));
                         ShiftPoint=QPoint(x,y);
@@ -280,8 +289,8 @@ updateRunning=true;
                     }
                     else if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS)
                     {
-			if (FormSetAppearance==NULL)
-			{
+            if (FormSetAppearance==NULL)
+            {
                         FormSetAppearance=new frmSetAppearance(mainWin);
                         FormSetAppearance->init();
                         }
@@ -289,6 +298,13 @@ updateRunning=true;
                         FormSetAppearance->ShowSetData_external(cg,track_setno);
                         FormSetAppearance->raise();
                         FormSetAppearance->activateWindow();
+
+                        if(FormPointExplorer!=NULL){
+                             if(FormPointExplorer->isVisible()){
+                            FormSetAppearance->hide();
+                             }
+                        }
+
                     }
                     else if (axis_clicked(cg, vp, &axisno) == TRUE)
                     {
@@ -347,6 +363,12 @@ updateRunning=true;
                         FormSetAppearance->init();
                         FormSetAppearance->show();
                         FormSetAppearance->raise();
+
+                        if(FormPointExplorer!=NULL){
+                            if(FormPointExplorer->isVisible()){
+                           FormSetAppearance->hide();
+                            }
+                        }
                     }
                 }
                 else
