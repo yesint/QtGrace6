@@ -174,6 +174,7 @@ void do_hardcopy(void)
   file.open();
   QString fileN;
   fileN = file.fileName()+".svg";
+  file.close(); 
   QByteArray byteArray = fileN.toUtf8();
   char *cTempFileName = byteArray.data();
 
@@ -181,9 +182,10 @@ void do_hardcopy(void)
     dev = get_device_props(hdevice);
     if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"PNG"))
     {
-prstream = grace_openw(fname);
-     prstream = grace_openw(cTempFileName);
-
+		prstream = grace_openw(fname);
+		fclose(prstream);
+		prstream = grace_openw(cTempFileName);
+		
     }else{
         prstream = grace_openw(fname);
     }
@@ -289,18 +291,8 @@ prstream = grace_openw(fname);
 
         renderer.render(&painter);
         painter.end();
-        file.close();
-        //In windows the pdf file is not closed,
-        //for that reason a copy of the file is created and the old file is deleted
-
-        QFile oldFile(sFname+".x.pdf");
-        if(oldFile.exists()) oldFile.remove();
-        QFile newFile(sFname);
-        newFile.copy(sFname+".x.pdf");
-        oldFile.remove(sFname);
-        newFile.rename(sFname+".x.pdf",sFname);
-        newFile.close();
-
+		QFile::remove(cTempFileName);
+      
     }
 
 
@@ -320,19 +312,7 @@ prstream = grace_openw(fname);
         // Save, image format based on file extension
         image.save(fname);
         painter.end();
-        file.close();
-
-        //In windows the pdf file is not closed,
-        //for that reason a copy of the file is created and the old file is deleted
-
-        QFile oldFile(sFname+".x.png");
-        if(oldFile.exists()) oldFile.remove();
-        QFile newFile(sFname);
-        newFile.copy(sFname+".x.png");
-        oldFile.remove(sFname);
-        newFile.rename(sFname+".x.png",sFname);
-        newFile.close();
-
+        QFile::remove(cTempFileName);
     }
 
 
