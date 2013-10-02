@@ -268,6 +268,7 @@ prstream = grace_openw(fname);
     else
         select_device(tdevice);
 
+    QString sFname(fname);
 
     if(!strcmp(dev.name,"PDF"))
     {
@@ -289,7 +290,16 @@ prstream = grace_openw(fname);
         renderer.render(&painter);
         painter.end();
         file.close();
+        //In windows the pdf file is not closed,
+        //for that reason a copy of the file is created and the old file is deleted
 
+        QFile oldFile(sFname+".x.pdf");
+        if(oldFile.exists()) oldFile.remove();
+        QFile newFile(sFname);
+        newFile.copy(sFname+".x.pdf");
+        oldFile.remove(sFname);
+        newFile.rename(sFname+".x.pdf",sFname);
+        newFile.close();
 
     }
 
@@ -312,6 +322,16 @@ prstream = grace_openw(fname);
         painter.end();
         file.close();
 
+        //In windows the pdf file is not closed,
+        //for that reason a copy of the file is created and the old file is deleted
+
+        QFile oldFile(sFname+".x.png");
+        if(oldFile.exists()) oldFile.remove();
+        QFile newFile(sFname);
+        newFile.copy(sFname+".x.png");
+        oldFile.remove(sFname);
+        newFile.rename(sFname+".x.png",sFname);
+        newFile.close();
 
     }
 
