@@ -268,18 +268,20 @@ void LocalSocketIpcServer::readSocket() {
         break;
     }
 
-    case 7://REDRAW_AND_WRITEPS(7)
+    case 7:{//REDRAW_AND_WRITEPS(7)
         //qDebug()<<"Run Command" << command;
         /* force a hardcopy */
         set_pagelayout(PAGE_FIXED);
         update_all();
 
 
-
+        int oldNoask=noask;
+        noask=true; // prevent questions
         do_hardcopy();
+        noask=oldNoask;
         countNoOfRead = 0;
         break;
-
+    }
     case 8://SET_LAYOUT_MODE(8)
         //qDebug()<<"Run Command" << command;
         startupphase=true;
@@ -316,6 +318,13 @@ void LocalSocketIpcServer::readSocket() {
 
         break;
     }
+    case 98://TEST_CONNECTION(98)
+    {
+        //qDebug()<<"Run Command" << command;
+        countNoOfRead = 0;
+             break;
+    }
+
     default:
         //qDebug()<<"INVALID COMMAND STOP" << command;
 
@@ -457,7 +466,7 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
         readDataFromSocket(message,availableBytesFromSocket, READ_COMMAND);
 
 
-        if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99 || command == 9 || command == 12)
+        if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99 || command == 98 || command == 9 || command == 12)
             conditionToExitFunction = 0;
         else
             conditionToExitFunction = 1;
