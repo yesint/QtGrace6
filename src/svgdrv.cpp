@@ -331,7 +331,7 @@ int svginitgraphics(void)
         utfSym.insert((unsigned char)194,132);
         utfSym.insert((unsigned char)194,226);
         // AA
-       /* utfSym.insert((unsigned char)143,171);
+        /* utfSym.insert((unsigned char)143,171);
         utfSym.insert((unsigned char)143,132);
         utfSym.insert((unsigned char)143,226);
         */// leftarrow
@@ -432,8 +432,8 @@ int svginitgraphics(void)
         utfSym.insert((unsigned char)179,226);
         // odot
         //utfSym.insert((unsigned char)215,153);
-       // utfSym.insert((unsigned char)215,138);
-       // utfSym.insert((unsigned char)215,226);
+        // utfSym.insert((unsigned char)215,138);
+        // utfSym.insert((unsigned char)215,226);
         // bot
         utfSym.insert((unsigned char)94,165);
         utfSym.insert((unsigned char)94,138);
@@ -966,16 +966,23 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
     
     fprintf(prstream, "   <text  ");
 
-    fontalias = get_fontalias(font);
-    fontfullname = get_fontfullname(font);
 
 
-    if(!strcmp("Symbol",fontalias)){
+
+    if(font!=12){
+
+        fontalias = get_fontalias(font);
+        fontfullname = get_fontfullname(font);
+    }else{
+        //replace symbol font to Times
+        font = 0;
+
+        fontalias = get_fontalias(font);
+        fontfullname = get_fontfullname(font);
 
         int spos=0;
         unsigned char k;
         k = s[spos];
-
 
         //Select symbol by given key
         //QList<int> values = utfSym.values(s[spos]);
@@ -995,13 +1002,13 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
                 tmpd++;newlen++;
 
             } else {
-            *tmpd = (unsigned char)(values[0]);
-            tmpd++;newlen++;
-            *tmpd = (unsigned char)(values[1]);
-            tmpd++;newlen++;
-            if(values.size()==3){
-                *tmpd = (unsigned char)(values[2]);
-                tmpd++;newlen++;}
+                *tmpd = (unsigned char)(values[0]);
+                tmpd++;newlen++;
+                *tmpd = (unsigned char)(values[1]);
+                tmpd++;newlen++;
+                if(values.size()==3){
+                    *tmpd = (unsigned char)(values[2]);
+                    tmpd++;newlen++;}
             }
 
             spos++;
