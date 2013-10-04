@@ -600,9 +600,9 @@ int replacement_main(int argc, char **argv)
 
     cur_graph = get_cg();
     // cout<<"Starting args analysis"<<endl;
-    for (i = 1; i < argc; i++) {
-           cout << i << " " << argv[i]<<endl;
-    }
+    // for (i = 1; i < argc; i++) {
+    //       cout << i << " " << argv[i]<<endl;
+    //}
     if (argc >= 2) {
         for (i = 1; i < argc; i++) {
             if (argv[i][0] == '-' && argv[i][1] != '\0') {
@@ -1036,7 +1036,7 @@ int replacement_main(int argc, char **argv)
                     }
 
                     else if (argmatch(argv[i], "-hideMainWindow", 15)) {
-                        cout<<"HideMainWindow"<<endl;
+
                         hideMainWindow = TRUE;}
 
 
