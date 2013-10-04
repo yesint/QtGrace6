@@ -1189,17 +1189,17 @@ void errmsg(const char *buf)
     fprintf(stderr, "%s\n", buf);
 #else
     fprintf(stderr, "%s\n", buf);
-    //if (inwin) {
-	if (FormConsole==NULL)
+    if (inwin) {
+    if (FormConsole==NULL)
 	{
 	FormConsole=new frmConsole(mainWin);
 	}
 	FormConsole->show();
 	FormConsole->raise();
 	FormConsole->errwin(buf);
-    /*} else {
+    } else {
         fprintf(stderr, "%s\n", buf);
-    }*/
+    }
 #endif
 }
 
