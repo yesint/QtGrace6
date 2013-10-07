@@ -113,6 +113,9 @@ GLOBAL(noask, int, FALSE);
 /* true if running X */
 GLOBAL(inwin, int, FALSE);
 
+/*if FALSE disable console window*/
+GLOBAL(disableConsole, int, TRUE);
+
 /* autoscale after reading in data sets */
 GLOBAL(autoscale_onread, int, AUTOSCALE_XY);
 

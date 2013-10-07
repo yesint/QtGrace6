@@ -1189,7 +1189,7 @@ void errmsg(const char *buf)
     fprintf(stderr, "%s\n", buf);
 #else
     fprintf(stderr, "%s\n", buf);
-    if (inwin) {
+    if (disableConsole) {
     if (FormConsole==NULL)
 	{
 	FormConsole=new frmConsole(mainWin);

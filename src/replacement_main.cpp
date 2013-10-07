@@ -1037,7 +1037,9 @@ int replacement_main(int argc, char **argv)
 
                     else if (argmatch(argv[i], "-hideMainWindow", 15)) {
 
-                        hideMainWindow = TRUE;}
+                        hideMainWindow = TRUE;
+                        disableConsole = FALSE;
+                    }
 
 
                     else if (argmatch(argv[i], "-world", 2)) {
