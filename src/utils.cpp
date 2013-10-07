@@ -1198,7 +1198,7 @@ void errmsg(const char *buf)
 	FormConsole->raise();
 	FormConsole->errwin(buf);
     } else {
-        fprintf(stderr, "%s\n", buf);
+  //      fprintf(stderr, "%s\n", buf);
     }
 #endif
 }
