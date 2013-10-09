@@ -1328,7 +1328,7 @@
 					}
 	                
 
-            if (devputtext == NULL || (curdevice==6 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimal Kailasanathan
+            if (devputtext == NULL || (curdevice==6 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimalendiran Kailasanathan 2013-10-09
 						errmsg("Device has no built-in fonts");
 					} else {
 						(*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);
