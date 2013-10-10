@@ -2226,7 +2226,7 @@ void FileSelector::DirDoubleClicked( const QModelIndex & index )
 {
 doubleclickdir=true;
 selectedDir=index.data().toString();
-if(selectedDir==".") return; //Nimal - added in order to avoid qtgrace to crash
+if(selectedDir==".") return; //Nimalendiran Kailasanathan 2013-10-09 - added in order to avoid qtgrace to crash
 currentDir=currentDir+separator+selectedDir;//set a new directory
 QString newFilter,newDir;
 GeneratePathWithExtension(currentDir,newFilter,newDir);
@@ -4412,7 +4412,7 @@ entries=new int[2];
 text_entries=new QString[2];
 show_hidden=true;
 show_data_less=false;
-show_comments=true; //Show comments as default - Nimal
+show_comments=true; //Show comments as default - Nimalendiran Kailasanathan 2013-10-09
 
 if (type==GRAPHLIST)//register this List so that it may be updated later (live)
 {

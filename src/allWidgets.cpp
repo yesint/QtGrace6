@@ -5680,10 +5680,8 @@ void frmDeviceOptions::doApply(void)
     ApplyError=false;
     if (Device==DEVICE_PNG)
     {
-
-
         png_setup_res = GetSpinChoice(chkResolution);
-        //Nimal
+
     }
     if (Device==DEVICE_PS)
     {
@@ -5887,7 +5885,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     page_x_item=new stdLineEdit(grpPage,tr("Dimensions:"));
     page_y_item=new stdLineEdit(grpPage,tr("x"));
     dev_res_item=new stdLineEdit(grpPage,tr("Resolution (dpi):"));
-dev_res_item->hide();
+    dev_res_item->hide();
     page_size_unit_item=new QComboBox(grpPage);
     page_size_unit_item->addItem(tr("pix"));
     page_size_unit_item->addItem(tr("in"));
@@ -6232,7 +6230,7 @@ void frmDeviceSetup::SizeChanged(int value)
         x = 595.00;
         y = 770.00;
         break;
-        //Nimal
+
     case PAGE_FORMAT_USLEGAL:
         x = 595.00;
         y = 980.00;
@@ -6768,7 +6766,7 @@ frmPreferences::frmPreferences(QWidget * parent):QDialog(parent)
 
     grpResponciveness=new QGroupBox(tr("Responsiveness"),this);
     noask_item=new QCheckBox(tr("Don't ask questions"),grpResponciveness);
-    noask_item->setChecked(FALSE); //ask questions default - Nimal
+    noask_item->setChecked(FALSE); //ask questions default - Nimalendiran Kailasanathan 2013-10-09
     dc_item=new QCheckBox(tr("Allow double clicks on canvas"),grpResponciveness);
     dc_item->setChecked(TRUE);
     number=3;
@@ -6783,7 +6781,7 @@ frmPreferences::frmPreferences(QWidget * parent):QDialog(parent)
     cursor_type_item=new QCheckBox(tr("Crosshair cursor"),grpResponciveness);
     ///chkShowHideWorkaround=new QCheckBox(tr("Show/Hide workaround"),grpResponciveness);
     grpRestrictions=new QGroupBox(tr("Restrictions"),this);
-    max_path_item=new stdIntSelector(grpRestrictions,tr("Max drawing path length:"),0,1000000); //changed from 20000 - Nimal
+    max_path_item=new stdIntSelector(grpRestrictions,tr("Max drawing path length:"),0,1000000); //changed from 20000 - Nimalendiran Kailasanathan 2013-10-09
     max_path_item->spnInt->setSingleStep(1000);
     max_path_item->setValue(1000000);
     safe_mode_item=new QCheckBox(tr("Run in safe mode"),grpRestrictions);
@@ -16741,7 +16739,7 @@ GrTabLegBox::GrTabLegBox(QWidget * parent):QWidget(parent)
     selFrameLineColor->setCurrentIndex(1);
     selFrameLinePattern->setCurrentIndex(1);
     selFrameLineStyle->setCurrentIndex(1);
-    selFrameFillPattern->setCurrentIndex(1);
+    selFrameFillPattern->setCurrentIndex(0);
     selFrameLineWidth->setValue(1.0);
 }
 
