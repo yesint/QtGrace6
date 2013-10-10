@@ -518,14 +518,14 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
     //print double pointer elements
 
     for(int i=0; i<dataLength; i++){
-        if(fabs(x[i])>1e30 || (x[i]!=0 && fabs(x[i])<1e-30))  {
-            //qDebug()<<"Invalid numeric data in x["<<i<<"]="<<x[i];
-            exit(0);
+        if(fabs(x[i])>1e200 || (x[i]!=0 && fabs(x[i])<1e-200))  {
+            cout<<"Invalid numeric data in x["<<i<<"]="<<x[i]<<endl;
+           // exit(0);
             x[i]=0;
         }
-        if(fabs(y[i])>1e30  || (y[i]!=0 && fabs(y[i])<1e-30))   {
-            //qDebug()<<"Invalid numeric data in y["<<i<<"]="<<y[i];
-            exit(0);
+        if(fabs(y[i])>1e200  || (y[i]!=0 && fabs(y[i])<1e-200))   {
+            cout<<"Invalid numeric data in y["<<i<<"]="<<y[i]<<endl;
+           // exit(0);
             y[i]=0;
         }
 
