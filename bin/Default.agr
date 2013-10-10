@@ -229,7 +229,7 @@
 @    legend box linewidth 1.0
 @    legend box linestyle 1
 @    legend box fill color 0
-@    legend box fill pattern 1
+@    legend box fill pattern 0
 @    legend font 4
 @    legend char size 1.000000
 @    legend color 1
