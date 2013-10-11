@@ -692,7 +692,7 @@ void LocalSocketIpcServer::setLayoutMode(){
     saveCountNoOfDataSets[graphNo]=countNoOfDataSets;
     countNoOfDataSets = 0;
 
-    v.xv1 = 0.15;
+    v.xv1 = 0.21;
     v.xv2 = 1.21;
     v.yv1 =0.15;
     v.yv2 = 0.85;
