@@ -1326,7 +1326,7 @@ void postprocess_project(int version)
 ///#ifndef NONE_GUI
         //2013-08-12 Nimalendiran Kailasanathan changes from PAGE_FIXED to PAGE_FREE and
         //disabled rescale of viewport
-        set_pagelayout(PAGE_FREE);
+        set_pagelayout(PAGE_FIXED);
 ///#endif
    /*   get_page_viewport(&ext_x, &ext_y);
         rescale_viewport(ext_x, ext_y);
