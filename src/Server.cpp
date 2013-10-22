@@ -15,7 +15,8 @@ extern bool startupphase;
 // initialize server
 LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent)
   ,socket_connected_busy(false)
-  ,command(0),dataLength(0)
+  ,command(0)
+  ,dataLength(0)
   ,graphNo(0)
   ,xmin(0)
   ,xmax(0)
@@ -29,9 +30,13 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,gno(0)
   ,load(0)
   ,cursource(0)
+  ,numGraphs(0)
+  ,paramLength(0)
   ,countNoOfDataSets(0){
 
-    //Read from Beast
+   saveCountNoOfDataSets << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0;
+
+            //Read from Beast
     m_fromBeast = new QLocalServer(this);
 
 
@@ -213,11 +218,11 @@ void LocalSocketIpcServer::readSocket() {
         countNoOfDataSets++;
 
         //Debug to test data from ViewBeast
-        /*  QFile file("/home/nimal/test/qtgrace/qtgracegraphtest.txt");
+          QFile file("/home/nimal/test/qtgrace/qtgracegraphtest.txt");
         file.open(QIODevice::WriteOnly);
         file.write(buffer.data());
         file.close();
-      */
+
         break;
     }
 
@@ -238,7 +243,7 @@ void LocalSocketIpcServer::readSocket() {
 
         //Update legend properties
         for(int igno = 0; igno < graphNo+1; igno++){
-            for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets[igno]; iSetNo++){
+            for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets.at(igno); iSetNo++){
                 set_legend_string(igno,iSetNo,get_legend_string(igno,iSetNo));
                 setcomment(igno,iSetNo,get_legend_string(igno,iSetNo));
 
@@ -688,6 +693,7 @@ writeDataToTmpFile()
 void LocalSocketIpcServer::setLayoutMode(){
 
     graphNo = dataLength;
+
     view v;
 
     //Update legend properties
@@ -697,9 +703,16 @@ void LocalSocketIpcServer::setLayoutMode(){
         setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
     }
 
-    saveCountNoOfDataSets[graphNo]=countNoOfDataSets;
-    countNoOfDataSets = 0;
 
+    if(mode ==1){
+        //When join there will only be one graph, even ViewBeast sends it as more than one
+        saveCountNoOfDataSets.replace(0,countNoOfDataSets);
+
+    }else{
+        saveCountNoOfDataSets.replace(graphNo,countNoOfDataSets);
+        countNoOfDataSets = 0;
+
+    }
     v.xv1 = 0.21;
     v.xv2 = 1.21;
     v.yv1 =0.15;
@@ -753,19 +766,19 @@ void LocalSocketIpcServer::setLayoutMode(){
             overlay_graphs(graphNo, 0, 4);
         }
 
-        set_graph_viewport(graphNo, v);
+      //  set_graph_viewport(graphNo, v);
 
         break;
     }
     case 1:
     {    // join, do nothing
-        set_graph_viewport(graphNo, v);
+        //set_graph_viewport(graphNo, v);
         break;
     }
     case 0:{
 
-        set_graph_viewport(graphNo, v);
-
+       //
+       //set_graph_viewport(graphNo, v);
 
         break;
     }

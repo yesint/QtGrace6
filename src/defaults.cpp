@@ -66,7 +66,7 @@ static world d_w =
 {0.0, 1.0, 0.0, 1.0};
 
 static view d_v =
-{0.15, 0.85, 0.15, 0.85};
+{0.21, 1.21, 0.15, 0.85};
 
 void set_program_defaults(void)
 {

@@ -130,7 +130,7 @@ private:
     int                 cursource; // read from temp file
     int                 paramLength;
     int                 countNoOfDataSets;
-    int                 saveCountNoOfDataSets[10];
+    QList<int>          saveCountNoOfDataSets;
 };
 
 
