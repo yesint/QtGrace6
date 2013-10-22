@@ -218,11 +218,11 @@ void LocalSocketIpcServer::readSocket() {
         countNoOfDataSets++;
 
         //Debug to test data from ViewBeast
-          QFile file("/home/nimal/test/qtgrace/qtgracegraphtest.txt");
+       /*   QFile file("/home/nimal/test/qtgrace/qtgracegraphtest.txt");
         file.open(QIODevice::WriteOnly);
         file.write(buffer.data());
         file.close();
-
+*/
         break;
     }
 
