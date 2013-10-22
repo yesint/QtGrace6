@@ -69,8 +69,8 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 }
 
 void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
-    qDebug() << "2) Connect to Server"+readServer;
-    qDebug() << "sendParam as int="<< *(int*)(sendParam);
+    //qDebug() << "2) Connect to Server"+readServer;
+    //qDebug() << "sendParam as int="<< *(int*)(sendParam);
 
     m_toBeast->abort();
     m_sendParam = sendParam;
@@ -80,7 +80,7 @@ void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
 }
 
 LocalSocketIpcServer::~LocalSocketIpcServer() {
-    qDebug() << "Server deletion";
+    //qDebug() << "Server deletion";
 
     m_fromBeast->close();
     delete m_fromBeast;
@@ -365,7 +365,7 @@ void LocalSocketIpcServer::sendDataToGrace(){
 #else
     usleep(1000);
 #endif
-
+    if(false){
     std::cerr << "writeRawData "<<m_paramLen<<" bytes "<<std::endl;
     std::cerr << " data are: ";
     //if(m_len>0 && m_sendMessage [0] == 8) sleep(1);
@@ -378,6 +378,7 @@ void LocalSocketIpcServer::sendDataToGrace(){
 
     }
     std::cerr << std::endl;
+    }
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
