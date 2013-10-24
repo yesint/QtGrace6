@@ -370,9 +370,9 @@ void LocalSocketIpcServer::sendDataToGrace(){
 #else
     usleep(1000);
 #endif
-
-//    std::cerr << "writeRawData "<<m_paramLen<<" bytes "<<std::endl;
-//    std::cerr << " data are: ";
+    if(false){
+    std::cerr << "writeRawData "<<m_paramLen<<" bytes "<<std::endl;
+    std::cerr << " data are: ";
     //if(m_len>0 && m_sendMessage [0] == 8) sleep(1);
     for(int i=0;i<20;i++){
         if (i<m_paramLen) {
@@ -383,6 +383,7 @@ void LocalSocketIpcServer::sendDataToGrace(){
 
     }
     std::cerr << std::endl;
+    }
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
