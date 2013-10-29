@@ -245,9 +245,18 @@ void LocalSocketIpcServer::readSocket() {
         for(int igno = 0; igno < graphNo+1; igno++){
             for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets.at(igno); iSetNo++){
                 set_legend_string(igno,iSetNo,get_legend_string(igno,iSetNo));
-                setcomment(igno,iSetNo,get_legend_string(igno,iSetNo));
 
-            }}
+                string strComments =  string(getcomment(igno, iSetNo));
+
+                if(strComments.empty())
+                {
+                    setcomment(igno,iSetNo,get_legend_string(igno,iSetNo));
+                } else{
+                    setcomment(igno,iSetNo,getcomment(igno, iSetNo));
+
+                }
+            }
+        }
 
         countNoOfDataSets = 0;
         countNoOfRead = 0;
@@ -701,7 +710,17 @@ void LocalSocketIpcServer::setLayoutMode(){
 
     for(int iSetNo = 0; iSetNo < countNoOfDataSets; iSetNo++){
         set_legend_string(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
-        setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
+
+        string strComments =  string(getcomment(graphNo, iSetNo));
+
+        if( !strComments.find( "/tmp/qtgrace", 0 )  )
+        {
+            setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
+        }else{
+            setcomment(graphNo,iSetNo,getcomment(graphNo, iSetNo));
+
+        }
+
     }
 
 
