@@ -710,19 +710,16 @@ void LocalSocketIpcServer::setLayoutMode(){
 
     for(int iSetNo = 0; iSetNo < countNoOfDataSets; iSetNo++){
         set_legend_string(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
-
-        if( !QString::compare(QString(getcomment(graphNo, iSetNo)),fileNameStr) )
+		
+		if( QString(getcomment(graphNo, iSetNo)).toLatin1() == fileNameStr.toLatin1())
         {
             setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
         }else{
             setcomment(graphNo,iSetNo,getcomment(graphNo, iSetNo));
-
         }
-
     }
 
-
-    if(mode ==1){
+	if(mode ==1){
         //When join there will only be one graph, even ViewBeast sends it as more than one
         saveCountNoOfDataSets.replace(0,countNoOfDataSets);
 
