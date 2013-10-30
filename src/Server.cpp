@@ -711,9 +711,9 @@ void LocalSocketIpcServer::setLayoutMode(){
     for(int iSetNo = 0; iSetNo < countNoOfDataSets; iSetNo++){
         set_legend_string(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
 
-        string strComments =  string(getcomment(graphNo, iSetNo));
 
-        if( !strComments.find( "/tmp/qtgrace", 0 )  )
+
+   if( !QString::compare(QString(getcomment(graphNo, iSetNo)),fileNameStr) )
         {
             setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
         }else{
