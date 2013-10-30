@@ -711,9 +711,7 @@ void LocalSocketIpcServer::setLayoutMode(){
     for(int iSetNo = 0; iSetNo < countNoOfDataSets; iSetNo++){
         set_legend_string(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
 
-
-
-   if( !QString::compare(QString(getcomment(graphNo, iSetNo)),fileNameStr) )
+        if( !QString::compare(QString(getcomment(graphNo, iSetNo)),fileNameStr) )
         {
             setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
         }else{
