@@ -737,8 +737,6 @@ void LocalSocketIpcServer::setLayoutMode(){
     switch(mode){
     case 3:{
 
-
-
         if(columns==0)
             rows = 1;
         else {
@@ -822,7 +820,6 @@ void LocalSocketIpcServer::sendParam(){
 
     fclose(pFile);
     parFile.open();
-
 
 
     QByteArray paramToSend = parFile.readAll();
