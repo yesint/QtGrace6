@@ -25,6 +25,7 @@
 #include <fstream>
 #include <cstring>
 #include <cstdio>
+#include <QLabel>
 #include "draw.h"
 #include "graphs.h"
 #include "x11drv.h"
@@ -344,6 +345,7 @@ QLabel * lblInstructions;
 QLabel * lblRestrToSet;
 uniList * list;
 stdLineEdit * ledPointLocation;
+QLabel * ledPointLocationBeauty;
 stdLineEdit * ledPointData;
 
 QGroupBox * grpButtons;

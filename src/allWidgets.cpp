@@ -3326,6 +3326,7 @@ frmPointExplorer::frmPointExplorer(QWidget * parent):QDialog(parent)
     connect(list,SIGNAL(new_selection(int)),SLOT(selectionChanged(int)));
     ledPointLocation=new stdLineEdit(this,tr("Point location:"));
     ledPointLocation->lenText->setText(QString(""));
+    ledPointLocationBeauty=new QLabel(tr("Matching Beauty step number:"),this);
     ledPointData=new stdLineEdit(this,tr("Point data:"));
     ledPointData->lenText->setText(QString(""));
 
@@ -3383,9 +3384,10 @@ frmPointExplorer::frmPointExplorer(QWidget * parent):QDialog(parent)
     layout->addWidget(lblRestrToSet,1,0,1,2);
     layout->addWidget(list,2,0,3,2);
     layout->addWidget(ledPointLocation,5,0,1,1);
+    layout->addWidget(ledPointLocationBeauty,6,0,1,1);
     layout->addWidget(cmdGoTo,5,1,1,1);
-    layout->addWidget(ledPointData,6,0,1,2);
-    layout->addWidget(grpButtons,7,0,1,2);
+    layout->addWidget(ledPointData,7,0,1,2);
+    layout->addWidget(grpButtons,8,0,1,2);
     for (int i=0;i<2;i++)
         layout->setRowStretch(i,0);
     layout->setRowStretch(2,1);
@@ -3426,6 +3428,7 @@ void frmPointExplorer::doGoTo(void)
     WPoint wp;
     VPoint vp;
     xv_evalexpri(ledPointLocation, &ind);
+
     if (get_point(cg, track_setno, ind, &wp) == RETURN_SUCCESS) {
         vp = Wpoint2Vpoint(wp);
         setpointer(vp);
@@ -3480,6 +3483,8 @@ void frmPointExplorer::update_point_locator(int gno, int setno, int loc)
         //xfree(s);
         sprintf(buf, "%d", loc);
         xv_setstr(ledPointLocation, buf);
+        int intBuf = atoi(buf);
+        ledPointLocationBeauty->setText("Matching Beauty step number: "+QString::number(intBuf+1));
         track_setno=setno;
     } else {
         track_setno = -1;
@@ -3487,6 +3492,7 @@ void frmPointExplorer::update_point_locator(int gno, int setno, int loc)
         SelectListChoices(list,0,NULL);
         SetTextString(ledPointData, "");
         xv_setstr(ledPointLocation, "");
+        ledPointLocationBeauty->setText("Matching Beauty step number:");
     }
 }
 
