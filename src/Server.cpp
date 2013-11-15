@@ -140,12 +140,12 @@ void LocalSocketIpcServer::readSocket() {
 
 
     QDataStream in(clientConnection);
-    
+
 #if QT_VERSION >= 0x040700
     in.setVersion(QDataStream::Qt_4_7);
 #else
     in.setVersion(QDataStream::Qt_4_0);
-#endif 	
+#endif
 
 
 
@@ -174,7 +174,7 @@ void LocalSocketIpcServer::readSocket() {
         fprintf(stderr, "All available data not read!\n");
     }
 */
-    
+
 
     //qDebug()<<"10:35 Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes";
 
@@ -251,13 +251,11 @@ void LocalSocketIpcServer::readSocket() {
                 string strComments;
                 if(gotComment) strComments=gotComment;
 
-
-
                 if(strComments.empty())
                 {
-                    setcomment(igno,iSetNo,get_legend_string(igno,iSetNo));
-                } else{
                     setcomment(igno,iSetNo,getcomment(igno, iSetNo));
+                } else{
+                    setcomment(igno,iSetNo,get_legend_string(igno,iSetNo));
 
                 }
             }
@@ -401,13 +399,13 @@ void LocalSocketIpcServer::sendDataToGrace(){
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    
+
 
 #if QT_VERSION >= 0x040700
     out.setVersion(QDataStream::Qt_4_7);
 #else
     out.setVersion(QDataStream::Qt_4_0);
-#endif 
+#endif
 
     out.writeRawData(m_sendParam,m_paramLen);
     out.device()->seek(0);
@@ -720,13 +718,13 @@ void LocalSocketIpcServer::setLayoutMode(){
         if(gotComment)gotCommentQString=gotComment;
         if( gotCommentQString.toLatin1() == fileNameStr.toLatin1())
         {
-            setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
-        }else{
             setcomment(graphNo,iSetNo,gotComment);
-        }
+
+        }else{
+             setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));}
     }
 
-	if(mode ==1){
+    if(mode ==1){
         //When join there will only be one graph, even ViewBeast sends it as more than one
         saveCountNoOfDataSets.replace(0,countNoOfDataSets);
 
