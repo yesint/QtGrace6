@@ -246,7 +246,12 @@ void LocalSocketIpcServer::readSocket() {
             for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets.at(igno); iSetNo++){
                 set_legend_string(igno,iSetNo,get_legend_string(igno,iSetNo));
 
-                string strComments =  string(getcomment(igno, iSetNo));
+                char* gotComment=getcomment(igno, iSetNo);
+
+                string strComments;
+                if(gotComment) strComments=gotComment;
+
+
 
                 if(strComments.empty())
                 {
@@ -710,12 +715,14 @@ void LocalSocketIpcServer::setLayoutMode(){
 
     for(int iSetNo = 0; iSetNo < countNoOfDataSets; iSetNo++){
         set_legend_string(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
-		
-		if( QString(getcomment(graphNo, iSetNo)).toLatin1() == fileNameStr.toLatin1())
+        QString gotCommentQString;
+        char*gotComment=getcomment(graphNo, iSetNo);
+        if(gotComment)gotCommentQString=gotComment;
+        if( gotCommentQString.toLatin1() == fileNameStr.toLatin1())
         {
             setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
         }else{
-            setcomment(graphNo,iSetNo,getcomment(graphNo, iSetNo));
+            setcomment(graphNo,iSetNo,gotComment);
         }
     }
 
