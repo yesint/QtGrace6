@@ -874,6 +874,8 @@ QComboBox * page_size_unit_item;
 QCheckBox * chkDontChangeSize;
 QPushButton * cmdNativePrinterDialog;
 QPushButton * cmdDoPrint;
+QPushButton * closeDoPrint;
+QProgressBar * progBar;
 
 //QCheckBox * printto_item;
 QCheckBox * fontaa_item;
@@ -909,6 +911,7 @@ void doAccept(void);
 void doClose(void);
 void doPrint(void);
 void doPrint2(void);
+void doPrint3(void);
 void doSyncPage(void);
 void doRescalePlot(void);
 void doHelpOnContext(void);

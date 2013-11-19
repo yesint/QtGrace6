@@ -43,6 +43,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <QSvgRenderer>
+#include <QProgressBar>
 #define OPTYPE_COPY 0
 #define OPTYPE_MOVE 1
 #define OPTYPE_SWAP 2
@@ -674,7 +675,7 @@ int find_dev_nr(char * dev_name)/*my own number of devices*/
     {
         nr=DEVICE_PDF;
     }
-    if (!strcmp(dev_name,"EPS"))
+    else if (!strcmp(dev_name,"EPS"))
     {
         nr=DEVICE_EPS;
     }
@@ -5923,15 +5924,19 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
 
     if (windowTitle ==1){
         cmdDoPrint=new QPushButton(tr(""),this);
+        connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrint2()));
     }else if (windowTitle == 2){
         cmdDoPrint=new QPushButton(tr("Print to File"),this);
+        connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrint2()));
     }else if (windowTitle == 3){
         cmdDoPrint=new QPushButton(tr("Export"),this);
+        connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrint3()));
+        connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doClose()));
     }
     else{
 
     }
-    connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrint2()));
+    
 
     if (windowTitle ==1){
 
@@ -5943,6 +5948,8 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
 
     }else if (windowTitle == 3){
 
+        closeDoPrint=new QPushButton(tr("Cancel"),this);
+        connect(closeDoPrint,SIGNAL(clicked()),SLOT(doClose()));
     }
     else{
 
@@ -5962,6 +5969,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     layout1->addWidget(cmdDoPrint,0,1,1,1);
     layout1->addWidget(printfile_item,2,0,1,2);
     layout1->addWidget(wbut,2,2);
+
     grpOutput->setLayout(layout1);
     layout2=new QGridLayout();
     layout2->setMargin(STD_MARGIN);
@@ -5998,7 +6006,9 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     }else if (windowTitle == 2){
 
     }else if (windowTitle == 3){
-
+        layout1->addWidget(closeDoPrint,0,2,1,1);
+        progBar = new QProgressBar();
+        layout1->addWidget(progBar,0,0,2,1);
     }
     else{
 
@@ -6545,6 +6555,18 @@ void frmDeviceSetup::doClose(void)
     hide();
 }
 
+
+
+void frmDeviceSetup::doPrint3(void)
+{
+    cmdDoPrint->setEnabled(false);
+    progBar->setValue(0);
+    doPrint();
+    progBar->setValue(100);
+    cmdDoPrint->setEnabled(true);
+
+}
+
 void frmDeviceSetup::doPrint2(void)
 {
     //bool old_state=printto_item->isChecked();
@@ -6726,7 +6748,7 @@ void frmDeviceSetup::doNativePrinterDialog(void)
         {
             useQPrinter=true;
             xdrawgraph();
-            GeneralPainter->end();
+          //  GeneralPainter->end(); //2013-11-19 BZ2033 Disabled
             useQPrinter=false;
             xdrawgraph();
         }
