@@ -1101,13 +1101,13 @@
 		dev = get_curdevice_props();
 
 	 #ifdef _MSC_VER
-			if (curdevice==8 && useQtFonts==true && dev.devfonts==TRUE)
+            if (curdevice==6 && useQtFonts==true && dev.devfonts==TRUE)
 	useQtFunctions=true;
 	else
 	useQtFunctions=false;
 
 		#else
-			if (curdevice==9 && useQtFonts==true && dev.devfonts==TRUE)
+            if (curdevice==6 && useQtFonts==true && dev.devfonts==TRUE)
 	useQtFunctions=true;
 	else
 	useQtFunctions=false;
@@ -1328,7 +1328,7 @@
 					}
 	                
 
-            if (devputtext == NULL || (curdevice==6 && useQtFonts==false)) { //Before changes curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 9 - Nimalendiran Kailasanathan 2013-10-09
+            if (devputtext == NULL || (curdevice==6 && useQtFonts==false)) { //Before change curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 6 - Nimalendiran Kailasanathan 2013-10-09
 						errmsg("Device has no built-in fonts");
 					} else {
 						(*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);

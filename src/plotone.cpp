@@ -183,8 +183,11 @@ void do_hardcopy(void)
     if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"PNG"))
     {
 		prstream = grace_openw(fname);
-		fclose(prstream);
-		prstream = grace_openw(cTempFileName);
+
+        if(!prstream==NULL){
+            fclose(prstream);
+            prstream = grace_openw(cTempFileName);
+        }
 		
     }else{
         prstream = grace_openw(fname);
@@ -2277,7 +2280,7 @@ void draw_string(int gno, int i)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        /*if (curdevice==0 && useQtFonts==true)
+       /*if (curdevice==0 && useQtFonts==true)
 {
 vp.x+=0.2;
 WriteQtString(vp, pstr.rot, pstr.just, pstr.s,pstr.charsize,pstr.font,pstr.color);
@@ -2286,7 +2289,7 @@ vp.x-=0.2;
 else
 {
 WriteString(vp, pstr.rot, pstr.just, pstr.s);
-}*/
+} */
 
         WriteString(vp, pstr.rot, pstr.just, pstr.s_plotstring);
 
