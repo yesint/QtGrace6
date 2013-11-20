@@ -58,12 +58,12 @@
 
 //#define DEVICE_X11 0
 //#define DEVICE_DUMMY 1
-#define DEVICE_PDF 0
+/*#define DEVICE_PDF 0
 #define DEVICE_PNG 1
 #define DEVICE_PS 2
 #define DEVICE_EPS 3
 #define DEVICE_SVG 4
-#define DEVICE_SCREEN 5
+#define DEVICE_SCREEN 5*/
 //#define DEVICE_MIF 2
 //#define DEVICE_PNM 4
 //#define DEVICE_JPEG 5

@@ -46,7 +46,9 @@
 	#include "noxprotos.h"
 	#include "cmath.h"
 	#include <QPainter>
-	#define toAscii toLatin1
+    #include "globals.h"
+
+    #define toAscii toLatin1
 	using namespace std;
 
 	extern QPainter * GeneralPainter;
@@ -1114,7 +1116,7 @@
 
         #endif
 */
-        if (curdevice==5 && useQtFonts==true)/// && dev.devfonts==TRUE)//deactivated use of device fonts if qtfonts are used
+        if (curdevice==DEVICE_SCREEN && useQtFonts==true)/// && dev.devfonts==TRUE)//deactivated use of device fonts if qtfonts are used
         useQtFunctions=true;
         else
         useQtFunctions=false;
@@ -1325,7 +1327,7 @@
 				/* No patterned texts yet */
 				setpattern(1);
 				setcolor(cs->color);
-                if (dev.devfonts == TRUE || curdevice==4 || curdevice==1  || curdevice==0) { //2013-11-20 BZ2033 disabled set "use device fonts" to always true for PDF, PNG, and SVG. Pixmap not implmented for SVG.
+                if (dev.devfonts == TRUE || curdevice==DEVICE_SVG || curdevice==DEVICE_PNG  || curdevice==DEVICE_PDF) { //2013-11-20 BZ2033 disabled set "use device fonts" to always true for PDF, PNG, and SVG. Pixmap not implmented for SVG.
 					if (cs->advancing == TEXT_ADVANCING_RL) {
 						vptmp = cs->stop;
 					} else {

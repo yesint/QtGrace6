@@ -110,8 +110,16 @@ GLOBAL(allow_dc, int, TRUE);
 /* if TRUE, assume yes for everything */
 GLOBAL(noask, int, FALSE);
 
-/* if TRUE, assume yes for everything */
+/* if False, assume no for everything */
 GLOBAL(cancelExport, int, FALSE);
+
+/* Export format devices */
+#define DEVICE_PDF 0
+#define DEVICE_PNG 1
+#define DEVICE_PS 2
+#define DEVICE_EPS 3
+#define DEVICE_SVG 4
+#define DEVICE_SCREEN 5
 
 /* true if running X */
 GLOBAL(inwin, int, FALSE);
