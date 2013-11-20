@@ -1100,19 +1100,24 @@
 
 		dev = get_curdevice_props();
 
-	 #ifdef _MSC_VER
-            if (curdevice==6 && useQtFonts==true && dev.devfonts==TRUE)
+    /* #ifdef _MSC_VER
+            if (curdevice==4 && useQtFonts==true && dev.devfonts==TRUE)
 	useQtFunctions=true;
 	else
 	useQtFunctions=false;
 
 		#else
-            if (curdevice==6 && useQtFonts==true && dev.devfonts==TRUE)
+            if (curdevice==5 && useQtFonts==true && dev.devfonts==TRUE)
 	useQtFunctions=true;
 	else
 	useQtFunctions=false;
 
 		#endif
+*/
+       /* if (curdevice==5 && useQtFonts==true)/// && dev.devfonts==TRUE)//deactivated use of device fonts if qtfonts are used
+        useQtFunctions=true;
+        else*/
+        useQtFunctions=false;
 
 		/* inches per 1 unit of viewport */
 		page_ipv = MIN2(page_width_in, page_height_in);
@@ -1320,7 +1325,7 @@
 				/* No patterned texts yet */
 				setpattern(1);
 				setcolor(cs->color);
-                if (dev.devfonts == TRUE) {
+                if (dev.devfonts == TRUE || curdevice==4 || curdevice==1  || curdevice==0) { //2013-11-20 BZ2033 disabled set "use device fonts" to always true for PDF, PNG, and SVG. Pixmap not implmented for SVG.
 					if (cs->advancing == TEXT_ADVANCING_RL) {
 						vptmp = cs->stop;
 					} else {
@@ -1328,7 +1333,7 @@
 					}
 	                
 
-            if (devputtext == NULL || (curdevice==6 && useQtFonts==false)) { //Before change curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 6 - Nimalendiran Kailasanathan 2013-10-09
+            if (devputtext == NULL) { //Before change curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 5 - Nimalendiran Kailasanathan 2013-10-09
 						errmsg("Device has no built-in fonts");
 					} else {
 						(*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);
