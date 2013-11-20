@@ -5904,7 +5904,6 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     fontaa_item->setChecked(TRUE);
     devfont_item=new QCheckBox(tr("Use device fonts"),grpFonts);
 
-
     //NEW OPTIONS
 
     scale_item=new QCheckBox(tr("&Rescale plot on page size change"),grpOptions);
@@ -6748,7 +6747,7 @@ void frmDeviceSetup::doNativePrinterDialog(void)
         {
             useQPrinter=true;
             xdrawgraph();
-          //  GeneralPainter->end(); //2013-11-19 BZ2033 Disabled
+           //GeneralPainter->end(); //2013-11-19 BZ2033 Disabled
             useQPrinter=false;
             xdrawgraph();
         }
