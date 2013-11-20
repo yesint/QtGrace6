@@ -6733,9 +6733,10 @@ case DEVICE_JPEG:
 void frmDeviceSetup::doNativePrinterDialog(void)
 {
 
+    //BZ2033 Tell user about the print quality.
     if(!noask){
         QMessageBox msgBox;
-        msgBox.setText("INFO: ");
+        msgBox.setText("Please observe that the printing quality is based on the fonts setting chosen in View -> Screen View -> Use device fonts.\n\nTo obtain good print quality (e.g. PDF or PS), simply disable the \"Use device fonts\". Please note, that in this mode LaTeX symbols can not be printed.\n\nTo print a high quality file including LaTeX symbols, use the File -> Export to file... function.");
         msgBox.exec();
     }
 
