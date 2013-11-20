@@ -591,6 +591,15 @@ set_Rotation_Matrix(po.x(),po.y(),RotationAngle);
     for (i=0;i<xn;i++)
     p[i]-=po;
 GeneralPainter->drawPolyline(p,xn);
+
+if(false){
+    cerr << "PT "<<po.x()<<" " << po.y()<< " ";
+    for(int kk=0;kk<xn;kk++){ 
+        cerr << " PTS= " << kk << "=" << p[kk].x() << "," << p[kk].y();
+    }
+    cerr << endl;
+}
+
     ///XDrawLines(disp, displaybuff, gc, p, xn, CoordModeOrigin);
 reset_Transformation_Matrix();
     ///xfree(p);
@@ -949,14 +958,18 @@ case LINEJOIN_BEVEL:
 tmpPen.setJoinStyle(Qt::BevelJoin);
 break;
 }
+
+
 if (xliblinestyle==0)
 tmpPen.setStyle(Qt::NoPen);
 else if (draw_props.lines==1)
 tmpPen.setStyle(Qt::SolidLine);
 else
 {
+
 tmpPen.setStyle(Qt::CustomDashLine);
 tmpPen.setDashPattern(*PenDashPattern[draw_props.lines]);
+// Triggers bug in Qt4.5: BZ2033
 }
 
 if (draw_props.pen.pattern>1)//0=none, 1=solid, >1 special filling pattern
