@@ -44,6 +44,7 @@
 #include <fcntl.h>
 #include <QSvgRenderer>
 #include <QProgressBar>
+#include <QMessageBox>
 #define OPTYPE_COPY 0
 #define OPTYPE_MOVE 1
 #define OPTYPE_SWAP 2
@@ -5930,7 +5931,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     }else if (windowTitle == 3){
         cmdDoPrint=new QPushButton(tr("Export"),this);
         connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrint3()));
-        connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doClose()));
+
     }
     else{
 
@@ -6558,12 +6559,23 @@ void frmDeviceSetup::doClose(void)
 
 void frmDeviceSetup::doPrint3(void)
 {
-    cmdDoPrint->setEnabled(false);
+
+    if(!cancelExport){
+        cmdDoPrint->setEnabled(false);
+    }
+
     progBar->setValue(0);
     doPrint();
-    progBar->setValue(100);
-    cmdDoPrint->setEnabled(true);
 
+    if(!cancelExport){
+    //Close export window if export was successful
+        progBar->setValue(100);
+        doClose();
+    }
+
+    //reset global cancelExport variable to default and enable export button
+    cmdDoPrint->setEnabled(true);
+    cancelExport = FALSE;
 }
 
 void frmDeviceSetup::doPrint2(void)
@@ -6721,6 +6733,11 @@ case DEVICE_JPEG:
 void frmDeviceSetup::doNativePrinterDialog(void)
 {
 
+    if(!noask){
+        QMessageBox msgBox;
+        msgBox.setText("INFO: ");
+        msgBox.exec();
+    }
 
     static char dummy[1024];
     this->hide();
@@ -6741,13 +6758,14 @@ void frmDeviceSetup::doNativePrinterDialog(void)
     }
 
     QPrintDialog printDialog(stdPrinter, this);
+
     if (printDialog.exec() == QDialog::Accepted)
     {
         if (printDialog.printer()->isValid())
         {
             useQPrinter=true;
             xdrawgraph();
-           //GeneralPainter->end(); //2013-11-19 BZ2033 Disabled
+            //GeneralPainter->end(); //2013-11-19 BZ2033 Disabled
             useQPrinter=false;
             xdrawgraph();
         }

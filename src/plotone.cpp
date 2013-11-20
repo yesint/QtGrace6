@@ -194,7 +194,9 @@ void do_hardcopy(void)
     }
 
     if (prstream == NULL)
-    {        
+    {
+        //Export has been canceled by the user
+        cancelExport = TRUE;
         return;
     }
     

@@ -110,6 +110,9 @@ GLOBAL(allow_dc, int, TRUE);
 /* if TRUE, assume yes for everything */
 GLOBAL(noask, int, FALSE);
 
+/* if TRUE, assume yes for everything */
+GLOBAL(cancelExport, int, FALSE);
+
 /* true if running X */
 GLOBAL(inwin, int, FALSE);
 
