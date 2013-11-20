@@ -2172,7 +2172,7 @@ void MainWindow::CreateActions(void)
 
     //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
 
-    actExportToFile= new QAction(tr("Export to file..."), this);
+    actExportToFile= new QAction(tr("Plot to file..."), this);
     actExportToFile->setStatusTip(tr("Export to BMP, JPEG, PNG..."));
     connect(actExportToFile, SIGNAL(triggered()), this, SLOT(ExportToFile()));
 

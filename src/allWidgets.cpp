@@ -5746,7 +5746,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     }else if (windowTitle == 2){
         setWindowTitle(tr("qtGrace: Print"));
     }else if (windowTitle == 3){
-        setWindowTitle(tr("qtGrace: Export to File"));
+        setWindowTitle(tr("qtGrace: Plot to File"));
     }
     else{
 
@@ -5763,7 +5763,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     }else if (windowTitle == 2){
         grpDevSetup=new QGroupBox(tr("Print"),this);
     }else if (windowTitle == 3){
-        grpDevSetup=new QGroupBox(tr("Export to file"),this);
+        grpDevSetup=new QGroupBox(tr("Plot to file"),this);
     }
     else{
 
@@ -6735,8 +6735,22 @@ void frmDeviceSetup::doNativePrinterDialog(void)
 
     //BZ2033 Tell user about the print quality.
     if(!noask){
+        QString screenDevFontStatus;
+        Device_entry  dev = get_device_props(DEVICE_SCREEN); // Get checkbox status of "use device font" for screen device.
+
+        if(dev.devfonts)
+            screenDevFontStatus = "on";
+        else
+            screenDevFontStatus = "off";
+
         QMessageBox msgBox;
-        msgBox.setText("Please observe that the printing quality is based on the fonts setting chosen in View -> Screen View -> Use device fonts.\n\nTo obtain good print quality (e.g. PDF or PS), simply disable the \"Use device fonts\". Please note, that in this mode LaTeX symbols can not be printed.\n\nTo print a high quality file including LaTeX symbols, use the File -> Export to file... function.");
+        msgBox.setText("Please observe that the use device fonts is " + screenDevFontStatus +
+                       ".\n\nThe printing quality is based on the device fonts checkbox which" +
+                       " can be found in View -> Screen View -> Use device fonts.\n\nTo obtain" +
+                       " good print quality (e.g. PDF or PS), simply uncheck the" +
+                       " \"Use device fonts\" checkbox. Please note, that in this mode LaTeX symbols" +
+                       " (Greek symbols and Mathematical expressions) can not be printed.\n\nTo print"
+                       " a high quality file including LaTeX symbols, use the File -> Plot to file... menu.");
         msgBox.exec();
     }
 
