@@ -969,13 +969,13 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
 
 
 
-    if(font!=12){
+    if(font!=12){ //12 is the location of the symbol font in the FontDataBase file located in the font folder
 
         fontalias = get_fontalias(font);
         fontfullname = get_fontfullname(font);
     }else{
         //replace symbol font to Times
-        font = 0;
+        //font = 0; //BZ2033
 
         fontalias = get_fontalias(font);
         fontfullname = get_fontfullname(font);
