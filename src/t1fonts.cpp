@@ -1100,23 +1100,23 @@
 
 		dev = get_curdevice_props();
 
-    /* #ifdef _MSC_VER
+        /* #ifdef _MSC_VER
             if (curdevice==4 && useQtFonts==true && dev.devfonts==TRUE)
-	useQtFunctions=true;
-	else
-	useQtFunctions=false;
+    useQtFunctions=true;
+    else
+    useQtFunctions=false;
 
-		#else
+        #else
             if (curdevice==5 && useQtFonts==true && dev.devfonts==TRUE)
-	useQtFunctions=true;
-	else
-	useQtFunctions=false;
+    useQtFunctions=true;
+    else
+    useQtFunctions=false;
 
-		#endif
+        #endif
 */
-       /* if (curdevice==5 && useQtFonts==true)/// && dev.devfonts==TRUE)//deactivated use of device fonts if qtfonts are used
+        if (curdevice==5 && useQtFonts==true)/// && dev.devfonts==TRUE)//deactivated use of device fonts if qtfonts are used
         useQtFunctions=true;
-        else*/
+        else
         useQtFunctions=false;
 
 		/* inches per 1 unit of viewport */
