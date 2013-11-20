@@ -92,7 +92,7 @@ void drawgraph(void)
     saveg = get_cg();
     if (initgraphics() == RETURN_FAILURE)
     {
-        errmsg("Device wasn't properly initialized");
+        errmsg("Device wasn't properly initialized  (probably too many or too few pixels)");
         return;
     }
     setclipping(FALSE);
@@ -194,7 +194,7 @@ void do_hardcopy(void)
     }
 
     if (prstream == NULL)
-    {
+    {        
         return;
     }
     

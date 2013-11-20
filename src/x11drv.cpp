@@ -327,6 +327,11 @@ GeneralPainter->end();
 if (useQPrinter==false || stdPrinter==NULL)
 {
 *MainPixmap=QImage(win_w,win_h,QImage::Format_ARGB32_Premultiplied);
+   if(MainPixmap->isNull()){
+       QString p=QString("Invalid QImage size w=%1 h=%2 , cannot paint there").arg(win_w).arg(win_h);
+       qDebug(p.toAscii());
+       return RETURN_FAILURE;
+   }
 GeneralPainter->begin(MainPixmap);
 }
 else
