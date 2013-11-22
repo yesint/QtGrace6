@@ -753,15 +753,16 @@ void LocalSocketIpcServer::setLayoutMode(){
         // arrange_graphs(rows, columns);
 
         double offset = 0.15;
-        double vgapArrangeGraph =0.2;
-        double hgabArrangeGraph =0.2;
+        double vgapArrangeGraph =0.2*numGraphs;
+        double hgabArrangeGraph =0.2*numGraphs;
 
-        vgapArrangeGraph = vgapArrangeGraph*numGraphs;
-        hgabArrangeGraph = hgabArrangeGraph*numGraphs;
 
         /*int arrange_graphs_simple(int nrows, int ncols,
             int order, int snake, double offset, double hgap, double vgap)*/
-        arrange_graphs_simple(rows, columns,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+       arrange_graphs_simple(rows, columns,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+
+
+
 
 
         //update_all();
@@ -1250,4 +1251,28 @@ void LocalSocketIpcServer::socket_readReady() {
 
 void LocalSocketIpcServer::socket_error(QLocalSocket::LocalSocketError) {
     //qDebug() << "socket_error";
+}
+
+void LocalSocketIpcServer::arrange_graphs(int grows, int gcols)
+{
+    int i, j;
+    double dvx = 0.9 / gcols;
+    double dvy = 0.9 / grows;
+    int gtmp = 0;
+
+    if (gcols != 1 || grows != 1) {
+    for (i = 0; i < gcols; i++) {
+        for (j = 0; j < grows; j++) {
+        g[gtmp].v.xv1 = 0.15 + i * dvx;
+        g[gtmp].v.xv2 = 0.15 + ((i + 1) * dvx);
+        g[gtmp].v.xv2 -=  0.11; // was 0.07
+        g[gtmp].v.yv1 = 0.1 + j * dvy;
+        g[gtmp].v.yv2 = 0.1 + ((j + 1) * dvy);
+        g[gtmp].v.yv2 -=  0.11; // was 0.07
+                set_graph_active(gtmp);
+                update_all();
+        gtmp++;
+        }
+    }
+    }
 }

@@ -6529,10 +6529,10 @@ void frmDeviceSetup::doApply(void)
         delete[] gnos;
     }
 
-    orig_page_w=device_table[5].pg.width;//save original size
-    orig_page_h=device_table[5].pg.height;
-    device_table[5].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
-    device_table[5].pg.height=orig_page_h*GeneralPageZoomFactor;
+    orig_page_w=device_table[DEVICE_SCREEN].pg.width;//save original size
+    orig_page_h=device_table[DEVICE_SCREEN].pg.height;
+    device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
+    device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
 
     if (do_redraw)
     {

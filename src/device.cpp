@@ -43,7 +43,7 @@ using namespace std;
 
 extern double GeneralPageZoomFactor;
 unsigned int ndevices = 0;
-int curdevice = 0;
+int curdevice = DEVICE_SCREEN;
 Device_entry *device_table = NULL;
 
 int is_valid_page_geometry(Page_geometry pg)
@@ -292,6 +292,7 @@ void get_page_viewport(double *vx, double *vy)
 {
     *vx = device_table[curdevice].pg.width/device_table[curdevice].pg.dpi;
     *vy = device_table[curdevice].pg.height/device_table[curdevice].pg.dpi;
+
     if (*vx < *vy) {
         *vy /= *vx;
         *vx = 1.0;
