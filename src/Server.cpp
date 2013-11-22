@@ -1253,26 +1253,3 @@ void LocalSocketIpcServer::socket_error(QLocalSocket::LocalSocketError) {
     //qDebug() << "socket_error";
 }
 
-void LocalSocketIpcServer::arrange_graphs(int grows, int gcols)
-{
-    int i, j;
-    double dvx = 0.9 / gcols;
-    double dvy = 0.9 / grows;
-    int gtmp = 0;
-
-    if (gcols != 1 || grows != 1) {
-    for (i = 0; i < gcols; i++) {
-        for (j = 0; j < grows; j++) {
-        g[gtmp].v.xv1 = 0.15 + i * dvx;
-        g[gtmp].v.xv2 = 0.15 + ((i + 1) * dvx);
-        g[gtmp].v.xv2 -=  0.11; // was 0.07
-        g[gtmp].v.yv1 = 0.1 + j * dvy;
-        g[gtmp].v.yv2 = 0.1 + ((j + 1) * dvy);
-        g[gtmp].v.yv2 -=  0.11; // was 0.07
-                set_graph_active(gtmp);
-                update_all();
-        gtmp++;
-        }
-    }
-    }
-}
