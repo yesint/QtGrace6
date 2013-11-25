@@ -1852,7 +1852,12 @@ int hideDialog(){
     if(FormPointExplorer!=NULL){
         if(FormPointExplorer->isVisible()){
        return TRUE;
-        }
-    }
+		}else{
+		return FALSE;
+		}
+
+	}else{
+	return FALSE;
+	}
 
 }
