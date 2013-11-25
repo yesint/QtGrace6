@@ -1420,6 +1420,9 @@ int next_graph_containing(int cg, VPoint vp)
 
 int legend_clicked(int gno, VPoint vp, view *bb)
 {
+    if(hideDialog())
+        return FALSE; // hide dialog, if point explorer window is open.
+
     legend l;
     if (is_graph_hidden(gno) == FALSE) {
         get_graph_legend(gno, &l);
@@ -1436,6 +1439,10 @@ int legend_clicked(int gno, VPoint vp, view *bb)
 
 int graph_clicked(int gno, VPoint vp)
 {
+
+    if(hideDialog())
+        return FALSE; // hide dialog, if point explorer window is open.
+
     view v;
     if (is_graph_hidden(gno) == FALSE) {
         get_graph_viewport(gno, &v);
@@ -1451,6 +1458,9 @@ int graph_clicked(int gno, VPoint vp)
 
 int timestamp_clicked(VPoint vp, view *bb)
 {
+    if(hideDialog())
+        return FALSE; // hide dialog, if point explorer window is open.
+
     if (timestamp.active && is_vpoint_inside(timestamp.bb, vp, MAXPICKDIST)) {
         *bb = timestamp.bb;
         return TRUE;
@@ -1461,6 +1471,10 @@ int timestamp_clicked(VPoint vp, view *bb)
 
 int focus_clicked(int cg, VPoint vp, VPoint *avp)
 {
+
+    if(hideDialog())
+        return FALSE; // hide dialog, if point explorer window is open.
+
     view v;
     if (is_graph_hidden(cg) == TRUE) {
         return FALSE;
@@ -1491,6 +1505,10 @@ int focus_clicked(int cg, VPoint vp, VPoint *avp)
 
 int axis_clicked(int gno, VPoint vp, int *axisno)
 {
+
+    if(hideDialog())
+        return FALSE; // hide dialog, if point explorer window is open.
+
     view v;
     /* TODO: check for offsets, zero axes, polar graphs */
     if (is_graph_hidden(gno) == TRUE) {
@@ -1515,6 +1533,9 @@ int axis_clicked(int gno, VPoint vp, int *axisno)
 
 int title_clicked(int gno, VPoint vp)
 {
+    if(hideDialog())
+        return FALSE; // hide dialog, if point explorer window is open.
+
     view v;
     /* a rude check; TODO: use right offsets */
     if (is_graph_hidden(gno) == TRUE) {
@@ -1825,4 +1846,13 @@ void push_and_zoom(void)
     push_world();
     set_action(DO_NOTHING);
     set_action(ZOOM_1ST);
+}
+
+int hideDialog(){
+    if(FormPointExplorer!=NULL){
+        if(FormPointExplorer->isVisible()){
+       return TRUE;
+        }
+    }
+
 }

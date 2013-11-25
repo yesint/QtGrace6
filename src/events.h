@@ -136,6 +136,7 @@ int find_insert_location(int gno, int setno, VPoint vp);
 int find_point(int gno, VPoint vp, int *setno, int *loc);
 void newworld(int gno, int axes, VPoint vp1, VPoint vp2);
 void push_and_zoom(void);
+int hideDialog();
 
 /* action routines */
 void set_viewport_action(void);
