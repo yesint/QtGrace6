@@ -294,12 +294,11 @@ updateRunning=true;
                         FormSetAppearance=new frmSetAppearance(mainWin);
                         FormSetAppearance->init();
                         }
-            if(FormPointExplorer=NULL){ //BZ Point explorer fix.
                         FormSetAppearance->show();
                         FormSetAppearance->ShowSetData_external(cg,track_setno);
                         FormSetAppearance->raise();
                         FormSetAppearance->activateWindow();
-}
+
                         if(FormPointExplorer!=NULL){
                              if(FormPointExplorer->isVisible()){
                             FormSetAppearance->hide();
