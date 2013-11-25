@@ -1222,7 +1222,7 @@ void drawsetline(int gno, int setno, plotarr *p,
     }
     bool qt45fix=false;
 #if QT_VERSION < 0x040800
-    if( ly > 1) qt45fix=true;
+    if( ly > 1) qt45fix=false;  // Deactivated fix since it messed up most plots. 2013-11-25 DF.
     // The polylines with many points which
     // are not solid (ly>1), are rendered incorrectly 
     // in Qt 4.5. They are correct in 4.7.
