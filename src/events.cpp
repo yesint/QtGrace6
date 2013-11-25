@@ -289,7 +289,7 @@ updateRunning=true;
                     }
                     else if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS)
                     {
-            if (FormSetAppearance==NULL)
+         /*   if (FormSetAppearance==NULL)
             {
                         FormSetAppearance=new frmSetAppearance(mainWin);
                         FormSetAppearance->init();
@@ -303,7 +303,7 @@ updateRunning=true;
                              if(FormPointExplorer->isVisible()){
                             FormSetAppearance->hide();
                              }
-                        }
+                        }*/
 
                     }
                     else if (axis_clicked(cg, vp, &axisno) == TRUE)
