@@ -753,15 +753,16 @@ void LocalSocketIpcServer::setLayoutMode(){
         // arrange_graphs(rows, columns);
 
         double offset = 0.15;
-        double vgapArrangeGraph =0.2;
-        double hgabArrangeGraph =0.2;
+        double vgapArrangeGraph =0.2*numGraphs;
+        double hgabArrangeGraph =0.2*numGraphs;
 
-        vgapArrangeGraph = vgapArrangeGraph*numGraphs;
-        hgabArrangeGraph = hgabArrangeGraph*numGraphs;
 
         /*int arrange_graphs_simple(int nrows, int ncols,
             int order, int snake, double offset, double hgap, double vgap)*/
-        arrange_graphs_simple(rows, columns,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+       arrange_graphs_simple(rows, columns,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+
+
+
 
 
         //update_all();
@@ -1251,3 +1252,4 @@ void LocalSocketIpcServer::socket_readReady() {
 void LocalSocketIpcServer::socket_error(QLocalSocket::LocalSocketError) {
     //qDebug() << "socket_error";
 }
+

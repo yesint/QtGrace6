@@ -645,7 +645,7 @@ int main( int argc, char **argv )
 
     //2013-09-12 Nimalendiran Kailasanathan changed default window -and canvas size
     mainWin->setGeometry( 100, 100,1060,800 );
-    set_page_dimensions(733,538,1);
+    set_page_dimensions(DEFAULT_PAGE_WIDTH,DEFAULT_PAGE_HEIGHT,1);
     //      mainWin->setGeometry( 100, 100, 872, 670 );
     init();
     FormConsole=new frmConsole(mainWin);//needed for error-Messages
@@ -675,10 +675,10 @@ int main( int argc, char **argv )
 
     //cout << "useQtFonts=" << useQtFonts << endl;
 
-    /*orig_page_w=device_table[0].pg.width;//save original size
-orig_page_h=device_table[0].pg.height;
-device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
-device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;*/
+ /*   orig_page_w=device_table[DEVICE_SCREEN].pg.width;//save original size
+orig_page_h=device_table[DEVICE_SCREEN].pg.height;
+device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
+device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;*/
 
     mainWin->mainArea->completeRedraw();
 

@@ -31,6 +31,7 @@
 #include "undo_module.h"
 #include "device.h"
 
+
 #include <QDesktopWidget>
 
 using namespace std;
@@ -1188,11 +1189,11 @@ void MainWindow::PrintSetup(void)
 void MainWindow::Print(void)
 {
     printing_in_file=true;
-    device_table[5].pg.width=orig_page_w;//use original page size
-    device_table[5].pg.height=orig_page_h;
+    device_table[DEVICE_SCREEN].pg.width=orig_page_w;//use original page size
+    device_table[DEVICE_SCREEN].pg.height=orig_page_h;
     do_hardcopy();
-    device_table[5].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
-    device_table[5].pg.height=orig_page_h*GeneralPageZoomFactor;
+    device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
+    device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
     printing_in_file=false;
     mainArea->completeRedraw();
 
@@ -1748,7 +1749,7 @@ void MainWindow::SetAppearance(void)
     old_upd=immediateUpdate;
     immediateUpdate=false;
     updateRunning=true;
-    if (FormSetAppearance==NULL)
+    if (FormSetAppearance==NULL) //BZ Point explorer
     {
         FormSetAppearance=new frmSetAppearance(this);
         FormSetAppearance->listSet->set_graph_number(get_cg(),false);
@@ -2118,8 +2119,8 @@ void MainWindow::doCy(void)
 void MainWindow::doPageZoom(int i)
 {
     GeneralPageZoomFactor=pow(10.0,i*sldPageZoom->ScalingFactor);
-    device_table[5].pg.width=orig_page_w*GeneralPageZoomFactor;
-    device_table[5].pg.height=orig_page_h*GeneralPageZoomFactor;
+    device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;
+    device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
     mainArea->completeRedraw();
 }
 
