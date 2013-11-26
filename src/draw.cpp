@@ -484,7 +484,19 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                         } else {
                             npurged = nc;
                         }
-                       (*devdrawpolyline)(vpsc, npurged, mode);
+                        if(false){
+                        cerr << "npurged=" << npurged << endl;
+                        for(int kk=0;kk<npurged;kk++){ cerr<<" "<<
+                        kk<<"="<<"("<<vpsc[kk].x<<","<<vpsc[kk].y<<")";}
+                        }
+                        // Probably one should divide differently
+                        bool x45fix=false;
+                        if(x45fix){ // This does not help either...
+                           (*devdrawpolyline)(vpsc, 22, mode);
+                           (*devdrawpolyline)(vpsc+21, npurged-21, mode);
+                        }else{
+                            (*devdrawpolyline)(vpsc, npurged, mode);
+                        }
                     }
                     
                     nc = 0;

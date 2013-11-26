@@ -1220,6 +1220,25 @@ void drawsetline(int gno, int setno, plotarr *p,
     } else {
         lw = 0.0;
     }
+    bool qt45fix=false;
+#if QT_VERSION < 0x040800
+    if( ly > 1) qt45fix=false;  // Deactivated fix since it messed up most plots. 2013-11-25 DF.
+    // The polylines with many points which
+    // are not solid (ly>1), are rendered incorrectly 
+    // in Qt 4.5. They are correct in 4.7.
+    // BZ2033 contains an example that requires this fix.
+    // The QPen::setStyle(Qt::SolidLine) are always displayed
+    // correctly.
+    // The QPen::setStyle(Qt::anything else) do not.
+    // No Qt clipping is active.
+    // The coordinates that then sent to QPainter::drawPolyline(p,xn);
+    // are always the same.
+    // Exporting, printing has no evidence of this bug.
+    // This HAS not been fixed yet for STAIRS case.
+    // The fix is not very efficient because requires more computations
+    // in clipping
+#endif    
+    
     
     /* draw the line */
     if (ly != 0 && p->linepen.pattern != 0) {
@@ -1233,6 +1252,7 @@ void drawsetline(int gno, int setno, plotarr *p,
                 errmsg("xmalloc failed in drawsetline()");
                 break;
             }
+            
             for (i = 0; i < setlen; i++) {
                 wp.x = x[i];
                 wp.y = y[i];
@@ -1243,8 +1263,14 @@ void drawsetline(int gno, int setno, plotarr *p,
                 vpstmp[i].x += offset;
                 
                 vpstmp[i].y -= lw/2.0;
+                
+                if(qt45fix){
+                   if(i>0) DrawLine( vpstmp[i-1],  vpstmp[i]);
+                }
             }
+            if(!qt45fix){
             DrawPolyline(vpstmp, setlen, POLYLINE_OPEN);
+            }
             xfree(vpstmp);
             break;
         case LINE_TYPE_SEGMENT2:
