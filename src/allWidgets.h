@@ -887,7 +887,7 @@ QCheckBox * sync_item;
 
 frmDeviceOptions * DevOptions[8];
 int cur_dev;
-QAction * actPrint,*actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
+QAction *actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
 
 stdButtonGroup * buttonGroup;
 

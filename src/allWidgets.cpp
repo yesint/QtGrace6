@@ -5810,7 +5810,7 @@ frmDeviceSetup::frmDeviceSetup(int windowTitle, QWidget * parent):QDialog(parent
     menuBar=new QMenuBar();
     mnuFile=new QMenu("&File",this);
     mnuFile->setTearOffEnabled(TRUE);
-    mnuFile->addAction(actPrint);
+    //mnuFile->addAction(actPrint);
     mnuFile->addSeparator();
     mnuFile->addAction(actClose);
     /*mnuOptions=new QMenu("&Options",this);
@@ -6035,9 +6035,9 @@ void frmDeviceSetup::init(int dev)
 
 void frmDeviceSetup::CreateActions(void)
 {
-    actPrint=new QAction(tr("&Export"),this);
-    actPrint->setShortcut(tr("Ctrl+Alt+E"));
-    connect(actPrint,SIGNAL(triggered()), this, SLOT(doPrint()));
+    //actPrint=new QAction(tr("&Export"),this);
+   // actPrint->setShortcut(tr("Ctrl+Alt+E"));
+   // connect(actPrint,SIGNAL(triggered()), this, SLOT(doPrint()));
     /*dsync_item=new QAction(tr("&Sync page size of all devices"),this);
     dsync_item->setCheckable(TRUE);
     dsync_item->setChecked(TRUE);
