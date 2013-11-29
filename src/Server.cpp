@@ -317,7 +317,7 @@ void LocalSocketIpcServer::readSocket() {
     }
     case 9://Close connection to Beast(9)
     {
-        qDebug()<<"Run Command" << command;
+        //qDebug()<<"Run Command" << command;
         m_fromBeast->close();
         m_toBeast->abort();
         break;
