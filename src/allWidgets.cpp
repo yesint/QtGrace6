@@ -3615,8 +3615,11 @@ setWindowIcon(QIcon(*GraceIcon));*/
     connect(strings_color_item,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(strings_just_item->cmbJustSelect,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(strings_loc_item->cmbPositionSelect,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+
+    if(edit){
     for (int i=0;i<2;i++)
-        connect(ledCoords[i]->lenText,SIGNAL(returnPressed()),SLOT(update0()));
+       connect(ledCoords[i]->lenText,SIGNAL(returnPressed()),SLOT(update0()));
+    }
     connect(strings_rot_item,SIGNAL(valueChanged(int)),SLOT(update1(int)));
     connect(strings_size_item,SIGNAL(valueChanged(int)),SLOT(update1(int)));
 
