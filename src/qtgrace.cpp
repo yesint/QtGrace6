@@ -620,7 +620,7 @@ int main( int argc, char **argv )
     GeneralPainter=new QPainter(MainPixmap);
 
     stdFont=a->font();
-    stdFont.setPixelSize(14);
+    //stdFont.setPixelSize(14); /BZ2067
     stdFontMetrics=QFontMetrics(stdFont);
 
     mainWin=new MainWindow();
