@@ -9137,7 +9137,7 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     lblInfo[16]=new QLabel(QString(buf),grpBuildInfo);
     sprintf(buf, "Time: %s ; \"allWidgets.cpp\" compiled %s %s ", bi_date(),__DATE__,__TIME__);
     lblInfo[17]=new QLabel(QString(buf),grpBuildInfo);
-    sprintf(buf, "GUI toolkit: %s ", bi_gui());
+    sprintf(buf, "GUI toolkit: %s %s ", bi_gui(), QT_VERSION_STR);
     lblInfo[18]=new QLabel(QString(buf),grpBuildInfo);
     /*
     sprintf(buf, "Xbae version: %s ", bi_gui_xbae());

@@ -1324,7 +1324,7 @@ static void VersionInfo(void)
     /* We don't want to reproduce the complete config.h,
        but those settings which may be related to problems on runtime */
 
-    fprintf(stdout, "GUI toolkit: %s\n", bi_gui());
+    fprintf(stdout, "GUI toolkit: %s %s\n", bi_gui(),QT_VERSION_STR);
 #ifdef MOTIF_GUI
     fprintf(stdout, "Xbae version: %s\n", bi_gui_xbae());
 #endif
