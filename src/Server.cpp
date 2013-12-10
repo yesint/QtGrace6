@@ -562,7 +562,7 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
             y[i]=0;
 
         //double to string
-        xValueStr = QString::number(x[i]);
+        xValueStr = QString::number(x[i],'g',20);
         //String to char
         xValueBa = xValueStr.toLocal8Bit();
         xValueChar = xValueBa.data();
@@ -571,7 +571,7 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
 
         buffer.write("\t");
 
-        yValueStr = QString::number(y[i]);
+        yValueStr = QString::number(y[i],'g',20);
         yValueBa = yValueStr.toLocal8Bit();
         yValueChar = yValueBa.data();
         buffer.write(yValueChar);
