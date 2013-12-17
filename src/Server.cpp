@@ -8,7 +8,7 @@
 #include <unistd.h>
 #endif
 #include <QtNetwork/QLocalSocket>
-
+#include <QMessageBox>
 extern bool startupphase;
 
 
@@ -32,11 +32,14 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,cursource(0)
   ,numGraphs(0)
   ,paramLength(0)
-  ,countNoOfDataSets(0){
+  ,countNoOfDataSets(0)
+  ,oldNoask(0){
 
-   saveCountNoOfDataSets << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0 << 0;
+    for(int i=0;i<10;i++){
+        saveCountNoOfDataSets.append(0);
+    }
 
-            //Read from Beast
+    //Read from Beast
     m_fromBeast = new QLocalServer(this);
 
 
@@ -74,8 +77,8 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 }
 
 void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
-  //  qDebug() << "2) Connect to Server"+readServer;
- //   qDebug() << "sendParam as int="<< *(int*)(sendParam);
+    //  qDebug() << "2) Connect to Server"+readServer;
+    //   qDebug() << "sendParam as int="<< *(int*)(sendParam);
 
     m_toBeast->abort();
     m_sendParam = sendParam;
@@ -85,7 +88,7 @@ void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
 }
 
 LocalSocketIpcServer::~LocalSocketIpcServer() {
-   // qDebug() << "Server deletion";
+    // qDebug() << "Server deletion";
 
     m_fromBeast->close();
     delete m_fromBeast;
@@ -218,7 +221,7 @@ void LocalSocketIpcServer::readSocket() {
         countNoOfDataSets++;
 
         //Debug to test data from ViewBeast
-       /*   QFile file("/home/nimal/test/qtgrace/qtgracegraphtest.txt");
+        /*   QFile file("/home/nimal/test/qtgrace/qtgracegraphtest.txt");
         file.open(QIODevice::WriteOnly);
         file.write(buffer.data());
         file.close();
@@ -239,7 +242,13 @@ void LocalSocketIpcServer::readSocket() {
         set_page_dimensions(733,538,1);
         //set_page_geometry()
 
+        startupphase=true;
+        oldNoask=noask;
+        noask=true; // prevent questions
         writeDataToTmpFile();
+        setScalingMode();
+        noask=oldNoask;
+        startupphase=false;
 
         //Update legend properties
         for(int igno = 0; igno < graphNo+1; igno++){
@@ -280,7 +289,7 @@ void LocalSocketIpcServer::readSocket() {
         //qDebug()<<"Run Command" << command;
 
         startupphase=true;
-        int oldNoask=noask;
+        oldNoask=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
         setScalingMode();
@@ -299,7 +308,7 @@ void LocalSocketIpcServer::readSocket() {
         update_all();
 
 
-        int oldNoask=noask;
+        oldNoask=noask;
         noask=true; // prevent questions
         do_hardcopy();
         noask=oldNoask;
@@ -383,18 +392,18 @@ void LocalSocketIpcServer::sendDataToGrace(){
     usleep(1000);
 #endif
     if(false){
-    std::cerr << "writeRawData "<<m_paramLen<<" bytes "<<std::endl;
-    std::cerr << " data are: ";
-    //if(m_len>0 && m_sendMessage [0] == 8) sleep(1);
-    for(int i=0;i<20;i++){
-        if (i<m_paramLen) {
-            std::cerr << (int)(m_sendParam[i]) << " ";
-        } else {
-            std::cerr <<  "...";
-        }
+        std::cerr << "writeRawData "<<m_paramLen<<" bytes "<<std::endl;
+        std::cerr << " data are: ";
+        //if(m_len>0 && m_sendMessage [0] == 8) sleep(1);
+        for(int i=0;i<20;i++){
+            if (i<m_paramLen) {
+                std::cerr << (int)(m_sendParam[i]) << " ";
+            } else {
+                std::cerr <<  "...";
+            }
 
-    }
-    std::cerr << std::endl;
+        }
+        std::cerr << std::endl;
     }
 
     QByteArray block;
@@ -721,7 +730,7 @@ void LocalSocketIpcServer::setLayoutMode(){
             setcomment(graphNo,iSetNo,gotComment);
 
         }else{
-             setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));}
+            setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));}
     }
 
     if(mode ==1){
@@ -759,7 +768,7 @@ void LocalSocketIpcServer::setLayoutMode(){
 
         /*int arrange_graphs_simple(int nrows, int ncols,
             int order, int snake, double offset, double hgap, double vgap)*/
-       arrange_graphs_simple(rows, columns,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+        arrange_graphs_simple(rows, columns,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
 
 
 
@@ -785,7 +794,7 @@ void LocalSocketIpcServer::setLayoutMode(){
             overlay_graphs(graphNo, 0, 4);
         }
 
-      //  set_graph_viewport(graphNo, v);
+        //  set_graph_viewport(graphNo, v);
 
         break;
     }
@@ -796,8 +805,8 @@ void LocalSocketIpcServer::setLayoutMode(){
     }
     case 0:{
 
-       //
-       //set_graph_viewport(graphNo, v);
+        //
+        //set_graph_viewport(graphNo, v);
 
         break;
     }

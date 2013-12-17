@@ -131,6 +131,7 @@ private:
     int                 paramLength;
     int                 countNoOfDataSets;
     QList<int>          saveCountNoOfDataSets;
+    int                 oldNoask;
 };
 
 
