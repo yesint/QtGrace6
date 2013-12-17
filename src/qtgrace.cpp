@@ -568,7 +568,7 @@ int main( int argc, char **argv )
     QLocale * sysloc=new QLocale();
     QChar dpc=sysloc->decimalPoint();
     SystemsDecimalPoint=dpc.toAscii();
-    delete[] sysloc;
+    delete sysloc;
 #else
     QChar dpc='.';
     SystemsDecimalPoint='.';
