@@ -1344,6 +1344,7 @@ layout->addWidget(cmdSelFont);
 setLayout(layout);
 add_FontSelector(this);
 updateFonts(false);
+
 }
 
 void FontSelector::setLabelText(QString s)
@@ -1380,7 +1381,7 @@ cmbFontSelect->clear();
 if (preserve==true)
 cmbFontSelect->setCurrentIndex(old_index);
 else
-cmbFontSelect->setCurrentIndex(0);
+cmbFontSelect->setCurrentIndex(4); //Set Helvetica as default font
 
 font=getFontFromDatabase(cmbFontSelect->currentIndex());
 
