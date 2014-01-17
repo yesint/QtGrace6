@@ -354,7 +354,11 @@ double mytrunc(double a)
  */
 void bailout(void)
 {
-    if (!is_dirtystate() || /*yesno("Exit losing unsaved changes?", NULL, NULL, NULL*/ true) {
+#ifdef BEAST
+    if (!is_dirtystate() || /*yesno("Exit losing unsaved changes?", NULL, NULL, NULL)*/true) {
+#else
+    if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
+#endif
          if (resfp) {
              grace_close(resfp);
          }
