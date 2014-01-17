@@ -396,7 +396,7 @@ double mytrunc(double a)
  */
 int bailout(void)
 {
-    if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
+    if (!is_dirtystate() || /*yesno("Exit losing unsaved changes?", NULL, NULL, NULL)*/true) {
          if (resfp) {
              grace_close(resfp);
          }
