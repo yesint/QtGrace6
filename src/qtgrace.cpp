@@ -73,6 +73,7 @@ frmPlotAppearance * FormPlotAppearance;
 frmLocatorProps * FormLocatorProps;
 frmAxisProp * FormAxisProperties;
 frmPointExplorer * FormPointExplorer;
+frmFontSettings * FormFontSettings;
 frmNonlinCurveFit * FormNonlinCurveFit;
 //frmEditColumnProp * EditColumn;
 frmInterpolation * FormInterpolation;
@@ -505,6 +506,7 @@ int main( int argc, char **argv )
     FormLocatorProps=NULL;
     FormDrawObjects=NULL;
     FormPointExplorer=NULL;
+    FormFontSettings=NULL;
     FormNonlinCurveFit=NULL;
     FormInterpolation=NULL;
     FormSetOperations=NULL;

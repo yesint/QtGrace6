@@ -3617,8 +3617,8 @@ setWindowIcon(QIcon(*GraceIcon));*/
     connect(strings_loc_item->cmbPositionSelect,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
 
     if(edit){
-    for (int i=0;i<2;i++)
-       connect(ledCoords[i]->lenText,SIGNAL(returnPressed()),SLOT(update0()));
+        for (int i=0;i<2;i++)
+            connect(ledCoords[i]->lenText,SIGNAL(returnPressed()),SLOT(update0()));
     }
     connect(strings_rot_item,SIGNAL(valueChanged(int)),SLOT(update1(int)));
     connect(strings_size_item,SIGNAL(valueChanged(int)),SLOT(update1(int)));
@@ -3647,6 +3647,7 @@ void frmText_Props::init(int id)
     else
     {
         pstring = &pstr[obj_id];
+
         //SetTextString(string_item, pstring->s);
         string_item->SetTextToMemory(pstring->s_plotstring,pstring->alt_plotstring);
         SetOptionChoice(strings_color_item, pstring->color);
@@ -6039,8 +6040,8 @@ void frmDeviceSetup::init(int dev)
 void frmDeviceSetup::CreateActions(void)
 {
     //actPrint=new QAction(tr("&Export"),this);
-   // actPrint->setShortcut(tr("Ctrl+Alt+E"));
-   // connect(actPrint,SIGNAL(triggered()), this, SLOT(doPrint()));
+    // actPrint->setShortcut(tr("Ctrl+Alt+E"));
+    // connect(actPrint,SIGNAL(triggered()), this, SLOT(doPrint()));
     /*dsync_item=new QAction(tr("&Sync page size of all devices"),this);
     dsync_item->setCheckable(TRUE);
     dsync_item->setChecked(TRUE);
@@ -6571,7 +6572,7 @@ void frmDeviceSetup::doPrint3(void)
     doPrint();
 
     if(!cancelExport){
-    //Close export window if export was successful
+        //Close export window if export was successful
         progBar->setValue(100);
         doClose();
     }
@@ -16999,7 +17000,7 @@ frmGraph_App::frmGraph_App(QWidget * parent):QWidget(parent)
     connect(tabLegBox->selFrameFillPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
 
     connect(tabLegends->selTextFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLegends->sldTextSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+
     connect(tabLegends->selTextColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(tabLegends->selVGap,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(tabLegends->selHGap,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
@@ -17574,6 +17575,7 @@ cout << ListOfChanges.at(i).toAscii().constData() << endl;
         GraphsModified(n,values,UNDO_APPEARANCE);
         ListOfChanges.clear();
         ListOfOldStates.clear();
+
         mainWin->mainArea->completeRedraw();
     }
     delete[] values;
@@ -22568,6 +22570,121 @@ void frmUndoList::doToggleActive(int state)
     undo_active=chkActive->isChecked();
 }
 
+
+frmFontSettings::frmFontSettings(QWidget * parent):QDialog(parent)
+{
+    GlobalInhibitor=true;
+    setWindowTitle(tr("qtGrace: Font Settings"));
+    setWindowIcon(QIcon(*GraceIcon));
+    layout=new QGridLayout;
+    layout->setMargin(STD_MARGIN);
+    layout->setSpacing(30);
+
+    lblTest=new QLabel("Font Size",this);
+
+    AxisProperties=new frmAxis_Prop(this);
+
+    GraphProperties=new frmGraph_App(this);
+    GraphProperties->listGraph->prevent_from_autoupdate=false;
+
+    PlotAppearance=new frmPlot_Appearance(this);
+    PlotAppearance->buttonGroup->hide();
+    PlotAppearance->hide();
+
+    aac=new stdButtonGroup(this);
+    aac->cmdAccept->setText("Reset"); //Rename accept button to reset
+    aac->cmdApply->setText("Done"); //Rename apply button to done
+    connect(aac->cmdApply,SIGNAL(clicked()),SLOT(doAccept()));
+    connect(aac->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
+    connect(aac->cmdAccept,SIGNAL(clicked()),SLOT(doReset()));
+    spinFontSize=new QSpinBox();
+    spinFontSize->setSingleStep(1);
+    spinFontSize->setRange(10,200);
+    spinFontSize->setSuffix("%");
+    spinFontSize->setValue(100);
+
+    layout->addWidget(spinFontSize,0,0,0,1);
+    layout->addWidget(lblTest,0,0,1,1);
+
+    connect(spinFontSize, SIGNAL(valueChanged(int)),
+            this, SLOT(updateFont(int)));
+
+    layout->addWidget(aac,1,0,1,2);
+    setLayout(layout);
+    aac->cmdApply->setDefault(true);
+    GlobalInhibitor=false;
+}
+
+void frmFontSettings::doAccept(void)
+{
+    updateFont(spinFontSize->value());
+    doClose();
+}
+
+void frmFontSettings::updateFont(int v)
+{
+    sleep(0.5);
+    int noOfGraphs =  number_of_graphs();
+    plotstr string_text;
+
+    //Apply to current axis and current graph
+    int currentAxisAndGraph = 0;
+
+    PlotAppearance->init();
+    PlotAppearance->timestamp_size_item->setValue(v);
+
+    //Change Title, subtitle and legend character size
+
+    for(int i = 0; i<noOfGraphs;i++){
+
+        switch_current_graph(i);
+
+        GraphProperties->tabTitles->sldTitleCharSize->setValue(1.5*v);
+        GraphProperties->tabTitles->sldSubCharSize->setValue(v);
+        GraphProperties->tabLegends->sldTextSize->setValue(v);
+        GraphProperties->doApply();
+
+        AxisProperties->update_ticks(i);
+
+        AxisProperties->selApplyTo->setCurrentIndex(currentAxisAndGraph);
+
+        for(int j = 0; j<MAXAXES;j++){
+            AxisProperties->selEdit->setCurrentIndex(j);
+            AxisProperties->tabTickLabels->sldCharSize->setValue(v);
+            AxisProperties->tabLabelsBars->sldCharSize->setValue(v);
+            AxisProperties->doApply();
+        }
+    }
+
+    //Change string character size
+
+    for (int i=0;i<maxstr;i++){
+        if (!isactive_string(i)) continue;{
+            get_graph_string(i, &string_text);
+            if (strlen(string_text.s_plotstring) && (string_text.charsize > 0.0) && string_text.active) {
+                string_text.charsize = (double) v/100;
+                set_graph_string(i,&string_text);
+            }
+        }
+    }
+
+    // Update time stamp changes
+    PlotAppearance->doApply();
+
+}
+
+
+void frmFontSettings::doClose(void)
+{
+
+    hide();
+}
+
+void frmFontSettings::doReset(void)
+{
+    spinFontSize->setValue(100);
+}
+
 frmExplorer::frmExplorer(QWidget * parent):QDialog(parent)
 {
     GlobalInhibitor=true;
@@ -22608,7 +22725,7 @@ frmExplorer::frmExplorer(QWidget * parent):QDialog(parent)
     SetProperties->hide();
     SetProperties->listSet->hide();
     SetProperties->lblSelSet->hide();
-    SetProperties->listSet->prevent_from_autoupdate=true;
+    SetProperties->listSet->prevent_from_autoupdate=false; //Why? - Nimal Kailasanathan
 
     GraphProperties=new frmGraph_App(this);
     GraphProperties->menuBar->hide();
@@ -22616,7 +22733,7 @@ frmExplorer::frmExplorer(QWidget * parent):QDialog(parent)
     GraphProperties->hide();
     GraphProperties->listGraph->hide();
     GraphProperties->lblTitle->hide();
-    GraphProperties->listGraph->prevent_from_autoupdate=true;
+    GraphProperties->listGraph->prevent_from_autoupdate=false; //Why? Nimal Kailasanathan
     GraphProperties->tabMain->grpDispOpt->hide();
     //GraphProp TabMain Title und Subtitle
     GraphProperties->tabTitles->grpTitle->setTitle(tr("Settings"));
@@ -22871,7 +22988,7 @@ void frmExplorer::initItem(char type,int gno,int sno)
 
 void frmExplorer::itemClickedInTree(char type,int gno,int sno)
 {
-
+    switch_current_graph(gno); //Update GUI with graph settings
     setItemVisible(oldSetting,false,gno,sno);
     initItem(type,gno,sno);
     setItemVisible(type,true,gno,sno);

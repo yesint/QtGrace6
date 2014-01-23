@@ -150,7 +150,7 @@ QAction*actDataSetOperations,*actFeatureExtraction,*actExportAscii,*actImportNet
 QAction *actPlotAppearance,*actGraphAppearance,*actSetAppearance,*actAxisProperties,*actLoadParameters,*actSaveParameters;
 QAction *actCommands,*actPointExplorer,*actDrawingObjects,*actFontTool,*actConsole;
 QAction *actHelpOnContext,*actHelpUsersGuide,*actHelpTutorial,*actHelpFAQ,*actHelpChanges,*actHelpComments,*actHelpLicense,*actHelpAbout;
-QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll;
+QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll,*actFontSize;
 QAction *actImportBinary,*actExportBinary,*actImportCSV;
 QAction *actUndo,*actRedo,*actUndoList,*actExplorer,*actColManager,*actRealTimeInput;
 
@@ -231,6 +231,7 @@ void ShowLocBar(void);
 void ShowStatusBar(void);
 void ShowToolBar(void);
 void PageSetup(void);
+void FontSettings(void);
 void Redraw(void);
 void UpdateAll(void);
 void Commands(void);

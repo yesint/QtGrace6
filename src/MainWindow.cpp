@@ -60,6 +60,7 @@ extern frmPlotAppearance * FormPlotAppearance;
 extern frmLocatorProps * FormLocatorProps;
 extern frmAxisProp * FormAxisProperties;
 extern frmPointExplorer * FormPointExplorer;
+extern frmFontSettings * FormFontSettings;
 extern frmNonlinCurveFit * FormNonlinCurveFit;
 extern frmInterpolation * FormInterpolation;
 extern frmSetOp * FormSetOperations;
@@ -92,6 +93,7 @@ extern frmRegions * FormReportRegion;
 extern frmRegions * FormClearRegion;
 extern frmRegions * FormDefineRegion;
 extern frmExplorer * FormExplorer;
+extern frmFontSettings * FormFontSettings;
 extern frmColorManagement * FormColManage;
 extern frmRealTimeInputManager * FormRTIManage;
 
@@ -402,6 +404,8 @@ SocketConnection(NULL)
     mnuView->addAction(actShowLocBar);
     mnuView->addAction(actShowStatusBar);
     mnuView->addAction(actShowToolBar);
+    mnuView->addSeparator();
+    mnuView->addAction(actFontSize);
     mnuView->addSeparator();
     mnuView->addAction(actPageSetup);
     mnuView->addSeparator();
@@ -1225,14 +1229,18 @@ void MainWindow::SetOperations(void)
 
 void MainWindow::Explorer(void)
 {
+
+
     if (FormExplorer==NULL)
     {
         FormExplorer=new frmExplorer(this);
     }
+
     FormExplorer->init();
     FormExplorer->show();
     FormExplorer->raise();
     FormExplorer->activateWindow();
+
 }
 
 void MainWindow::ColorManager(void)
@@ -1861,6 +1869,21 @@ void MainWindow::PageSetup(void)
     FormDeviceSetup->activateWindow();
 }
 
+
+void MainWindow::FontSettings(void)
+{
+    if (FormFontSettings==NULL)
+    {
+        FormFontSettings=new frmFontSettings(this);
+
+    }
+    FormFontSettings->show();
+    FormFontSettings->resize(FormFontSettings->width(),FormFontSettings->width()/3);
+    FormFontSettings->raise();
+    FormFontSettings->activateWindow();
+}
+
+
 void MainWindow::Redraw(void)
 {
     mainArea->completeRedraw();
@@ -2299,6 +2322,8 @@ void MainWindow::CreateActions(void)
     actShowToolBar->setCheckable(TRUE);
     actShowToolBar->setChecked(TRUE);
     connect(actShowToolBar, SIGNAL(triggered()), this, SLOT(ShowToolBar()));
+    actFontSize= new QAction(tr("&Font settings" ), this);
+    connect(actFontSize, SIGNAL(triggered()), this, SLOT(FontSettings()));
     actPageSetup= new QAction(tr("&Screen setup" ), this);
     connect(actPageSetup, SIGNAL(triggered()), this, SLOT(PageSetup()));
     actRedraw= new QAction(tr("&Redraw" ), this);

@@ -37,6 +37,8 @@
 #include "defines.h"
 #include "t1fonts.h"
 
+#include <QDoubleSpinBox>
+
 #define STD_MARGIN 2
 #define STD_SPACING 2
 
@@ -2741,6 +2743,28 @@ void doCommands(void);
 void doClose(void);
 void doToggleActive(int state);
 };
+
+
+class frmFontSettings:public QDialog
+{
+Q_OBJECT
+public:
+frmFontSettings(QWidget * parent=0);
+QGridLayout * layout;
+QLabel * lblTest;
+QSpinBox * spinFontSize;
+frmText_Props * TextProperties;
+frmAxis_Prop * AxisProperties;
+frmGraph_App * GraphProperties;
+frmPlot_Appearance * PlotAppearance;
+stdButtonGroup * aac;
+public slots:
+void updateFont(int v);
+void doAccept(void);
+void doClose(void);
+void doReset(void);
+};
+
 
 class frmExplorer:public QDialog
 {
