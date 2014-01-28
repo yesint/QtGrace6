@@ -45,16 +45,29 @@
 #include "devlist.h"
 #include "patterns.h"
 #include "svgdrv.h"
+
+
+#ifdef SKF_QtGrace
+
 #include <QTextStream>
 #include <QFile>
 #include <QTextCodec>
 #include <QMultiMap>
+#else
+
+#endif
 
 extern FILE *prstream;
 extern int RotationAngle;
 extern VPoint CenterOfMass(int n,VPoint *p);
+
+#ifdef SKF_QtGrace
 extern QMultiMap<unsigned char, int> utfSym;
 extern bool initUTFSym = true;
+#else
+#endif
+
+
 
 static Device_entry dev_svg = {
     DEVICE_FILE,
@@ -64,7 +77,11 @@ static Device_entry dev_svg = {
     NULL,
     "svg",
     TRUE,
+    #ifdef SKF_QtGrace
     TRUE,
+    #else
+    FALSE,
+    #endif
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
     NULL
 };
@@ -301,12 +318,12 @@ static char *escape_specials(unsigned char *s, int len)
     return (es);
 }
 
+#ifdef SKF_QtGrace
+
 QMultiMap<unsigned char, int> utfSym;
 
 int svginitgraphics(void)
-{
-
-    if(initUTFSym){
+{   if(initUTFSym){
         //UTF-8 symbols
 
         // pm
@@ -594,7 +611,10 @@ int svginitgraphics(void)
 
     initUTFSym = false;
 
-
+#else
+int svginitgraphics(void)
+{
+#endif
 
     /* device-dependent routines */
     devupdatecmap   = svg_updatecmap;
@@ -968,7 +988,7 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
 
 
 
-
+#ifdef SKF_QtGrace
     if(font!=12){ //12 is the location of the symbol font in the FontDataBase file located in the font folder
 
         fontalias = get_fontalias(font);
@@ -1018,12 +1038,10 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
         len=newlen;
 
     }
-
-
-
-
-
-
+#else
+    fontalias = get_fontalias(font);
+    fontfullname = get_fontfullname(font);
+#endif
 
     family  = NULL;
     if ((dash = strchr(fontalias, '-')) == NULL) {

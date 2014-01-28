@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2000 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
+ *
  * Modified by Andreas Winter 2008-2012
- * 
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -49,7 +49,12 @@
 #include "noxprotos.h"
 
 static defaults d_d =
+        #ifdef SKF_QtGrace
 {1, 0, 1, 1, 1, 1.0, 4, 1.0};
+#else
+{1, 0, 1, 1, 1, 1.0, 0, 1.0};
+#endif
+
 
 /* defaults:
     int color;
@@ -66,14 +71,18 @@ static world d_w =
 {0.0, 1.0, 0.0, 1.0};
 
 static view d_v =
+        #ifdef SKF_QtGrace
 {0.21, 1.21, 0.15, 0.85};
+#else
+{0.15, 0.85, 0.15, 0.85};
+#endif
 
 void set_program_defaults(void)
 {
     int i;
     
     grdefaults = d_d;
-        
+
     for (i = 0; i <= MAXREGION; i++) {
         set_region_defaults(i);
     }

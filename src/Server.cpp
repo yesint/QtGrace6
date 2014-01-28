@@ -497,9 +497,9 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
     switch (numberOfRead){
 
     case 1:
-
+#ifdef SKF_QtGrace
         readDataFromSocket(message,availableBytesFromSocket, READ_COMMAND);
-
+#endif
 
         if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99 || command == 98 || command == 9 || command == 12)
             conditionToExitFunction = 0;
@@ -509,12 +509,16 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
         break;
 
     case 2:
+#ifdef SKF_QtGrace
         readDataFromSocket(message,availableBytesFromSocket, READ_DATALENGTH);
+#endif
         conditionToExitFunction = 1;
         break;
 
     case 3:
+#ifdef SKF_QtGrace
         readDataFromSocket(message,availableBytesFromSocket, READ_DATASET_1);
+#endif
 
         //qDebug() << " Analysing(3) mode= "<< mode ;
         if((command == 6 && mode == 2)|| (command == 8 && mode == 3) || command == 2)
@@ -523,7 +527,9 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
 
 
     case 4:
+#ifdef SKF_QtGrace
         readDataFromSocket(message,availableBytesFromSocket, READ_DATASET_2);
+#endif
         //qDebug() << " Analysing(4) mode= "<< mode ;
 
         if((command == 6 && mode == 2)|| (command == 8 && mode == 3))
@@ -532,7 +538,9 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
         break;
 
     case 5:
+#ifdef SKF_QtGrace
         readDataFromSocket(message,availableBytesFromSocket, READ_DATASET_3);
+#endif
         break;
 
 

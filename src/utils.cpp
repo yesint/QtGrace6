@@ -397,7 +397,7 @@ double mytrunc(double a)
 int bailout(void)
 {
 
-#ifdef BEAST
+#ifdef SKF_QtGrace
     if (!is_dirtystate() || true) {
 #else
     if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {

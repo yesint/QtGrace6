@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
  * Copyright (c) 1996-99 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
+ *
  * Modified by Andreas Winter 2008-2012
- * 
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -48,14 +48,21 @@ int register_mf_drv(void);
 int register_mif_drv(void);
 int register_svg_drv(void);
 int register_pdf_drv(void);
+
+#ifdef SKF_QtGrace
 int register_high_png_drv(void);
-/*
+int register_pdf_drv(void);
+#else
+#ifdef HAVE_LIBPDF
+int register_pdf_drv(void);
+#endif
+
 int register_pnm_drv(void);
 #ifdef HAVE_LIBJPEG
 int register_jpg_drv(void);
 #endif
 #ifdef HAVE_LIBPNG
-
+int register_png_drv(void);
 #endif
-*/
+#endif
 #endif /* __DEVLIST_H_ */

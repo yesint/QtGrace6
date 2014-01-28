@@ -78,6 +78,13 @@ else
 CCFLAGS+=-DWINDOWS_SYSTEM -DHAVE_MEMCPY
 endif
 
+
+ifneq (,$(BEAST))
+# Only if this is compiled for SKF this flag should be activated.
+# CCFLAGS+=-DSKF_QtGrace
+# FORDEPEND+=-DSKF_QtGrace
+endif
+
 BIN=qtGrace$(ABI)
 
 default: 
@@ -114,7 +121,7 @@ moc_%.cpp: %.h
 all: default 
 
 clean:
-	rm -f $(ABI)/*.o $(BIN)   core  
+	rm -f $(ABI)/*.o $(BIN)  moc_*   core  
 
 dir:
 	@ ( if [ ! -d $(ABI) ] ; then mkdir $(ABI) ; fi)

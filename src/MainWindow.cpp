@@ -60,7 +60,9 @@ extern frmPlotAppearance * FormPlotAppearance;
 extern frmLocatorProps * FormLocatorProps;
 extern frmAxisProp * FormAxisProperties;
 extern frmPointExplorer * FormPointExplorer;
+#ifdef SKF_QtGrace
 extern frmFontSettings * FormFontSettings;
+#endif
 extern frmNonlinCurveFit * FormNonlinCurveFit;
 extern frmInterpolation * FormInterpolation;
 extern frmSetOp * FormSetOperations;
@@ -93,7 +95,6 @@ extern frmRegions * FormReportRegion;
 extern frmRegions * FormClearRegion;
 extern frmRegions * FormDefineRegion;
 extern frmExplorer * FormExplorer;
-extern frmFontSettings * FormFontSettings;
 extern frmColorManagement * FormColManage;
 extern frmRealTimeInputManager * FormRTIManage;
 
@@ -250,8 +251,10 @@ void init_Patterns(void)
     }
 }
 
-MainWindow::MainWindow( QWidget *parent):QWidget( parent ),
-SocketConnection(NULL)
+MainWindow::MainWindow( QWidget *parent):QWidget( parent )
+    #ifdef SKF_QtGrace
+    ,SocketConnection(NULL)
+  #endif
 {
 
 
@@ -261,13 +264,14 @@ SocketConnection(NULL)
 
     setWindowTitle(tr("qtGrace: untitled"));
 
+#ifdef SKF_QtGrace
     //2013-07-03 changed main window size to - Nimal Kailasanathan
-    //windowWidth=872;
-    //windowHeight=670;
-
     windowWidth=1060;
     windowHeight=800;
-
+#else
+    windowWidth=872;
+    windowHeight=670;
+#endif
 
     helpMapper=new QSignalMapper();
     rtiTimer=new QTimer(this);
@@ -300,10 +304,19 @@ SocketConnection(NULL)
     mnuHistory->addSeparator();
     mnuHistory->addAction(actClearHistory);
     mnuFile->addMenu(mnuHistory);
+
+#ifdef SKF_QtGrace
     //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
     mnuFile->addSeparator();
     mnuFile->addAction(actExportToFile);
+#endif
     mnuFile->addSeparator();
+#ifdef SKF_QtGrace
+#else
+
+    mnuFile->addAction(actPrintSetup);
+#endif
+
     mnuFile->addAction(actPrint);
     mnuFile->addSeparator();
     mnuFile->addAction(actExit);
@@ -405,8 +418,12 @@ SocketConnection(NULL)
     mnuView->addAction(actShowStatusBar);
     mnuView->addAction(actShowToolBar);
     mnuView->addSeparator();
+
+#ifdef SKF_QtGrace
     mnuView->addAction(actFontSize);
     mnuView->addSeparator();
+#endif
+
     mnuView->addAction(actPageSetup);
     mnuView->addSeparator();
     mnuView->addAction(actRedraw);
@@ -487,24 +504,24 @@ SocketConnection(NULL)
     connect(cmdDraw, SIGNAL(clicked()), this, SLOT(doDraw()));
     //convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
     QString icondir=grace_path("fonts/icons");
-	icondir+="/";
-	QString iconfile=icondir+"zoom.png";
-	if(!QFile::exists(iconfile)){
-	  cout << "Cannot open icon  file " << iconfile.toStdString() <<endl;
-  	}
-	
-	QIcon tmp=QIcon(iconfile);
-	if(tmp.isNull()){
-		cout << "Failed to load icon " <<iconfile.toStdString() <<endl;
-		cout << ("Check your Qt plugin installation!")<<endl;
-	}
+    icondir+="/";
+    QString iconfile=icondir+"zoom.png";
+    if(!QFile::exists(iconfile)){
+        cout << "Cannot open icon  file " << iconfile.toStdString() <<endl;
+    }
 
-	
-	cmdZoom=new QPushButton(QIcon(iconfile),"",toolBar1);
-	
-	
-	
-	cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle"));
+    QIcon tmp=QIcon(iconfile);
+    if(tmp.isNull()){
+        cout << "Failed to load icon " <<iconfile.toStdString() <<endl;
+        cout << ("Check your Qt plugin installation!")<<endl;
+    }
+
+
+    cmdZoom=new QPushButton(QIcon(iconfile),"",toolBar1);
+
+
+
+    cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle"));
     cmdZoom->setGeometry(cmdDraw->x()+stdDistance2,cmdDraw->y()+cmdDraw->height()+6,stdWidth2,stdHeight2);
     connect(cmdZoom, SIGNAL(clicked()), this, SLOT(doZoom()));
     //convertBitmapToPixmap(autoBitMap,&HelpPixmap);
@@ -677,7 +694,7 @@ SocketConnection(NULL)
 
 MainWindow::~MainWindow()
 {
-    // delete SocketConnection;
+
     for (int i=0;i<MAXPATTERNS;i++)
         delete patterns[i];
 
@@ -1020,9 +1037,9 @@ void MainWindow::Open(void)
 
 void MainWindow::IOrequested(int type,QString file,bool exists,bool writeable,bool readable)
 {
-char* dummy=new char [file.length()+2]; // Windows port
+    char* dummy=new char [file.length()+2]; // Windows port
     strcpy(dummy,file.toAscii());
-char* dummy2=new char[strlen(dummy)+35]; // Windows port
+    char* dummy2=new char[strlen(dummy)+35]; // Windows port
     sprintf(dummy2,"%s%s",tr("Can't stat file ").toAscii().constData(),dummy);
     /*cout << "Origin(type)=" << type << endl;
 cout << "file to load=" << dummy << endl;
@@ -1171,18 +1188,22 @@ void MainWindow::Exit(void)
         qApp->exit(0);
     }
 }
+
+
+
 //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
 void MainWindow::ExportToFile(void)
 {
+    #ifdef SKF_QtGrace
     FormDeviceSetup=new frmDeviceSetup(3,this);
     FormDeviceSetup->show();
     FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PDF")); //Set PDF file as default in export file menu
     FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
-
+#endif
 }
 
-
+#ifdef SKF_QtGrace
 void MainWindow::PrintSetup(void)
 {
     FormDeviceSetup=new frmDeviceSetup(2,this);
@@ -1190,14 +1211,72 @@ void MainWindow::PrintSetup(void)
     FormDeviceSetup->doClose();
 }
 
+
+#else
+
+
+
+
+
+void MainWindow::PrintSetup(void)
+{
+    if (FormDeviceSetup==NULL)
+    {
+        FormDeviceSetup=new frmDeviceSetup(this);
+        //initialize this only on startup
+        if (default_Print_Device==-1)//last one
+            FormDeviceSetup->devices_item->setCurrentIndex(stdOutputFormat);
+        else
+            FormDeviceSetup->devices_item->setCurrentIndex(default_Print_Device);
+    }
+    /*Device_entry dev = get_device_props(FormDeviceSetup->cur_dev);
+    sprintf(print_file,"%s.%s",get_docbname(),dev.fext);
+    QDir tmpFile(get_docname());
+    cout << "print_file=" << print_file << " docname=" << get_docname() << endl;
+    tmpFile.cdUp();
+    if (strcmp(get_docname(),"Untitled"))
+    {
+    FormDeviceSetup->printfile_item->setText(QDir::cleanPath(tmpFile.absolutePath())+QDir::separator()+QString(print_file));
+    }
+    else
+    {
+    FormDeviceSetup->printfile_item->setText(QString(print_file));
+    }*/
+
+    FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+
+    FormDeviceSetup->show();
+    //FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PS")-1);//'-1' because dummy-device not shown
+    FormDeviceSetup->raise();
+    FormDeviceSetup->activateWindow();
+}
+
+#endif
+
+
+
+
+
+
+
 void MainWindow::Print(void)
 {
     printing_in_file=true;
+#ifdef SKF_QtGrace
     device_table[DEVICE_SCREEN].pg.width=orig_page_w;//use original page size
     device_table[DEVICE_SCREEN].pg.height=orig_page_h;
+#else
+    device_table[0].pg.width=orig_page_w;//use original page size
+    device_table[0].pg.height=orig_page_h;
+#endif
     do_hardcopy();
+#ifdef SKF_QtGrace
     device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
     device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
+#else
+    device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
+    device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;
+#endif
     printing_in_file=false;
     mainArea->completeRedraw();
 
@@ -1757,7 +1836,7 @@ void MainWindow::SetAppearance(void)
     old_upd=immediateUpdate;
     immediateUpdate=false;
     updateRunning=true;
-    if (FormSetAppearance==NULL) //BZ Point explorer
+    if (FormSetAppearance==NULL)
     {
         FormSetAppearance=new frmSetAppearance(this);
         FormSetAppearance->listSet->set_graph_number(get_cg(),false);
@@ -1862,27 +1941,40 @@ void MainWindow::ShowToolBar(void)
 
 void MainWindow::PageSetup(void)
 {
+#ifdef SKF_QtGrace
     FormDeviceSetup=new frmDeviceSetup(1,this);
-    FormDeviceSetup->show();
+#else
+    if (FormDeviceSetup==NULL)
+    {
+        FormDeviceSetup=new frmDeviceSetup(this);
+    }
+#endif
+
+FormDeviceSetup->show();
+
+#ifdef SKF_QtGrace
     FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("SCREEN")); //Set screen as default for display settings
-	FormDeviceSetup->raise();
+#else
+    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("X11"));
+#endif
+
+    FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
 }
 
-
 void MainWindow::FontSettings(void)
 {
+    #ifdef SKF_QtGrace
     if (FormFontSettings==NULL)
     {
         FormFontSettings=new frmFontSettings(this);
-
     }
     FormFontSettings->show();
     FormFontSettings->resize(FormFontSettings->width(),FormFontSettings->width()/3);
     FormFontSettings->raise();
     FormFontSettings->activateWindow();
+    #endif
 }
-
 
 void MainWindow::Redraw(void)
 {
@@ -2142,8 +2234,15 @@ void MainWindow::doCy(void)
 void MainWindow::doPageZoom(int i)
 {
     GeneralPageZoomFactor=pow(10.0,i*sldPageZoom->ScalingFactor);
+
+#ifdef SKF_QtGrace
     device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;
     device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
+#else
+    device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;
+    device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;
+#endif
+
     mainArea->completeRedraw();
 }
 
@@ -2192,13 +2291,25 @@ void MainWindow::CreateActions(void)
     actPrint= new QAction(tr("&Print"), this);
     actPrint->setShortcut(tr("Ctrl+P"));
     actPrint->setStatusTip(tr("Print"));
-    connect(actPrint, SIGNAL(triggered()), this, SLOT(PrintSetup()));
 
+#ifdef SKF_QtGrace
+    connect(actPrint, SIGNAL(triggered()), this, SLOT(PrintSetup()));
+#else
+    connect(actPrint, SIGNAL(triggered()), this, SLOT(Print()));
+    actPrintSetup= new QAction(tr("Prin&t Setup..."), this);
+    actPrintSetup->setStatusTip(tr("Adjust print properties"));
+    connect(actPrintSetup, SIGNAL(triggered()), this, SLOT(PrintSetup()));
+
+#endif
+
+#ifdef SKF_QtGrace
     //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
 
     actExportToFile= new QAction(tr("Plot to file..."), this);
     actExportToFile->setStatusTip(tr("Export to BMP, JPEG, PNG..."));
     connect(actExportToFile, SIGNAL(triggered()), this, SLOT(ExportToFile()));
+#endif
+
 
     actExit= new QAction(tr("E&xit"), this);
     actExit->setShortcut(tr("Ctrl+Q"));
@@ -2322,9 +2433,14 @@ void MainWindow::CreateActions(void)
     actShowToolBar->setCheckable(TRUE);
     actShowToolBar->setChecked(TRUE);
     connect(actShowToolBar, SIGNAL(triggered()), this, SLOT(ShowToolBar()));
+#ifdef SKF_QtGrace
     actFontSize= new QAction(tr("&Font settings" ), this);
     connect(actFontSize, SIGNAL(triggered()), this, SLOT(FontSettings()));
     actPageSetup= new QAction(tr("&Screen setup" ), this);
+#else
+    actPageSetup= new QAction(tr("&PageSetup" ), this);
+#endif
+
     connect(actPageSetup, SIGNAL(triggered()), this, SLOT(PageSetup()));
     actRedraw= new QAction(tr("&Redraw" ), this);
     connect(actRedraw, SIGNAL(triggered()), this, SLOT(Redraw()));

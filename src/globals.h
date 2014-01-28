@@ -84,8 +84,7 @@ extern region rg[];
 
 #endif
 
-/* Define if you want to use SKF-QtGrace*/
-//#define BEAST;
+
 
 /* real-time input delay (prevents getting stuck reading) */
 GLOBAL(timer_delay, int, 200);

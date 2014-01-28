@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2002 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
+ *
  * Modified by Andreas Winter 2008-2012
- * 
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -45,7 +45,10 @@
 #include "patterns.h"
 #include "rstdrv.h"
 #include "noxprotos.h"
+
+#ifdef SKF_QtGrace
 #include "svgdrv.h"
+#endif
 #include "gd.h"
 
 #ifdef HAVE_LIBJPEG
@@ -106,32 +109,37 @@ static int png_setup_compression = 4;
 #endif
 
 static Device_entry dev_pnm = {DEVICE_FILE,
-          "PNM",
-          pnminitgraphics,
-          pnm_op_parser,
-          pnm_gui_setup,
-          "pnm",
-          TRUE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          NULL
-         };
+                               "PNM",
+                               pnminitgraphics,
+                               pnm_op_parser,
+                               pnm_gui_setup,
+                               "pnm",
+
+                               #ifdef SKF_QtGrace
+                               TRUE,
+                               #else
+                               FALSE,
+                               #endif
+                               TRUE,
+                               {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+                               NULL
+                              };
 
 #ifdef HAVE_LIBJPEG
 static Device_entry dev_jpg = {DEVICE_FILE,
-          "JPEG",
-          jpginitgraphics,
-          jpg_op_parser,
-          jpg_gui_setup,
-          "jpg",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          NULL
-         };
+                               "JPEG",
+                               jpginitgraphics,
+                               jpg_op_parser,
+                               jpg_gui_setup,
+                               "jpg",
+                               FALSE,
+                               TRUE,
+                               {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+                               NULL
+                              };
 #endif
 
-
+#ifdef SKF_QtGrace
 static Device_entry dev_png = {
     DEVICE_FILE,
     "PNG",
@@ -145,6 +153,24 @@ static Device_entry dev_png = {
     NULL
 };
 
+#else
+#ifdef HAVE_LIBPNG
+static Device_entry dev_png = {DEVICE_FILE,
+                               "PNG",
+                               pnginitgraphics,
+                               png_op_parser,
+                               png_gui_setup,
+                               "png",
+                               FALSE,
+                               TRUE,
+                               {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+                               NULL
+                              };
+#endif
+
+#endif
+
+
 int register_pnm_drv(void)
 {
     return register_device(dev_pnm);
@@ -157,12 +183,20 @@ int register_jpg_drv(void)
 }
 #endif
 
-
+#ifdef SKF_QtGrace
 int register_high_png_drv(void)
 {
     return register_device(dev_png);
 }
+#else
+#ifdef HAVE_LIBPNG
+int register_png_drv(void)
+{
+    return register_device(dev_png);
+}
+#endif
 
+#endif
 
 static void rst_updatecmap(void)
 {
@@ -181,8 +215,8 @@ static void rst_updatecmap(void)
             green = prgb->green >> (GRACE_BPP - 8);
             blue = prgb->blue >> (GRACE_BPP - 8);
             if ((c = gdImageColorExact(ihandle, red, green, blue))    == -1 &&
-                (c = gdImageColorAllocate(ihandle, red, green, blue)) == -1 &&
-                (c = gdImageColorClosest(ihandle, red, green, blue))  == -1) {
+                    (c = gdImageColorAllocate(ihandle, red, green, blue)) == -1 &&
+                    (c = gdImageColorClosest(ihandle, red, green, blue))  == -1) {
                 c = rst_colors[0];
             }
             rst_colors[i] = c;
@@ -242,7 +276,7 @@ void rst_setdrawbrush(void)
         for (i = 0; i < dash_array_length[rstlines]; i++) {
             rst_dash_array_length += dash_array[rstlines][i];
         }
-    
+
         if (rstlinew <= 1) {
             scale = 1;
             on = rstpen.color;
@@ -276,7 +310,7 @@ void rst_setdrawbrush(void)
         }
         gdImageSetStyle(ihandle, tmp_dash_array, k);
         xfree(tmp_dash_array);
-            
+
     } else {
         if (rstlinew <= 1) {
             rst_drawbrush = rst_colors[rstpen.color];
@@ -409,11 +443,11 @@ void rst_drawpolyline(VPoint *vps, int n, int mode)
     if (mode == POLYLINE_CLOSED) {
         gdImagePolygon(ihandle, gdps, n, rst_drawbrush);
     } else {
-         for (i = 0; i < n - 1; i++) {
-             gdImageLine(ihandle, gdps[i].x,     gdps[i].y, 
-                                  gdps[i + 1].x, gdps[i + 1].y, 
-                                  rst_drawbrush);
-         }
+        for (i = 0; i < n - 1; i++) {
+            gdImageLine(ihandle, gdps[i].x,     gdps[i].y,
+                        gdps[i + 1].x, gdps[i + 1].y,
+                    rst_drawbrush);
+        }
     }
     
     xfree(gdps);
@@ -484,11 +518,11 @@ void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     
     rst_setfillbrush();
     gdImageFilledArc(ihandle, gdc.x, gdc.y, w, h, a1, a2,
-        mode == ARCFILL_CHORD ? gdArcFillChord:gdArcFillPieSlice, rst_fillbrush);
+                     mode == ARCFILL_CHORD ? gdArcFillChord:gdArcFillPieSlice, rst_fillbrush);
 }
 
 void rst_putpixmap(VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
+                   char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     int cindex, bg;
     int color, bgcolor;
@@ -539,18 +573,18 @@ void rst_putpixmap(VPoint vp, int width, int height,
         }
     }
 }
-     
+
 void rst_leavegraphics(void)
 {
     /* Output the image to the disk file. */
     switch (curformat) {
     case RST_FORMAT_PNM:
         rstImagePnm(ihandle, prstream);
-        break;   
+        break;
 #ifdef HAVE_LIBJPEG
     case RST_FORMAT_JPG:
         rstImageJpg(ihandle, prstream);
-        break;   
+        break;
 #endif
 #ifdef HAVE_LIBPNG
     case RST_FORMAT_PNG:
@@ -562,7 +596,7 @@ void rst_leavegraphics(void)
         break;
 #endif
     default:
-        errmsg("Invalid raster format");  
+        errmsg("Invalid raster format");
         break;
     }
     
@@ -905,7 +939,7 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
     png_uint_32 res_meter;
     
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-        NULL, NULL, NULL);
+                                      NULL, NULL, NULL);
     if (png_ptr == NULL) {
         return;
     }
@@ -936,9 +970,9 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
     }
 
     png_set_IHDR(png_ptr, info_ptr, w, h,
-        8, PNG_COLOR_TYPE_PALETTE, interlace_type,
-        PNG_COMPRESSION_TYPE_DEFAULT,
-        PNG_FILTER_TYPE_DEFAULT);
+                 8, PNG_COLOR_TYPE_PALETTE, interlace_type,
+                 PNG_COMPRESSION_TYPE_DEFAULT,
+                 PNG_FILTER_TYPE_DEFAULT);
 
     num_palette = gdImageColorsTotal(ihandle);
     palette = xmalloc(num_palette*sizeof(png_color));
@@ -1050,17 +1084,17 @@ void png_gui_setup(void)
     if (png_setup_frame == NULL) {
         Widget fr, rc;
         
-	png_setup_frame = CreateDialogForm(app_shell, "PNG options");
+    png_setup_frame = CreateDialogForm(app_shell, "PNG options");
 
-	fr = CreateFrame(png_setup_frame, "PNG options");
+    fr = CreateFrame(png_setup_frame, "PNG options");
         rc = CreateVContainer(fr);
-	png_setup_interlaced_item = CreateToggleButton(rc, "Interlaced");
-	png_setup_transparent_item = CreateToggleButton(rc, "Transparent");
-	png_setup_compression_item = CreateSpinChoice(rc,
+    png_setup_interlaced_item = CreateToggleButton(rc, "Interlaced");
+    png_setup_transparent_item = CreateToggleButton(rc, "Transparent");
+    png_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT,
             (double) Z_NO_COMPRESSION, (double) Z_BEST_COMPRESSION, 1.0);
 
-	CreateAACDialog(png_setup_frame, fr, set_png_setup_proc, NULL);
+    CreateAACDialog(png_setup_frame, fr, set_png_setup_proc, NULL);
     }
     update_png_setup_frame();
     
@@ -1094,19 +1128,19 @@ void pnm_gui_setup(void)
     if (pnm_setup_frame == NULL) {
         Widget fr, rc;
         
-	pnm_setup_frame = CreateDialogForm(app_shell, "PNM options");
+    pnm_setup_frame = CreateDialogForm(app_shell, "PNM options");
 
-	fr = CreateFrame(pnm_setup_frame, "PNM options");
+    fr = CreateFrame(pnm_setup_frame, "PNM options");
         rc = CreateVContainer(fr);
-	pnm_setup_format_item = CreatePanelChoice(rc, "Format: ",
-					 4,
-					 "1-bit mono (PBM)",
-					 "8-bit grayscale (PGM)",
-					 "8-bit color (PPM)",
+    pnm_setup_format_item = CreatePanelChoice(rc, "Format: ",
+                     4,
+                     "1-bit mono (PBM)",
+                     "8-bit grayscale (PGM)",
+                     "8-bit color (PPM)",
                                          NULL);
-	pnm_setup_rawbits_item = CreateToggleButton(rc, "\"Rawbits\"");
+    pnm_setup_rawbits_item = CreateToggleButton(rc, "\"Rawbits\"");
 
-	CreateAACDialog(pnm_setup_frame, fr, set_pnm_setup_proc, NULL);
+    CreateAACDialog(pnm_setup_frame, fr, set_pnm_setup_proc, NULL);
     }
     update_pnm_setup_frame();
 
@@ -1150,31 +1184,31 @@ void jpg_gui_setup(void)
     if (jpg_setup_frame == NULL) {
         Widget jpg_setup_rc, fr, rc;
         
-	jpg_setup_frame = CreateDialogForm(app_shell, "JPEG options");
+    jpg_setup_frame = CreateDialogForm(app_shell, "JPEG options");
 
         jpg_setup_rc = CreateVContainer(jpg_setup_frame);
 
-	fr = CreateFrame(jpg_setup_rc, "JPEG options");
+    fr = CreateFrame(jpg_setup_rc, "JPEG options");
         rc = CreateVContainer(fr);
-	jpg_setup_quality_item = CreateSpinChoice(rc,
+    jpg_setup_quality_item = CreateSpinChoice(rc,
             "Quality:", 3, SPIN_TYPE_INT, 0.0, 100.0, 5.0);
-	jpg_setup_optimize_item = CreateToggleButton(rc, "Optimize");
-	jpg_setup_progressive_item = CreateToggleButton(rc, "Progressive");
-	jpg_setup_grayscale_item = CreateToggleButton(rc, "Grayscale");
+    jpg_setup_optimize_item = CreateToggleButton(rc, "Optimize");
+    jpg_setup_progressive_item = CreateToggleButton(rc, "Progressive");
+    jpg_setup_grayscale_item = CreateToggleButton(rc, "Grayscale");
 
-	fr = CreateFrame(jpg_setup_rc, "JPEG advanced options");
+    fr = CreateFrame(jpg_setup_rc, "JPEG advanced options");
         rc = CreateVContainer(fr);
-	jpg_setup_smoothing_item = CreateSpinChoice(rc,
+    jpg_setup_smoothing_item = CreateSpinChoice(rc,
             "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
-	jpg_setup_baseline_item = CreateToggleButton(rc, "Force baseline");
-	jpg_setup_dct_item = CreatePanelChoice(rc, "DCT: ",
-					 4,
-					 "Fast integer",
-					 "Slow integer",
-					 "Float",
+    jpg_setup_baseline_item = CreateToggleButton(rc, "Force baseline");
+    jpg_setup_dct_item = CreatePanelChoice(rc, "DCT: ",
+                     4,
+                     "Fast integer",
+                     "Slow integer",
+                     "Float",
                                          NULL);
 
-	CreateAACDialog(jpg_setup_frame, jpg_setup_rc, set_jpg_setup_proc, NULL);
+    CreateAACDialog(jpg_setup_frame, jpg_setup_rc, set_jpg_setup_proc, NULL);
     }
     update_jpg_setup_frame();
 
