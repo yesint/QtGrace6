@@ -81,8 +81,8 @@ endif
 
 ifneq (,$(BEAST))
 # Only if this is compiled for SKF this flag should be activated.
-# CCFLAGS+=-DSKF_QtGrace
-# FORDEPEND+=-DSKF_QtGrace
+ CCFLAGS+=-DSKF_QtGrace
+ FORDEPEND+=-DSKF_QtGrace
 endif
 
 BIN=qtGrace$(ABI)

@@ -30,6 +30,7 @@
 #include "events.h"
 #include "parser.h"
 #include "undo_module.h"
+#include "cmath.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +46,10 @@
 
 #ifdef _MSC_VER
 #include "rint.h"
+#define _DLGSH_INCLUDED_
+// This is needed because the symbol "grp1" is a macro there is in Dlgs.h in Windows SDK
+#include "windows.h"
+// This is needed for Sleep()
 #else
 #include <unistd.h>
 #endif
@@ -23120,7 +23125,7 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
 
         aac=new stdButtonGroup(this);
         aac->cmdAccept->setText("Reset"); //Rename accept button to reset
-        aac->cmdApply->setText("Done"); //Rename apply button to done
+        aac->cmdApply->setText("OK"); //Rename apply button to OK
         connect(aac->cmdApply,SIGNAL(clicked()),SLOT(doAccept()));
         connect(aac->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
         connect(aac->cmdAccept,SIGNAL(clicked()),SLOT(doReset()));
@@ -23133,7 +23138,9 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
         layout->addWidget(spinFontSize,0,0,0,1);
         layout->addWidget(lblTest,0,0,1,1);
 
-        connect(spinFontSize, SIGNAL(valueChanged(int)),
+		spinFontSize->setKeyboardTracking(false);
+        
+		connect(spinFontSize, SIGNAL(valueChanged(int)),
                 this, SLOT(updateFont(int)));
 
         layout->addWidget(aac,1,0,1,2);
@@ -23153,7 +23160,14 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
     void frmFontSettings::updateFont(int v)
     {
         #ifdef SKF_QtGrace
+		
+		#ifdef _MSC_VER
+	    Sleep(500);
+		#else
         sleep(0.5);
+		#endif
+
+
         int noOfGraphs =  number_of_graphs();
         plotstr string_text;
 

@@ -50,7 +50,7 @@
 #include "draw.h"
 #include "graphs.h"
 #include "patterns.h"
-
+#include "cmath.h"
 #include "x11drv.h"
 
 #include "noxprotos.h"
