@@ -23,13 +23,8 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,conditionToExitFunction(0)
   ,countNoOfRead(0)
   ,newDataSetReady(1)
-  ,exchange_point_comma(false)
   ,new_set_nos(NULL)
-  ,countNoOfReadData(0)
   ,writeToTmpFile(true)
-  ,gno(0)
-  ,load(0)
-  ,cursource(0)
   ,numGraphs(0)
   ,paramLength(0)
   ,countNoOfDataSets(0)
@@ -65,7 +60,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
     //Write to Beasst
     readServer = readServerName;
     m_toBeast =   new QLocalSocket(this);
-    connect(m_toBeast, SIGNAL(connected()), this, SLOT(sendDataToGrace()));
+    connect(m_toBeast, SIGNAL(connected()), this, SLOT(sendDataToBeast()));
     connect(m_toBeast, SIGNAL(disconnected()), this, SLOT(socket_disconnected()));
     connect(m_toBeast, SIGNAL(readyRead()), this, SLOT(socket_readReady()));
 
@@ -77,8 +72,8 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 }
 
 void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
-    //  qDebug() << "2) Connect to Server"+readServer;
-    //   qDebug() << "sendParam as int="<< *(int*)(sendParam);
+    // qDebug() << "2) Connect to Server"+readServer;
+    // qDebug() << "sendParam as int="<< *(int*)(sendParam);
 
     m_toBeast->abort();
     m_sendParam = sendParam;
@@ -102,7 +97,6 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
 
 
 void LocalSocketIpcServer::readSocket() {
-
 
     // qDebug()<<"readSocket() START";
     if(readSocketIsLocked){
@@ -156,7 +150,7 @@ void LocalSocketIpcServer::readSocket() {
 
     if (clientConnection->bytesAvailable() < (int)sizeof(quint16)) {
         //   qDebug()<<"readSocket() FAIL 2";
-
+        delete clientConnection;
         return;
     }
 
@@ -166,7 +160,7 @@ void LocalSocketIpcServer::readSocket() {
     // 0-terminated character strings
     // come here correctly.
 
-    //    int receivedFromRead=clientConnection->read(message,availableBytesFromSocket);
+    //    int receivedFromRead=clientConnection->read(message,);
     in.readRawData(message,availableBytesFromSocket);
 
     /*qDebug()<<"Reads " << receivedFromRead << " bytes";
@@ -190,6 +184,7 @@ void LocalSocketIpcServer::readSocket() {
         //  qDebug()<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command;
         readSocketIsLocked=false; // should be unlocked when "returns" from
         // this function.
+        delete clientConnection;
         return;
     }
 
@@ -372,13 +367,13 @@ void LocalSocketIpcServer::readSocket() {
 
     readSocketIsLocked=false; // should be unlocked when "returns" from
     // this function.
-
+    delete clientConnection;
 
     //qDebug()<<"readSocket() DONE";
 
 }
 
-void LocalSocketIpcServer::sendDataToGrace(){
+void LocalSocketIpcServer::sendDataToBeast(){
 
     if(socket_connected_busy){
         cerr << " It is busy already ! "<< endl;
@@ -387,10 +382,12 @@ void LocalSocketIpcServer::sendDataToGrace(){
     socket_connected_busy=true;
 
 #ifdef _MSC_VER
-    Sleep(1);
+    Sleep(1); //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
+
 #else
     usleep(1000);
 #endif
+
     if(false){
         std::cerr << "writeRawData "<<m_paramLen<<" bytes "<<std::endl;
         std::cerr << " data are: ";
@@ -407,6 +404,7 @@ void LocalSocketIpcServer::sendDataToGrace(){
     }
 
     QByteArray block;
+
     QDataStream out(&block, QIODevice::WriteOnly);
 
 
@@ -418,10 +416,12 @@ void LocalSocketIpcServer::sendDataToGrace(){
 
     out.writeRawData(m_sendParam,m_paramLen);
     out.device()->seek(0);
-    m_toBeast->write(block);
+    m_toBeast->write(block);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
     m_toBeast->flush();
+
     m_toBeast->waitForBytesWritten(20000);
     socket_connected_busy=false;
+
 }
 
 char* LocalSocketIpcServer::copyDataFromSocket(int availableBytes, char* dataFromSocket){
@@ -552,6 +552,16 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
 }
 
 void LocalSocketIpcServer::readXYData(char* xData, char* yData){
+
+    double *x;
+    double *y;
+    QString             xValueStr;
+    QString             yValueStr;
+    QByteArray          xValueBa;
+    QByteArray          yValueBa;
+    char                *xValueChar;
+    char                *yValueChar;
+
     x = (double *) xData;
     y = (double *) yData;
 
@@ -666,14 +676,16 @@ void LocalSocketIpcServer::setScalingMode()
 
 }
 
-void LocalSocketIpcServer::
-
-
-writeDataToTmpFile()
+void LocalSocketIpcServer::writeDataToTmpFile()
 {
     //kill_all_sets(0);
     // kill_all_graphs();
     //Write to tmp file
+
+    char *fileNameChar;
+    int  gno = 0;
+    int  load = 0; //read single set
+    int  cursource = 0; // read from temp file
 
     if (writeToTmpFile){
         // writeToTmpFile=false;
@@ -849,6 +861,8 @@ void LocalSocketIpcServer::sendParam(){
 
     parFile.close();
 
+    int                 printStrNameLength;
+
     printStrNameLength = printStrName.length();
     int printStrNameLengthToSend=printStrNameLength;
 
@@ -876,6 +890,7 @@ int LocalSocketIpcServer::uniread(FILE *fp, int load_type, char *label)
     char *linebuf=NULL;
     int linelen=0;   /* a misleading name ... */
     int linecount;
+    bool exchange_point_comma = false;//exchange ',' for '.' as decimal-seperator
 
     //we have to reserve some memory here for input-data
     int * maj_new_nrs=NULL;
