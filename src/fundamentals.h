@@ -848,6 +848,7 @@ bool GetToggleButtonState(QCheckBox * c);*/
 
 class treeView;
 class frmExplorer;
+class frmFontSettings;
 
 class TreePopup:public QMenu
 {

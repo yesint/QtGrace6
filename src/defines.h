@@ -1,33 +1,33 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2000 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
+ *
  * Modified by Andreas Winter 2008-2012
- * 
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* 
+/*
  *
  * constants and typedefs
  *
@@ -64,11 +64,11 @@ using namespace std;*/
 #ifdef MAC_SYSTEM
 #define GRACE_HELPVIEWER "open /Applications/Safari.app \"%s\""
 #else
-    #ifdef LINUX_SYSTEM
-    #define GRACE_HELPVIEWER "mozilla -remote openURL\\\\(%s,new-window\\\\) >>/dev/null 2>&1 || mozilla %s"
-    #else
-    #define GRACE_HELPVIEWER "iexplore %s &"
-    #endif
+#ifdef LINUX_SYSTEM
+#define GRACE_HELPVIEWER "mozilla -remote openURL\\\\(%s,new-window\\\\) >>/dev/null 2>&1 || mozilla %s"
+#else
+#define GRACE_HELPVIEWER "iexplore %s &"
+#endif
 #endif
 //#define BI_VERSION_ID 50121
 //#define BI_VERSION "Grace-5.1.22"
@@ -94,7 +94,7 @@ using namespace std;*/
 #define MAXPARM 10              /* max number of parameters for non-lin fit */
 
 #define MAXFIT 12               /* max degree of polynomial+1 that can be
-                                 * fitted */
+    * fitted */
 
 
 /* number of extra objects of a given type to allocate if not enough */
@@ -104,12 +104,14 @@ using namespace std;*/
 #define MAX_ARROW 3
 #define MAX_PREC 10
 
+#ifdef SKF_QtGrace
 /* data types from socket */
 #define READ_COMMAND 1
 #define READ_DATALENGTH 2
 #define READ_DATASET_1 3
 #define READ_DATASET_2 4
 #define READ_DATASET_3 5
+#endif
 
 
 /* symbol types */
@@ -137,7 +139,7 @@ using namespace std;*/
  */
 #define COORDINATES_XY      0       /* Cartesian coordinates */
 #define COORDINATES_POLAR   1       /* Polar coordinates */
-                                
+
 /*
  * types of axis scale mappings
  */
@@ -421,7 +423,7 @@ typedef struct {
 typedef struct {
     int color;
     int pattern;
-/*
+    /*
  *     int transparency;
  */
 } Pen;
@@ -622,14 +624,14 @@ typedef struct {
 
     double offsx, offsy;        /* offset of axes in viewport coords
                                    (attention: these
-				   are not x and y coordinates but
-				   perpendicular and parallel offsets */
+                   are not x and y coordinates but
+                   perpendicular and parallel offsets */
 
     int t_flag;                 /* toggle tickmark display */
     int t_autonum;              /* approximate default number of major ticks */
 
     int t_spec;                 /* special (user-defined) tickmarks/ticklabels, */
-                                /* can be none/marks/both marks and labels */
+    /* can be none/marks/both marks and labels */
 
     int t_round;                /* place major ticks at rounded positions */
 
@@ -641,7 +643,7 @@ typedef struct {
 
     int t_inout;                /* ticks inward, outward or both */
     PlacementType t_op;         /* ticks on opposite side */
-    
+
     tickprops props;
     tickprops mprops;
 
@@ -664,7 +666,7 @@ typedef struct {
 
     int tl_gaptype;             /* tick label placement auto or specified */
     VVector tl_gap;             /* tick label to tickmark distance
-				   (parallel and perpendicular to axis) */
+                   (parallel and perpendicular to axis) */
 
     int tl_font;                /* font to use for tick labels */
     double tl_charsize;         /* character size for tick labels */
@@ -741,7 +743,7 @@ typedef struct _Input_buffer {
     int           lineno; /* line number */
     int           zeros;  /* number of successive reads of zero byte */
     int           reopen; /* non-zero if we should close and reopen */
-                          /* when other side is closed (mainly for fifos) */
+    /* when other side is closed (mainly for fifos) */
     char         *name;   /* name of the input (filename or symbolic name) */
     int           size;   /* size of the buffer for already read lines */
     int           used;   /* number of bytes used in the buffer */
@@ -814,7 +816,7 @@ static OptionItem fmt_option_items[32] =
     {FORMAT_MMSSLAT,        "MM' SS.s\" (lat)"    }
 };
 
-static OptionItem as_option_items[4] = 
+static OptionItem as_option_items[4] =
 {
     {AUTOSCALE_NONE, "None"},
     {AUTOSCALE_X,    "X"},

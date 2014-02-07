@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2007 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
+ *
  * Modified by Andreas Winter 2008-2012
- * 
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -131,7 +131,7 @@ extern char BI_SYSTEM[256];
 void xfree(void *ptr)
 {
     if (ptr != NULL) {
-	free(ptr);
+        free(ptr);
     }
 }
 
@@ -178,7 +178,7 @@ void *xrealloc(void *ptr, size_t size)
         xfree(ptr);
         retval = NULL;
     } else {
-        retval = realloc(ptr, size); 
+        retval = realloc(ptr, size);
     }
 #else
     retval = realloc(ptr, size);
@@ -217,11 +217,11 @@ void iswap(int *x, int *y)
 int isoneof(int c, char *s)
 {
     while (*s) {
-	if (c == *s) {
-	    return 1;
-	} else {
-	    s++;
-	}
+        if (c == *s) {
+            return 1;
+        } else {
+            s++;
+        }
     }
     return 0;
 }
@@ -232,10 +232,10 @@ int argmatch(char *s1, char *s2, int atleast)
     int l2 = strlen(s2);
 
     if (l1 < atleast) {
-	return 0;
+        return 0;
     }
     if (l1 > l2) {
-	return 0;
+        return 0;
     }
     return (strncmp(s1, s2, l1) == 0);
 }
@@ -249,19 +249,19 @@ void lowtoupper(char *s)
     unsigned int i, quoteon = FALSE;
 
     for (i = 0; i < strlen(s); i++) {
-	if (s[i] == '"') {
-	    if (!quoteon) {
-		quoteon = TRUE;
-	    } else if ((i > 0) && (s[i-1] != '\\')) {
-		quoteon = FALSE;
-	    }
-	}
-	if (quoteon == FALSE) {
+        if (s[i] == '"') {
+            if (!quoteon) {
+                quoteon = TRUE;
+            } else if ((i > 0) && (s[i-1] != '\\')) {
+                quoteon = FALSE;
+            }
+        }
+        if (quoteon == FALSE) {
             if (!isprint(s[i])) {
                 s[i] = ' ';
             } else if (s[i] >= 'a' && s[i] <= 'z') {
-	        s[i] -= ' ';
-	    }
+                s[i] -= ' ';
+            }
         }
     }
 }
@@ -272,10 +272,10 @@ void lowtoupper(char *s)
 void convertchar(char *s)
 {
     while (*s++) {
-	if (*s == ',')
-	    *s = ' ';
-	if (*s == 'D' || *s == 'd')
-	    *s = 'e';
+        if (*s == ',')
+            *s = ' ';
+        if (*s == 'D' || *s == 'd')
+            *s = 'e';
     }
 }
 
@@ -288,11 +288,11 @@ int ilog2(int n)
     int n1 = n;
 
     while (n1 >>= 1)
-	i++;
+        i++;
     if (1 << i != n)
-	return -1;
+        return -1;
     else
-	return i;
+        return i;
 }
 
 /*
@@ -304,7 +304,7 @@ double comp_area(int n, double *x, double *y)
     double sum = 0.0;
 
     for (i = 0; i < n; i++) {
-	sum = sum + x[i] * y[(i + 1) % n] - y[i] * x[(i + 1) % n];
+        sum = sum + x[i] * y[(i + 1) % n] - y[i] * x[(i + 1) % n];
     }
     return sum * 0.5;
 }
@@ -318,7 +318,7 @@ double comp_perimeter(int n, double *x, double *y)
     double sum = 0.0;
 
     for (i = 0; i < n - 1; i++) {
-	sum = sum + hypot(x[i] - x[(i + 1) % n], y[i] - y[(i + 1) % n]);
+        sum = sum + hypot(x[i] - x[(i + 1) % n], y[i] - y[(i + 1) % n]);
     }
     return sum;
 }
@@ -327,7 +327,7 @@ char *dayofweekstrs[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 char *dayofweekstrl[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 char *monthl[] = {"January", "February", "March", "April", "May", "June",
-"July", "August", "September", "October", "November", "December"};
+                  "July", "August", "September", "October", "November", "December"};
 
 int dayofweek(double j)
 {
@@ -351,8 +351,8 @@ char *escapequotes (char *s)
     strcpy(es, s);
     n = 0;
     while ((es = strchr(es, '\"'))) {
-    	es++;
-    	n++;
+        es++;
+        n++;
     }
     
     elen = len + n + 1;
@@ -396,12 +396,18 @@ double mytrunc(double a)
  */
 int bailout(void)
 {
-    if (!is_dirtystate() || /*yesno("Exit losing unsaved changes?", NULL, NULL, NULL)*/true) {
-         if (resfp) {
-             grace_close(resfp);
-         }
-         //qApp->quit();
-         return 1;
+
+#ifdef SKF_QtGrace
+    if (!is_dirtystate() || true) {
+#else
+    if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
+#endif
+
+        if (resfp) {
+            grace_close(resfp);
+        }
+        //qApp->quit();
+        return 1;
     }
     return 0;
 }
@@ -411,7 +417,7 @@ int bailout(void)
  */
 static void rereadConfig(void)
 {
-/*    getparms("gracerc");*/
+    /*    getparms("gracerc");*/
 }
 
 static void please_report_the_bug(void)
@@ -431,12 +437,12 @@ static void please_report_the_bug(void)
 static void bugwarn(char *signame)
 {
     static int emergency_save = FALSE;
-/*
+    /*
  *  Since we got so far, memory is probably corrupted so it's better to use
  *  a static storage
  */
     static char buf[GR_MAXPATHLEN];
-/* number of interrupts received during the emergency save */
+    /* number of interrupts received during the emergency save */
     static int interrupts;
     
     if (emergency_save != FALSE) {
@@ -477,14 +483,14 @@ static void bugwarn(char *signame)
 RETSIGTYPE actOnSignal(int signo)
 {
     char signame[16];
-     
+
     installSignal();
     
     switch (signo) {
 #ifdef SIGHUP
     case SIGHUP:
-    	rereadConfig();
-    	break;
+        rereadConfig();
+        break;
 #endif
 #ifdef SIGINT
     case SIGINT:
@@ -526,13 +532,13 @@ RETSIGTYPE actOnSignal(int signo)
 
 void installSignal(void){
 #ifdef SIGHUP
-    signal(SIGHUP,  actOnSignal);   /// hangup 
+    signal(SIGHUP,  actOnSignal);   /// hangup
 #endif
 #ifdef SIGINT
-    signal(SIGINT,  actOnSignal);   /// interrupt 
+    signal(SIGINT,  actOnSignal);   /// interrupt
 #endif
 #ifdef SIGQUIT
-    signal(SIGQUIT, actOnSignal);   /// quit 
+    signal(SIGQUIT, actOnSignal);   /// quit
 #endif
 #ifdef SIGILL
     signal(SIGILL,  actOnSignal);   /// illegal instruction
@@ -585,43 +591,43 @@ char *create_fstring(int form, int prec, double loc, int type)
     strcpy(format, "%.*lf");
     switch (form) {
     case FORMAT_DECIMAL:
-	sprintf(s, format, prec, loc);
-	tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
-	if (tmp == 0.0) {
-	    strcpy(format, "%.*lf");
-	    loc = 0.0;
-	    sprintf(s, format, prec, loc);
-	}
-	break;
+        sprintf(s, format, prec, loc);
+        tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
+        if (tmp == 0.0) {
+            strcpy(format, "%.*lf");
+            loc = 0.0;
+            sprintf(s, format, prec, loc);
+        }
+        break;
     case FORMAT_EXPONENTIAL:
-	strcpy(format, "%.*le");
-	sprintf(s, format, prec, loc);
-	tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
-	if (tmp == 0.0) {
-	    strcpy(format, "%.*le");
-	    loc = 0.0;
-	    sprintf(s, format, prec, loc);
-	}
-	break;
+        strcpy(format, "%.*le");
+        sprintf(s, format, prec, loc);
+        tmp = atof(s);		/* fix reverse axes problem when loc == -0.0 */
+        if (tmp == 0.0) {
+            strcpy(format, "%.*le");
+            loc = 0.0;
+            sprintf(s, format, prec, loc);
+        }
+        break;
     case FORMAT_SCIENTIFIC:
-	if (loc != 0.0) {
+        if (loc != 0.0) {
             exponent = (int) floor(log10(fabs(loc)));
             mantissa = loc/pow(10.0, (double) exponent);
             if (type == LFORMAT_TYPE_EXTENDED) {
-	        strcpy(format, "%.*f\\x\\c4\\C\\f{}10\\S%d\\N");
-	    } else {
-	        strcpy(format, "%.*fx10(%d)");
+                strcpy(format, "%.*f\\x\\c4\\C\\f{}10\\S%d\\N");
+            } else {
+                strcpy(format, "%.*fx10(%d)");
             }
-	    sprintf(s, format, prec, mantissa, exponent);
+            sprintf(s, format, prec, mantissa, exponent);
         } else {
-	    strcpy(format, "%.*f");
-	    sprintf(s, format, prec, 0.0);
+            strcpy(format, "%.*f");
+            sprintf(s, format, prec, 0.0);
         }
-	break;
+        break;
     case FORMAT_COMPUTING:
         /* As per FORMAT_GENERAL but uses computer notation (K,M,G,...)
          * to give the value in multiples of the powers of 1024
-         */       
+         */
         if (loc != 0.0) {
             exponent = (int) floor(log(fabs(loc))/log(2.0));
             if (exponent < 10) {
@@ -641,8 +647,8 @@ char *create_fstring(int form, int prec, double loc, int type)
         */
         sprintf(s, "%.*g", prec, loc/(pow(2.0, exponent)));
         if ((exponent < 80) && (strcmp(s, "1024") == 0)){
-	    exponent += 10;
-	}
+            exponent += 10;
+        }
 
         switch (exponent) {
         case 10: /* kilo */
@@ -680,9 +686,9 @@ char *create_fstring(int form, int prec, double loc, int type)
             loc = 0.0;
             sprintf(s, format, loc);
         }
-	break;
+        break;
     case FORMAT_ENGINEERING:
-	if (loc != 0.0) {
+        if (loc != 0.0) {
             exponent = (int) floor(log10(fabs(loc)));
             if (exponent < -24) {
                 exponent = -24;
@@ -751,9 +757,9 @@ char *create_fstring(int form, int prec, double loc, int type)
             eng_prefix = "";
             break;
         }
-	strcpy(format, "%.*f %s");
-	sprintf(s, format, prec, loc/(pow(10.0, exponent)), eng_prefix);
-	break;
+        strcpy(format, "%.*f %s");
+        sprintf(s, format, prec, loc/(pow(10.0, exponent)), eng_prefix);
+        break;
     case FORMAT_POWER:
         if (loc < 0.0) {
             loc = log10(-loc);
@@ -775,230 +781,230 @@ char *create_fstring(int form, int prec, double loc, int type)
         sprintf(s, format, prec, loc);
         break;
     case FORMAT_GENERAL:
-	strcpy(format, "%.*lg");
-	sprintf(s, format, prec, loc);
-	tmp = atof(s);
-	if (tmp == 0.0) {
-	    strcpy(format, "%lg");
-	    loc = 0.0;
-	    sprintf(s, format, loc);
-	}
-	break;
+        strcpy(format, "%.*lg");
+        sprintf(s, format, prec, loc);
+        tmp = atof(s);
+        if (tmp == 0.0) {
+            strcpy(format, "%lg");
+            loc = 0.0;
+            sprintf(s, format, loc);
+        }
+        break;
     case FORMAT_DDMMYY:
-	strcpy(format, "%02d-%02d-%0*d");
-	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, d, m, yprec, y);
-	break;
-    case FORMAT_MMDDYY:
-	strcpy(format, "%02d-%02d-%0*d");
-	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, yprec, y);
-	break;
-    case FORMAT_YYMMDD:
-	strcpy(format, "%0*d-%02d-%02d");
-	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, yprec, y, m, d);
-	break;
-    case FORMAT_MMYY:
-	strcpy(format, "%02d-%0*d");
-	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, yprec, y);
-	break;
-    case FORMAT_MMDD:
-	strcpy(format, "%02d-%02d");
-	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d);
-	break;
-    case FORMAT_MONTHDAY:
-	strcpy(format, "%s-%02d");
-	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, months[m - 1], d);
-	}
-	break;
-    case FORMAT_DAYMONTH:
-	strcpy(format, "%02d-%s");
-	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, d, months[m - 1]);
-	}
-	break;
-    case FORMAT_MONTHS:
-	strcpy(format, "%s");
-	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, months[m - 1]);
-	}
-	break;
-    case FORMAT_MONTHSY:
-	strcpy(format, "%s-%0*d");
-	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, months[m - 1], yprec, y);
-	}
-	break;
-    case FORMAT_MONTHL:
-	strcpy(format, "%s");
-	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	if (m - 1 < 0 || m - 1 > 11) {
-	    sprintf(s, format, "???");
-	} else {
-	    sprintf(s, format, monthl[m - 1]);
-	}
-	break;
-    case FORMAT_DAYOFWEEKS:
-	strcpy(format, "%s");
-	sprintf(s, format, dayofweekstrs[dayofweek(loc + get_ref_date())]);
-	break;
-    case FORMAT_DAYOFWEEKL:
-	strcpy(format, "%s");
-	sprintf(s, format, dayofweekstrl[dayofweek(loc + get_ref_date())]);
-	break;
-    case FORMAT_DAYOFYEAR:
-	strcpy(format, "%d");
+        strcpy(format, "%02d-%02d-%0*d");
         jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format,
+        sprintf(s, format, d, m, yprec, y);
+        break;
+    case FORMAT_MMDDYY:
+        strcpy(format, "%02d-%02d-%0*d");
+        jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format, m, d, yprec, y);
+        break;
+    case FORMAT_YYMMDD:
+        strcpy(format, "%0*d-%02d-%02d");
+        jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format, yprec, y, m, d);
+        break;
+    case FORMAT_MMYY:
+        strcpy(format, "%02d-%0*d");
+        jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format, m, yprec, y);
+        break;
+    case FORMAT_MMDD:
+        strcpy(format, "%02d-%02d");
+        jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format, m, d);
+        break;
+    case FORMAT_MONTHDAY:
+        strcpy(format, "%s-%02d");
+        jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
+        if (m - 1 < 0 || m - 1 > 11) {
+            sprintf(s, format, "???");
+        } else {
+            sprintf(s, format, months[m - 1], d);
+        }
+        break;
+    case FORMAT_DAYMONTH:
+        strcpy(format, "%02d-%s");
+        jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
+        if (m - 1 < 0 || m - 1 > 11) {
+            sprintf(s, format, "???");
+        } else {
+            sprintf(s, format, d, months[m - 1]);
+        }
+        break;
+    case FORMAT_MONTHS:
+        strcpy(format, "%s");
+        jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
+        if (m - 1 < 0 || m - 1 > 11) {
+            sprintf(s, format, "???");
+        } else {
+            sprintf(s, format, months[m - 1]);
+        }
+        break;
+    case FORMAT_MONTHSY:
+        strcpy(format, "%s-%0*d");
+        jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
+        if (m - 1 < 0 || m - 1 > 11) {
+            sprintf(s, format, "???");
+        } else {
+            sprintf(s, format, months[m - 1], yprec, y);
+        }
+        break;
+    case FORMAT_MONTHL:
+        strcpy(format, "%s");
+        jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
+        if (m - 1 < 0 || m - 1 > 11) {
+            sprintf(s, format, "???");
+        } else {
+            sprintf(s, format, monthl[m - 1]);
+        }
+        break;
+    case FORMAT_DAYOFWEEKS:
+        strcpy(format, "%s");
+        sprintf(s, format, dayofweekstrs[dayofweek(loc + get_ref_date())]);
+        break;
+    case FORMAT_DAYOFWEEKL:
+        strcpy(format, "%s");
+        sprintf(s, format, dayofweekstrl[dayofweek(loc + get_ref_date())]);
+        break;
+    case FORMAT_DAYOFYEAR:
+        strcpy(format, "%d");
+        jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format,
                 1 + (int) (cal_to_jul(y, m, d) - cal_to_jul(y, 1, 1)));
-	break;
+        break;
     case FORMAT_HMS:
-	strcpy(format, "%02d:%02d:%02d");
-	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, h, mm, sec);
-	break;
+        strcpy(format, "%02d:%02d:%02d");
+        jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format, h, mm, sec);
+        break;
     case FORMAT_MMDDHMS:
-	strcpy(format, "%02d-%02d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, h, mm, sec);
-	break;
+        strcpy(format, "%02d-%02d %02d:%02d:%02d");
+        jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format, m, d, h, mm, sec);
+        break;
     case FORMAT_MMDDYYHMS:
-	strcpy(format, "%02d-%02d-%d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, y, h, mm, sec);
-	break;
+        strcpy(format, "%02d-%02d-%d %02d:%02d:%02d");
+        jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format, m, d, y, h, mm, sec);
+        break;
     case FORMAT_YYMMDDHMS:
-	strcpy(format, "%0*d-%02d-%02d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, yprec, y, m, d, h, mm, sec);
-	break;
+        strcpy(format, "%0*d-%02d-%02d %02d:%02d:%02d");
+        jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, format, yprec, y, m, d, h, mm, sec);
+        break;
     case FORMAT_DEGREESLON:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%.*lfW");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%.*lfE");
-	} else {
-	    strcpy(format, "0");
-	}
-	sprintf(s, format, prec, loc);
-	break;
+        if (loc < 0.0) {
+            loc *= -1.0;
+            strcpy(format, "%.*lfW");
+        } else if (loc > 0.0) {
+            strcpy(format, "%.*lfE");
+        } else {
+            strcpy(format, "0");
+        }
+        sprintf(s, format, prec, loc);
+        break;
     case FORMAT_DEGREESMMLON:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d %.*lf' W");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d %.*lf' E");
-	} else {
-	    strcpy(format, "0 0'");
-	}
-	y = loc;
-	arcmin = (loc - y) * 60.0;
-	sprintf(s, format, y, prec, arcmin);
-	break;
+        if (loc < 0.0) {
+            loc *= -1.0;
+            strcpy(format, "%d %.*lf' W");
+        } else if (loc > 0.0) {
+            strcpy(format, "%d %.*lf' E");
+        } else {
+            strcpy(format, "0 0'");
+        }
+        y = loc;
+        arcmin = (loc - y) * 60.0;
+        sprintf(s, format, y, prec, arcmin);
+        break;
     case FORMAT_DEGREESMMSSLON:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d %d' %.*lf\" W");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d %d' %.*lf\" E");
-	} else {
-	    strcpy(format, "0 0' 0\"");
-	}
-	y = loc;
-	arcsec = (loc - y) * 3600.0;
-	m = arcsec / 60.0;
-	arcsec = (arcsec - m * 60);
-	sprintf(s, format, y, m, prec, arcsec);
-	break;
+        if (loc < 0.0) {
+            loc *= -1.0;
+            strcpy(format, "%d %d' %.*lf\" W");
+        } else if (loc > 0.0) {
+            strcpy(format, "%d %d' %.*lf\" E");
+        } else {
+            strcpy(format, "0 0' 0\"");
+        }
+        y = loc;
+        arcsec = (loc - y) * 3600.0;
+        m = arcsec / 60.0;
+        arcsec = (arcsec - m * 60);
+        sprintf(s, format, y, m, prec, arcsec);
+        break;
     case FORMAT_MMSSLON:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d' %.*lf\" W");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d' %.*lf\" E");
-	} else {
-	    strcpy(format, "0 0' 0\"");
-	}
-	y = loc;
-	arcsec = (loc - y) * 3600.0;
-	m = arcsec / 60.0;
-	arcsec = (arcsec - m * 60);
-	sprintf(s, format, m, prec, arcsec);
-	break;
+        if (loc < 0.0) {
+            loc *= -1.0;
+            strcpy(format, "%d' %.*lf\" W");
+        } else if (loc > 0.0) {
+            strcpy(format, "%d' %.*lf\" E");
+        } else {
+            strcpy(format, "0 0' 0\"");
+        }
+        y = loc;
+        arcsec = (loc - y) * 3600.0;
+        m = arcsec / 60.0;
+        arcsec = (arcsec - m * 60);
+        sprintf(s, format, m, prec, arcsec);
+        break;
     case FORMAT_DEGREESLAT:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%.*lfS");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%.*lfN");
-	} else {
-	    strcpy(format, "0");
-	}
-	sprintf(s, format, prec, loc);
-	break;
+        if (loc < 0.0) {
+            loc *= -1.0;
+            strcpy(format, "%.*lfS");
+        } else if (loc > 0.0) {
+            strcpy(format, "%.*lfN");
+        } else {
+            strcpy(format, "0");
+        }
+        sprintf(s, format, prec, loc);
+        break;
     case FORMAT_DEGREESMMLAT:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d %.*lf' S");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d %.*lf' N");
-	} else {
-	    strcpy(format, "0 0'");
-	}
-	y = loc;
-	arcsec = (loc - y) * 60.0;
-	sprintf(s, format, y, prec, arcsec);
-	break;
+        if (loc < 0.0) {
+            loc *= -1.0;
+            strcpy(format, "%d %.*lf' S");
+        } else if (loc > 0.0) {
+            strcpy(format, "%d %.*lf' N");
+        } else {
+            strcpy(format, "0 0'");
+        }
+        y = loc;
+        arcsec = (loc - y) * 60.0;
+        sprintf(s, format, y, prec, arcsec);
+        break;
     case FORMAT_DEGREESMMSSLAT:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d %d' %.*lf\" S");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d %d' %.*lf\" N");
-	} else {
-	    strcpy(format, "0 0' 0\"");
-	}
-	y = loc;
-	arcsec = (loc - y) * 3600.0;
-	m = arcsec / 60.0;
-	arcsec = (arcsec - m * 60);
-	sprintf(s, format, y, m, prec, arcsec);
-	break;
+        if (loc < 0.0) {
+            loc *= -1.0;
+            strcpy(format, "%d %d' %.*lf\" S");
+        } else if (loc > 0.0) {
+            strcpy(format, "%d %d' %.*lf\" N");
+        } else {
+            strcpy(format, "0 0' 0\"");
+        }
+        y = loc;
+        arcsec = (loc - y) * 3600.0;
+        m = arcsec / 60.0;
+        arcsec = (arcsec - m * 60);
+        sprintf(s, format, y, m, prec, arcsec);
+        break;
     case FORMAT_MMSSLAT:
-	if (loc < 0.0) {
-	    loc *= -1.0;
-	    strcpy(format, "%d' %.*lf\" S");
-	} else if (loc > 0.0) {
-	    strcpy(format, "%d' %.*lf\" N");
-	} else {
-	    strcpy(format, "0 0' 0\"");
-	}
-	y = loc;
-	arcsec = (loc - y) * 3600.0;
-	m = arcsec / 60.0;
-	arcsec = (arcsec - m * 60);
-	sprintf(s, format, m, prec, arcsec);
-	break;
+        if (loc < 0.0) {
+            loc *= -1.0;
+            strcpy(format, "%d' %.*lf\" S");
+        } else if (loc > 0.0) {
+            strcpy(format, "%d' %.*lf\" N");
+        } else {
+            strcpy(format, "0 0' 0\"");
+        }
+        y = loc;
+        arcsec = (loc - y) * 3600.0;
+        m = arcsec / 60.0;
+        arcsec = (arcsec - m * 60);
+        sprintf(s, format, m, prec, arcsec);
+        break;
     default:
-	sprintf(s, format, prec, loc);
-	break;
+        sprintf(s, format, prec, loc);
+        break;
     }
 
     /* revert to POSIX */
@@ -1165,7 +1171,7 @@ char *get_docbname(void)
     static char buf[GR_MAXPATHLEN];
     char *bufp;
     
-    strcpy(buf, mybasename(docname)); 
+    strcpy(buf, mybasename(docname));
     bufp = strrchr(buf, '.');
     if (bufp) {
         *(bufp) = '\0';
@@ -1190,15 +1196,15 @@ void errmsg(const char *buf)
 #else
     fprintf(stderr, "%s\n", buf);
     if (disableConsole) {
-    if (FormConsole==NULL)
-	{
-	FormConsole=new frmConsole(mainWin);
-	}
-	FormConsole->show();
-	FormConsole->raise();
-	FormConsole->errwin(buf);
+        if (FormConsole==NULL)
+        {
+            FormConsole=new frmConsole(mainWin);
+        }
+        FormConsole->show();
+        FormConsole->raise();
+        FormConsole->errwin(buf);
     } else {
-  //      fprintf(stderr, "%s\n", buf);
+        //      fprintf(stderr, "%s\n", buf);
     }
 #endif
 }
@@ -1212,11 +1218,11 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 {
     if (noask)
     {
-    //cout << "oops... noask=true" << endl;
-	return 1;
+        //cout << "oops... noask=true" << endl;
+        return 1;
     }
-return yesnowin(msg, s1, s2, help_anchor);
-/*#ifdef NONE_GUI
+    return yesnowin(msg, s1, s2, help_anchor);
+    /*#ifdef NONE_GUI
     return (yesnoterm(msg));
 #else
     if (inwin) {
@@ -1226,25 +1232,25 @@ return yesnowin(msg, s1, s2, help_anchor);
     }
 #endif*/
 }
- 
+
 void stufftext(char *s)
 {
-/*#ifdef NONE_GUI
+    /*#ifdef NONE_GUI
     printf(s);
 #else*/
     //if (inwin) {
-	if (FormConsole==NULL)
-	{
-	FormConsole=new frmConsole(mainWin);
-	}
-	FormConsole->show();
-	FormConsole->raise();
-	FormConsole->msgwin(s);
-/*        stufftextwin(s);*/
+    if (FormConsole==NULL)
+    {
+        FormConsole=new frmConsole(mainWin);
+    }
+    FormConsole->show();
+    FormConsole->raise();
+    FormConsole->msgwin(s);
+    /*        stufftextwin(s);*/
     /*} else {
         printf(s);
     }*/
-//#endif
+    //#endif
     /* log results to file */
     if (resfp != NULL) {
         fprintf(resfp,"%s", s);
@@ -1317,7 +1323,7 @@ int set_workingdir(const char *wd)
         if (workingdir[strlen(workingdir)-1] != '/') {
             strcat(workingdir, "/");
         }
-	return RETURN_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
@@ -1334,7 +1340,7 @@ void init_username(void)
 {
     char *s;
 
-/*
+    /*
  *     We don't use it for any kind of authentication, so why not let
  *     user to customize her name? :)
  */
@@ -1370,7 +1376,7 @@ void init_userhome(void)
 char *get_userhome(void)
 {
     if(userhome==NULL)init_userhome();
-    // was missing. And if missing, it causes segm fault on win64 
+    // was missing. And if missing, it causes segm fault on win64
 
     return userhome;
 }
@@ -1381,23 +1387,23 @@ void expand_tilde(char *buf)
     char buf2[GR_MAXPATHLEN];
 
     if (buf[0] == '~') {
-	if (strlen(buf) == 1) {
+        if (strlen(buf) == 1) {
             strcpy(buf, get_userhome());
-	} else if (buf[1] == '/') {
+        } else if (buf[1] == '/') {
             if (strlen(buf) > 2) {
                 strcpy(buf2, get_userhome());
-	        strcat(buf2, buf + 1);
-	        strcpy(buf, buf2);
+                strcat(buf2, buf + 1);
+                strcpy(buf, buf2);
             } else {
                 strcpy(buf, get_userhome());
             }
-	} else {
-	    char tmp[128], *pp = tmp, *q = buf + 1;
+        } else {
+            char tmp[128], *pp = tmp, *q = buf + 1;
 
-	    while (*q && (*q != '/')) {
-		*pp++ = *q++;
-	    }
-	    *pp = 0;
+            while (*q && (*q != '/')) {
+                *pp++ = *q++;
+            }
+            *pp = 0;
 #ifndef WINDOWS_SYSTEM
             struct passwd *pent;
             if ((pent = getpwnam(tmp)) != NULL)
@@ -1411,16 +1417,16 @@ void expand_tilde(char *buf)
             }
 #endif
 
-	}
+        }
     }
 }
 
 void echomsg(char *msg)
 {
     if (inwin) {
-//#ifndef NONE_GUI
+        //#ifndef NONE_GUI
         set_left_footer(msg);
-//#endif
+        //#endif
     } else {
         printf("%s\n", msg);
     }
@@ -1443,9 +1449,9 @@ static void update_timestamp(void)
 
 void update_app_title(void)
 {
-//#ifndef NONE_GUI
+    //#ifndef NONE_GUI
     set_title(mybasename(get_docname()));
-//#endif
+    //#endif
 }
 
 /*
@@ -1462,9 +1468,9 @@ void set_dirtystate(void)
         update_timestamp();
         update_app_title();
 
-/*
+        /*
  * TODO:
- * 	if ( (dirtystate > SOME_LIMIT) || 
+ * 	if ( (dirtystate > SOME_LIMIT) ||
  *           (current_time - autosave_time > ANOTHER_LIMIT) ) {
  * 	    autosave();
  * 	}
@@ -1500,7 +1506,7 @@ void msleep_wrap(unsigned int msec)
     struct timeval timeout;
     timeout.tv_sec = msec / 1000;
     timeout.tv_usec = 1000 * (msec % 1000);
-    select(0, NULL, NULL, NULL, &timeout);    
+    select(0, NULL, NULL, NULL, &timeout);
 #else
     cout << "NOT SUPPORTED ON WINDOWS" << endl;
 #endif
@@ -1556,36 +1562,36 @@ void set_locale_num(int flag)
 long bi_version_id(void)
 {
     ///return BI_VERSION_ID;
-return MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL;
+    return MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL;
 }
 
 char *bi_version_string(void)
 {
-sprintf(BI_VERSION, "Grace-%d.%d.%d",MAJOR_REV, MINOR_REV, PATCHLEVEL);
+    sprintf(BI_VERSION, "Grace-%d.%d.%d",MAJOR_REV, MINOR_REV, PATCHLEVEL);
     return BI_VERSION;
 }
 
 char *bi_system(void)
 {
 #ifndef WINDOWS_SYSTEM
-uname(&u_info);
-sprintf(BI_SYSTEM, "%s\n%s\n%s\n%s",u_info.sysname, u_info.version, u_info.release, u_info.machine);
+    uname(&u_info);
+    sprintf(BI_SYSTEM, "%s\n%s\n%s\n%s",u_info.sysname, u_info.version, u_info.release, u_info.machine);
 #else
-sprintf(BI_SYSTEM, "Windows");
+    sprintf(BI_SYSTEM, "Windows");
 #endif
     return BI_SYSTEM;
 }
 
 char *bi_date(void)
 {
-/*#ifndef WINDOWS_SYSTEM
+    /*#ifndef WINDOWS_SYSTEM
 time_info = time(NULL);
 strcpy(ctime_string,ctime(&time_info));
 #else
 strcpy(ctime_string,"NOT SUPPORTED");
 #endif
 return ctime_string;*/
-return BI_DATE;
+    return BI_DATE;
 }
 
 char *bi_gui(void)

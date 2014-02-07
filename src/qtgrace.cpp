@@ -39,8 +39,12 @@ char SystemsDecimalPoint='.';
 DrawProps draw_props = {{1, 1}, 0, TRUE, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
 int maxgraph;
 bool useQtFonts=false;
+
+#ifdef SKF_QtGrace
 bool hdeviceFlag;
 int hardCopyDeviceNr;
+#endif
+
 QList<QFont> stdFontList;
 QFont stdFont;
 QFontMetrics stdFontMetrics(stdFont);
@@ -73,6 +77,9 @@ frmPlotAppearance * FormPlotAppearance;
 frmLocatorProps * FormLocatorProps;
 frmAxisProp * FormAxisProperties;
 frmPointExplorer * FormPointExplorer;
+#ifdef SKF_QtGrace
+frmFontSettings * FormFontSettings;
+#endif
 frmNonlinCurveFit * FormNonlinCurveFit;
 //frmEditColumnProp * EditColumn;
 frmInterpolation * FormInterpolation;
@@ -505,6 +512,11 @@ int main( int argc, char **argv )
     FormLocatorProps=NULL;
     FormDrawObjects=NULL;
     FormPointExplorer=NULL;
+
+#ifdef SKF_QtGrace
+    FormFontSettings=NULL;
+#endif
+
     FormNonlinCurveFit=NULL;
     FormInterpolation=NULL;
     FormSetOperations=NULL;
@@ -620,7 +632,13 @@ int main( int argc, char **argv )
     GeneralPainter=new QPainter(MainPixmap);
 
     stdFont=a->font();
-    //stdFont.setPixelSize(14); /BZ2067
+
+#ifdef SKF_QtGrace
+    //BZ2067
+#else
+    stdFont.setPixelSize(14);
+#endif
+
     stdFontMetrics=QFontMetrics(stdFont);
 
     mainWin=new MainWindow();
@@ -628,12 +646,14 @@ int main( int argc, char **argv )
 
     replacement_main(argc,argv);//set up all internal Grace-things
 
+#ifdef SKF_QtGrace
     //Here setup socket connection.
     if(connectToViewBeast){
         mainWin->SocketConnection = new LocalSocketIpcServer(sendToBeast,readFromBeast,mainWin);
     }else{
         fprintf(stderr, "Not able to start View Beast connection\n");
     }
+#endif
 
     if (gracebat==TRUE)//no GUI wanted
     {
@@ -642,11 +662,14 @@ int main( int argc, char **argv )
         delete MainPixmap;
         return 0;
     }
-
+#ifdef SKF_QtGrace
     //2013-09-12 Nimalendiran Kailasanathan changed default window -and canvas size
     mainWin->setGeometry( 100, 100,1060,800 );
     set_page_dimensions(DEFAULT_PAGE_WIDTH,DEFAULT_PAGE_HEIGHT,1);
-    //      mainWin->setGeometry( 100, 100, 872, 670 );
+#else
+    mainWin->setGeometry( 100, 100, 872, 670 );
+#endif
+
     init();
     FormConsole=new frmConsole(mainWin);//needed for error-Messages
     FormPreferences=new frmPreferences(mainWin);
@@ -675,7 +698,7 @@ int main( int argc, char **argv )
 
     //cout << "useQtFonts=" << useQtFonts << endl;
 
- /*   orig_page_w=device_table[DEVICE_SCREEN].pg.width;//save original size
+    /*   orig_page_w=device_table[DEVICE_SCREEN].pg.width;//save original size
 orig_page_h=device_table[DEVICE_SCREEN].pg.height;
 device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
 device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;*/
@@ -698,9 +721,11 @@ device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;*/
 
     int execVal=a->exec();
 
+#ifdef SKF_QtGrace
     if(mainWin&&mainWin->SocketConnection){
         delete  mainWin->SocketConnection;
     }
+#endif
 
     return execVal;
 }
@@ -881,7 +906,12 @@ void read_settings(void)
     FormPreferences->autoredraw_type_item->setChecked(allPrefs->value(QString("autoredraw"),QVariant(true)).toBool());
     FormPreferences->cursor_type_item->setChecked(allPrefs->value(QString("crosshaircursor"),QVariant(false)).toBool());
 
+#ifdef SKF_QtGrace
     FormPreferences->max_path_item->setValue(allPrefs->value(QString("maxdrawpathlength"),QVariant(1000000)).toInt());
+#else
+    FormPreferences->max_path_item->setValue(allPrefs->value(QString("maxdrawpathlength"),QVariant(20000)).toInt());
+#endif
+
     FormPreferences->safe_mode_item->setChecked(allPrefs->value(QString("runinsafemode"),QVariant(true)).toBool());
 
     FormPreferences->scrollper_item->setValue(allPrefs->value(QString("scrollpercent"),QVariant(5)).toInt());
@@ -913,14 +943,32 @@ void read_settings(void)
     allPrefs->beginGroup(QString("General"));
     stdOutputFormat=allPrefs->value(QString("lastOutputFormat"),QVariant(1)).toInt();
     undo_active=allPrefs->value(QString("activateUndoRecords"),QVariant(false)).toBool();///undo deactivated as a default
-    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(true)).toBool();
+
+    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(
+                                         #ifdef SKF_QtGrace
+                                             true
+                                         #else
+                                             false
+                                         #endif
+                                             )).toBool();
+
     ExtraPreferences->chkActivateLaTeXSupport->setChecked(activateLaTeXsupport);
     immediateUpdate=allPrefs->value(QString("ImmediateUpdates"),QVariant(false)).toBool();
     ExtraPreferences->chkImmediateUpdate->setChecked(immediateUpdate);
-    default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(0)).toInt();
+    default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(
+                                         #ifdef SKF_QtGrace
+                                             0
+                                         #else
+                                             -1
+                                         #endif
+
+                                             )).toInt();
+#ifdef SKF_QtGrace
     if(hdeviceFlag){
         default_Print_Device=hardCopyDeviceNr;
     }
+#endif
+
     ExtraPreferences->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);
     //no paint device yet --> we have to disconnect this, because redraw is inpossible now
     mainWin->disconnect(mainWin->sldPageZoom,SIGNAL(valueChanged(int)),mainWin,SLOT(doPageZoom(int)));
@@ -948,7 +996,11 @@ void read_settings(void)
     undo_active=false;
     if (FormDeviceSetup==NULL)
     {
-        FormDeviceSetup=new frmDeviceSetup(1,mainWin);
+#ifdef SKF_QtGrace
+                FormDeviceSetup=new frmDeviceSetup(1,mainWin);
+#else
+        FormDeviceSetup=new frmDeviceSetup(mainWin);
+#endif
         //initialize this only on startup
         if (default_Print_Device==-1)//last one
             FormDeviceSetup->devices_item->setCurrentIndex(stdOutputFormat);
@@ -956,7 +1008,11 @@ void read_settings(void)
             FormDeviceSetup->devices_item->setCurrentIndex(default_Print_Device);
     }
     FormDeviceSetup->hide();
-    //   FormDeviceSetup->print_string_item->setText( allPrefs->value(QString("PrintCommand"),QVariant("lpr")).toString() );
+
+#ifdef SKF_QtGrace
+#else
+    FormDeviceSetup->print_string_item->setText( allPrefs->value(QString("PrintCommand"),QVariant("lpr")).toString() );
+#endif
     FormDeviceSetup->doApply();
 
     allPrefs->endGroup();

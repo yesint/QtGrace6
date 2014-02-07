@@ -99,84 +99,84 @@ using namespace std;
  * only allowable char's [0-9.eE]
  */
 unsigned char fpdigit[256] = {
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 void sort(int number,int * items)//bubble-sort (I know that I am stupid - but it works)
 {
-int dummy;
+    int dummy;
     for (int i=0;i<number;i++)
     {
-	for (int j=i+1;j<number;j++)
-	{
+        for (int j=i+1;j<number;j++)
+        {
             if (items[j]<items[i])
             {
-            dummy=items[j];
-            items[j]=items[i];
-            items[i]=dummy;
+                dummy=items[j];
+                items[j]=items[i];
+                items[i]=dummy;
             }
-	}
+        }
     }
 }
 
 int indexOfFontInDatabase(QFont & f)
 {
-QString s1=f.toString();
-QString s2;
-int index=-1;
-for (int i=0;i<stdFontList.length();i++)
-{
-    s2=stdFontList.at(i).toString();
-    if (s1.compare(s2)==0)
+    QString s1=f.toString();
+    QString s2;
+    int index=-1;
+    for (int i=0;i<stdFontList.length();i++)
     {
-    index=i;
-    break;
+        s2=stdFontList.at(i).toString();
+        if (s1.compare(s2)==0)
+        {
+            index=i;
+            break;
+        }
     }
-}
-return index;
+    return index;
 }
 
 QFont getFontFromDatabase(int i)
 {
     if (i<0 || i>=stdFontList.length())
-    return stdFontList.at(0);
+        return stdFontList.at(0);
     else
-    return stdFontList.at(i);
+        return stdFontList.at(i);
 }
 
 int addFontToDatabase(QFont & f)
 {
-stdFontList << f;
-return stdFontList.length()-1;//new font has last index
+    stdFontList << f;
+    return stdFontList.length()-1;//new font has last index
 }
 
 void append_to_storage(int * l,int ** storage,int n,int * new_entries)
 {
-static int m1,m2;
-int * temp;
-//the memory size of storage automatically increases by DELTASIZE if needed
-//new_entries are appended; len is the current storage size, n the number of new numbers to append
-//if storage==NUll --> storage is empty, new storage space is allocated
-if (n<=0 || new_entries==NULL) return;
+    static int m1,m2;
+    int * temp;
+    //the memory size of storage automatically increases by DELTASIZE if needed
+    //new_entries are appended; len is the current storage size, n the number of new numbers to append
+    //if storage==NUll --> storage is empty, new storage space is allocated
+    if (n<=0 || new_entries==NULL) return;
     if (*l<=0 && *storage!=NULL)
     {
-    delete[] *storage;
-    *storage=NULL;
-    *l=0;
+        delete[] *storage;
+        *storage=NULL;
+        *l=0;
     }
     m1=(*l)/DELTASIZE;
     m2=(*l+n)/DELTASIZE;
@@ -184,173 +184,173 @@ if (n<=0 || new_entries==NULL) return;
     if (m2*DELTASIZE<*l+n) m2++;
     if (*storage==NULL)
     {
-    *storage=new int[(m2)*DELTASIZE];
-    *l=0;
+        *storage=new int[(m2)*DELTASIZE];
+        *l=0;
     }
     else if (m2>m1)//more memory needed
     {
-    temp=*storage;
-    *storage=new int[(m2)*DELTASIZE];
-    memcpy(*storage,temp,sizeof(int)*(m1)*DELTASIZE);
-    delete[] temp;
+        temp=*storage;
+        *storage=new int[(m2)*DELTASIZE];
+        memcpy(*storage,temp,sizeof(int)*(m1)*DELTASIZE);
+        delete[] temp;
     }//else: enough memory
-memcpy(*storage+*l,new_entries,sizeof(int)*n);
-*l+=n;
+    memcpy(*storage+*l,new_entries,sizeof(int)*n);
+    *l+=n;
 }
 
 struct komplex add_komplex(struct komplex a,struct komplex b)
 {
-struct komplex c={a.real+b.real,a.imag+b.imag};
-return c;
+    struct komplex c={a.real+b.real,a.imag+b.imag};
+    return c;
 }
 
 struct komplex sub_komplex(struct komplex a,struct komplex b)
 {
-struct komplex c={a.real-b.real,a.imag-b.imag};
-return c;
+    struct komplex c={a.real-b.real,a.imag-b.imag};
+    return c;
 }
 
 struct komplex mult_komplex(struct komplex a,struct komplex b)
 {
-//(ar+i*ai)*(br+i*bi)=(ar*br-ai*bi)+i*(ai*br+bi*ar)
-struct komplex c={a.real*b.real-a.imag*b.imag,a.imag*b.real+b.imag*a.real};
-return c;
+    //(ar+i*ai)*(br+i*bi)=(ar*br-ai*bi)+i*(ai*br+bi*ar)
+    struct komplex c={a.real*b.real-a.imag*b.imag,a.imag*b.real+b.imag*a.real};
+    return c;
 }
 
 struct komplex div_komplex(struct komplex a,struct komplex b)
 {
-//(ar+i*ai)/(br+i*bi)=(ar+i*ai)/(br+i*bi)*(br-i*bi)/(br-i*bi)=((ar*br+ai*bi)+i*(ai*br-bi*ar))/(br*br+bi*bi)
-double betr=b.real*b.real+b.imag*b.imag;
-struct komplex c={(a.real*b.real+a.imag*b.imag)/betr,(a.imag*b.real-b.imag*a.real)/betr};
-return c;
+    //(ar+i*ai)/(br+i*bi)=(ar+i*ai)/(br+i*bi)*(br-i*bi)/(br-i*bi)=((ar*br+ai*bi)+i*(ai*br-bi*ar))/(br*br+bi*bi)
+    double betr=b.real*b.real+b.imag*b.imag;
+    struct komplex c={(a.real*b.real+a.imag*b.imag)/betr,(a.imag*b.real-b.imag*a.real)/betr};
+    return c;
 }
 
 struct komplex pow_komplex(struct komplex a,double n)
 {
-static double pi=2.0*asin(1.0);
-double absval=pow(hypot(a.real,a.imag),n);
-double phase=atan2(a.imag,a.real)*n;
-/*if (a.real==0.0)
+    static double pi=2.0*asin(1.0);
+    double absval=pow(hypot(a.real,a.imag),n);
+    double phase=atan2(a.imag,a.real)*n;
+    /*if (a.real==0.0)
 {
 if (a.imag>=0.0) phase=0.5*pi;
 else phase=1.5*pi;
 }*/
-struct komplex c={absval*cos(phase),absval*sin(phase)};
-return c;
+    struct komplex c={absval*cos(phase),absval*sin(phase)};
+    return c;
 }
 
 void SetLineEditToMemory(char * t1,char * t2,char * &c1,char * &c2,bool &displayStd,QLineEdit * lenText)
 {
-static QPalette pal;
-c1=t1;
-c2=t2;
-displayStd=true;
+    static QPalette pal;
+    c1=t1;
+    c2=t2;
+    displayStd=true;
     pal=lenText->palette();
     if (stdTextColor==NULL)
-    stdTextColor=new QColor(pal.text().color());
+        stdTextColor=new QColor(pal.text().color());
     pal.setColor(QPalette::Text,*stdTextColor);
-        if (t2!=NULL)
-        {
-            if (useQtFonts==false)
+    if (t2!=NULL)
+    {
+        if (useQtFonts==false)
             lenText->setText(QString(t2));//t2 = original
-            else
-            lenText->setText(FileCodec->toUnicode(t2));//t2 = original
-        }
         else
+            lenText->setText(FileCodec->toUnicode(t2));//t2 = original
+    }
+    else
         lenText->setText("");
-lenText->setPalette(pal);
+    lenText->setPalette(pal);
 }
 
 void ClickedOnLabel(char * c1,char * c2,bool &displayStd,QLineEdit * lenText)
 {
-static QPalette pal;
+    static QPalette pal;
     if (c1==NULL || c2==NULL) return;
-displayStd=!displayStd;
-pal=lenText->palette();
-if (displayStd)//Std is the original user input (probably in LaTeX-format)
-{
-    if (useQtFonts==false)
-    lenText->setText(QString(c2));
+    displayStd=!displayStd;
+    pal=lenText->palette();
+    if (displayStd)//Std is the original user input (probably in LaTeX-format)
+    {
+        if (useQtFonts==false)
+            lenText->setText(QString(c2));
+        else
+            lenText->setText(FileCodec->toUnicode(c2));
+        pal.setColor(QPalette::Text,*stdTextColor);
+    }
     else
-    lenText->setText(FileCodec->toUnicode(c2));
-pal.setColor(QPalette::Text,*stdTextColor);
-}
-else
-{
-    if (useQtFonts==false)
-    lenText->setText(QString(c1));//converted input (Grace-format)
-    else
-    lenText->setText(FileCodec->toUnicode(c1));
-pal.setColor(QPalette::Text,Qt::red);
-}
-lenText->setPalette(pal);
+    {
+        if (useQtFonts==false)
+            lenText->setText(QString(c1));//converted input (Grace-format)
+        else
+            lenText->setText(FileCodec->toUnicode(c1));
+        pal.setColor(QPalette::Text,Qt::red);
+    }
+    lenText->setPalette(pal);
 }
 
 void DynSetMemoryToLineEdit(char * &t1,char * &t2,char *&c1,char * &c2,bool & displayStd,bool acceptLaTex,QLineEdit * lenText)
 {
-static QPalette pal;
-QString text(FileCodec->fromUnicode(lenText->text()));
+    static QPalette pal;
+    QString text(FileCodec->fromUnicode(lenText->text()));
     if (useQtFonts==false) text=lenText->text();
-pal=lenText->palette();
-displayStd=true;
-char * te=new char[text.length()+8];
-strcpy(te,text.toAscii().constData());
-t2=copy_string(t2,te);//t2 is always the original
+    pal=lenText->palette();
+    displayStd=true;
+    char * te=new char[text.length()+8];
+    strcpy(te,text.toAscii().constData());
+    t2=copy_string(t2,te);//t2 is always the original
     if (acceptLaTex==true && activateLaTeXsupport==true)
     {
-    complete_LaTeX_to_Grace_Translator(text);
-    delete[] te;
-    te=new char[text.length()+8];
-    strcpy(te,text.toAscii().constData());
+        complete_LaTeX_to_Grace_Translator(text);
+        delete[] te;
+        te=new char[text.length()+8];
+        strcpy(te,text.toAscii().constData());
     }
-t1=copy_string(t1,te);//t1 is the Grace-version of the text
-c1=t1;
-c2=t2;
-pal.setColor(QPalette::Text,*stdTextColor);
-delete[] te;
+    t1=copy_string(t1,te);//t1 is the Grace-version of the text
+    c1=t1;
+    c2=t2;
+    pal.setColor(QPalette::Text,*stdTextColor);
+    delete[] te;
 }
 
 SetCombo::SetCombo(QWidget * parent):QComboBox(parent)
 {
-show_none=true;
-gno=-1;
-nr_of_entries=0;
-snos=new int[2];
+    show_none=true;
+    gno=-1;
+    nr_of_entries=0;
+    snos=new int[2];
 }
 
 void SetCombo::update_entries(int gr,bool preserve_selection)
 {
-if (is_valid_gno(gr)==FALSE) return;
-int old=value();
-gno=gr;
-delete[] snos;
-snos=new int[3+g[gno].maxplot];
-clear();
+    if (is_valid_gno(gr)==FALSE) return;
+    int old=value();
+    gno=gr;
+    delete[] snos;
+    snos=new int[3+g[gno].maxplot];
+    clear();
     if (show_none==true)
     {
-    snos[0]=-1;
-    addItem(tr("None"));
-    nr_of_entries=1;
+        snos[0]=-1;
+        addItem(tr("None"));
+        nr_of_entries=1;
     }
     else
-    nr_of_entries=0;
-for (int i=0;i<g[gno].maxplot;i++)
-{
-    if (is_set_active(gno,i)==true)
+        nr_of_entries=0;
+    for (int i=0;i<g[gno].maxplot;i++)
     {
-    sprintf(dummy,"S%d",i);
-    addItem(QString(dummy));
-    snos[nr_of_entries++]=i;
+        if (is_set_active(gno,i)==true)
+        {
+            sprintf(dummy,"S%d",i);
+            addItem(QString(dummy));
+            snos[nr_of_entries++]=i;
+        }
     }
-}
     if (old!=-10 && preserve_selection==true)//reset old selection
     {
         for (int i=0;i<nr_of_entries;i++)
         {
             if (snos[i]==old)
             {
-            setCurrentIndex(i);
-            break;
+                setCurrentIndex(i);
+                break;
             }
         }
     }
@@ -358,705 +358,705 @@ for (int i=0;i<g[gno].maxplot;i++)
 
 int SetCombo::value(void)
 {
-if (gno==-1) return -10;
-else
-return snos[currentIndex()];
+    if (gno==-1) return -10;
+    else
+        return snos[currentIndex()];
 }
 
 void SetCombo::setValue(int set)
 {
     for (int i=0;i<nr_of_entries;i++)
     {
-    if (snos[i]==set)
-    {
-    setCurrentIndex(i);
-    break;
-    }
+        if (snos[i]==set)
+        {
+            setCurrentIndex(i);
+            break;
+        }
     }
 }
 
 SetSelectorCombo::SetSelectorCombo(QString text,QWidget * parent):QWidget(parent)
 {
-cmb=new SetCombo(this);
-lblCombo=new QLabel(text,this);
-layout=new QHBoxLayout;
-layout->setMargin(STD_MARGIN);
-layout->setSpacing(STD_SPACING);
-layout->addWidget(lblCombo);
-layout->addWidget(cmb);
-setLayout(layout);
+    cmb=new SetCombo(this);
+    lblCombo=new QLabel(text,this);
+    layout=new QHBoxLayout;
+    layout->setMargin(STD_MARGIN);
+    layout->setSpacing(STD_SPACING);
+    layout->addWidget(lblCombo);
+    layout->addWidget(cmb);
+    setLayout(layout);
 }
 
 void SetSelectorCombo::update_entries(int gno,bool preserve_selection)
 {
-cmb->update_entries(gno,preserve_selection);
+    cmb->update_entries(gno,preserve_selection);
 }
 
 int SetSelectorCombo::value(void)
 {
-return cmb->value();
+    return cmb->value();
 }
 
 void SetSelectorCombo::setValue(int set)
 {
-cmb->setValue(set);
+    cmb->setValue(set);
 }
 
 Panel::Panel(QPixmap * pix,QWidget * parent):QLabel(parent)
 {
-p=pix;
-inpaint=false;
-setMouseTracking(TRUE);
+    p=pix;
+    inpaint=false;
+    setMouseTracking(TRUE);
 }
 
 void Panel::paintEvent(QPaintEvent *event)
 {
-if (inpaint==false)
-inpaint=true;
-else
-return;
-QPainter paint(this);
-paint.drawPixmap(0,0,*p);
-paint.end();
-QLabel::paintEvent(event);
-inpaint=false;
+    if (inpaint==false)
+        inpaint=true;
+    else
+        return;
+    QPainter paint(this);
+    paint.drawPixmap(0,0,*p);
+    paint.end();
+    QLabel::paintEvent(event);
+    inpaint=false;
 }
 
 void Panel::mouseMoveEvent( QMouseEvent * event )
 {
-emit(mouseMoving());
+    emit(mouseMoving());
 }
 
 void Panel::mouseReleaseEvent(QMouseEvent *event)
 {
-emit(mouseClicked());
+    emit(mouseClicked());
 }
 
 panelWindow::panelWindow(int rows,int cols,int last_col,QPixmap ** pix,QWidget * parent):QDialog(parent)
 {
-frm=new QFrame(this);
-layout0=new QHBoxLayout(this);
-layout0->setMargin(0);
-layout0->setSpacing(0);
-frm->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
-signalMapper1=new QSignalMapper;
-signalMapper2=new QSignalMapper;
-pixmaps=pix;
-row_count=rows;
-last_col_count=last_col;
-col_count=cols;
-number_of_elements=row_count*(col_count-1)+last_col_count;
-elementWidth=pix[0]->width();
-elementHeight=pix[0]->height();
-marked=highlighted=-1;//-1 means nothing ist marked or highlighted
-layout=new QGridLayout;
-layout->setMargin(0);
-layout->setSpacing(0);
-int r=0,c=0;
-lblPanel=new class Panel*[number_of_elements];
-//cout << "number_of_elements: " << number_of_elements << endl;
-	for (int i=0;i<number_of_elements;i++)
-	{
-	lblPanel[i]=new class Panel(pixmaps[i],this);
-	lblPanel[i]->setMinimumSize(elementWidth,elementHeight);
+    frm=new QFrame(this);
+    layout0=new QHBoxLayout(this);
+    layout0->setMargin(0);
+    layout0->setSpacing(0);
+    frm->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
+    signalMapper1=new QSignalMapper;
+    signalMapper2=new QSignalMapper;
+    pixmaps=pix;
+    row_count=rows;
+    last_col_count=last_col;
+    col_count=cols;
+    number_of_elements=row_count*(col_count-1)+last_col_count;
+    elementWidth=pix[0]->width();
+    elementHeight=pix[0]->height();
+    marked=highlighted=-1;//-1 means nothing ist marked or highlighted
+    layout=new QGridLayout;
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    int r=0,c=0;
+    lblPanel=new class Panel*[number_of_elements];
+    //cout << "number_of_elements: " << number_of_elements << endl;
+    for (int i=0;i<number_of_elements;i++)
+    {
+        lblPanel[i]=new class Panel(pixmaps[i],this);
+        lblPanel[i]->setMinimumSize(elementWidth,elementHeight);
 
-connect(lblPanel[i], SIGNAL(mouseMoving()), signalMapper1, SLOT(map()));
-connect(lblPanel[i], SIGNAL(mouseClicked()), signalMapper2, SLOT(map()));
-signalMapper1->setMapping(lblPanel[i],i);
-signalMapper2->setMapping(lblPanel[i],i);
+        connect(lblPanel[i], SIGNAL(mouseMoving()), signalMapper1, SLOT(map()));
+        connect(lblPanel[i], SIGNAL(mouseClicked()), signalMapper2, SLOT(map()));
+        signalMapper1->setMapping(lblPanel[i],i);
+        signalMapper2->setMapping(lblPanel[i],i);
 
-	layout->addWidget(lblPanel[i],r,c);
-	r++;
-		if (r>=row_count)
-		{
-		r=0;
-		c++;
-		}
-	}
-connect(signalMapper1, SIGNAL(mapped(int)),this, SLOT(mouseMovedIn(int)));
-connect(signalMapper2, SIGNAL(mapped(int)),this, SLOT(mouseClickedIn(int)));
-clickTime=new QTime();
-clickTime->start();
-frm->setLayout(layout);
-setWindowFlags(Qt::Dialog|Qt::FramelessWindowHint);
-setMouseTracking(TRUE);
-layout0->addWidget(frm);
-setLayout(layout0);
+        layout->addWidget(lblPanel[i],r,c);
+        r++;
+        if (r>=row_count)
+        {
+            r=0;
+            c++;
+        }
+    }
+    connect(signalMapper1, SIGNAL(mapped(int)),this, SLOT(mouseMovedIn(int)));
+    connect(signalMapper2, SIGNAL(mapped(int)),this, SLOT(mouseClickedIn(int)));
+    clickTime=new QTime();
+    clickTime->start();
+    frm->setLayout(layout);
+    setWindowFlags(Qt::Dialog|Qt::FramelessWindowHint);
+    setMouseTracking(TRUE);
+    layout0->addWidget(frm);
+    setLayout(layout0);
 }
 
 panelWindow::~panelWindow()
 {
-for (int i=0;i<number_of_elements;i++)
-delete lblPanel[i];
-delete[] lblPanel;
-delete clickTime;
-delete signalMapper1;
-delete signalMapper2;
-delete layout0;
-delete layout;
-delete frm;
+    for (int i=0;i<number_of_elements;i++)
+        delete lblPanel[i];
+    delete[] lblPanel;
+    delete clickTime;
+    delete signalMapper1;
+    delete signalMapper2;
+    delete layout0;
+    delete layout;
+    delete frm;
 }
 
 void panelWindow::setMarked(int i)
 {
-if (marked==i) return;
-if (marked!=-1)
-{
-lblPanel[marked]->setFrameShape(QFrame::NoFrame);
-lblPanel[marked]->repaint();
-}
-marked=i;
-lblPanel[marked]->setFrameShape(QFrame::Panel);
-lblPanel[marked]->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
-lblPanel[marked]->repaint();
+    if (marked==i) return;
+    if (marked!=-1)
+    {
+        lblPanel[marked]->setFrameShape(QFrame::NoFrame);
+        lblPanel[marked]->repaint();
+    }
+    marked=i;
+    lblPanel[marked]->setFrameShape(QFrame::Panel);
+    lblPanel[marked]->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
+    lblPanel[marked]->repaint();
 }
 
 void panelWindow::mouseMovedIn(int i)
 {
-if (i==highlighted) return;
-//a new one is to be highlighted
-if (highlighted!=-1)
-{
-	if (highlighted==marked)
-	{
-	lblPanel[highlighted]->setFrameShape(QFrame::Panel);
-	lblPanel[highlighted]->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
-	lblPanel[highlighted]->repaint();
-	}
-	else
-	{
-	lblPanel[highlighted]->setFrameShape(QFrame::NoFrame);
-	lblPanel[highlighted]->repaint();
-	}
-}
-if (i!=-1)
-{
-lblPanel[i]->setFrameShape(QFrame::Panel);
-lblPanel[i]->setFrameStyle(QFrame::Sunken | QFrame::WinPanel);
-lblPanel[i]->repaint();
-}
-highlighted=i;
+    if (i==highlighted) return;
+    //a new one is to be highlighted
+    if (highlighted!=-1)
+    {
+        if (highlighted==marked)
+        {
+            lblPanel[highlighted]->setFrameShape(QFrame::Panel);
+            lblPanel[highlighted]->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
+            lblPanel[highlighted]->repaint();
+        }
+        else
+        {
+            lblPanel[highlighted]->setFrameShape(QFrame::NoFrame);
+            lblPanel[highlighted]->repaint();
+        }
+    }
+    if (i!=-1)
+    {
+        lblPanel[i]->setFrameShape(QFrame::Panel);
+        lblPanel[i]->setFrameStyle(QFrame::Sunken | QFrame::WinPanel);
+        lblPanel[i]->repaint();
+    }
+    highlighted=i;
 }
 
 void panelWindow::leaveEvent( QEvent * event )
 {
-if (highlighted!=-1)
-{
-	if (highlighted==marked)
-	{
-	lblPanel[highlighted]->setFrameShape(QFrame::Panel);
-	lblPanel[highlighted]->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
-	lblPanel[highlighted]->repaint();
-	}
-	else
-	{
-	lblPanel[highlighted]->setFrameShape(QFrame::NoFrame);
-	lblPanel[highlighted]->repaint();
-	}
-}
-highlighted=-1;
+    if (highlighted!=-1)
+    {
+        if (highlighted==marked)
+        {
+            lblPanel[highlighted]->setFrameShape(QFrame::Panel);
+            lblPanel[highlighted]->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
+            lblPanel[highlighted]->repaint();
+        }
+        else
+        {
+            lblPanel[highlighted]->setFrameShape(QFrame::NoFrame);
+            lblPanel[highlighted]->repaint();
+        }
+    }
+    highlighted=-1;
 }
 
 void panelWindow::mouseClickedIn(int i)
 {
-hide();
-//cout << "clicked in = " << i << endl;
-emit(newSelection(i));
+    hide();
+    //cout << "clicked in = " << i << endl;
+    emit(newSelection(i));
 }
 
 void panelWindow::mousePressEvent(QMouseEvent *event)
 {
-pressed=true;
-//cout << "Preess: PanelWindow: x=" << event->x() << " y=" << event->y() << endl;
+    pressed=true;
+    //cout << "Preess: PanelWindow: x=" << event->x() << " y=" << event->y() << endl;
 }
 
 void panelWindow::mouseReleaseEvent(QMouseEvent *event)
 {
-static int curTime;
-if (pressed==false) return;
-curTime=clickTime->restart();
-if (curTime<300)
-{
-pressed=false;
-return;
-}
-QPoint pos=QWidget::mapToParent(event->pos());
-int x=event->x();
-int y=event->y();
-x=movex;
-y=movey;
-int r=y/elementHeight;
-int c=x/elementWidth;
-int element=r+c*row_count;
-//cout << "Release: PanelWindow: x=" << x << " y=" << y << " xmax=" << col_count*elementWidth << " ymax=" << row_count*elementHeight << endl;
-//cout << pos.x() << " | " << pos.y() << endl;
-if (x<0 || y<0 || x>col_count*elementWidth || y>row_count*elementHeight) 
-{
-element=-1;
-if (marked>=0)
-lblPanel[marked]->mouseReleaseEvent(event);
-//cout << "a: marked=" << marked << endl;
-}
-releaseMouse();
-if (element>=0 && element<number_of_elements)
-{
-lblPanel[element]->mouseReleaseEvent(event);
-//cout << "b: element=" << element << endl;
-}
-hide();
+    static int curTime;
+    if (pressed==false) return;
+    curTime=clickTime->restart();
+    if (curTime<300)
+    {
+        pressed=false;
+        return;
+    }
+    QPoint pos=QWidget::mapToParent(event->pos());
+    int x=event->x();
+    int y=event->y();
+    x=movex;
+    y=movey;
+    int r=y/elementHeight;
+    int c=x/elementWidth;
+    int element=r+c*row_count;
+    //cout << "Release: PanelWindow: x=" << x << " y=" << y << " xmax=" << col_count*elementWidth << " ymax=" << row_count*elementHeight << endl;
+    //cout << pos.x() << " | " << pos.y() << endl;
+    if (x<0 || y<0 || x>col_count*elementWidth || y>row_count*elementHeight)
+    {
+        element=-1;
+        if (marked>=0)
+            lblPanel[marked]->mouseReleaseEvent(event);
+        //cout << "a: marked=" << marked << endl;
+    }
+    releaseMouse();
+    if (element>=0 && element<number_of_elements)
+    {
+        lblPanel[element]->mouseReleaseEvent(event);
+        //cout << "b: element=" << element << endl;
+    }
+    hide();
 }
 
 void panelWindow::mouseMoveEvent(QMouseEvent * event)
 {
-int x=event->x();
-int y=event->y();
-int r=y/elementHeight;
-int c=x/elementWidth;
-int element=r+c*row_count;
-movex=event->x();
-movey=event->y();
-if (x<0 || y<0) element=-1;
-if (x>col_count*elementWidth || y>row_count*elementHeight) element=-1;
-if (element<0 || element>=number_of_elements)
-{
-leaveEvent(event);
-}
-else
-{
-	if (element!=highlighted)
-	{
-	lblPanel[element]->mouseMoveEvent(event);
-	}
-}
+    int x=event->x();
+    int y=event->y();
+    int r=y/elementHeight;
+    int c=x/elementWidth;
+    int element=r+c*row_count;
+    movex=event->x();
+    movey=event->y();
+    if (x<0 || y<0) element=-1;
+    if (x>col_count*elementWidth || y>row_count*elementHeight) element=-1;
+    if (element<0 || element>=number_of_elements)
+    {
+        leaveEvent(event);
+    }
+    else
+    {
+        if (element!=highlighted)
+        {
+            lblPanel[element]->mouseMoveEvent(event);
+        }
+    }
 }
 
 newCombo::newCombo(int rows,int cols,int last_col,QPixmap ** pix,QString ** titles,bool showTextOnly,QWidget * parent):QComboBox(parent)
 {
-text_only=showTextOnly;
-if (text_only==false)
-setIconSize(QSize(pix[0]->width(),pix[0]->height()));
-panels=new panelWindow(rows,cols,last_col,pix,this);//actually initialize the panels
-panels->hide();
-connect(panels,SIGNAL(newSelection(int)),SLOT(wrapperSetCurrentIndex(int)));
+    text_only=showTextOnly;
+    if (text_only==false)
+        setIconSize(QSize(pix[0]->width(),pix[0]->height()));
+    panels=new panelWindow(rows,cols,last_col,pix,this);//actually initialize the panels
+    panels->hide();
+    connect(panels,SIGNAL(newSelection(int)),SLOT(wrapperSetCurrentIndex(int)));
     title_strings=new QString[panels->number_of_elements];
     for (int i=0;i<panels->number_of_elements;i++)
-    title_strings[i]=*(titles[i]);
-setMinimumWidth(110);
-setCurrentIndex(0);
+        title_strings[i]=*(titles[i]);
+    setMinimumWidth(110);
+    setCurrentIndex(0);
 }
 
 void newCombo::reinitializePanels(int rows,int cols,int last_col,QPixmap ** pix,QString ** titles,bool showTextOnly)
 {
-text_only=showTextOnly;
-if (text_only==false)
-setIconSize(QSize(pix[0]->width(),pix[0]->height()));
-//first: delete old panels
-delete panels;//call destructor
-//second: create new panels
-panels=new panelWindow(rows,cols,last_col,pix,this);//reinitialize the panels
-panels->hide();
-connect(panels,SIGNAL(newSelection(int)),SLOT(wrapperSetCurrentIndex(int)));
-//third: create new titles
-delete[] title_strings;
+    text_only=showTextOnly;
+    if (text_only==false)
+        setIconSize(QSize(pix[0]->width(),pix[0]->height()));
+    //first: delete old panels
+    delete panels;//call destructor
+    //second: create new panels
+    panels=new panelWindow(rows,cols,last_col,pix,this);//reinitialize the panels
+    panels->hide();
+    connect(panels,SIGNAL(newSelection(int)),SLOT(wrapperSetCurrentIndex(int)));
+    //third: create new titles
+    delete[] title_strings;
     title_strings=new QString[panels->number_of_elements];
     for (int i=0;i<panels->number_of_elements;i++)
-    title_strings[i]=*(titles[i]);
-setCurrentIndex(0);
+        title_strings[i]=*(titles[i]);
+    setCurrentIndex(0);
 }
 
 void newCombo::wrapperSetCurrentIndex(int index)
 {
-setCurrentIndex(index);
-emit(currentIndexChanged(index));
+    setCurrentIndex(index);
+    emit(currentIndexChanged(index));
 }
 
 void newCombo::setCurrentIndex(int index)
 {
-if (index<0 || index>=panels->number_of_elements)
-{
-cout << "Selection Index out of range!" << endl;
-return;
-}
-panels->setMarked(index);
-selection=index;
-clear();
-if (text_only==true)
-addItem(title_strings[index]);
-else
-addItem(QIcon(*panels->pixmaps[index]),"");
-QMouseEvent * a=new QMouseEvent(QEvent::MouseButtonRelease,QPoint(0,0),Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-QComboBox::mouseReleaseEvent(a);
+    if (index<0 || index>=panels->number_of_elements)
+    {
+        cout << "Selection Index out of range!" << endl;
+        return;
+    }
+    panels->setMarked(index);
+    selection=index;
+    clear();
+    if (text_only==true)
+        addItem(title_strings[index]);
+    else
+        addItem(QIcon(*panels->pixmaps[index]),"");
+    QMouseEvent * a=new QMouseEvent(QEvent::MouseButtonRelease,QPoint(0,0),Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    QComboBox::mouseReleaseEvent(a);
 }
 
 int newCombo::currentIndex(void)
 {
-return selection;
+    return selection;
 }
 
 void newCombo::showPopup()
 {
-int row_number=0;
-int col_number=0;
-for (int i=0;i<selection;i++)
-{
-row_number++;
-if (row_number>=panels->row_count)
-{
-row_number=0;
-col_number++;
-}
-}
-panels->setMarked(selection);
-panels->move(mapToGlobal(QPoint(-col_number*panels->elementWidth,-row_number*panels->elementHeight)));
-panels->show();
-//panels->pressed=false;
-panels->clickTime->restart();
-panels->pressed=true;
-panels->repaint();
-//panels->grabMouse();
-panels->setFocus();
-//hidePopup();
-qApp->processEvents();
+    int row_number=0;
+    int col_number=0;
+    for (int i=0;i<selection;i++)
+    {
+        row_number++;
+        if (row_number>=panels->row_count)
+        {
+            row_number=0;
+            col_number++;
+        }
+    }
+    panels->setMarked(selection);
+    panels->move(mapToGlobal(QPoint(-col_number*panels->elementWidth,-row_number*panels->elementHeight)));
+    panels->show();
+    //panels->pressed=false;
+    panels->clickTime->restart();
+    panels->pressed=true;
+    panels->repaint();
+    //panels->grabMouse();
+    panels->setFocus();
+    //hidePopup();
+    qApp->processEvents();
 }
 
 fitLine::fitLine(QWidget * parent,int nr):QWidget(parent)
 {
-char dummy[128];
-sprintf(dummy,"A%d:",nr);
-lblA=new QLabel(QString(dummy),this);
-sprintf(dummy,"< A%d <",nr);
-lblABounds=new QLabel(QString(dummy),this);
-chkBonds=new QCheckBox(tr("Bounds:"),this);
-connect(chkBonds,SIGNAL(stateChanged(int)),this,SLOT(constr_check(int)));
-ledValue=new QLineEdit(QString("1"),this);
-ledLowerBound=new QLineEdit(QString("1"),this);
-ledHighterBound=new QLineEdit(QString("1"),this);
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblA);
-layout->addWidget(ledValue);
-layout->addWidget(chkBonds);
-layout->addWidget(ledLowerBound);
-layout->addWidget(lblABounds);
-layout->addWidget(ledHighterBound);
-setLayout(layout);
+    char dummy[128];
+    sprintf(dummy,"A%d:",nr);
+    lblA=new QLabel(QString(dummy),this);
+    sprintf(dummy,"< A%d <",nr);
+    lblABounds=new QLabel(QString(dummy),this);
+    chkBonds=new QCheckBox(tr("Bounds:"),this);
+    connect(chkBonds,SIGNAL(stateChanged(int)),this,SLOT(constr_check(int)));
+    ledValue=new QLineEdit(QString("1"),this);
+    ledLowerBound=new QLineEdit(QString("1"),this);
+    ledHighterBound=new QLineEdit(QString("1"),this);
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblA);
+    layout->addWidget(ledValue);
+    layout->addWidget(chkBonds);
+    layout->addWidget(ledLowerBound);
+    layout->addWidget(lblABounds);
+    layout->addWidget(ledHighterBound);
+    setLayout(layout);
 }
 
 void fitLine::constr_check(int t)
 {
-if (t==0)
-{
-ledLowerBound->setEnabled(false);
-ledHighterBound->setEnabled(false);
-lblABounds->setEnabled(false);
-}
-else
-{
-ledLowerBound->setEnabled(true);
-ledHighterBound->setEnabled(true);
-lblABounds->setEnabled(true);
-}
+    if (t==0)
+    {
+        ledLowerBound->setEnabled(false);
+        ledHighterBound->setEnabled(false);
+        lblABounds->setEnabled(false);
+    }
+    else
+    {
+        ledLowerBound->setEnabled(true);
+        ledHighterBound->setEnabled(true);
+        lblABounds->setEnabled(true);
+    }
 }
 
 void fitLine::getValues(double & value,bool & active,double & lowerBound,double & upperBound)
 {
-value=atof(ledValue->text().toAscii());
-active=chkBonds->isChecked()==TRUE?true:false;
-lowerBound=atof(ledLowerBound->text().toAscii());
-upperBound=atof(ledHighterBound->text().toAscii());
+    value=atof(ledValue->text().toAscii());
+    active=chkBonds->isChecked()==TRUE?true:false;
+    lowerBound=atof(ledLowerBound->text().toAscii());
+    upperBound=atof(ledHighterBound->text().toAscii());
 }
 
 axisLine::axisLine(QWidget * parent,int nr):QWidget(parent)
 {
-original=true;
-c1=c2=NULL;
-sprintf(dummy,"%d",nr);
-lblNr=new QLabel(QString(dummy),this);
-ledLocation=new QLineEdit(QString(""),this);
-ledLabel=new QLineEdit(QString(""),this);
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblNr);
-layout->addWidget(ledLocation);
-layout->addWidget(ledLabel);
-setLayout(layout);
+    original=true;
+    c1=c2=NULL;
+    sprintf(dummy,"%d",nr);
+    lblNr=new QLabel(QString(dummy),this);
+    ledLocation=new QLineEdit(QString(""),this);
+    ledLabel=new QLineEdit(QString(""),this);
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblNr);
+    layout->addWidget(ledLocation);
+    layout->addWidget(ledLabel);
+    setLayout(layout);
 }
 
 QString axisLine::LabelText(void)
 {
-static int pos,pos2,ret;
-static QString str,str2;
-static QString ref("$$");
-static QString result,intermediate;
-result=str=ledLabel->text();
-if (activateLaTeXsupport==true)
-{//Latex-Commands-replacements
-pos=0;
-result=str;
-while ((pos=str.indexOf(ref,pos))>=0)
-{
-pos+=2;//beginning of commands after '$$'
-pos2=str.indexOf(ref,pos);
-str2=str.mid(pos,pos2-pos);
-intermediate=ref+str2+ref;
-pos=pos2+2;//beginning of text after closing '$$'
-strcpy(dummy,str2.toAscii());
-ret=recursive_replacer(dummy);
-result.replace(intermediate,QString(dummy));
-}
-//cout << "end =#" << str.toAscii().constData() << "#" << endl;
-//cout << "result =#" << result.toAscii().constData() << "#" << endl;
-}
-return result;
+    static int pos,pos2,ret;
+    static QString str,str2;
+    static QString ref("$$");
+    static QString result,intermediate;
+    result=str=ledLabel->text();
+    if (activateLaTeXsupport==true)
+    {//Latex-Commands-replacements
+        pos=0;
+        result=str;
+        while ((pos=str.indexOf(ref,pos))>=0)
+        {
+            pos+=2;//beginning of commands after '$$'
+            pos2=str.indexOf(ref,pos);
+            str2=str.mid(pos,pos2-pos);
+            intermediate=ref+str2+ref;
+            pos=pos2+2;//beginning of text after closing '$$'
+            strcpy(dummy,str2.toAscii());
+            ret=recursive_replacer(dummy);
+            result.replace(intermediate,QString(dummy));
+        }
+        //cout << "end =#" << str.toAscii().constData() << "#" << endl;
+        //cout << "result =#" << result.toAscii().constData() << "#" << endl;
+    }
+    return result;
 }
 
 QString axisLine::LocationText(void)
 {
-return ledLocation->text();
+    return ledLocation->text();
 }
 
 void axisLine::SetTextToMemory(char * &t1,char * &t2)
 {
-SetLineEditToMemory(t1,t2,c1,c2,original,ledLabel);
+    SetLineEditToMemory(t1,t2,c1,c2,original,ledLabel);
 }
 
 void axisLine::SetMemoryToText(char * &t1,char * &t2)
 {
-DynSetMemoryToLineEdit(t1,t2,c1,c2,original,true,ledLabel);
+    DynSetMemoryToLineEdit(t1,t2,c1,c2,original,true,ledLabel);
 }
 
 void axisLine::LabelClicked(void)
 {
-if (activateLaTeXsupport==false) return;
-ClickedOnLabel(c1,c2,original,ledLabel);
+    if (activateLaTeXsupport==false) return;
+    ClickedOnLabel(c1,c2,original,ledLabel);
 }
 
 void axisLine::mouseReleaseEvent(QMouseEvent * e)
 {
     if (activateLaTeXsupport==false) return;
-e->accept();
-QPoint pos=e->pos();
-if (lblNr->rect().contains(pos)==true) LabelClicked();
+    e->accept();
+    QPoint pos=e->pos();
+    if (lblNr->rect().contains(pos)==true) LabelClicked();
 }
 
 headLine::headLine(QWidget * parent,int columns):QWidget(parent)
 {
-QString dummy;
-char dummy2[128];
-cols=columns;
+    QString dummy;
+    char dummy2[128];
+    cols=columns;
 
-empty=new QWidget(this);
-signalMapper=new QSignalMapper(this);
+    empty=new QWidget(this);
+    signalMapper=new QSignalMapper(this);
 
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(empty);
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(empty);
 
-for (int i=0;i<6;i++)
-{
-	switch (i)
-	{
-	case 0:
-	dummy=QString("X");
-	break;
-	case 1:
-	dummy=QString("Y");
-	break;
-	default:
-	sprintf(dummy2,"Y%d",i-1);
-	dummy=QString(dummy2);
-	break;
-	}
-cmdColHead[i]=new QPushButton(dummy,this);
-connect(cmdColHead[i],SIGNAL(clicked()),signalMapper,SLOT(map()));
-signalMapper->setMapping(cmdColHead[i],i);
-if (i<cols)
-{
-cmdColHead[i]->setVisible(TRUE);
-layout->addWidget(cmdColHead[i]);
-}
-else
-cmdColHead[i]->setVisible(FALSE);
-}
-setLayout(layout);
-connect(signalMapper,SIGNAL(mapped(int)),SLOT(pressed(int)));
+    for (int i=0;i<6;i++)
+    {
+        switch (i)
+        {
+        case 0:
+            dummy=QString("X");
+            break;
+        case 1:
+            dummy=QString("Y");
+            break;
+        default:
+            sprintf(dummy2,"Y%d",i-1);
+            dummy=QString(dummy2);
+            break;
+        }
+        cmdColHead[i]=new QPushButton(dummy,this);
+        connect(cmdColHead[i],SIGNAL(clicked()),signalMapper,SLOT(map()));
+        signalMapper->setMapping(cmdColHead[i],i);
+        if (i<cols)
+        {
+            cmdColHead[i]->setVisible(TRUE);
+            layout->addWidget(cmdColHead[i]);
+        }
+        else
+            cmdColHead[i]->setVisible(FALSE);
+    }
+    setLayout(layout);
+    connect(signalMapper,SIGNAL(mapped(int)),SLOT(pressed(int)));
 }
 
 void headLine::resize(int columns)
 {
-if (columns<cols)//the new one has lesser columns than the old one
-{
-	for (int i=columns;i<cols;i++)
-	{
-	cmdColHead[i]->setVisible(FALSE);
-	layout->removeWidget(cmdColHead[i]);
-	}
-}
-else//more columns
-{
-	for (int i=cols;i<columns;i++)
-	{
-	cmdColHead[i]->setVisible(TRUE);
-	layout->addWidget(cmdColHead[i]);
-	}
-}
-update();
-parentWidget()->updateGeometry();
-cols=columns;
+    if (columns<cols)//the new one has lesser columns than the old one
+    {
+        for (int i=columns;i<cols;i++)
+        {
+            cmdColHead[i]->setVisible(FALSE);
+            layout->removeWidget(cmdColHead[i]);
+        }
+    }
+    else//more columns
+    {
+        for (int i=cols;i<columns;i++)
+        {
+            cmdColHead[i]->setVisible(TRUE);
+            layout->addWidget(cmdColHead[i]);
+        }
+    }
+    update();
+    parentWidget()->updateGeometry();
+    cols=columns;
 }
 
 void headLine::pressed(int i)
 {
-emit(col_pressed(i));
+    emit(col_pressed(i));
 }
 
 spreadLine::spreadLine(QWidget * parent,int row_nr,int columns):QWidget(parent)
 {
-char dummy[128];
-marked=false;
-row=row_nr;
-cols=columns;
-sprintf(dummy,"%d",row);
-cmdSelect=new QPushButton(QString(dummy),this);
-connect(cmdSelect,SIGNAL(clicked()),SLOT(clickSelect()));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(cmdSelect);
-for (int i=0;i<6;i++)
-{
-ledInput[i]=new QLineEdit(QString(""),this);
-	if (i<cols)
-	{
-	ledInput[i]->setVisible(TRUE);
-	layout->addWidget(ledInput[i]);
-	}
-	else
-	ledInput[i]->setVisible(FALSE);
+    char dummy[128];
+    marked=false;
+    row=row_nr;
+    cols=columns;
+    sprintf(dummy,"%d",row);
+    cmdSelect=new QPushButton(QString(dummy),this);
+    connect(cmdSelect,SIGNAL(clicked()),SLOT(clickSelect()));
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(cmdSelect);
+    for (int i=0;i<6;i++)
+    {
+        ledInput[i]=new QLineEdit(QString(""),this);
+        if (i<cols)
+        {
+            ledInput[i]->setVisible(TRUE);
+            layout->addWidget(ledInput[i]);
+        }
+        else
+            ledInput[i]->setVisible(FALSE);
 
-}
-setLayout(layout);
+    }
+    setLayout(layout);
 }
 
 spreadLine::~spreadLine()
 {
-	for (int i=0;i<6;i++)
-	{
-		if (i<cols)
-		layout->removeWidget(ledInput[i]);
-	ledInput[i]->disconnect();
-	delete ledInput[i];
-	}
+    for (int i=0;i<6;i++)
+    {
+        if (i<cols)
+            layout->removeWidget(ledInput[i]);
+        ledInput[i]->disconnect();
+        delete ledInput[i];
+    }
 }
 
 void spreadLine::resize(int columns)
 {
-if (cols>columns)//new are fewer columns
-{
-	for (int i=columns;i<cols;i++)
-	{
-	layout->removeWidget(ledInput[i]);
-	ledInput[i]->setVisible(FALSE);
-	}
-}
-else
-{
-	for (int i=cols;i<columns;i++)
-	{
-	layout->addWidget(ledInput[i]);
-	ledInput[i]->setVisible(TRUE);
-	}
-}
-cols=columns;
+    if (cols>columns)//new are fewer columns
+    {
+        for (int i=columns;i<cols;i++)
+        {
+            layout->removeWidget(ledInput[i]);
+            ledInput[i]->setVisible(FALSE);
+        }
+    }
+    else
+    {
+        for (int i=cols;i<columns;i++)
+        {
+            layout->addWidget(ledInput[i]);
+            ledInput[i]->setVisible(TRUE);
+        }
+    }
+    cols=columns;
 }
 
 void spreadLine::clickSelect(void)
 {
-marked=!marked;
-QPalette pal;
-QBrush t1,t2;
-	for (int i=0;i<6;i++)
-	{
-	pal=ledInput[i]->palette();
-	t1=pal.text();
-	t2=pal.base();
-	//exchange forground and background to show selection
-	pal.setBrush(QPalette::Active,QPalette::Base,t1);
-	pal.setBrush(QPalette::Active,QPalette::Text,t2);
-	ledInput[i]->setPalette(pal);
-	}
+    marked=!marked;
+    QPalette pal;
+    QBrush t1,t2;
+    for (int i=0;i<6;i++)
+    {
+        pal=ledInput[i]->palette();
+        t1=pal.text();
+        t2=pal.base();
+        //exchange forground and background to show selection
+        pal.setBrush(QPalette::Active,QPalette::Base,t1);
+        pal.setBrush(QPalette::Active,QPalette::Text,t2);
+        ledInput[i]->setPalette(pal);
+    }
 }
 
 spreadSheet::spreadSheet(QWidget * parent,int type,int row_count,int col_count):QWidget(parent)
 {
-sheet_type=type;
-rows=row_count;//rows with actual inputs
-cols=col_count;
+    sheet_type=type;
+    rows=row_count;//rows with actual inputs
+    cols=col_count;
 
-layout=new QVBoxLayout;
-layout->setMargin(0);
-layout->setSpacing(0);
-generate_layout();
+    layout=new QVBoxLayout;
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    generate_layout();
 
-setLayout(layout);
+    setLayout(layout);
 
-/*stdWidth=ledInput[0][0]->width();
+    /*stdWidth=ledInput[0][0]->width();
 stdHeight=ledInput[0][0]->height();*/
 
 }
 
 void spreadSheet::generate_layout(void)
 {
-signalMapper=new QSignalMapper(this);
-switch (sheet_type)
-{
-case 0:
-headline=new headLine(this,cols);
-layout->addWidget(headline);
-spreadlines=new spreadLine*[rows];
-	for (int i=0;i<rows;i++)
-	{
-	spreadlines[i]=new spreadLine(this,i,cols);
-	layout->addWidget(spreadlines[i]);
-	}
-	/*if (rows>0)
-	{
-	headline->empty->setMaximumWidth(spreadlines[0]->cmdSelect->width());
-	}*/
-break;
-case 1:
-fitlines=new fitLine*[11];
-	for (int i=0;i<11;i++)
-	{
-	fitlines[i]=new fitLine(this,i);
-		if (i<rows)
-		{
-		fitlines[i]->setVisible(TRUE);
-		layout->addWidget(fitlines[i]);
-		}
-		else
-		{
-		fitlines[i]->setVisible(FALSE);
-		}
-	}
-break;
-case 2:
-axislines=new axisLine*[rows];
-	for (int i=0;i<rows;i++)
-	{
-	axislines[i]=new axisLine(this,i);
-	layout->addWidget(axislines[i]);
-	}
-break;
-}
+    signalMapper=new QSignalMapper(this);
+    switch (sheet_type)
+    {
+    case 0:
+        headline=new headLine(this,cols);
+        layout->addWidget(headline);
+        spreadlines=new spreadLine*[rows];
+        for (int i=0;i<rows;i++)
+        {
+            spreadlines[i]=new spreadLine(this,i,cols);
+            layout->addWidget(spreadlines[i]);
+        }
+        /*if (rows>0)
+    {
+    headline->empty->setMaximumWidth(spreadlines[0]->cmdSelect->width());
+    }*/
+        break;
+    case 1:
+        fitlines=new fitLine*[11];
+        for (int i=0;i<11;i++)
+        {
+            fitlines[i]=new fitLine(this,i);
+            if (i<rows)
+            {
+                fitlines[i]->setVisible(TRUE);
+                layout->addWidget(fitlines[i]);
+            }
+            else
+            {
+                fitlines[i]->setVisible(FALSE);
+            }
+        }
+        break;
+    case 2:
+        axislines=new axisLine*[rows];
+        for (int i=0;i<rows;i++)
+        {
+            axislines[i]=new axisLine(this,i);
+            layout->addWidget(axislines[i]);
+        }
+        break;
+    }
 
-for (int i=0;i<rows;i++)
-{
-;
-//layout->addWidget();
-//connect(VHeads[i],SIGNAL(clicked()),signalMapper1,SLOT(map()));
-//signalMapper1->setMapping(VHeads[i],i);
-}
-//connect(signalMapper,SIGNAL(mapped(int)),SLOT(clickHHeader(int)));
+    for (int i=0;i<rows;i++)
+    {
+        ;
+        //layout->addWidget();
+        //connect(VHeads[i],SIGNAL(clicked()),signalMapper1,SLOT(map()));
+        //signalMapper1->setMapping(VHeads[i],i);
+    }
+    //connect(signalMapper,SIGNAL(mapped(int)),SLOT(clickHHeader(int)));
 }
 
 spreadSheet::~spreadSheet()
@@ -1066,93 +1066,93 @@ spreadSheet::~spreadSheet()
 
 void spreadSheet::clickHHeader(int nr)
 {
-/*EditColumn->selColumn->setCurrentIndex(nr);
+    /*EditColumn->selColumn->setCurrentIndex(nr);
 EditColumn->show();
 EditColumn->raise();*/
 }
 
 void spreadSheet::clickVHeader(int nr)
 {
-/*marked[nr]=!marked[nr];
+    /*marked[nr]=!marked[nr];
 QPalette pal;
 QBrush t1,t2;
-	for (int i=0;i<cols;i++)
-	{
-	pal=ledInput[nr][i]->palette();
-	t1=pal.text();
-	t2=pal.base();
-	//exchange forground and background to show selection
-	pal.setBrush(QPalette::Active,QPalette::Base,t1);
-	pal.setBrush(QPalette::Active,QPalette::Text,t2);
-	ledInput[nr][i]->setPalette(pal);
-	}*/
+    for (int i=0;i<cols;i++)
+    {
+    pal=ledInput[nr][i]->palette();
+    t1=pal.text();
+    t2=pal.base();
+    //exchange forground and background to show selection
+    pal.setBrush(QPalette::Active,QPalette::Base,t1);
+    pal.setBrush(QPalette::Active,QPalette::Text,t2);
+    ledInput[nr][i]->setPalette(pal);
+    }*/
 }
 
 void spreadSheet::entryChanged(void)
 {
-emit(changed());
+    emit(changed());
 }
 
 void spreadSheet::resize(int row,int col)
 {
 
-/*if (rows>0 && !sheet_type)
+    /*if (rows>0 && !sheet_type)
 {
 for (int i=0;i<6;i++)
 headline->cmdColHead[i]->setMinimumSize(spreadlines[0]->ledInput[i]->width(),spreadlines[0]->ledInput[i]->height());
 }*/
 
-switch (sheet_type)
-{
-case 0:
+    switch (sheet_type)
+    {
+    case 0:
 
-setGeometry(0,0,width(),(row+1)*25);
+        setGeometry(0,0,width(),(row+1)*25);
 
-headline->resize(col);
+        headline->resize(col);
 
-for (int i=0;i<rows;i++)
-{
-layout->removeWidget(spreadlines[i]);
-delete spreadlines[i];
-}
-delete[] spreadlines;
+        for (int i=0;i<rows;i++)
+        {
+            layout->removeWidget(spreadlines[i]);
+            delete spreadlines[i];
+        }
+        delete[] spreadlines;
 
-spreadlines=new spreadLine*[row];
-for (int i=0;i<row;i++)
-{
-spreadlines[i]=new spreadLine(this,i,col);
-layout->addWidget(spreadlines[i]);
-}
-rows=row;
-cols=col;
+        spreadlines=new spreadLine*[row];
+        for (int i=0;i<row;i++)
+        {
+            spreadlines[i]=new spreadLine(this,i,col);
+            layout->addWidget(spreadlines[i]);
+        }
+        rows=row;
+        cols=col;
 
-break;
-case 1:
-	if (row>rows)
-	{
-		for (int i=rows;i<row;i++)
-		{
-		layout->addWidget(fitlines[i]);
-		fitlines[i]->setVisible(TRUE);
-		}
-	}
-	else
-	{
-		for (int i=row;i<rows;i++)
-		{
-		fitlines[i]->setVisible(FALSE);
-		layout->removeWidget(fitlines[i]);
-		}
-	}
-	rows=row;
-	cols=col;
-break;
-case 2:
+        break;
+    case 1:
+        if (row>rows)
+        {
+            for (int i=rows;i<row;i++)
+            {
+                layout->addWidget(fitlines[i]);
+                fitlines[i]->setVisible(TRUE);
+            }
+        }
+        else
+        {
+            for (int i=row;i<rows;i++)
+            {
+                fitlines[i]->setVisible(FALSE);
+                layout->removeWidget(fitlines[i]);
+            }
+        }
+        rows=row;
+        cols=col;
+        break;
+    case 2:
 
-break;
-}
+        break;
+    }
 
-/*
+    /*
 setGeometry(0,0,(col+1)*stdWidth,(row+1)*stdHeight);
 ///delete current Elements
 layout->removeWidget(empty);
@@ -1163,12 +1163,12 @@ for (int i=0;i<rows;i++)
 layout->removeWidget(VHeads[i]);
 VHeads[i]->disconnect();
 delete VHeads[i];
-	for (int j=0;j<cols;j++)
-	{
-	layout->removeWidget(ledInput[i][j]);
-	ledInput[i][j]->disconnect();
-	delete ledInput[i][j];
-	}
+    for (int j=0;j<cols;j++)
+    {
+    layout->removeWidget(ledInput[i][j]);
+    ledInput[i][j]->disconnect();
+    delete ledInput[i][j];
+    }
 delete[] ledInput[i];
 }
 delete[] ledInput;
@@ -1189,82 +1189,82 @@ cols=col;
 
 generate_layout();
 */
-update();
-parentWidget()->updateGeometry();
+    update();
+    parentWidget()->updateGeometry();
 }
 
 stdSlider::stdSlider(QWidget * parent,QString label,int min,int max,double factor,int type):QWidget(parent)
 {
-QRect rec=stdFontMetrics.boundingRect(QString("100"));
-textHeight=rec.height();
-slideType=type;
-ScalingFactor=factor;
-if (textHeight<16) textHeight=16;
-setMinimumSize(QSize(180,textHeight*3));
-Indicator=new QLabel("0",this);
-Indicator->setGeometry(0,0,32,textHeight);//20
-sldSlider=new QSlider(Qt::Horizontal,this);
-sldSlider->setRange(min,max);
-sldSlider->setGeometry(Indicator->x(),Indicator->y()+Indicator->height(),200,textHeight);//20
-connect(sldSlider,SIGNAL(valueChanged(int)),SLOT(changed(int)));
-connect(sldSlider,SIGNAL(sliderMoved(int)),SLOT(SliderMoved(int)));
-connect(sldSlider,SIGNAL(sliderReleased()),SLOT(SliderReleased()));
-connect(sldSlider,SIGNAL(sliderPressed()),SLOT(SliderPressed()));
-lblText=new QLabel(label,this);
-lblText->move(Indicator->x(),sldSlider->y()+sldSlider->height());//,150,20);
-lblText->setGeometry(Indicator->x(),sldSlider->y()+sldSlider->height(),sldSlider->width(),textHeight);//20
-setMinimumSize(60,3*textHeight);
-setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
+    QRect rec=stdFontMetrics.boundingRect(QString("100"));
+    textHeight=rec.height();
+    slideType=type;
+    ScalingFactor=factor;
+    if (textHeight<16) textHeight=16;
+    setMinimumSize(QSize(180,textHeight*3));
+    Indicator=new QLabel("0",this);
+    Indicator->setGeometry(0,0,32,textHeight);//20
+    sldSlider=new QSlider(Qt::Horizontal,this);
+    sldSlider->setRange(min,max);
+    sldSlider->setGeometry(Indicator->x(),Indicator->y()+Indicator->height(),200,textHeight);//20
+    connect(sldSlider,SIGNAL(valueChanged(int)),SLOT(changed(int)));
+    connect(sldSlider,SIGNAL(sliderMoved(int)),SLOT(SliderMoved(int)));
+    connect(sldSlider,SIGNAL(sliderReleased()),SLOT(SliderReleased()));
+    connect(sldSlider,SIGNAL(sliderPressed()),SLOT(SliderPressed()));
+    lblText=new QLabel(label,this);
+    lblText->move(Indicator->x(),sldSlider->y()+sldSlider->height());//,150,20);
+    lblText->setGeometry(Indicator->x(),sldSlider->y()+sldSlider->height(),sldSlider->width(),textHeight);//20
+    setMinimumSize(60,3*textHeight);
+    setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
 }
 
 QSize stdSlider::sizeHint(void)
 {
-return QSize(60,textHeight*3);//60
+    return QSize(60,textHeight*3);//60
 }
 
 QSize stdSlider::minimumSizeHint(void)
 {
-return QSize(60,textHeight*3);//60
+    return QSize(60,textHeight*3);//60
 }
 
 void stdSlider::resizeEvent( QResizeEvent * e)
 {
-static int width,height,pos;
-static QFont fo;
-static QString indText;
-e->accept();
-width=e->size().width();
-height=e->size().height();
-fo=font();
-if (height<3*textHeight)
-{
-fo.setPixelSize(fo.pixelSize()-2);
-textHeight-=2;
-setFont(fo);
-}
-else if (height<3*textHeight && fo.pixelSize()<14)
-{
-fo.setPixelSize(14);
-textHeight-=2;
-setFont(fo);
-}
+    static int width,height,pos;
+    static QFont fo;
+    static QString indText;
+    e->accept();
+    width=e->size().width();
+    height=e->size().height();
+    fo=font();
+    if (height<3*textHeight)
+    {
+        fo.setPixelSize(fo.pixelSize()-2);
+        textHeight-=2;
+        setFont(fo);
+    }
+    else if (height<3*textHeight && fo.pixelSize()<14)
+    {
+        fo.setPixelSize(14);
+        textHeight-=2;
+        setFont(fo);
+    }
 
-Indicator->setGeometry(Indicator->x(),0,Indicator->width(),textHeight);
-sldSlider->setGeometry(0,textHeight,width,height-2*textHeight);
-lblText->setGeometry(0,height-textHeight,lblText->width(),textHeight);
+    Indicator->setGeometry(Indicator->x(),0,Indicator->width(),textHeight);
+    sldSlider->setGeometry(0,textHeight,width,height-2*textHeight);
+    lblText->setGeometry(0,height-textHeight,lblText->width(),textHeight);
 
-indText=indicatorText();
-slideIndicator();
-Indicator->setText(indText);
+    indText=indicatorText();
+    slideIndicator();
+    Indicator->setText(indText);
 }
 
 void stdSlider::changed(int i)
 {
-static QString indText;
-indText=indicatorText();
-slideIndicator();
-Indicator->setText(indText);
-emit(valueChanged(i));
+    static QString indText;
+    indText=indicatorText();
+    slideIndicator();
+    Indicator->setText(indText);
+    emit(valueChanged(i));
 }
 
 void stdSlider::SliderMoved(int i)
@@ -1277,156 +1277,162 @@ void stdSlider::SliderReleased(void)
 
 void stdSlider::SliderPressed(void)
 {
-sldSlider->setFocus();
+    sldSlider->setFocus();
 }
 
 int stdSlider::value(void)
 {
-return sldSlider->value();
+    return sldSlider->value();
 }
 
 void stdSlider::setValue(int i)
 {
-sldSlider->setValue(i);
-changed(i);
+    sldSlider->setValue(i);
+    changed(i);
 }
 
 QString stdSlider::indicatorText(void)
 {
-static char dummy[16];
-static int i;
-i=sldSlider->value();
-if (slideType==SLIDE_LINEAR)
-{
-    if (ScalingFactor==1.0)
-    sprintf(dummy,"%d",i);
-    else
-    sprintf(dummy,"%g",i*ScalingFactor);
-}
-else//logarithmic
-{
-    sprintf(dummy,"%.2f",pow(10.0,i*ScalingFactor));
-}
-return QString(dummy);
+    static char dummy[16];
+    static int i;
+    i=sldSlider->value();
+    if (slideType==SLIDE_LINEAR)
+    {
+        if (ScalingFactor==1.0)
+            sprintf(dummy,"%d",i);
+        else
+            sprintf(dummy,"%g",i*ScalingFactor);
+    }
+    else//logarithmic
+    {
+        sprintf(dummy,"%.2f",pow(10.0,i*ScalingFactor));
+    }
+    return QString(dummy);
 }
 
 void stdSlider::slideIndicator(void)
 {
-static int pos;
-pos=sldSlider->x()+(sldSlider->width()-Indicator->width())*(sldSlider->value()-sldSlider->minimum())/(sldSlider->maximum()-sldSlider->minimum());
-Indicator->move(pos,Indicator->y());
+    static int pos;
+    pos=sldSlider->x()+(sldSlider->width()-Indicator->width())*(sldSlider->value()-sldSlider->minimum())/(sldSlider->maximum()-sldSlider->minimum());
+    Indicator->move(pos,Indicator->y());
 }
 
 FontSelector::FontSelector(QWidget * parent):QWidget(parent)
 {
-font=qApp->font();
-cmdSelFont=NULL;
-lblText=NULL;
-if (useQtFonts==false)
-lblText=new QLabel(tr("Font:"));
-else
-{
-cmdSelFont=new QPushButton(tr("Font:"),this);
-connect(cmdSelFont,SIGNAL(clicked()),SLOT(selectNewFont()));
-displayFont();
-}
+    font=qApp->font();
+    cmdSelFont=NULL;
+    lblText=NULL;
+    if (useQtFonts==false)
+        lblText=new QLabel(tr("Font:"));
+    else
+    {
+        cmdSelFont=new QPushButton(tr("Font:"),this);
+        connect(cmdSelFont,SIGNAL(clicked()),SLOT(selectNewFont()));
+        displayFont();
+    }
     cmbFontSelect=new QComboBox();
     for (int i=0;i<number_of_fonts();i++)
-    cmbFontSelect->addItem(get_fontalias(i));
+        cmbFontSelect->addItem(get_fontalias(i));
     connect(cmbFontSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(changed(int)));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-if (useQtFonts==false)
-layout->addWidget(lblText);
-else
-layout->addWidget(cmdSelFont);
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    if (useQtFonts==false)
+        layout->addWidget(lblText);
+    else
+        layout->addWidget(cmdSelFont);
     layout->addWidget(cmbFontSelect);
-setLayout(layout);
-add_FontSelector(this);
-updateFonts(false);
+    setLayout(layout);
+    add_FontSelector(this);
+    updateFonts(false);
+
 }
 
 void FontSelector::setLabelText(QString s)
 {
     if (useQtFonts==false)
-    lblText->setText(s);
+        lblText->setText(s);
     else
-    cmdSelFont->setText(s);
+        cmdSelFont->setText(s);
 }
 
 void FontSelector::updateFonts(bool preserve)
 {
-disconnect(cmbFontSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(changed(int)));
-int old_index=cmbFontSelect->currentIndex();
-QString description;
-cmbFontSelect->clear();
+    disconnect(cmbFontSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(changed(int)));
+    int old_index=cmbFontSelect->currentIndex();
+    QString description;
+    cmbFontSelect->clear();
     if (useQtFonts==false)
     {
         for (int i=0;i<number_of_fonts();i++)
-        cmbFontSelect->addItem(get_fontalias(i));
+            cmbFontSelect->addItem(get_fontalias(i));
     }
     else//useQtFonts=true
     {
         for (int i=0;i<stdFontList.length();i++)
         {
             description=stdFontList.at(i).family();
-                if (stdFontList.at(i).italic()==true)
+            if (stdFontList.at(i).italic()==true)
                 description=description + tr("-italic");
-                if (stdFontList.at(i).bold()==true)
+            if (stdFontList.at(i).bold()==true)
                 description=description + tr("-bold");
             cmbFontSelect->addItem(description);
         }
     }
-if (preserve==true)
-cmbFontSelect->setCurrentIndex(old_index);
-else
-cmbFontSelect->setCurrentIndex(0);
+    if (preserve==true)
+        cmbFontSelect->setCurrentIndex(old_index);
+    else
 
-font=getFontFromDatabase(cmbFontSelect->currentIndex());
+#ifdef SKF_QtGrace
+        cmbFontSelect->setCurrentIndex(4); //Set Helvetica as default font
+#else
+        cmbFontSelect->setCurrentIndex(0);
+#endif
 
-connect(cmbFontSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(changed(int)));
+    font=getFontFromDatabase(cmbFontSelect->currentIndex());
+
+    connect(cmbFontSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(changed(int)));
 }
 
 void FontSelector::selectNewFont(void)
 {
-int index;
-bool ok;
-font=QFontDialog::getFont(&ok,font,this);
+    int index;
+    bool ok;
+    font=QFontDialog::getFont(&ok,font,this);
     if (ok==true)//really a new font!
     {
-    index=indexOfFontInDatabase(font);//does it exist?
+        index=indexOfFontInDatabase(font);//does it exist?
         if (index<0)//no --> new font in database
         {
-        index=addFontToDatabase(font);
+            index=addFontToDatabase(font);
 
-        update_font_selectors();//update all Font selectors
+            update_font_selectors();//update all Font selectors
 
-        changed(index);
+            changed(index);
         }
-    cmbFontSelect->setCurrentIndex(index);
-    displayFont();
+        cmbFontSelect->setCurrentIndex(index);
+        displayFont();
     }
 }
 
 void FontSelector::displayFont(void)
 {
-static QFont dFont;
-if (cmdSelFont!=NULL)
-{
-dFont=font;
-dFont.setPixelSize(stdFont.pixelSize());
-cmdSelFont->setFont(dFont);
-cmdSelFont->setText(cmdSelFont->text());
-//cmdSelFont->setText(font.family());
-//cout << "font=#" << font.toString().toAscii().constData() << "#" << endl;
-}
+    static QFont dFont;
+    if (cmdSelFont!=NULL)
+    {
+        dFont=font;
+        dFont.setPixelSize(stdFont.pixelSize());
+        cmdSelFont->setFont(dFont);
+        cmdSelFont->setText(cmdSelFont->text());
+        //cmdSelFont->setText(font.family());
+        //cout << "font=#" << font.toString().toAscii().constData() << "#" << endl;
+    }
 }
 
 void FontSelector::changed(int i)
 {
-font=getFontFromDatabase(i);
-displayFont();
-emit(currentIndexChanged(i));
+    font=getFontFromDatabase(i);
+    displayFont();
+    emit(currentIndexChanged(i));
 }
 
 int FontSelector::currentIndex(void)
@@ -1434,7 +1440,7 @@ int FontSelector::currentIndex(void)
     /*if (useQtFonts==true)
     return indexOfFontInDatabase(font);
     else*/
-return cmbFontSelect->currentIndex();
+    return cmbFontSelect->currentIndex();
 }
 
 void FontSelector::setCurrentIndex(int i)
@@ -1446,522 +1452,522 @@ void FontSelector::setCurrentIndex(int i)
 
 QFont FontSelector::getCurrentFont(void)
 {
-return font;
+    return font;
 }
 
 void FontSelector::setCurrentFont(QFont & f)
 {
-font = f;
-displayFont();
-int index=indexOfFontInDatabase(f);
-cmbFontSelect->setCurrentIndex(index);
+    font = f;
+    displayFont();
+    int index=indexOfFontInDatabase(f);
+    cmbFontSelect->setCurrentIndex(index);
 }
 
 PositionSelector::PositionSelector(QWidget * parent):QWidget(parent)
 {
-lblText=new QLabel(tr("Position in:"));
-cmbPositionSelect=new QComboBox();
-cmbPositionSelect->addItem(tr("World coordinates"));
-cmbPositionSelect->addItem(tr("Viewport coordinates"));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(cmbPositionSelect);
-setLayout(layout);
+    lblText=new QLabel(tr("Position in:"));
+    cmbPositionSelect=new QComboBox();
+    cmbPositionSelect->addItem(tr("World coordinates"));
+    cmbPositionSelect->addItem(tr("Viewport coordinates"));
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(cmbPositionSelect);
+    setLayout(layout);
 }
 
 int PositionSelector::currentIndex(void)
 {
-return cmbPositionSelect->currentIndex();
+    return cmbPositionSelect->currentIndex();
 }
 
 int PositionSelector::currentValue(void)
 {
-return cmbPositionSelect->currentIndex()==0?COORD_WORLD:COORD_VIEW;
+    return cmbPositionSelect->currentIndex()==0?COORD_WORLD:COORD_VIEW;
 }
 
 void PositionSelector::setCurrentIndex(int i)
 {
-cmbPositionSelect->setCurrentIndex(i);
+    cmbPositionSelect->setCurrentIndex(i);
 }
 
 JustificationSelector::JustificationSelector(QWidget * parent):QWidget(parent)
 {
-just_names=new QString*[12];
+    just_names=new QString*[12];
 
-just_names[0]=new QString("lm");
-values[0]=JUST_LEFT | JUST_BLINE;
-just_names[1]=new QString("cm");
-values[1]=JUST_CENTER | JUST_BLINE;
-just_names[2]=new QString("rm");
-values[2]=JUST_RIGHT | JUST_BLINE;
-just_names[3]=new QString("lb");
-values[3]=JUST_LEFT | JUST_BOTTOM;
-just_names[4]=new QString("cb");
-values[4]=JUST_CENTER | JUST_BOTTOM;
-just_names[5]=new QString("rb");
-values[5]=JUST_RIGHT | JUST_BOTTOM;
-just_names[6]=new QString("lm");
-values[6]=JUST_LEFT | JUST_MIDDLE;
-just_names[7]=new QString("cm");
-values[7]=JUST_CENTER | JUST_MIDDLE;
-just_names[8]=new QString("rm");
-values[8]=JUST_RIGHT | JUST_MIDDLE;
-just_names[9]=new QString("lt");
-values[9]=JUST_LEFT | JUST_TOP;
-just_names[10]=new QString("ct");
-values[10]=JUST_CENTER | JUST_TOP;
-just_names[11]=new QString("rt");
-values[11]=JUST_RIGHT | JUST_TOP;
+    just_names[0]=new QString("lm");
+    values[0]=JUST_LEFT | JUST_BLINE;
+    just_names[1]=new QString("cm");
+    values[1]=JUST_CENTER | JUST_BLINE;
+    just_names[2]=new QString("rm");
+    values[2]=JUST_RIGHT | JUST_BLINE;
+    just_names[3]=new QString("lb");
+    values[3]=JUST_LEFT | JUST_BOTTOM;
+    just_names[4]=new QString("cb");
+    values[4]=JUST_CENTER | JUST_BOTTOM;
+    just_names[5]=new QString("rb");
+    values[5]=JUST_RIGHT | JUST_BOTTOM;
+    just_names[6]=new QString("lm");
+    values[6]=JUST_LEFT | JUST_MIDDLE;
+    just_names[7]=new QString("cm");
+    values[7]=JUST_CENTER | JUST_MIDDLE;
+    just_names[8]=new QString("rm");
+    values[8]=JUST_RIGHT | JUST_MIDDLE;
+    just_names[9]=new QString("lt");
+    values[9]=JUST_LEFT | JUST_TOP;
+    just_names[10]=new QString("ct");
+    values[10]=JUST_CENTER | JUST_TOP;
+    just_names[11]=new QString("rt");
+    values[11]=JUST_RIGHT | JUST_TOP;
 
-cmbJustSelect=new newCombo(3,4,3,Qt_justifications,just_names,false,this);
-lblText=new QLabel(tr("Justification:"));
+    cmbJustSelect=new newCombo(3,4,3,Qt_justifications,just_names,false,this);
+    lblText=new QLabel(tr("Justification:"));
 
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(cmbJustSelect);
-setLayout(layout);
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(cmbJustSelect);
+    setLayout(layout);
 }
 
 int JustificationSelector::currentIndex(void)
 {
-return values[cmbJustSelect->currentIndex()];
+    return values[cmbJustSelect->currentIndex()];
 }
 
 void JustificationSelector::setCurrentIndex(int i)
 {
-int index=0;
+    int index=0;
     for (int j=0;j<12;j++)
     {
         if (values[j]==i)
         {
-        index=j;
-        break;
+            index=j;
+            break;
         }
     }
-cmbJustSelect->setCurrentIndex(index);
+    cmbJustSelect->setCurrentIndex(index);
 }
 
 stdButtonGroup::stdButtonGroup(QWidget * parent,bool appl,bool acc,bool help):QWidget(parent)
 {
-showAccept=acc;
-showApply=appl;
-showHelp=help;
+    showAccept=acc;
+    showApply=appl;
+    showHelp=help;
 
-cmdAccept=new QPushButton(tr("Accept"));
-cmdApply=new QPushButton(tr("Apply"));
-cmdClose=new QPushButton(tr("Close"));
-cmdHelp=new QPushButton(tr("Help"));
+    cmdAccept=new QPushButton(tr("Accept"));
+    cmdApply=new QPushButton(tr("Apply"));
+    cmdClose=new QPushButton(tr("Close"));
+    cmdHelp=new QPushButton(tr("Help"));
 
-layout=new QHBoxLayout;
-layout->setMargin(2);
-if (showApply==true)
-layout->addWidget(cmdApply);
-else
-cmdApply->hide();
-if (showAccept==true)
-layout->addWidget(cmdAccept);
-else
-cmdAccept->hide();
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    if (showApply==true)
+        layout->addWidget(cmdApply);
+    else
+        cmdApply->hide();
+    if (showAccept==true)
+        layout->addWidget(cmdAccept);
+    else
+        cmdAccept->hide();
 
-layout->addWidget(cmdClose);
+    layout->addWidget(cmdClose);
 
-if (showHelp==true)
-layout->addWidget(cmdHelp);
-else
-cmdHelp->hide();
-setLayout(layout);
+    if (showHelp==true)
+        layout->addWidget(cmdHelp);
+    else
+        cmdHelp->hide();
+    setLayout(layout);
 }
 
 ColorSelector::ColorSelector(QWidget * parent):QWidget(parent)
 {
-lblText=new QLabel(tr("Color:"));
-prevent_from_update=false;
-/*cmbColorSelect=new QComboBox();
+    lblText=new QLabel(tr("Color:"));
+    prevent_from_update=false;
+    /*cmbColorSelect=new QComboBox();
 for (int i=0;i<16;i++)
 cmbColorSelect->addItem(*ColorIcons[i],"");
 cmbColorSelect->setIconSize(QSize(82,16));
 */
-int * real_colors=new int[4];
-int aux_cols;
-int map_entries=get_main_color_indices(&real_colors,&aux_cols);
-int rows=int(sqrt(map_entries*1.0));
-int cols=rows;
-int last_col=rows;
-if (rows*cols<map_entries)
-{
-last_col=map_entries-rows*cols;
-cols+=1;
-    while (last_col>rows)
+    int * real_colors=new int[4];
+    int aux_cols;
+    int map_entries=get_main_color_indices(&real_colors,&aux_cols);
+    int rows=int(sqrt(map_entries*1.0));
+    int cols=rows;
+    int last_col=rows;
+    if (rows*cols<map_entries)
     {
-    cols+=1;
-    last_col-=rows;
+        last_col=map_entries-rows*cols;
+        cols+=1;
+        while (last_col>rows)
+        {
+            cols+=1;
+            last_col-=rows;
+        }
     }
-}
-cmbColorSelect=new newCombo(rows,cols,last_col,ColorPixmaps,ColorNames,true,this);
-connect(cmbColorSelect,SIGNAL(currentIndexChanged(int)),SLOT(panelIndexChanged(int)));
-delete[] real_colors;
-layout=new QHBoxLayout;
-layout->setMargin(STD_MARGIN);
-layout->addWidget(lblText);
-layout->addWidget(cmbColorSelect);
-setLayout(layout);
+    cmbColorSelect=new newCombo(rows,cols,last_col,ColorPixmaps,ColorNames,true,this);
+    connect(cmbColorSelect,SIGNAL(currentIndexChanged(int)),SLOT(panelIndexChanged(int)));
+    delete[] real_colors;
+    layout=new QHBoxLayout;
+    layout->setMargin(STD_MARGIN);
+    layout->addWidget(lblText);
+    layout->addWidget(cmbColorSelect);
+    setLayout(layout);
 
-add_ColorSelector(this);
+    add_ColorSelector(this);
 }
 
 void ColorSelector::update_color_panels(void)
 {
-updateColorIcons(number_of_colors(),ColorPixmaps,ColorNames);
+    updateColorIcons(number_of_colors(),ColorPixmaps,ColorNames);
 }
 
 void ColorSelector::panelIndexChanged(int i)
 {
-emit(currentIndexChanged(i));
+    emit(currentIndexChanged(i));
 }
 
 int ColorSelector::currentIndex(void)
 {
-return cmbColorSelect->currentIndex();
+    return cmbColorSelect->currentIndex();
 }
 
 void ColorSelector::setCurrentIndex(int i)
 {
-cmbColorSelect->setCurrentIndex(i);
+    cmbColorSelect->setCurrentIndex(i);
 }
 
 void ColorSelector::updateColorIcons(int nr_of_cols,QPixmap ** ColorPixmaps,QString ** ColorNames)
 {
-int rows=int(sqrt(nr_of_cols*1.0));
-int cols=rows;
-int last_col=rows;
-if (rows*cols<nr_of_cols)
-{
-last_col=nr_of_cols-rows*cols;
-cols+=1;
-    while (last_col>rows)
+    int rows=int(sqrt(nr_of_cols*1.0));
+    int cols=rows;
+    int last_col=rows;
+    if (rows*cols<nr_of_cols)
     {
-    cols+=1;
-    last_col-=rows;
+        last_col=nr_of_cols-rows*cols;
+        cols+=1;
+        while (last_col>rows)
+        {
+            cols+=1;
+            last_col-=rows;
+        }
     }
-}
-cmbColorSelect->reinitializePanels(rows,cols,last_col,ColorPixmaps,ColorNames,cmbColorSelect->text_only);
+    cmbColorSelect->reinitializePanels(rows,cols,last_col,ColorPixmaps,ColorNames,cmbColorSelect->text_only);
 }
 
 StdSelector::StdSelector(QWidget * parent)
 {
-int number=2;
-QString * entr=new QString[2];
-entr[0]=QString("");
-entr[1]=QString("");
-QString label("");
-StdSelector(parent,label,number,entr);
+    int number=2;
+    QString * entr=new QString[2];
+    entr[0]=QString("");
+    entr[1]=QString("");
+    QString label("");
+    StdSelector(parent,label,number,entr);
 }
 
 StdSelector::StdSelector(QWidget * parent,QString label,int number,QString * entr):QWidget(parent)
 {
-lblText=new QLabel(label);
-cmbSelect=new QComboBox();
-number_of_entries=number;
-entries=new QString[number];
-entryValues=new int[number];
-for (int i=0;i<number;i++)
-{
-entries[i]=entr[i];
-entryValues[i]=i;
-cmbSelect->addItem(entr[i]);
-}
-connect(cmbSelect,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(cmbSelect);
-setLayout(layout);
+    lblText=new QLabel(label);
+    cmbSelect=new QComboBox();
+    number_of_entries=number;
+    entries=new QString[number];
+    entryValues=new int[number];
+    for (int i=0;i<number;i++)
+    {
+        entries[i]=entr[i];
+        entryValues[i]=i;
+        cmbSelect->addItem(entr[i]);
+    }
+    connect(cmbSelect,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(cmbSelect);
+    setLayout(layout);
 }
 
 StdSelector::~StdSelector()
 {
-delete[] entries;
-delete[] entryValues;
+    delete[] entries;
+    delete[] entryValues;
 }
 
 void StdSelector::changed(int i)
 {
-emit(currentIndexChanged(i));
+    emit(currentIndexChanged(i));
 }
 
 void StdSelector::setValues(int * values)
 {
-for (int i=0;i<number_of_entries;i++)
-{
-entryValues[i]=values[i];
-}
+    for (int i=0;i<number_of_entries;i++)
+    {
+        entryValues[i]=values[i];
+    }
 }
 
 void StdSelector::setNewEntries(int number,QString * entr)
 {
-int * values=new int[number];
-for (int i=0;i<number;i++)
-values[i]=i;
+    int * values=new int[number];
+    for (int i=0;i<number;i++)
+        values[i]=i;
 
-setNewEntries(number,entr,values);
-delete[] values;
+    setNewEntries(number,entr,values);
+    delete[] values;
 }
 
 void StdSelector::setNewEntries(int number,QString * entr,int * values)
 {
-cmbSelect->clear();
-delete[] entries;
-delete[] entryValues;
-number_of_entries=number;
-entries=new QString[number];
-entryValues=new int[number];
-for (int i=0;i<number;i++)
-{
-entries[i]=entr[i];
-entryValues[i]=values[i];
-cmbSelect->addItem(entr[i]);
-}
+    cmbSelect->clear();
+    delete[] entries;
+    delete[] entryValues;
+    number_of_entries=number;
+    entries=new QString[number];
+    entryValues=new int[number];
+    for (int i=0;i<number;i++)
+    {
+        entries[i]=entr[i];
+        entryValues[i]=values[i];
+        cmbSelect->addItem(entr[i]);
+    }
 }
 
 int StdSelector::currentIndex(void)
 {
-return cmbSelect->currentIndex();
+    return cmbSelect->currentIndex();
 }
 
 int StdSelector::currentValue(void)
 {
-return entryValues[cmbSelect->currentIndex()];
+    return entryValues[cmbSelect->currentIndex()];
 }
 
 void StdSelector::setCurrentIndex(int i)
 {
-if (i>=0 && i<cmbSelect->count())
-cmbSelect->setCurrentIndex(i);
-else
-cmbSelect->setCurrentIndex(0);
+    if (i>=0 && i<cmbSelect->count())
+        cmbSelect->setCurrentIndex(i);
+    else
+        cmbSelect->setCurrentIndex(0);
 }
 
 void StdSelector::setCurrentValue(int i)
 {
-int index=0;
-for (int j=0;j<number_of_entries;j++)
-{
-	if (i==entryValues[j])
-	{
-	index=j;
-	break;
-	}
-}
-cmbSelect->setCurrentIndex(index);
+    int index=0;
+    for (int j=0;j<number_of_entries;j++)
+    {
+        if (i==entryValues[j])
+        {
+            index=j;
+            break;
+        }
+    }
+    cmbSelect->setCurrentIndex(index);
 }
 
 LineStyleSelector::LineStyleSelector(QWidget * parent):QWidget(parent)
 {
-lblText=new QLabel(tr("Line style:"));
-/*cmbStyleSelect=new QComboBox();
+    lblText=new QLabel(tr("Line style:"));
+    /*cmbStyleSelect=new QComboBox();
 for (int i=0;i<MAXLINESTYLES;i++)
 cmbStyleSelect->addItem(*LineIcons[i],"");
 cmbStyleSelect->setIconSize(QSize(82,22));*/
-LineNames=new QString*[MAXLINESTYLES];
-char dummy[48];
-for (int i=0;i<MAXLINESTYLES;i++)
-{
-sprintf(dummy,"%d",i);
-LineNames[i]=new QString(dummy);
-}
-cmbStyleSelect=new newCombo(MAXLINESTYLES,1,MAXLINESTYLES,LinePixmaps,LineNames,false,this);
-connect(cmbStyleSelect,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(cmbStyleSelect);
-setLayout(layout);
+    LineNames=new QString*[MAXLINESTYLES];
+    char dummy[48];
+    for (int i=0;i<MAXLINESTYLES;i++)
+    {
+        sprintf(dummy,"%d",i);
+        LineNames[i]=new QString(dummy);
+    }
+    cmbStyleSelect=new newCombo(MAXLINESTYLES,1,MAXLINESTYLES,LinePixmaps,LineNames,false,this);
+    connect(cmbStyleSelect,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(cmbStyleSelect);
+    setLayout(layout);
 }
 
 void LineStyleSelector::changed(int i)
 {
-emit(currentIndexChanged(i));
+    emit(currentIndexChanged(i));
 }
 
 int LineStyleSelector::currentIndex(void)
 {
-return cmbStyleSelect->currentIndex();
+    return cmbStyleSelect->currentIndex();
 }
 
 void LineStyleSelector::setCurrentIndex(int i)
 {
-cmbStyleSelect->setCurrentIndex(i);
+    cmbStyleSelect->setCurrentIndex(i);
 }
 
 FillPatternSelector::FillPatternSelector(QWidget * parent):QWidget(parent)
 {
-lblText=new QLabel(tr("Fill pattern:"),this);
-/*
+    lblText=new QLabel(tr("Fill pattern:"),this);
+    /*
 cmbFillPattern=new QComboBox(this);
 cmbFillPattern->addItem(tr("None"));
 for (int i=1;i<MAXPATTERNS;i++)
 cmbFillPattern->addItem(QIcon(patterns[i]->copy(patterns[i]->rect())),"");
 */
-char dummy[48];
-PatternNames=new QString*[MAXPATTERNS];
-sprintf(dummy,"None");
-PatternNames[0]=new QString(dummy);
-for (int i=1;i<MAXPATTERNS;i++)
-{
-sprintf(dummy,"%d",i);
-PatternNames[i]=new QString(dummy);
-}
-cmbFillPattern=new newCombo(8,4,8,PatternPixmaps,PatternNames,false,this);
-connect(cmbFillPattern,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(cmbFillPattern);
-setLayout(layout);
+    char dummy[48];
+    PatternNames=new QString*[MAXPATTERNS];
+    sprintf(dummy,"None");
+    PatternNames[0]=new QString(dummy);
+    for (int i=1;i<MAXPATTERNS;i++)
+    {
+        sprintf(dummy,"%d",i);
+        PatternNames[i]=new QString(dummy);
+    }
+    cmbFillPattern=new newCombo(8,4,8,PatternPixmaps,PatternNames,false,this);
+    connect(cmbFillPattern,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(cmbFillPattern);
+    setLayout(layout);
 }
 
 void FillPatternSelector::changed(int i)
 {
-emit(currentIndexChanged(i));
+    emit(currentIndexChanged(i));
 }
 
 int FillPatternSelector::currentIndex(void)
 {
-return cmbFillPattern->currentIndex();
+    return cmbFillPattern->currentIndex();
 }
 
 void FillPatternSelector::setCurrentIndex(int i)
 {
-cmbFillPattern->setCurrentIndex(i);
+    cmbFillPattern->setCurrentIndex(i);
 }
 
 OrderSelector::OrderSelector(QWidget * parent):QWidget(parent)
 {
-OrderNames=new QString*[4*2];
-OrderNames[0]=new QString("hv_lr");
-OrderNames[1]=new QString("hv_lr");
-OrderNames[2]=new QString("hv_rl");
-OrderNames[3]=new QString("hv_rl");
-OrderNames[4]=new QString("vh_lr");
-OrderNames[5]=new QString("vh_lr");
-OrderNames[6]=new QString("vh_rl");
-OrderNames[7]=new QString("vh_rl");
-lblText=new QLabel(tr("Order:"),this);
-cmbOrderPattern=new newCombo(4,2,4,Qt_matrixOrder,OrderNames,false,this);
-connect(cmbOrderPattern,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(cmbOrderPattern);
-setLayout(layout);
+    OrderNames=new QString*[4*2];
+    OrderNames[0]=new QString("hv_lr");
+    OrderNames[1]=new QString("hv_lr");
+    OrderNames[2]=new QString("hv_rl");
+    OrderNames[3]=new QString("hv_rl");
+    OrderNames[4]=new QString("vh_lr");
+    OrderNames[5]=new QString("vh_lr");
+    OrderNames[6]=new QString("vh_rl");
+    OrderNames[7]=new QString("vh_rl");
+    lblText=new QLabel(tr("Order:"),this);
+    cmbOrderPattern=new newCombo(4,2,4,Qt_matrixOrder,OrderNames,false,this);
+    connect(cmbOrderPattern,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(cmbOrderPattern);
+    setLayout(layout);
 }
 
 void OrderSelector::changed(int i)
 {
-emit(currentIndexChanged(i));
+    emit(currentIndexChanged(i));
 }
 
 int OrderSelector::currentIndex(void)
 {
-return cmbOrderPattern->currentIndex();
+    return cmbOrderPattern->currentIndex();
 }
 
 void OrderSelector::setCurrentIndex(int i)
 {
-cmbOrderPattern->setCurrentIndex(i);
+    cmbOrderPattern->setCurrentIndex(i);
 }
 
 
 LineWidthSelector::LineWidthSelector(QWidget * parent):QWidget(parent)
 {
-lblText=new QLabel(tr("Line width:"));
-spnLineWidth=new QDoubleSpinBox(this);
-spnLineWidth->setRange(0.0,MAX_LINEWIDTH);
-spnLineWidth->setDecimals(1);
-spnLineWidth->setSingleStep(0.5);
-connect(spnLineWidth,SIGNAL(valueChanged(double)),SLOT(changed(double)));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(spnLineWidth);
-setLayout(layout);
+    lblText=new QLabel(tr("Line width:"));
+    spnLineWidth=new QDoubleSpinBox(this);
+    spnLineWidth->setRange(0.0,MAX_LINEWIDTH);
+    spnLineWidth->setDecimals(1);
+    spnLineWidth->setSingleStep(0.5);
+    connect(spnLineWidth,SIGNAL(valueChanged(double)),SLOT(changed(double)));
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(spnLineWidth);
+    setLayout(layout);
 }
 
 void LineWidthSelector::changed(double i)
 {
-emit(currentValueChanged(i));
+    emit(currentValueChanged(i));
 }
 
 double LineWidthSelector::value(void)
 {
-return spnLineWidth->value();
+    return spnLineWidth->value();
 }
 
 void LineWidthSelector::setValue(double i)
 {
-spnLineWidth->setValue(i);
+    spnLineWidth->setValue(i);
 }
 
 stdIntSelector::stdIntSelector(QWidget * parent,QString label,int min,int max):QWidget(parent)
 {
-lblText=new QLabel(label,this);
-spnInt=new QSpinBox(this);
-spnInt->setRange(min,max);
-connect(spnInt,SIGNAL(valueChanged(int)),SLOT(changed(int)));
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(spnInt);
-setLayout(layout);
+    lblText=new QLabel(label,this);
+    spnInt=new QSpinBox(this);
+    spnInt->setRange(min,max);
+    connect(spnInt,SIGNAL(valueChanged(int)),SLOT(changed(int)));
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(spnInt);
+    setLayout(layout);
 }
 
 void stdIntSelector::changed(int i)
 {
-emit(currentValueChanged(i));
+    emit(currentValueChanged(i));
 }
 
 int stdIntSelector::value(void)
 {
-return spnInt->value();
+    return spnInt->value();
 }
 
 void stdIntSelector::setValue(int i)
 {
-spnInt->setValue(i);
+    spnInt->setValue(i);
 }
 
 stdLineEdit::stdLineEdit(QWidget * parent,QString label,bool accLaTex):QWidget(parent)
 {
-c1=c2=NULL;
-displayStd=true;
-acceptLaTex=accLaTex;
-lblText=new QLabel(label,this);
-lenText=new QLineEdit("0",this);
-connect(lenText,SIGNAL(returnPressed()),this,SLOT(ContentChanged()));
-layout=new QHBoxLayout();
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(lenText);
-setLayout(layout);
-QPalette pal=lenText->palette();
-if (stdTextColor==NULL)
-stdTextColor=new QColor(pal.text().color());
+    c1=c2=NULL;
+    displayStd=true;
+    acceptLaTex=accLaTex;
+    lblText=new QLabel(label,this);
+    lenText=new QLineEdit("0",this);
+    connect(lenText,SIGNAL(returnPressed()),this,SLOT(ContentChanged()));
+    layout=new QHBoxLayout();
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(lenText);
+    setLayout(layout);
+    QPalette pal=lenText->palette();
+    if (stdTextColor==NULL)
+        stdTextColor=new QColor(pal.text().color());
 }
 
 void stdLineEdit::ContentChanged(void)
 {
-emit(changed());
+    emit(changed());
 }
 
 QString stdLineEdit::text(void)
 {
     if (useQtFonts)
-    return FileCodec->fromUnicode(lenText->text());
+        return FileCodec->fromUnicode(lenText->text());
     else
-    return lenText->text();
-/*///Deactivated LaTeX-to-Grace-conversion
+        return lenText->text();
+    /*///Deactivated LaTeX-to-Grace-conversion
 static int pos,pos2,ret;
 static QString str,str2;
 static QString ref("$$");
@@ -1992,27 +1998,27 @@ return result;
 
 void stdLineEdit::setText(QString text)
 {
-displayStd=true;
-c1=c2=NULL;
+    displayStd=true;
+    c1=c2=NULL;
     if (useQtFonts)
-    lenText->setText(FileCodec->toUnicode(text.toAscii().constData()));
+        lenText->setText(FileCodec->toUnicode(text.toAscii().constData()));
     else
-    lenText->setText(text);
+        lenText->setText(text);
 }
 
 void stdLineEdit::mouseReleaseEvent(QMouseEvent * e)
 {
     if (acceptLaTex==false) return;
-e->accept();
-QPoint pos=e->pos();
-if (lblText->rect().contains(pos)==true) clickedOnLabel();
+    e->accept();
+    QPoint pos=e->pos();
+    if (lblText->rect().contains(pos)==true) clickedOnLabel();
 }
 
 void stdLineEdit::clickedOnLabel(void)
 {
-if (acceptLaTex==false || activateLaTeXsupport==false) return;
-ClickedOnLabel(c1,c2,displayStd,lenText);
-/*
+    if (acceptLaTex==false || activateLaTeXsupport==false) return;
+    ClickedOnLabel(c1,c2,displayStd,lenText);
+    /*
 if (c1==NULL || c2==NULL) return;
 displayStd=!displayStd;
 QPalette pal=lenText->palette();
@@ -2031,8 +2037,8 @@ lenText->setPalette(pal);*/
 
 void stdLineEdit::SetTextToMemory(char * t1,char * t2)
 {
-SetLineEditToMemory(t1,t2,c1,c2,displayStd,lenText);
-/*c1=t1;
+    SetLineEditToMemory(t1,t2,c1,c2,displayStd,lenText);
+    /*c1=t1;
 c2=t2;
 displayStd=true;
 QPalette pal=lenText->palette();
@@ -2046,27 +2052,27 @@ lenText->setPalette(pal);*/
 
 void stdLineEdit::SetMemoryToText(char * t1,char * t2)
 {
-static QPalette pal;
-QString text(FileCodec->fromUnicode(lenText->text()));
+    static QPalette pal;
+    QString text(FileCodec->fromUnicode(lenText->text()));
     if (useQtFonts==false) text=lenText->text();
-displayStd=true;
-strcpy(t2,text.toAscii().constData());//t2 is always the original
+    displayStd=true;
+    strcpy(t2,text.toAscii().constData());//t2 is always the original
     if (acceptLaTex==true && activateLaTeXsupport==true)
-    complete_LaTeX_to_Grace_Translator(text);
-strcpy(t1,text.toAscii().constData());//t1 is the Grace-version of the text
-c1=t1;
-c2=t2;
-pal=lenText->palette();
+        complete_LaTeX_to_Grace_Translator(text);
+    strcpy(t1,text.toAscii().constData());//t1 is the Grace-version of the text
+    c1=t1;
+    c2=t2;
+    pal=lenText->palette();
     if (stdTextColor==NULL)
-    stdTextColor=new QColor(pal.text().color());
+        stdTextColor=new QColor(pal.text().color());
     pal.setColor(QPalette::Text,*stdTextColor);
-lenText->setPalette(pal);
+    lenText->setPalette(pal);
 }
 
 void stdLineEdit::DynSetMemoryToText(char * &t1,char * &t2)
 {
-DynSetMemoryToLineEdit(t1,t2,c1,c2,displayStd,acceptLaTex,lenText);
-/*
+    DynSetMemoryToLineEdit(t1,t2,c1,c2,displayStd,acceptLaTex,lenText);
+    /*
 QString text(lenText->text());
 displayStd=true;
 char * te=new char[text.length()+8];
@@ -2088,302 +2094,302 @@ delete[] te;
 
 dirList::dirList(QWidget * parent,int type):QTreeView(parent)
 {
-listtype=type;
+    listtype=type;
 
-model = new QDirModel();
+    model = new QDirModel();
 
-if (listtype==DIRLIST)
-model->setFilter(QDir::AllDirs);
-else
-model->setFilter(QDir::Files | QDir::NoDotAndDotDot);
+    if (listtype==DIRLIST)
+        model->setFilter(QDir::AllDirs);
+    else
+        model->setFilter(QDir::Files | QDir::NoDotAndDotDot);
 
-setModel(model);
-setRootIndex(model->index(QDir::currentPath()));
+    setModel(model);
+    setRootIndex(model->index(QDir::currentPath()));
 }
 
 FileSelector::FileSelector(QWidget * parent):QWidget(parent)
 {
-int number=3;
-QString entr[3];
-entr[0]=tr("Cwd");
-entr[1]=tr("Home");
+    int number=3;
+    QString entr[3];
+    entr[0]=tr("Cwd");
+    entr[1]=tr("Home");
 #ifdef MAC_SYSTEM
-entr[2]=tr("/");
+    entr[2]=tr("/");
 #endif
 #ifdef LINUX_SYSTEM
-entr[2]=tr("/");
+    entr[2]=tr("/");
 #endif
 #ifdef WINDOWS_SYSTEM
-entr[2]=tr("C:\\");
-onHighestLevel=false;
+    entr[2]=tr("C:\\");
+    onHighestLevel=false;
 #endif
-grpChDir=new QGroupBox(QString(""),this);
-selChdir=new StdSelector(grpChDir,tr("Chdir to:"),number,entr);
-cmdSetCwd=new QPushButton(tr("Set as cwd"),grpChDir);
-chkShowHiddenFiles=new QCheckBox(tr("Show hidden files"),this);
+    grpChDir=new QGroupBox(QString(""),this);
+    selChdir=new StdSelector(grpChDir,tr("Chdir to:"),number,entr);
+    cmdSetCwd=new QPushButton(tr("Set as cwd"),grpChDir);
+    chkShowHiddenFiles=new QCheckBox(tr("Show hidden files"),this);
 
-lblFilter=new QLabel(tr("Filter:"),this);
-lblDirs=new QLabel(tr("Directories:"),this);
-lblFiles=new QLabel(tr("Files:"),this);
-ledFilter=new QLineEdit("",this);
-DirList=new QListView(this);
-FileList=new QListView(this);
-modelDirs=new QDirModel();
-modelDirs->setFilter(QDir::AllDirs);
-modelFiles=new QDirModel();
-modelFiles->setFilter(QDir::Files | QDir::NoDotAndDotDot | QDir::Drives | QDir::System);
-DirList->setModel(modelDirs);
-FileList->setModel(modelFiles);
+    lblFilter=new QLabel(tr("Filter:"),this);
+    lblDirs=new QLabel(tr("Directories:"),this);
+    lblFiles=new QLabel(tr("Files:"),this);
+    ledFilter=new QLineEdit("",this);
+    DirList=new QListView(this);
+    FileList=new QListView(this);
+    modelDirs=new QDirModel();
+    modelDirs->setFilter(QDir::AllDirs);
+    modelFiles=new QDirModel();
+    modelFiles->setFilter(QDir::Files | QDir::NoDotAndDotDot | QDir::Drives | QDir::System);
+    DirList->setModel(modelDirs);
+    FileList->setModel(modelFiles);
 
-currentDir=QDir::currentPath();//Just for initialization
+    currentDir=QDir::currentPath();//Just for initialization
 
-DirList->setRootIndex(modelDirs->index(currentDir));
-FileList->setRootIndex(modelFiles->index(currentDir));
-//cmdGoUp=new QPushButton(tr("GoUp"),this);
-cmdGoUp=new QPushButton(qApp->style()->standardPixmap(QStyle::SP_FileDialogToParent),QString(""),this);
-//cmdStdDialog=new QPushButton(tr("StdDialog"),this);
-cmdStdDialog=new QPushButton(qApp->style()->standardPixmap(QStyle::SP_DirOpenIcon),QString(""),this);
+    DirList->setRootIndex(modelDirs->index(currentDir));
+    FileList->setRootIndex(modelFiles->index(currentDir));
+    //cmdGoUp=new QPushButton(tr("GoUp"),this);
+    cmdGoUp=new QPushButton(qApp->style()->standardPixmap(QStyle::SP_FileDialogToParent),QString(""),this);
+    //cmdStdDialog=new QPushButton(tr("StdDialog"),this);
+    cmdStdDialog=new QPushButton(qApp->style()->standardPixmap(QStyle::SP_DirOpenIcon),QString(""),this);
 
-connect(cmdGoUp,SIGNAL(clicked()),SLOT(doGoUp()));
-connect(cmdStdDialog,SIGNAL(clicked()),SLOT(doStdDialog()));
+    connect(cmdGoUp,SIGNAL(clicked()),SLOT(doGoUp()));
+    connect(cmdStdDialog,SIGNAL(clicked()),SLOT(doStdDialog()));
 
-connect(selChdir->cmbSelect,SIGNAL(currentIndexChanged(int)),SLOT(currentDirChanged(int)));
-connect(FileList,SIGNAL(clicked(const QModelIndex &)),SLOT(FileSelected(const QModelIndex &)));
-connect(FileList,SIGNAL(doubleClicked(const QModelIndex &)),SLOT(FileDoubleClicked(const QModelIndex &)));
-connect(DirList,SIGNAL(clicked(const QModelIndex &)),SLOT(DirSelected(const QModelIndex &)));
-connect(DirList,SIGNAL(doubleClicked(const QModelIndex &)),SLOT(DirDoubleClicked(const QModelIndex &)));
-connect(ledFilter,SIGNAL(returnPressed()),SLOT(newFilterEntered()));
-connect(chkShowHiddenFiles,SIGNAL(stateChanged(int)),SLOT(toggleHiddenFile(int)));
-connect(cmdSetCwd,SIGNAL(clicked()),SLOT(doSetCWD()));
+    connect(selChdir->cmbSelect,SIGNAL(currentIndexChanged(int)),SLOT(currentDirChanged(int)));
+    connect(FileList,SIGNAL(clicked(const QModelIndex &)),SLOT(FileSelected(const QModelIndex &)));
+    connect(FileList,SIGNAL(doubleClicked(const QModelIndex &)),SLOT(FileDoubleClicked(const QModelIndex &)));
+    connect(DirList,SIGNAL(clicked(const QModelIndex &)),SLOT(DirSelected(const QModelIndex &)));
+    connect(DirList,SIGNAL(doubleClicked(const QModelIndex &)),SLOT(DirDoubleClicked(const QModelIndex &)));
+    connect(ledFilter,SIGNAL(returnPressed()),SLOT(newFilterEntered()));
+    connect(chkShowHiddenFiles,SIGNAL(stateChanged(int)),SLOT(toggleHiddenFile(int)));
+    connect(cmdSetCwd,SIGNAL(clicked()),SLOT(doSetCWD()));
 
-layout0=new QHBoxLayout;
-layout0->setMargin(2);
-layout0->addWidget(selChdir);
-layout0->addWidget(cmdSetCwd);
-grpChDir->setLayout(layout0);
+    layout0=new QHBoxLayout;
+    layout0->setMargin(2);
+    layout0->addWidget(selChdir);
+    layout0->addWidget(cmdSetCwd);
+    grpChDir->setLayout(layout0);
 
-layout=new QGridLayout();
-layout->setMargin(2);
-layout->addWidget(lblFilter,0,0,1,4);
-layout->addWidget(ledFilter,1,0,1,4);
-layout->addWidget(lblDirs,2,0);
-layout->addWidget(cmdGoUp,2,1);
-layout->addWidget(lblFiles,2,2,1,2);
-layout->addWidget(DirList,3,0,1,2);
-layout->addWidget(FileList,3,2,1,2);
-layout->addWidget(chkShowHiddenFiles,4,0,1,2);
-layout->addWidget(cmdStdDialog,4,2,1,2);
-layout->addWidget(grpChDir,5,0,1,4);
-setLayout(layout);
-doubleclickdir=false;
-doubleclickfile=false;
+    layout=new QGridLayout();
+    layout->setMargin(2);
+    layout->addWidget(lblFilter,0,0,1,4);
+    layout->addWidget(ledFilter,1,0,1,4);
+    layout->addWidget(lblDirs,2,0);
+    layout->addWidget(cmdGoUp,2,1);
+    layout->addWidget(lblFiles,2,2,1,2);
+    layout->addWidget(DirList,3,0,1,2);
+    layout->addWidget(FileList,3,2,1,2);
+    layout->addWidget(chkShowHiddenFiles,4,0,1,2);
+    layout->addWidget(cmdStdDialog,4,2,1,2);
+    layout->addWidget(grpChDir,5,0,1,4);
+    setLayout(layout);
+    doubleclickdir=false;
+    doubleclickfile=false;
 
-separator=QDir::separator();//QString("/");
+    separator=QDir::separator();//QString("/");
 
-filterExtension=QString("*.dat");
-filter=currentDir+separator+filterExtension;
-ledFilter->setText(filter);
+    filterExtension=QString("*.dat");
+    filter=currentDir+separator+filterExtension;
+    ledFilter->setText(filter);
 }
 
 void FileSelector::FileSelected(const QModelIndex & index )
 {
-if (doubleclickfile==true)
-{
-doubleclickfile=false;
-return;
-}
-selectedFile=index.data().toString();
-QString toEmit=QDir::cleanPath(currentDir+separator+selectedFile);
-toEmit=QDir::toNativeSeparators(toEmit);
-emit(newSelection(toEmit));
+    if (doubleclickfile==true)
+    {
+        doubleclickfile=false;
+        return;
+    }
+    selectedFile=index.data().toString();
+    QString toEmit=QDir::cleanPath(currentDir+separator+selectedFile);
+    toEmit=QDir::toNativeSeparators(toEmit);
+    emit(newSelection(toEmit));
 }
 
 void FileSelector::FileDoubleClicked( const QModelIndex & index )
 {
-doubleclickfile=true;
-selectedFile=index.data().toString();
-QString toEmit=QDir::cleanPath(currentDir+separator+selectedFile);
-toEmit=QDir::toNativeSeparators(toEmit);
-emit(newSelectionDoubleClick(toEmit));
+    doubleclickfile=true;
+    selectedFile=index.data().toString();
+    QString toEmit=QDir::cleanPath(currentDir+separator+selectedFile);
+    toEmit=QDir::toNativeSeparators(toEmit);
+    emit(newSelectionDoubleClick(toEmit));
 }
 
 void FileSelector::DirSelected(const QModelIndex & index )
 {
-if (doubleclickdir==true)
-{
-doubleclickdir=false;
-return;
-}
-selectedDir=index.data().toString();
-QDir curDir(currentDir+separator+selectedDir);
-QString newFilter,newDir;
-GeneratePathWithExtension(curDir,newFilter,newDir);
-filter=newFilter;
-ledFilter->setText(filter);
+    if (doubleclickdir==true)
+    {
+        doubleclickdir=false;
+        return;
+    }
+    selectedDir=index.data().toString();
+    QDir curDir(currentDir+separator+selectedDir);
+    QString newFilter,newDir;
+    GeneratePathWithExtension(curDir,newFilter,newDir);
+    filter=newFilter;
+    ledFilter->setText(filter);
 }
 
 void FileSelector::DirDoubleClicked( const QModelIndex & index )
 {
-doubleclickdir=true;
-selectedDir=index.data().toString();
-if(selectedDir==".") return; //Nimalendiran Kailasanathan 2013-10-09 - added in order to avoid qtgrace to crash
-currentDir=currentDir+separator+selectedDir;//set a new directory
-QString newFilter,newDir;
-GeneratePathWithExtension(currentDir,newFilter,newDir);
+    doubleclickdir=true;
+    selectedDir=index.data().toString();
+    if(selectedDir==".") return; //Nimalendiran Kailasanathan 2013-10-09 - added in order to avoid qtgrace to crash
+    currentDir=currentDir+separator+selectedDir;//set a new directory
+    QString newFilter,newDir;
+    GeneratePathWithExtension(currentDir,newFilter,newDir);
 
-QDir d1(currentDir);
-d1.makeAbsolute();
-currentDir=d1.path();
-filter=newFilter;
-ledFilter->setText(filter);
+    QDir d1(currentDir);
+    d1.makeAbsolute();
+    currentDir=d1.path();
+    filter=newFilter;
+    ledFilter->setText(filter);
 
-showFilesLikeFilter();
+    showFilesLikeFilter();
 
-/*TODO: IS THIS GOOD? See GeneratePathWithExtension(...)*/
-//newDir=newDir+separator;
-emit(newSelection(newDir));
-newFilterEntered();
+    /*TODO: IS THIS GOOD? See GeneratePathWithExtension(...)*/
+    //newDir=newDir+separator;
+    emit(newSelection(newDir));
+    newFilterEntered();
 }
 
 void FileSelector::showFilesLikeFilter(void)
 {
-QStringList filters;
-filters << filterExtension;
-modelDirs->setNameFilters(filters);
-modelFiles->setNameFilters(filters);
-DirList->setRootIndex(modelDirs->index(currentDir));
-FileList->setRootIndex(modelFiles->index(currentDir));
+    QStringList filters;
+    filters << filterExtension;
+    modelDirs->setNameFilters(filters);
+    modelFiles->setNameFilters(filters);
+    DirList->setRootIndex(modelDirs->index(currentDir));
+    FileList->setRootIndex(modelFiles->index(currentDir));
 }
 
 void FileSelector::newFilterEntered(void)
 {
-///test for "exists"???
-QString entered=ledFilter->text();
-QDir d1(entered);
-QChar last_char=entered.at(entered.length()-1);
+    ///test for "exists"???
+    QString entered=ledFilter->text();
+    QDir d1(entered);
+    QChar last_char=entered.at(entered.length()-1);
 #ifdef WINDOWS_SYSTEM
-onHighestLevel=false;
+    onHighestLevel=false;
 #endif
-if ( !entered.contains(QString("*")) && !entered.contains(QString("?")) && last_char==separator.at(0))
-{
-filterExtension=QString("*");
-ledFilter->setText(QDir::toNativeSeparators(entered + filterExtension));
-}
-else
-{
-filterExtension=d1.dirName();
-}
-filter=entered;
+    if ( !entered.contains(QString("*")) && !entered.contains(QString("?")) && last_char==separator.at(0))
+    {
+        filterExtension=QString("*");
+        ledFilter->setText(QDir::toNativeSeparators(entered + filterExtension));
+    }
+    else
+    {
+        filterExtension=d1.dirName();
+    }
+    filter=entered;
 
-int pos=entered.lastIndexOf(separator);
-QString p=entered;
-p.chop(entered.length()-pos);
+    int pos=entered.lastIndexOf(separator);
+    QString p=entered;
+    p.chop(entered.length()-pos);
 
-QDir d2(p);
-d2.makeAbsolute();
-currentDir=d2.path();
+    QDir d2(p);
+    d2.makeAbsolute();
+    currentDir=d2.path();
 
-showFilesLikeFilter();
+    showFilesLikeFilter();
 }
 
 void FileSelector::setFilterFromExtern(QString & directory,QString & extension)
 {
-currentDir=directory;
-filterExtension=extension;
-showFilesLikeFilter();
+    currentDir=directory;
+    filterExtension=extension;
+    showFilesLikeFilter();
 }
 
 void FileSelector::doSetCWD(void)
 {
-char *dummy=new char [currentDir.length()]; // Windows port
-strcpy(dummy,currentDir.toAscii());
-set_workingdir(dummy);
+    char *dummy=new char [currentDir.length()]; // Windows port
+    strcpy(dummy,currentDir.toAscii());
+    set_workingdir(dummy);
 }
 
 void FileSelector::toggleHiddenFile(int i)
 {
-if (i==Qt::Checked)
-{
-modelDirs->setFilter(QDir::AllDirs | QDir::Hidden);
-modelFiles->setFilter(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden);
-}
-else
-{
-modelDirs->setFilter(QDir::AllDirs);
-modelFiles->setFilter(QDir::Files | QDir::NoDotAndDotDot);
-}
-showFilesLikeFilter();
+    if (i==Qt::Checked)
+    {
+        modelDirs->setFilter(QDir::AllDirs | QDir::Hidden);
+        modelFiles->setFilter(QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden);
+    }
+    else
+    {
+        modelDirs->setFilter(QDir::AllDirs);
+        modelFiles->setFilter(QDir::Files | QDir::NoDotAndDotDot);
+    }
+    showFilesLikeFilter();
 }
 
 void FileSelector::currentDirChanged(int i)
 {
-switch (i)
-{
-case 0://CWD
-currentDir=QString(get_workingdir());
-currentDir.chop(1);
-break;
-case 1://HOME
-currentDir=QString(get_userhome());
-currentDir.chop(1);
+    switch (i)
+    {
+    case 0://CWD
+        currentDir=QString(get_workingdir());
+        currentDir.chop(1);
+        break;
+    case 1://HOME
+        currentDir=QString(get_userhome());
+        currentDir.chop(1);
 #ifdef WINDOWS_SYSTEM
-onHighestLevel=true;
+        onHighestLevel=true;
 #endif
-break;
-case 2://'/'
+        break;
+    case 2://'/'
 #ifdef WINDOWS_SYSTEM
-currentDir=QString("C:\\");
+        currentDir=QString("C:\\");
 #else
-currentDir=QString("");
+        currentDir=QString("");
 #endif
-break;
-}
-filter=currentDir+separator+filterExtension;
-ledFilter->setText(QDir::toNativeSeparators(filter));
-showFilesLikeFilter();
+        break;
+    }
+    filter=currentDir+separator+filterExtension;
+    ledFilter->setText(QDir::toNativeSeparators(filter));
+    showFilesLikeFilter();
 }
 
 void FileSelector::GeneratePathWithExtension(QDir dir,QString & PathAndExtension,QString & DirectoryOnly)
 {
-QString str=dir.cleanPath(dir.absolutePath()).toAscii();
-QString current;
-if (str.startsWith("/.."))
-{
-    while (str.startsWith("/.."))
+    QString str=dir.cleanPath(dir.absolutePath()).toAscii();
+    QString current;
+    if (str.startsWith("/.."))
     {
-    current=str.right(str.length()-3);
-    str=current;
+        while (str.startsWith("/.."))
+        {
+            current=str.right(str.length()-3);
+            str=current;
+        }
     }
-}
-else
-{
-current=dir.absolutePath();
-}
+    else
+    {
+        current=dir.absolutePath();
+    }
 #ifdef WINDOWS_SYSTEM
-while (current.count(QString(":"))>1)
-{
-str=current;
-current=str.right(str.length()-3);
-}
-if (current.contains(QString(":")))
-{
-current=current.mid(current.indexOf(QString(":"))-1);
-}
-onHighestLevel=false;
+    while (current.count(QString(":"))>1)
+    {
+        str=current;
+        current=str.right(str.length()-3);
+    }
+    if (current.contains(QString(":")))
+    {
+        current=current.mid(current.indexOf(QString(":"))-1);
+    }
+    onHighestLevel=false;
 #endif
-PathAndExtension=current+separator+filterExtension;
-PathAndExtension=QDir::cleanPath(PathAndExtension);
-PathAndExtension=QDir::toNativeSeparators(PathAndExtension);
-DirectoryOnly=current+separator;
-DirectoryOnly=QDir::cleanPath(DirectoryOnly);
-DirectoryOnly=QDir::toNativeSeparators(DirectoryOnly)+separator;
+    PathAndExtension=current+separator+filterExtension;
+    PathAndExtension=QDir::cleanPath(PathAndExtension);
+    PathAndExtension=QDir::toNativeSeparators(PathAndExtension);
+    DirectoryOnly=current+separator;
+    DirectoryOnly=QDir::cleanPath(DirectoryOnly);
+    DirectoryOnly=QDir::toNativeSeparators(DirectoryOnly)+separator;
 }
 
 void FileSelector::doGoUp(void)
 {
-QDir cdir(currentDir);
-QDir tdir(cdir);
-/*QString str2=currentDir;
+    QDir cdir(currentDir);
+    QDir tdir(cdir);
+    /*QString str2=currentDir;
 char strbuf[512];
 strcpy(strbuf,str2.toAscii());
 if (strncmp(strbuf,"/..",3)==0)
@@ -2402,28 +2408,28 @@ str2.chop(1+cdir.dirName().length());
 strcpy(strbuf,str2.toAscii());
 cout << "updir1=#" << strbuf << "#" << endl;
 */
-bool up_possible=tdir.cdUp();
-/*strcpy(strbuf,tdir.path().toAscii());
+    bool up_possible=tdir.cdUp();
+    /*strcpy(strbuf,tdir.path().toAscii());
 cout << "updir2=#" << strbuf << "# possible=" << up_possible << endl;*/
 #ifdef WINDOWS_SYSTEM
-if (up_possible==false || onHighestLevel==true)
+    if (up_possible==false || onHighestLevel==true)
 #else
-if (up_possible==false)
+    if (up_possible==false)
 #endif
-{
+    {
 #ifdef WINDOWS_SYSTEM
-    currentDirChanged(1);
+        currentDirChanged(1);
 #endif
-    return;
-}
-currentDir=tdir.absolutePath();
-currentDir=QDir::cleanPath(currentDir);
-QString newFilter,newPath;
-GeneratePathWithExtension(tdir,newFilter,newPath);
-filter=newFilter;
-ledFilter->setText(newFilter);
-emit(newSelection(newPath));
-/*currentDir=tdir.absolutePath();
+        return;
+    }
+    currentDir=tdir.absolutePath();
+    currentDir=QDir::cleanPath(currentDir);
+    QString newFilter,newPath;
+    GeneratePathWithExtension(tdir,newFilter,newPath);
+    filter=newFilter;
+    ledFilter->setText(newFilter);
+    emit(newSelection(newPath));
+    /*currentDir=tdir.absolutePath();
 filter=currentDir+separator+filterExtension;
 toEmit=QDir::cleanPath(filter);
 toEmit=QDir::toNativeSeparators(toEmit);
@@ -2431,67 +2437,67 @@ ledFilter->setText(toEmit);
 toEmit=QDir::cleanPath(currentDir+separator);
 toEmit=QDir::toNativeSeparators(toEmit);
 emit(newSelection(toEmit));*/
-showFilesLikeFilter();
+    showFilesLikeFilter();
 }
 
 void FileSelector::doStdDialog(void)
 {
-QString s;
-if (forRead==true)
-s=QFileDialog::getOpenFileName(this,currentDir);
-else
-s=QFileDialog::getSaveFileName(this,currentDir);
-if (!s.isNull())
-{
-/*lazy method of finding filename and directory*/
-ledFilter->setText(QDir::toNativeSeparators(s));
-newFilterEntered();
-//set and announce new selection and filters
-selectedFile=filter;
-filterExtension=QString("*");
-filter=currentDir+separator+filterExtension;
-emit(newSelection(selectedFile));
-//show selection again
-///modify to do this only for existing files!!!
-ledFilter->setText(QDir::toNativeSeparators(filter));
-newFilterEntered();
-QModelIndex index=modelFiles->index(selectedFile);
-FileList->setCurrentIndex(index);
-}
+    QString s;
+    if (forRead==true)
+        s=QFileDialog::getOpenFileName(this,currentDir);
+    else
+        s=QFileDialog::getSaveFileName(this,currentDir);
+    if (!s.isNull())
+    {
+        /*lazy method of finding filename and directory*/
+        ledFilter->setText(QDir::toNativeSeparators(s));
+        newFilterEntered();
+        //set and announce new selection and filters
+        selectedFile=filter;
+        filterExtension=QString("*");
+        filter=currentDir+separator+filterExtension;
+        emit(newSelection(selectedFile));
+        //show selection again
+        ///modify to do this only for existing files!!!
+        ledFilter->setText(QDir::toNativeSeparators(filter));
+        newFilterEntered();
+        QModelIndex index=modelFiles->index(selectedFile);
+        FileList->setCurrentIndex(index);
+    }
 }
 
 stdStartStop::stdStartStop(QWidget * parent):QWidget(parent)
 {
-lblStart=new QLabel(tr("Start load at:"),this);
-lblStop=new QLabel(tr("Stop load at:"),this);
-lblLength=new QLabel(tr("# of points:"),this);
-ledStart=new QLineEdit(QString(""),this);
-///ledStart->setValidator(new QDoubleValidator(this));
-ledStop=new QLineEdit(QString(""),this);
-//ledStop->setValidator(new QDoubleValidator(this));
-ledLength=new QLineEdit(QString(""),this);
-QIntValidator * intval=new QIntValidator(this);
-intval->setBottom(1);
-ledLength->setValidator(intval);
-//ledLength->setValidator(new QRegExpValidator(rx, this));
-error=false;//state indicating conversion errors
-layout=new QHBoxLayout();
-layout->setMargin(2);
-layout->addWidget(lblStart);
-layout->addWidget(ledStart);
-layout->addWidget(lblStop);
-layout->addWidget(ledStop);
-layout->addWidget(lblLength);
-layout->addWidget(ledLength);
-setLayout(layout);
+    lblStart=new QLabel(tr("Start load at:"),this);
+    lblStop=new QLabel(tr("Stop load at:"),this);
+    lblLength=new QLabel(tr("# of points:"),this);
+    ledStart=new QLineEdit(QString(""),this);
+    ///ledStart->setValidator(new QDoubleValidator(this));
+    ledStop=new QLineEdit(QString(""),this);
+    //ledStop->setValidator(new QDoubleValidator(this));
+    ledLength=new QLineEdit(QString(""),this);
+    QIntValidator * intval=new QIntValidator(this);
+    intval->setBottom(1);
+    ledLength->setValidator(intval);
+    //ledLength->setValidator(new QRegExpValidator(rx, this));
+    error=false;//state indicating conversion errors
+    layout=new QHBoxLayout();
+    layout->setMargin(2);
+    layout->addWidget(lblStart);
+    layout->addWidget(ledStart);
+    layout->addWidget(lblStop);
+    layout->addWidget(ledStop);
+    layout->addWidget(lblLength);
+    layout->addWidget(ledLength);
+    setLayout(layout);
 }
 
 double stdStartStop::start(void)
 {
-double val;
-error=false;
-xv_evalexpr(ledStart, &val);
-/*int len=ledStart->text().length();
+    double val;
+    error=false;
+    xv_evalexpr(ledStart, &val);
+    /*int len=ledStart->text().length();
 if (len<=0)
 {
 error=true;
@@ -2500,15 +2506,15 @@ return 0.0;
 char dummy[ledStart->text().length()];
 strcpy(dummy,ledStart->text().toAscii());
 return atof(dummy);*/
-return val;
+    return val;
 }
 
 double stdStartStop::stop(void)
 {
-double val;
-error=false;
-xv_evalexpr(ledStop, &val);
-/*int len=ledStop->text().length();
+    double val;
+    error=false;
+    xv_evalexpr(ledStop, &val);
+    /*int len=ledStop->text().length();
 if (len<=0)
 {
 error=true;
@@ -2517,15 +2523,15 @@ return 0.0;
 char dummy[ledStop->text().length()];
 strcpy(dummy,ledStop->text().toAscii());
 return atof(dummy);*/
-return val;
+    return val;
 }
 
 int stdStartStop::length(void)
 {
-int val;
-error=false;
-xv_evalexpri(ledLength,&val);
-/*int len=ledLength->text().length();
+    int val;
+    error=false;
+    xv_evalexpri(ledLength,&val);
+    /*int len=ledLength->text().length();
 if (len<=0)
 {
 error=true;
@@ -2534,559 +2540,559 @@ return 0.0;
 char dummy[ledLength->text().length()];
 strcpy(dummy,ledLength->text().toAscii());
 return atoi(dummy);*/
-return val;
+    return val;
 }
 
 stdSetTypeSelector::stdSetTypeSelector(QWidget * parent):StdSelector(parent)
 {
-lblText=new QLabel("Type:");
-cmbSelect=new QComboBox();
-number_of_entries=column_count=2;
-entries=new QString[column_count];
-entryValues=new int[column_count];
-entries[1]=QString("");
-entries[0]=QString("");
-entryValues[0]=0;
-entryValues[1]=1;
-cmbSelect->addItem(entries[0]);
-cmbSelect->addItem(entries[1]);
+    lblText=new QLabel("Type:");
+    cmbSelect=new QComboBox();
+    number_of_entries=column_count=2;
+    entries=new QString[column_count];
+    entryValues=new int[column_count];
+    entries[1]=QString("");
+    entries[0]=QString("");
+    entryValues[0]=0;
+    entryValues[1]=1;
+    cmbSelect->addItem(entries[0]);
+    cmbSelect->addItem(entries[1]);
 
-layout=new QHBoxLayout;
-layout->setMargin(2);
-layout->addWidget(lblText);
-layout->addWidget(cmbSelect);
-setLayout(layout);
-showAll=false;
-setColumnCount(column_count);
+    layout=new QHBoxLayout;
+    layout->setMargin(2);
+    layout->addWidget(lblText);
+    layout->addWidget(cmbSelect);
+    setLayout(layout);
+    showAll=false;
+    setColumnCount(column_count);
 }
 
 void stdSetTypeSelector::setColumnCount(int count)
 {
-if (showAll==false)
-column_count=count;
-char dummy[512];
-///SET APPROPRIATE SET_TYPE_CHOICES ACCORDING TO NUMBER OF COLUMNS --> SHOW ONLY AVAILABLE CHOICES, I DON'T KNOW HOW TO DISABLE CHOICES
-int number_of_Type_entries=0;
-for (int i=0;i<NUMBER_OF_SETTYPES;i++)
-if (settype_cols(i) == count || showAll==true) number_of_Type_entries++;
-int * Type_entries=new int[number_of_Type_entries];
-QString * entr=new QString[number_of_Type_entries];
-number_of_Type_entries=0;
-for (int i=0;i<NUMBER_OF_SETTYPES;i++)
-{
-	if (settype_cols(i) == count || showAll==true)
-	{
-	strToUpper(dummy,set_types(i));
-	entr[number_of_Type_entries]=QString(dummy);
-	Type_entries[number_of_Type_entries]=i;
-	number_of_Type_entries++;
-	}
-}
-setNewEntries(number_of_Type_entries,entr,Type_entries);
+    if (showAll==false)
+        column_count=count;
+    char dummy[512];
+    ///SET APPROPRIATE SET_TYPE_CHOICES ACCORDING TO NUMBER OF COLUMNS --> SHOW ONLY AVAILABLE CHOICES, I DON'T KNOW HOW TO DISABLE CHOICES
+    int number_of_Type_entries=0;
+    for (int i=0;i<NUMBER_OF_SETTYPES;i++)
+        if (settype_cols(i) == count || showAll==true) number_of_Type_entries++;
+    int * Type_entries=new int[number_of_Type_entries];
+    QString * entr=new QString[number_of_Type_entries];
+    number_of_Type_entries=0;
+    for (int i=0;i<NUMBER_OF_SETTYPES;i++)
+    {
+        if (settype_cols(i) == count || showAll==true)
+        {
+            strToUpper(dummy,set_types(i));
+            entr[number_of_Type_entries]=QString(dummy);
+            Type_entries[number_of_Type_entries]=i;
+            number_of_Type_entries++;
+        }
+    }
+    setNewEntries(number_of_Type_entries,entr,Type_entries);
 }
 
 void stdSetTypeSelector::setShowAll(bool sa)
 {
-showAll=sa;
-setColumnCount(column_count);
+    showAll=sa;
+    setColumnCount(column_count);
 }
 
 int stdSetTypeSelector::getColumnCount(void)
 {
-return settype_cols(currentValue());
+    return settype_cols(currentValue());
 }
 
 SetTableView::SetTableView(int gno,int sno,int * colformat,int * colprecision,QWidget * parent):QTableView(parent)
 {
-model=new SetTableModel(gno,sno,colformat,colprecision,parent);
-setModel(model);
+    model=new SetTableModel(gno,sno,colformat,colprecision,parent);
+    setModel(model);
 }
 
 bool SetTableView::edit(const QModelIndex &index, EditTrigger trigger, QEvent *event)
 {
     int row=index.row();
     int col=index.column();
-bool ret=QTableView::edit(index,trigger,event);
-return ret;
+    bool ret=QTableView::edit(index,trigger,event);
+    return ret;
 }
 
 void SetTableView::dataChanged(const QModelIndex &topLeft,const QModelIndex &bottomRight)
 {
-QTableView::dataChanged(topLeft, bottomRight);
+    QTableView::dataChanged(topLeft, bottomRight);
 }
 
 SetTableModel::SetTableModel(int gno,int sno,int * colformat,int * colprecision,QObject * parent):QAbstractTableModel(parent)
 {
-setnr=sno;
-graphnr=gno;
-col_format=colformat;
-col_precision=colprecision;
+    setnr=sno;
+    graphnr=gno;
+    col_format=colformat;
+    col_precision=colprecision;
 }
 
 bool SetTableModel::init(int gno,int sno)
 {
     if (!is_valid_setno(gno,sno)) return false;
-setnr=sno;
-graphnr=gno;
-return true;
+    setnr=sno;
+    graphnr=gno;
+    return true;
 }
 
 int SetTableModel::rowCount(const QModelIndex & parent) const
 {
-if (!is_valid_setno(graphnr,setnr))
-return 0;
-else
-return getsetlength(graphnr,setnr)+10;//10 empty lines
+    if (!is_valid_setno(graphnr,setnr))
+        return 0;
+    else
+        return getsetlength(graphnr,setnr)+10;//10 empty lines
 }
 
 int SetTableModel::columnCount(const QModelIndex & parent) const
 {
-if (!is_valid_setno(graphnr,setnr))
-return 0;
-else
-return dataset_cols(graphnr,setnr);
+    if (!is_valid_setno(graphnr,setnr))
+        return 0;
+    else
+        return dataset_cols(graphnr,setnr);
 }
 
 QVariant SetTableModel::data(const QModelIndex & index,int role) const
 {
-/// static char setPrec[8];
-/// static char out_format[16];
-static char dummy[128];
-/// static char * pt_dummy;
-static int row,col;
-static QVariant dat;
-dat=QVariant(QVariant::Invalid);
-if (!is_valid_setno(graphnr,setnr)) return dat;
-row=index.row();
-col=index.column();
-if (role==Qt::DisplayRole || role==Qt::EditRole)
-{
-    if (row>=getsetlength(graphnr,setnr)) return QVariant(QString(""));
-    construct_string_from_data(g[graphnr].p[setnr].data.ex[col][row],dummy,col_precision[col],col_format[col]);
-return QVariant(QString(dummy));
-}
-else
-{
-return QVariant::Invalid;
-}
+    /// static char setPrec[8];
+    /// static char out_format[16];
+    static char dummy[128];
+    /// static char * pt_dummy;
+    static int row,col;
+    static QVariant dat;
+    dat=QVariant(QVariant::Invalid);
+    if (!is_valid_setno(graphnr,setnr)) return dat;
+    row=index.row();
+    col=index.column();
+    if (role==Qt::DisplayRole || role==Qt::EditRole)
+    {
+        if (row>=getsetlength(graphnr,setnr)) return QVariant(QString(""));
+        construct_string_from_data(g[graphnr].p[setnr].data.ex[col][row],dummy,col_precision[col],col_format[col]);
+        return QVariant(QString(dummy));
+    }
+    else
+    {
+        return QVariant::Invalid;
+    }
 }
 
 void construct_string_from_data(double value,char * target,int col_precision,int col_format)
 {
-static char setPrec[8];
-static char out_format[16];
-static char dummy[128];
-sprintf(setPrec,"%%.%d",col_precision);
-switch (col_format)
-{
-case 0://decimal
-sprintf(out_format,"%sf",setPrec);
-break;
-case 1://general
-sprintf(out_format,"%sg",setPrec);
-break;
-case 2://exponential
-sprintf(out_format,"%se",setPrec);
-break;
-case 3://Date/time
-sprintf(out_format,"%%t");///NOT CORRECT
-break;
-}
-sprintf(dummy,out_format,value);
-strcpy(target,dummy);
+    static char setPrec[8];
+    static char out_format[16];
+    static char dummy[128];
+    sprintf(setPrec,"%%.%d",col_precision);
+    switch (col_format)
+    {
+    case 0://decimal
+        sprintf(out_format,"%sf",setPrec);
+        break;
+    case 1://general
+        sprintf(out_format,"%sg",setPrec);
+        break;
+    case 2://exponential
+        sprintf(out_format,"%se",setPrec);
+        break;
+    case 3://Date/time
+        sprintf(out_format,"%%t");///NOT CORRECT
+        break;
+    }
+    sprintf(dummy,out_format,value);
+    strcpy(target,dummy);
 }
 
 bool SetTableModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
-static int row,col;
-static double val;
-static bool ok,realy_new_value,set_is_new;
-char * oldval,*newval;
-if (!is_valid_setno(graphnr,setnr)) return false;//invalid set
-realy_new_value=false;
-val=value.toDouble(&ok);
-if (role==Qt::DisplayRole || !is_valid_setno(graphnr,setnr) || ok==false) return false;
-row=index.row();
-col=index.column();
-oldval=new char[256];
-newval=new char[256];
-strcpy(newval,value.toString().toAscii().constData());
-if (row<getsetlength(graphnr,setnr))//data already exists --> do we need to override it?
-{
-construct_string_from_data(g[graphnr].p[setnr].data.ex[col][row],oldval,col_precision[col],col_format[col]);
-    if (!strcmp(newval,oldval))
+    static int row,col;
+    static double val;
+    static bool ok,realy_new_value,set_is_new;
+    char * oldval,*newval;
+    if (!is_valid_setno(graphnr,setnr)) return false;//invalid set
     realy_new_value=false;
-    else
-    realy_new_value=true;
-}
-else
-realy_new_value=true;
-delete[] oldval;
-delete[] newval;
-    if (realy_new_value==false) return true;//nothing has actually to be changed
-if (row<getsetlength(graphnr,setnr))//change an existing data point
-{
-    int len=1,ncols;
-    int * nrs=new int[2];
-    nrs[0]=row;
-    Datapoint * po=new Datapoint[2];
-    int ret=get_datapoint(graphnr,setnr,row,&ncols,po);
-    po->ex[col]=val;
-DataPointEdited(graphnr,setnr,nrs,len,po,2);
-g[graphnr].p[setnr].data.ex[col][row]=val;
-    delete[] nrs;
-    delete[] po;
-}
-else//adding rows (filled with zeros) and set the last one to the new value
-{
-        if (getsetlength(graphnr,setnr)<=0)
-        set_is_new=true;
+    val=value.toDouble(&ok);
+    if (role==Qt::DisplayRole || !is_valid_setno(graphnr,setnr) || ok==false) return false;
+    row=index.row();
+    col=index.column();
+    oldval=new char[256];
+    newval=new char[256];
+    strcpy(newval,value.toString().toAscii().constData());
+    if (row<getsetlength(graphnr,setnr))//data already exists --> do we need to override it?
+    {
+        construct_string_from_data(g[graphnr].p[setnr].data.ex[col][row],oldval,col_precision[col],col_format[col]);
+        if (!strcmp(newval,oldval))
+            realy_new_value=false;
         else
-        set_is_new=false;
-    Datapoint dpoint;
-    zero_datapoint(&dpoint);
-    int len=row-getsetlength(graphnr,setnr)+1,ncols;
-    int counter=0;
-    int * nrs=new int[len+1];
-    Datapoint * po=new Datapoint[len+1];
-    for (int i=0;i<len;i++)
-    {
-    zero_datapoint(po+i);
+            realy_new_value=true;
     }
-    po[len-1].ex[col]=val;
-    for (int i=getsetlength(graphnr,setnr);i<=row;i++)
+    else
+        realy_new_value=true;
+    delete[] oldval;
+    delete[] newval;
+    if (realy_new_value==false) return true;//nothing has actually to be changed
+    if (row<getsetlength(graphnr,setnr))//change an existing data point
     {
-    nrs[counter++]=i;
-    add_point_at(graphnr,setnr, i, &dpoint);
+        int len=1,ncols;
+        int * nrs=new int[2];
+        nrs[0]=row;
+        Datapoint * po=new Datapoint[2];
+        int ret=get_datapoint(graphnr,setnr,row,&ncols,po);
+        po->ex[col]=val;
+        DataPointEdited(graphnr,setnr,nrs,len,po,2);
+        g[graphnr].p[setnr].data.ex[col][row]=val;
+        delete[] nrs;
+        delete[] po;
     }
-    g[graphnr].p[setnr].data.ex[col][row]=val;
+    else//adding rows (filled with zeros) and set the last one to the new value
+    {
+        if (getsetlength(graphnr,setnr)<=0)
+            set_is_new=true;
+        else
+            set_is_new=false;
+        Datapoint dpoint;
+        zero_datapoint(&dpoint);
+        int len=row-getsetlength(graphnr,setnr)+1,ncols;
+        int counter=0;
+        int * nrs=new int[len+1];
+        Datapoint * po=new Datapoint[len+1];
+        for (int i=0;i<len;i++)
+        {
+            zero_datapoint(po+i);
+        }
+        po[len-1].ex[col]=val;
+        for (int i=getsetlength(graphnr,setnr);i<=row;i++)
+        {
+            nrs[counter++]=i;
+            add_point_at(graphnr,setnr, i, &dpoint);
+        }
+        g[graphnr].p[setnr].data.ex[col][row]=val;
         if (set_is_new==true)
         {
-        int klen=1;
-        int * gnos=new int[2];
-        int * snos=new int[2];
-        gnos[0]=graphnr;
-        snos[0]=setnr;
-        SetsCreated(klen,gnos,snos,UNDO_COMPLETE);
-        delete[] gnos;
-        delete[] snos;
+            int klen=1;
+            int * gnos=new int[2];
+            int * snos=new int[2];
+            gnos[0]=graphnr;
+            snos[0]=setnr;
+            SetsCreated(klen,gnos,snos,UNDO_COMPLETE);
+            delete[] gnos;
+            delete[] snos;
         }
         else
         {
-        DataPointEdited(graphnr,setnr,nrs,len,po,0);
+            DataPointEdited(graphnr,setnr,nrs,len,po,0);
         }
-}
-ok=true;
-emit(item_entry_changed(row,col,realy_new_value));
-return ok;
+    }
+    ok=true;
+    emit(item_entry_changed(row,col,realy_new_value));
+    return ok;
 }
 
 QVariant SetTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-static QVariant dat;
-dat=QVariant(QVariant::Invalid);
-if (role==Qt::DisplayRole)
-{
-    if (orientation==Qt::Vertical)//row
+    static QVariant dat;
+    dat=QVariant(QVariant::Invalid);
+    if (role==Qt::DisplayRole)
     {
-    dat=QVariant(section);//only the row number
-    }
-    else if (orientation==Qt::Horizontal)//column
-    {
-        if (section==0)
-        dat=QVariant("X");
-        else if (section==1)
-        dat=QVariant("Y");
-        else
+        if (orientation==Qt::Vertical)//row
         {
-        char dummy[8];
-        sprintf(dummy,"Y%d",section-1);
-        dat=QVariant(dummy);
+            dat=QVariant(section);//only the row number
+        }
+        else if (orientation==Qt::Horizontal)//column
+        {
+            if (section==0)
+                dat=QVariant("X");
+            else if (section==1)
+                dat=QVariant("Y");
+            else
+            {
+                char dummy[8];
+                sprintf(dummy,"Y%d",section-1);
+                dat=QVariant(dummy);
+            }
         }
     }
-}
-/*else
+    /*else
 {
     cout << "role=" << (int)role << endl;
 }*/
-return dat;
+    return dat;
 }
 
 bool SetTableModel::insertRows(int row, int count, const QModelIndex & parent)
 {
-beginInsertRows(parent,row,row+count-1);
+    beginInsertRows(parent,row,row+count-1);
 
-endInsertRows();
-return true;
+    endInsertRows();
+    return true;
 }
 
 bool SetTableModel::removeRows(int row, int count, const QModelIndex & parent)
 {
-beginRemoveRows(parent,row,row+count-1);
+    beginRemoveRows(parent,row,row+count-1);
 
-endRemoveRows();
-return true;
+    endRemoveRows();
+    return true;
 }
 
 bool SetTableModel::insertColumns(int column, int count, const QModelIndex & parent)
 {
-return false;
+    return false;
 }
 
 bool SetTableModel::removeColumns(int column, int count, const QModelIndex & parent)
 {
-return false;
+    return false;
 }
 
 Qt::ItemFlags SetTableModel::flags( const QModelIndex & index ) const
 {
-if (index.isValid())
-return Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled;
-else
-return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+    if (index.isValid())
+        return Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled;
+    else
+        return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
 void SetTableModel::major_changes(void)
 {
-emit(layoutChanged());
+    emit(layoutChanged());
 }
 
 
 /* Wrappers */
 int GetSpinChoice(stdIntSelector * s)
 {
-return s->value();
+    return s->value();
 }
-    
+
 double GetSpinChoice(LineWidthSelector * s)
 {
-return s->value();
+    return s->value();
 }
 
 double GetSpinChoice(QDoubleSpinBox * s)	
 {
-return s->value();
+    return s->value();
 }
-	
+
 bool GetToggleButtonState(QCheckBox * c)
 {
-return c->isChecked();
+    return c->isChecked();
 }
 
 int GetChoice(StdSelector * s)
 {
-return s->currentValue();
+    return s->currentValue();
 }
 
 int GetChoice(PositionSelector * s)
 {
-return s->currentIndex();
+    return s->currentIndex();
 }
 
 int GetOptionChoice(ColorSelector * s)
 {
-return s->currentIndex();
+    return s->currentIndex();
 }
 
 int GetOptionChoice(LineStyleSelector * s)
 {
-return s->currentIndex();
+    return s->currentIndex();
 }
 
 int GetOptionChoice(FillPatternSelector * s)
 {
-return s->currentIndex();
+    return s->currentIndex();
 }
 
 int GetOptionChoice(JustificationSelector * s)
 {
-return s->currentIndex();
+    return s->currentIndex();
 }
 
 int GetOptionChoice(FontSelector * s)
 {
-return s->currentIndex();
+    return s->currentIndex();
 }
 
 int GetOptionChoice(QComboBox * c)
 {
-return c->currentIndex();
+    return c->currentIndex();
 }
 
 int GetOptionChoice(StdSelector * sel)
 {
-return sel->currentValue();
+    return sel->currentValue();
 }
 
 double GetCharSizeChoice(stdSlider * sel)
 {
-return sel->value();
+    return sel->value();
 }
 
 double GetAngleChoice(stdSlider * sel)
 {
-return sel->value();
+    return sel->value();
 }
 
 char * GetTextString(stdLineEdit * led)
 {
-static char dummy[256];
-//strcpy(dummy,led->lenText->text().toAscii());
-strcpy(dummy,led->text().toAscii());
-return dummy;
+    static char dummy[256];
+    //strcpy(dummy,led->lenText->text().toAscii());
+    strcpy(dummy,led->text().toAscii());
+    return dummy;
 }
 
 void SetToggleButtonState(QCheckBox * cb, int v)
 {
-cb->setChecked(bool(v));
+    cb->setChecked(bool(v));
 }
 
 bool GetToggleButtonState(QAction * c)
 {
-return c->isChecked();
+    return c->isChecked();
 }
 
 void SetChoice(StdSelector * sel,int v)
 {
-sel->setCurrentValue(v);
+    sel->setCurrentValue(v);
 }
 
 void SetOptionChoice(ColorSelector * sel,int v)
 {
-sel->setCurrentIndex(v);
+    sel->setCurrentIndex(v);
 }
 
 void SetOptionChoice(LineStyleSelector * sel,int v)
 {
-sel->setCurrentIndex(v);
+    sel->setCurrentIndex(v);
 }
 
 void SetOptionChoice(FillPatternSelector * sel,int v)
 {
-sel->setCurrentIndex(v);
+    sel->setCurrentIndex(v);
 }
 
 void SetOptionChoice(FontSelector * sel,int v)
 {
-sel->setCurrentIndex(v);
+    sel->setCurrentIndex(v);
 }
 
 void SetOptionChoice(JustificationSelector * sel,int v)
 {
-sel->setCurrentIndex(v);
+    sel->setCurrentIndex(v);
 }
 
 void SetOptionChoice(StdSelector * sel,int v)
 {
-sel->setCurrentValue(v);
+    sel->setCurrentValue(v);
 }
 
 void SetSpinChoice(stdIntSelector * sel, double v)
 {
-sel->setValue((int)v);
+    sel->setValue((int)v);
 }
 
 void SetSpinChoice(LineWidthSelector * sel, double v)
 {
-sel->setValue((int)v);
+    sel->setValue((int)v);
 }
 
 void SetChoice(PositionSelector * sel,int v)
 {
-sel->setCurrentIndex(v);
+    sel->setCurrentIndex(v);
 }
 
 void SetScaleValue(stdSlider * sel, int v)
 {
-sel->setValue(v);
+    sel->setValue(v);
 }
 
 void SetCharSizeChoice(stdSlider * sel,double v)
 {
-sel->setValue(int(v));
+    sel->setValue(int(v));
 }
 
 void SetAngleChoice(stdSlider * sel,double v)
 {
-sel->setValue((int)v);
+    sel->setValue((int)v);
 }
 
 void SetTextString(stdLineEdit * led,char * st)
 {
-led->setText(st);
+    led->setText(st);
 }
 
 void SetLabel(QLabel * lab,char * st)
 {
-lab->setText(QString(st));
+    lab->setText(QString(st));
 }
 
 void xv_setstr(stdLineEdit * led, char * text)
 {
-led->setText(QString(text));
+    led->setText(QString(text));
 }
 
 void xv_setstr(QLineEdit * led, char * text)
 {
-led->setText(QString(text));
+    led->setText(QString(text));
 }
 
 void SetSensitive(stdLineEdit * led, bool e)
 {
-led->setEnabled(e);
+    led->setEnabled(e);
 }
 
 void SetSensitive(QLineEdit * led, bool e)
 {
-led->setEnabled(e);
+    led->setEnabled(e);
 }
 
 void SetSensitive(StdSelector * led, bool e)
 {
-led->setEnabled(e);
+    led->setEnabled(e);
 }
 
 void SetSensitive(QPushButton * led, bool e)
 {
-led->setEnabled(e);
+    led->setEnabled(e);
 }
 
 void SetSensitive(QCheckBox * led, bool e)
 {
-led->setEnabled(e);
+    led->setEnabled(e);
 }
 
 int GetScaleValue(stdSlider * sel)
 {
-return sel->value();
+    return sel->value();
 }
 
 char * xv_getstr(stdLineEdit * led)
 {
     ///WARNING POSSIBLY UNSAVE PROCEDURE!!!
-static char value[1024];
-strncpy(value,led->lenText->text().toAscii(),1023);
-value[1023]='\0';
-return value;
+    static char value[1024];
+    strncpy(value,led->lenText->text().toAscii(),1023);
+    value[1023]='\0';
+    return value;
 }
 
 char * xv_getstr(QLineEdit * led)
 {
     ///WARNING POSSIBLY UNSAVE PROCEDURE!!!
-static char value[1024];
-strncpy(value,led->text().toAscii(),1023);
-value[1023]='\0';
-return value;
+    static char value[1024];
+    strncpy(value,led->text().toAscii(),1023);
+    value[1023]='\0';
+    return value;
 }
 
 int xv_evalexpr(stdLineEdit * w, double * answer )
 {
-return xv_evalexpr(w->lenText,answer);
+    return xv_evalexpr(w->lenText,answer);
 }
 
 int xv_evalexpri(stdLineEdit * w,int * answer)
 {
-return xv_evalexpri(w->lenText,answer);
+    return xv_evalexpri(w->lenText,answer);
 }
 
 /*
@@ -3189,28 +3195,28 @@ int xv_evalexpri(QLineEdit * w,int * answer)
 
 void SelectListChoice(uniList * list,int nr)
 {
-int count=1;
-int selection[2]={nr,1};
-list->set_new_selection(count,selection);
+    int count=1;
+    int selection[2]={nr,1};
+    list->set_new_selection(count,selection);
 }
 
 void SelectListChoices(uniList * list,int count,int * nrs)
 {
-list->set_new_selection(count,nrs);
+    list->set_new_selection(count,nrs);
 }
 
 int GetListChoices(uniList * list, int ** sel)
 {
-int nr;
-list->get_selection(&nr,sel);
-return nr;
+    int nr;
+    list->get_selection(&nr,sel);
+    return nr;
 }
 
 int GetSelectedSets(uniList * list, int ** sel)
 {
-int nr;
-list->get_selection(&nr,sel);
-return nr;
+    int nr;
+    list->get_selection(&nr,sel);
+    return nr;
 }
 
 int GetSelectedSet(uniList * list)
@@ -3218,1021 +3224,1021 @@ int GetSelectedSet(uniList * list)
     int nr,*sel=new int[3];
     list->get_selection(&nr,&sel);
     if (nr>0)
-    nr=sel[0];
+        nr=sel[0];
     else
-    nr=SET_SELECT_ERROR;
+        nr=SET_SELECT_ERROR;
     delete[] sel;
-return nr;
+    return nr;
 }
 
 int GetSingleListChoice(uniList * list, int * sel)
 {
-int nr;
-int * selection=new int[5];
-list->get_selection(&nr,&selection);
-if (nr<=0)
-{
-delete[] selection;
-return RETURN_FAILURE;
-}
-else
-{
-*sel=selection[0];
-delete[] selection;
-return RETURN_SUCCESS;
-}
+    int nr;
+    int * selection=new int[5];
+    list->get_selection(&nr,&selection);
+    if (nr<=0)
+    {
+        delete[] selection;
+        return RETURN_FAILURE;
+    }
+    else
+    {
+        *sel=selection[0];
+        delete[] selection;
+        return RETURN_SUCCESS;
+    }
 }
 
 GraphPopup::GraphPopup(uniList *parent):QMenu(parent)
 {
-par=parent;
-CreateActions();
-setTearOffEnabled(FALSE);
+    par=parent;
+    CreateActions();
+    setTearOffEnabled(FALSE);
 
-//Create Menu itself
-addAction(actLabel);
-addSeparator();
-addAction(actFocusTo);
-addAction(actHide);
-addAction(actShow);
-addAction(actDuplicate);
-addAction(actKill);
-addSeparator();
-addAction(actCopy12);
-addAction(actCopy21);
-addAction(actMove12);
-addAction(actMove21);
-addAction(actSwap);
-addSeparator();
-addAction(actCreateNew);
+    //Create Menu itself
+    addAction(actLabel);
+    addSeparator();
+    addAction(actFocusTo);
+    addAction(actHide);
+    addAction(actShow);
+    addAction(actDuplicate);
+    addAction(actKill);
+    addSeparator();
+    addAction(actCopy12);
+    addAction(actCopy21);
+    addAction(actMove12);
+    addAction(actMove21);
+    addAction(actSwap);
+    addSeparator();
+    addAction(actCreateNew);
 
-number_of_selected_graphs=0;
-selected_graphs=new int[2];
+    number_of_selected_graphs=0;
+    selected_graphs=new int[2];
 }
 
 GraphPopup::~GraphPopup()
 {
-delete[] selected_graphs;
+    delete[] selected_graphs;
 }
 
 void GraphPopup::CreateActions(void)
 {
-actLabel=new QAction(tr("G0"),this);
-connect(actLabel,SIGNAL(triggered()), this, SLOT(doNothing()));
-actFocusTo=new QAction(tr("&Focus to"),this);
-connect(actFocusTo,SIGNAL(triggered()), this, SLOT(doFocusTo()));
-actShow=new QAction(tr("&Show"),this);
-connect(actShow,SIGNAL(triggered()), this, SLOT(doShow()));
-actHide=new QAction(tr("&Hide"),this);
-connect(actHide,SIGNAL(triggered()), this, SLOT(doHide()));
-actDuplicate=new QAction(tr("&Duplicate"),this);
-connect(actDuplicate,SIGNAL(triggered()), this, SLOT(doDuplicate()));
-actKill=new QAction(tr("&Kill"),this);
-connect(actKill,SIGNAL(triggered()), this, SLOT(doKill()));
-actCopy12=new QAction(tr("Copy G0 to G1"),this);
-connect(actCopy12,SIGNAL(triggered()), this, SLOT(doCopy12()));
-actCopy21=new QAction(tr("Copy G1 to G0"),this);
-connect(actCopy21,SIGNAL(triggered()), this, SLOT(doCopy21()));
-actMove12=new QAction(tr("Move G0 to G1"),this);
-connect(actMove12,SIGNAL(triggered()), this, SLOT(doMove12()));
-actMove21=new QAction(tr("Move G1 to G0"),this);
-connect(actMove21,SIGNAL(triggered()), this, SLOT(doMove21()));
-actSwap=new QAction(tr("S&wap"),this);
-connect(actSwap,SIGNAL(triggered()), this, SLOT(doSwap()));
-actCreateNew=new QAction(tr("&Create new"),this);
-connect(actCreateNew,SIGNAL(triggered()), this, SLOT(doCreateNew()));
+    actLabel=new QAction(tr("G0"),this);
+    connect(actLabel,SIGNAL(triggered()), this, SLOT(doNothing()));
+    actFocusTo=new QAction(tr("&Focus to"),this);
+    connect(actFocusTo,SIGNAL(triggered()), this, SLOT(doFocusTo()));
+    actShow=new QAction(tr("&Show"),this);
+    connect(actShow,SIGNAL(triggered()), this, SLOT(doShow()));
+    actHide=new QAction(tr("&Hide"),this);
+    connect(actHide,SIGNAL(triggered()), this, SLOT(doHide()));
+    actDuplicate=new QAction(tr("&Duplicate"),this);
+    connect(actDuplicate,SIGNAL(triggered()), this, SLOT(doDuplicate()));
+    actKill=new QAction(tr("&Kill"),this);
+    connect(actKill,SIGNAL(triggered()), this, SLOT(doKill()));
+    actCopy12=new QAction(tr("Copy G0 to G1"),this);
+    connect(actCopy12,SIGNAL(triggered()), this, SLOT(doCopy12()));
+    actCopy21=new QAction(tr("Copy G1 to G0"),this);
+    connect(actCopy21,SIGNAL(triggered()), this, SLOT(doCopy21()));
+    actMove12=new QAction(tr("Move G0 to G1"),this);
+    connect(actMove12,SIGNAL(triggered()), this, SLOT(doMove12()));
+    actMove21=new QAction(tr("Move G1 to G0"),this);
+    connect(actMove21,SIGNAL(triggered()), this, SLOT(doMove21()));
+    actSwap=new QAction(tr("S&wap"),this);
+    connect(actSwap,SIGNAL(triggered()), this, SLOT(doSwap()));
+    actCreateNew=new QAction(tr("&Create new"),this);
+    connect(actCreateNew,SIGNAL(triggered()), this, SLOT(doCreateNew()));
 }
 
 void GraphPopup::doNothing(void)
 {
-;
+    ;
 }
 
 void GraphPopup::doFocusTo(void)
 {
-ListOfChanges.clear();
-sprintf(dummy,"with g%d",selected_no);
-ListOfChanges << QString(dummy);
-switch_current_graph(selected_no);
-update();
+    ListOfChanges.clear();
+    sprintf(dummy,"with g%d",selected_no);
+    ListOfChanges << QString(dummy);
+    switch_current_graph(selected_no);
+    update();
 }
 
 void GraphPopup::doShow(void)
 {
-ListOfChanges.clear();
-ListOfOldStates.clear();
-for (int i = 0; i < number_of_selected_graphs; i++)
-{
-    if (is_graph_hidden(selected_graphs[i])==TRUE)//real change
-    {
-    sprintf(dummy,"g%d hidden false",selected_graphs[i]);
-    ListOfChanges << QString(dummy);
-    sprintf(dummy,"g%d hidden true",selected_graphs[i]);
-    ListOfOldStates << QString(dummy);
-    }
-}
-    ShowHideGraphs(number_of_selected_graphs,selected_graphs);
-ListOfChanges.clear();
-ListOfOldStates.clear();
+    ListOfChanges.clear();
+    ListOfOldStates.clear();
     for (int i = 0; i < number_of_selected_graphs; i++)
-    set_graph_hidden(selected_graphs[i], FALSE);
-update();
+    {
+        if (is_graph_hidden(selected_graphs[i])==TRUE)//real change
+        {
+            sprintf(dummy,"g%d hidden false",selected_graphs[i]);
+            ListOfChanges << QString(dummy);
+            sprintf(dummy,"g%d hidden true",selected_graphs[i]);
+            ListOfOldStates << QString(dummy);
+        }
+    }
+    ShowHideGraphs(number_of_selected_graphs,selected_graphs);
+    ListOfChanges.clear();
+    ListOfOldStates.clear();
+    for (int i = 0; i < number_of_selected_graphs; i++)
+        set_graph_hidden(selected_graphs[i], FALSE);
+    update();
 }
 
 void GraphPopup::doHide(void)
 {
-ListOfChanges.clear();
-ListOfOldStates.clear();
-for (int i = 0; i < number_of_selected_graphs; i++)
-{
-    if (is_graph_hidden(selected_graphs[i])==FALSE)//real change
-    {
-    sprintf(dummy,"g%d hidden true",selected_graphs[i]);
-    ListOfChanges << QString(dummy);
-    sprintf(dummy,"g%d hidden false",selected_graphs[i]);
-    ListOfOldStates << QString(dummy);
-    }
-}
-    ShowHideGraphs(number_of_selected_graphs,selected_graphs);
-ListOfChanges.clear();
-ListOfOldStates.clear();
+    ListOfChanges.clear();
+    ListOfOldStates.clear();
     for (int i = 0; i < number_of_selected_graphs; i++)
-    set_graph_hidden(selected_graphs[i], TRUE);
-update();
+    {
+        if (is_graph_hidden(selected_graphs[i])==FALSE)//real change
+        {
+            sprintf(dummy,"g%d hidden true",selected_graphs[i]);
+            ListOfChanges << QString(dummy);
+            sprintf(dummy,"g%d hidden false",selected_graphs[i]);
+            ListOfOldStates << QString(dummy);
+        }
+    }
+    ShowHideGraphs(number_of_selected_graphs,selected_graphs);
+    ListOfChanges.clear();
+    ListOfOldStates.clear();
+    for (int i = 0; i < number_of_selected_graphs; i++)
+        set_graph_hidden(selected_graphs[i], TRUE);
+    update();
 }
 
 void GraphPopup::doDuplicate(void)
 {
-int * gnos=new int[number_of_selected_graphs+2];
-int index=0;
-for (int i = 0; i < number_of_selected_graphs; i++)
-{
-    new_set_no=-1;
-duplicate_graph(selected_graphs[i]);
-    if (new_set_no!=-1)
-    gnos[index++]=new_set_no;
-}
-GraphsCreated(index,gnos,UNDO_COMPLETE);
-delete[] gnos;
-update();
+    int * gnos=new int[number_of_selected_graphs+2];
+    int index=0;
+    for (int i = 0; i < number_of_selected_graphs; i++)
+    {
+        new_set_no=-1;
+        duplicate_graph(selected_graphs[i]);
+        if (new_set_no!=-1)
+            gnos[index++]=new_set_no;
+    }
+    GraphsCreated(index,gnos,UNDO_COMPLETE);
+    delete[] gnos;
+    update();
 }
 
 void GraphPopup::doKill(void)
 {
-if (yesno("Kill selected graph(s)?", NULL, NULL, NULL))
-{
-    ListOfChanges.clear();
-    int * graphs=new int[number_of_selected_graphs];
-    for (int i = number_of_selected_graphs - 1; i >= 0; i--)
+    if (yesno("Kill selected graph(s)?", NULL, NULL, NULL))
     {
-    sprintf(dummy,"kill G%d",selected_graphs[i]);
-    ListOfChanges << QString(dummy);
-    graphs[(number_of_selected_graphs - 1)-i]=selected_graphs[i];
+        ListOfChanges.clear();
+        int * graphs=new int[number_of_selected_graphs];
+        for (int i = number_of_selected_graphs - 1; i >= 0; i--)
+        {
+            sprintf(dummy,"kill G%d",selected_graphs[i]);
+            ListOfChanges << QString(dummy);
+            graphs[(number_of_selected_graphs - 1)-i]=selected_graphs[i];
+        }
+        GraphsDeleted(number_of_selected_graphs,graphs,UNDO_COMPLETE);
+        delete[] graphs;
+        for (int i = number_of_selected_graphs - 1; i >= 0; i--)
+        {
+            kill_graph(selected_graphs[i]);
+        }
+        ListOfChanges.clear();
     }
-GraphsDeleted(number_of_selected_graphs,graphs,UNDO_COMPLETE);
-    delete[] graphs;
-    for (int i = number_of_selected_graphs - 1; i >= 0; i--)
-    {
-    kill_graph(selected_graphs[i]);
-    }
-    ListOfChanges.clear();
-}
-update();
+    update();
 }
 
 void GraphPopup::doSwap(void)
 {
-UndoSwapGraphs(selected_graphs[0], selected_graphs[1]);
-swap_graph(selected_graphs[0], selected_graphs[1]);
+    UndoSwapGraphs(selected_graphs[0], selected_graphs[1]);
+    swap_graph(selected_graphs[0], selected_graphs[1]);
 }
 
 void GraphPopup::doCreateNew(void)
 {
-int * gnos=new int[2];
-gnos[1]=gnos[0]=number_of_graphs();
-set_graph_active(number_of_graphs());
-GraphsCreated(1,gnos,UNDO_COMPLETE);
-delete[] gnos;
-update();
+    int * gnos=new int[2];
+    gnos[1]=gnos[0]=number_of_graphs();
+    set_graph_active(number_of_graphs());
+    GraphsCreated(1,gnos,UNDO_COMPLETE);
+    delete[] gnos;
+    update();
 }
 
 void GraphPopup::update(void)
 {
-par->update_number_of_entries_preserve_selection();
-mainWin->mainArea->completeRedraw();
+    par->update_number_of_entries_preserve_selection();
+    mainWin->mainArea->completeRedraw();
 }
 
 void GraphPopup::doMove12(void)
 {
-char buf[32];
+    char buf[32];
     if (number_of_selected_graphs==2)
     {
-    sprintf(buf, "Replace G%d?", selected_graphs[1]);
+        sprintf(buf, "Replace G%d?", selected_graphs[1]);
         if (yesno(buf, NULL, NULL, NULL))
         {
             SaveGraphStatesPrevious(number_of_selected_graphs,selected_graphs,UNDO_COMPLETE);
-        move_graph(selected_graphs[0], selected_graphs[1]);
+            move_graph(selected_graphs[0], selected_graphs[1]);
             selected_graphs[0]=selected_graphs[1];
             GraphsModified(1,selected_graphs,UNDO_COMPLETE);
         }
-    update();
+        update();
     }
 }
 
 void GraphPopup::doMove21(void)
 {
-char buf[32];
+    char buf[32];
     if (number_of_selected_graphs==2)
     {
-    sprintf(buf, "Replace G%d?", selected_graphs[0]);
+        sprintf(buf, "Replace G%d?", selected_graphs[0]);
         if (yesno(buf, NULL, NULL, NULL))
         {
             SaveGraphStatesPrevious(number_of_selected_graphs,selected_graphs,UNDO_COMPLETE);
-        move_graph(selected_graphs[1], selected_graphs[0]);
+            move_graph(selected_graphs[1], selected_graphs[0]);
             GraphsModified(1,selected_graphs,UNDO_COMPLETE);
         }
-    update();
+        update();
     }
 }
 
 void GraphPopup::doCopy12(void)
 {
-char buf[32];
+    char buf[32];
     if (number_of_selected_graphs == 2)
     {
-    sprintf(buf, "Overwrite G%d?", selected_graphs[1]);
+        sprintf(buf, "Overwrite G%d?", selected_graphs[1]);
         if (yesno(buf, NULL, NULL, NULL))
         {
             SaveGraphStatesPrevious(number_of_selected_graphs,selected_graphs,UNDO_COMPLETE);
-        copy_graph(selected_graphs[0], selected_graphs[1]);
+            copy_graph(selected_graphs[0], selected_graphs[1]);
             GraphsModified(number_of_selected_graphs,selected_graphs,UNDO_COMPLETE);
         }
-    update();
+        update();
     }
 }
 
 void GraphPopup::doCopy21(void)
 {
-char buf[32];
+    char buf[32];
     if (number_of_selected_graphs == 2)
     {
-    sprintf(buf, "Overwrite G%d?", selected_graphs[0]);
+        sprintf(buf, "Overwrite G%d?", selected_graphs[0]);
         if (yesno(buf, NULL, NULL, NULL))
         {
             SaveGraphStatesPrevious(number_of_selected_graphs,selected_graphs,UNDO_COMPLETE);
-        copy_graph(selected_graphs[1], selected_graphs[0]);
+            copy_graph(selected_graphs[1], selected_graphs[0]);
             GraphsModified(number_of_selected_graphs,selected_graphs,UNDO_COMPLETE);
         }
-    update();
+        update();
     }
 }
 
 void GraphPopup::update_menu_content(void)
 {
-char dummy[64],dummy2[64];
-sprintf(dummy,"G");
-for (int i=0;i<number_of_selected_graphs;i++)
-{
-sprintf(dummy2,"%d",selected_graphs[i]);
-strcat(dummy,dummy2);
+    char dummy[64],dummy2[64];
+    sprintf(dummy,"G");
+    for (int i=0;i<number_of_selected_graphs;i++)
+    {
+        sprintf(dummy2,"%d",selected_graphs[i]);
+        strcat(dummy,dummy2);
         if (i>2 && i!=number_of_selected_graphs-1)
         {
-        strcat(dummy,",...");
-        break;
+            strcat(dummy,",...");
+            break;
         }
         else
         {
-        if (i!=number_of_selected_graphs-1)
-        strcat(dummy,", G");
+            if (i!=number_of_selected_graphs-1)
+                strcat(dummy,", G");
         }
-}
-actLabel->setText(QString(dummy));
+    }
+    actLabel->setText(QString(dummy));
     if (number_of_selected_graphs==1)
     {
-    actCopy12->setVisible(false);
-    actCopy21->setVisible(false);
-    actMove12->setVisible(false);
-    actMove21->setVisible(false);
-    actSwap->setEnabled(false);
-    actFocusTo->setEnabled(true);
-    }
-    else
-    {
-        if (number_of_selected_graphs==2)
-        {
-        sprintf(dummy,"Copy G%d to G%d",selected_graphs[0],selected_graphs[1]);
-        actCopy12->setText(QString(dummy));
-        actCopy12->setVisible(true);
-        sprintf(dummy,"Copy G%d to G%d",selected_graphs[1],selected_graphs[0]);
-        actCopy21->setText(QString(dummy));
-        actCopy21->setVisible(true);
-        sprintf(dummy,"Move G%d to G%d",selected_graphs[0],selected_graphs[1]);
-        actMove12->setText(QString(dummy));
-        actMove12->setVisible(true);
-        sprintf(dummy,"Move G%d to G%d",selected_graphs[1],selected_graphs[0]);
-        actMove21->setText(QString(dummy));
-        actMove21->setVisible(true);
-        actSwap->setEnabled(true);
-        }
-        else
-        {
         actCopy12->setVisible(false);
         actCopy21->setVisible(false);
         actMove12->setVisible(false);
         actMove21->setVisible(false);
         actSwap->setEnabled(false);
+        actFocusTo->setEnabled(true);
+    }
+    else
+    {
+        if (number_of_selected_graphs==2)
+        {
+            sprintf(dummy,"Copy G%d to G%d",selected_graphs[0],selected_graphs[1]);
+            actCopy12->setText(QString(dummy));
+            actCopy12->setVisible(true);
+            sprintf(dummy,"Copy G%d to G%d",selected_graphs[1],selected_graphs[0]);
+            actCopy21->setText(QString(dummy));
+            actCopy21->setVisible(true);
+            sprintf(dummy,"Move G%d to G%d",selected_graphs[0],selected_graphs[1]);
+            actMove12->setText(QString(dummy));
+            actMove12->setVisible(true);
+            sprintf(dummy,"Move G%d to G%d",selected_graphs[1],selected_graphs[0]);
+            actMove21->setText(QString(dummy));
+            actMove21->setVisible(true);
+            actSwap->setEnabled(true);
         }
-    actFocusTo->setEnabled(false);
+        else
+        {
+            actCopy12->setVisible(false);
+            actCopy21->setVisible(false);
+            actMove12->setVisible(false);
+            actMove21->setVisible(false);
+            actSwap->setEnabled(false);
+        }
+        actFocusTo->setEnabled(false);
     }
 }
 
 SetPopup::SetPopup(uniList *parent):QMenu(parent)
 {
-par=parent;
-CreateActions();
-setTearOffEnabled(FALSE);
+    par=parent;
+    CreateActions();
+    setTearOffEnabled(FALSE);
 
-//Create Menu itself
-addAction(actLabel);
-addSeparator();
-addAction(actHide);
-addAction(actShow);
-addAction(actBringToFront);
-addAction(actSendToBack);
-addSeparator();
-addAction(actDuplicate);
-addAction(actKill);
-addAction(actKillData);
-addSeparator();
-addAction(actCopyClipBoard);
-addAction(actPasteClipBoard);
-addSeparator();
-addAction(actCopy12);
-addAction(actCopy21);
-addAction(actMove12);
-addAction(actMove21);
-addAction(actSwap);
-addSeparator();
-mnuEdit=new QMenu(tr("&Edit"),this);
-mnuEdit->setTearOffEnabled(FALSE);
-mnuEdit->addAction(actEditInSpreadsheet);
-mnuEdit->addAction(actEditInTextEditor);
-mnuCreateNew=new QMenu(tr("Create new"),this);
-mnuCreateNew->setTearOffEnabled(FALSE);
-mnuCreateNew->addAction(actCreateByFormula);
-mnuCreateNew->addAction(actCreateInSpreadsheet);
-mnuCreateNew->addAction(actCreateInTextEditor);
-mnuCreateNew->addAction(actCreateFromBlockData);
-addMenu(mnuEdit);
-addMenu(mnuCreateNew);
-addSeparator();
-addAction(actPackAllSets);
-addSeparator();
-mnuSelectorOperations=new QMenu(tr("Select&or operations"),this);
-mnuSelectorOperations->setTearOffEnabled(FALSE);
-mnuSelectorOperations->addAction(actViewSetComments);
-actViewSetComments->setCheckable(true);
-actViewSetComments->setChecked(FALSE);
-mnuSelectorOperations->addAction(actShowDataLess);
-actShowDataLess->setCheckable(true);
-actShowDataLess->setChecked(FALSE);
-mnuSelectorOperations->addAction(actShowHidden);
-actShowHidden->setCheckable(true);
-actShowHidden->setChecked(TRUE);
-mnuSelectorOperations->addSeparator();
-mnuSelectorOperations->addAction(actSelectAll);
-mnuSelectorOperations->addAction(actUnselectAll);
-mnuSelectorOperations->addAction(actInvertSelection);
-mnuSelectorOperations->addAction(actSelectEven);
-mnuSelectorOperations->addAction(actSelectOdd);
-mnuSelectorOperations->addSeparator();
-mnuSelectorOperations->addAction(actUpdate);
-addMenu(mnuSelectorOperations);
+    //Create Menu itself
+    addAction(actLabel);
+    addSeparator();
+    addAction(actHide);
+    addAction(actShow);
+    addAction(actBringToFront);
+    addAction(actSendToBack);
+    addSeparator();
+    addAction(actDuplicate);
+    addAction(actKill);
+    addAction(actKillData);
+    addSeparator();
+    addAction(actCopyClipBoard);
+    addAction(actPasteClipBoard);
+    addSeparator();
+    addAction(actCopy12);
+    addAction(actCopy21);
+    addAction(actMove12);
+    addAction(actMove21);
+    addAction(actSwap);
+    addSeparator();
+    mnuEdit=new QMenu(tr("&Edit"),this);
+    mnuEdit->setTearOffEnabled(FALSE);
+    mnuEdit->addAction(actEditInSpreadsheet);
+    mnuEdit->addAction(actEditInTextEditor);
+    mnuCreateNew=new QMenu(tr("Create new"),this);
+    mnuCreateNew->setTearOffEnabled(FALSE);
+    mnuCreateNew->addAction(actCreateByFormula);
+    mnuCreateNew->addAction(actCreateInSpreadsheet);
+    mnuCreateNew->addAction(actCreateInTextEditor);
+    mnuCreateNew->addAction(actCreateFromBlockData);
+    addMenu(mnuEdit);
+    addMenu(mnuCreateNew);
+    addSeparator();
+    addAction(actPackAllSets);
+    addSeparator();
+    mnuSelectorOperations=new QMenu(tr("Select&or operations"),this);
+    mnuSelectorOperations->setTearOffEnabled(FALSE);
+    mnuSelectorOperations->addAction(actViewSetComments);
+    actViewSetComments->setCheckable(true);
+    actViewSetComments->setChecked(FALSE);
+    mnuSelectorOperations->addAction(actShowDataLess);
+    actShowDataLess->setCheckable(true);
+    actShowDataLess->setChecked(FALSE);
+    mnuSelectorOperations->addAction(actShowHidden);
+    actShowHidden->setCheckable(true);
+    actShowHidden->setChecked(TRUE);
+    mnuSelectorOperations->addSeparator();
+    mnuSelectorOperations->addAction(actSelectAll);
+    mnuSelectorOperations->addAction(actUnselectAll);
+    mnuSelectorOperations->addAction(actInvertSelection);
+    mnuSelectorOperations->addAction(actSelectEven);
+    mnuSelectorOperations->addAction(actSelectOdd);
+    mnuSelectorOperations->addSeparator();
+    mnuSelectorOperations->addAction(actUpdate);
+    addMenu(mnuSelectorOperations);
 
-number_of_selected_sets=0;
-selected_sets=new int[2];
+    number_of_selected_sets=0;
+    selected_sets=new int[2];
 }
 
 SetPopup::~SetPopup()
 {
-delete[] selected_sets;
+    delete[] selected_sets;
 }
 
 void SetPopup::CreateActions(void)
 {
-actLabel=new QAction(tr("S0"),this);
-connect(actLabel,SIGNAL(triggered()), this, SLOT(doNothing()));
-actHide=new QAction(tr("Hide"),this);
-connect(actHide,SIGNAL(triggered()), this,SLOT(doHide()));
-actBringToFront=new QAction(tr("BringToFront"),this);
-connect(actBringToFront,SIGNAL(triggered()), this,SLOT(doBringToFront()));
-actSendToBack=new QAction(tr("Send to back"),this);
-connect(actSendToBack,SIGNAL(triggered()), this,SLOT(doSendToBack()));
-actPackAllSets=new QAction(tr("Pack All sets"),this);
-connect(actPackAllSets,SIGNAL(triggered()), this,SLOT(doPackAllSets()));
-actShow=new QAction(tr("Show"),this);
-connect(actShow,SIGNAL(triggered()), this,SLOT(doShow()));
-actDuplicate=new QAction(tr("Duplicate"),this);
-connect(actDuplicate,SIGNAL(triggered()), this,SLOT(doDuplicate()));
-actKill=new QAction(tr("Kill"),this);
-connect(actKill,SIGNAL(triggered()), this,SLOT(doKill()));
-actKillData=new QAction(tr("Kill data"),this);
-connect(actKillData,SIGNAL(triggered()), this,SLOT(doKillData()));
-actCopy12=new QAction(tr("Copy S0 to S1"),this);
-connect(actCopy12,SIGNAL(triggered()), this,SLOT(doCopy12()));
-actCopy21=new QAction(tr("Copy S1 to S0"),this);
-connect(actCopy21,SIGNAL(triggered()), this,SLOT(doCopy21()));
-actMove12=new QAction(tr("Move S0 to S1"),this);
-connect(actMove12,SIGNAL(triggered()), this,SLOT(doMove12()));
-actMove21=new QAction(tr("Move S1 to S0"),this);
-connect(actMove21,SIGNAL(triggered()), this,SLOT(doMove21()));
-actSwap=new QAction(tr("Swap"),this);
-connect(actSwap,SIGNAL(triggered()), this,SLOT(doSwap()));
-actCreateByFormula=new QAction(tr("By formula"),this);
-connect(actCreateByFormula,SIGNAL(triggered()), this,SLOT(doCreateByFormula()));
-actCreateInSpreadsheet=new QAction(tr("In spreadsheet"),this);
-connect(actCreateInSpreadsheet,SIGNAL(triggered()), this,SLOT(doCreateInSpreadsheet()));
-actCreateInTextEditor=new QAction(tr("In text Editor"),this);
-connect(actCreateInTextEditor,SIGNAL(triggered()), this,SLOT(doCreateInTextEditor()));
-actCreateFromBlockData=new QAction(tr("From block data"),this);
-connect(actCreateFromBlockData,SIGNAL(triggered()), this,SLOT(doCreateFromBlockData()));
-actEditInSpreadsheet=new QAction(tr("In spreadsheet"),this);
-connect(actEditInSpreadsheet,SIGNAL(triggered()), this,SLOT(doEditInSpreadSheet()));
-actEditInTextEditor=new QAction(tr("In text editor"),this);
-connect(actEditInTextEditor,SIGNAL(triggered()), this,SLOT(doEditInTextEditor()));
-actViewSetComments=new QAction(tr("View set comments"),this);
-connect(actViewSetComments,SIGNAL(triggered()), this,SLOT(doViewSetComments()));
-actShowDataLess=new QAction(tr("Show data-less"),this);
-connect(actShowDataLess,SIGNAL(triggered()), this,SLOT(doShowDataLess()));
-actShowHidden=new QAction(tr("Show hidden"),this);
-connect(actShowHidden,SIGNAL(triggered()), this,SLOT(doShowHidden()));
-actSelectAll=new QAction(tr("Select all"),this);
-connect(actSelectAll,SIGNAL(triggered()), this,SLOT(doSelectAll()));
-actUnselectAll=new QAction(tr("Unselect all"),this);
-connect(actUnselectAll,SIGNAL(triggered()), this,SLOT(doUnSelectAll()));
-actInvertSelection=new QAction(tr("Invert selection"),this);
-connect(actInvertSelection,SIGNAL(triggered()), this,SLOT(doInvertSelection()));
-actSelectEven=new QAction(tr("Select even"),this);
-connect(actSelectEven,SIGNAL(triggered()), this,SLOT(doSelectEven()));
-actSelectOdd=new QAction(tr("Select odd"),this);
-connect(actSelectOdd,SIGNAL(triggered()), this,SLOT(doSelectOdd()));
-actUpdate=new QAction(tr("Update"),this);
-connect(actUpdate,SIGNAL(triggered()), this,SLOT(doUpdate()));
-actCopyClipBoard=new QAction(tr("Copy"),this);
-connect(actCopyClipBoard,SIGNAL(triggered()),SLOT(doCopyClipBoard()));
-actPasteClipBoard=new QAction(tr("Paste"),this);
-connect(actPasteClipBoard,SIGNAL(triggered()),SLOT(doPasteClipBoard()));
+    actLabel=new QAction(tr("S0"),this);
+    connect(actLabel,SIGNAL(triggered()), this, SLOT(doNothing()));
+    actHide=new QAction(tr("Hide"),this);
+    connect(actHide,SIGNAL(triggered()), this,SLOT(doHide()));
+    actBringToFront=new QAction(tr("BringToFront"),this);
+    connect(actBringToFront,SIGNAL(triggered()), this,SLOT(doBringToFront()));
+    actSendToBack=new QAction(tr("Send to back"),this);
+    connect(actSendToBack,SIGNAL(triggered()), this,SLOT(doSendToBack()));
+    actPackAllSets=new QAction(tr("Pack All sets"),this);
+    connect(actPackAllSets,SIGNAL(triggered()), this,SLOT(doPackAllSets()));
+    actShow=new QAction(tr("Show"),this);
+    connect(actShow,SIGNAL(triggered()), this,SLOT(doShow()));
+    actDuplicate=new QAction(tr("Duplicate"),this);
+    connect(actDuplicate,SIGNAL(triggered()), this,SLOT(doDuplicate()));
+    actKill=new QAction(tr("Kill"),this);
+    connect(actKill,SIGNAL(triggered()), this,SLOT(doKill()));
+    actKillData=new QAction(tr("Kill data"),this);
+    connect(actKillData,SIGNAL(triggered()), this,SLOT(doKillData()));
+    actCopy12=new QAction(tr("Copy S0 to S1"),this);
+    connect(actCopy12,SIGNAL(triggered()), this,SLOT(doCopy12()));
+    actCopy21=new QAction(tr("Copy S1 to S0"),this);
+    connect(actCopy21,SIGNAL(triggered()), this,SLOT(doCopy21()));
+    actMove12=new QAction(tr("Move S0 to S1"),this);
+    connect(actMove12,SIGNAL(triggered()), this,SLOT(doMove12()));
+    actMove21=new QAction(tr("Move S1 to S0"),this);
+    connect(actMove21,SIGNAL(triggered()), this,SLOT(doMove21()));
+    actSwap=new QAction(tr("Swap"),this);
+    connect(actSwap,SIGNAL(triggered()), this,SLOT(doSwap()));
+    actCreateByFormula=new QAction(tr("By formula"),this);
+    connect(actCreateByFormula,SIGNAL(triggered()), this,SLOT(doCreateByFormula()));
+    actCreateInSpreadsheet=new QAction(tr("In spreadsheet"),this);
+    connect(actCreateInSpreadsheet,SIGNAL(triggered()), this,SLOT(doCreateInSpreadsheet()));
+    actCreateInTextEditor=new QAction(tr("In text Editor"),this);
+    connect(actCreateInTextEditor,SIGNAL(triggered()), this,SLOT(doCreateInTextEditor()));
+    actCreateFromBlockData=new QAction(tr("From block data"),this);
+    connect(actCreateFromBlockData,SIGNAL(triggered()), this,SLOT(doCreateFromBlockData()));
+    actEditInSpreadsheet=new QAction(tr("In spreadsheet"),this);
+    connect(actEditInSpreadsheet,SIGNAL(triggered()), this,SLOT(doEditInSpreadSheet()));
+    actEditInTextEditor=new QAction(tr("In text editor"),this);
+    connect(actEditInTextEditor,SIGNAL(triggered()), this,SLOT(doEditInTextEditor()));
+    actViewSetComments=new QAction(tr("View set comments"),this);
+    connect(actViewSetComments,SIGNAL(triggered()), this,SLOT(doViewSetComments()));
+    actShowDataLess=new QAction(tr("Show data-less"),this);
+    connect(actShowDataLess,SIGNAL(triggered()), this,SLOT(doShowDataLess()));
+    actShowHidden=new QAction(tr("Show hidden"),this);
+    connect(actShowHidden,SIGNAL(triggered()), this,SLOT(doShowHidden()));
+    actSelectAll=new QAction(tr("Select all"),this);
+    connect(actSelectAll,SIGNAL(triggered()), this,SLOT(doSelectAll()));
+    actUnselectAll=new QAction(tr("Unselect all"),this);
+    connect(actUnselectAll,SIGNAL(triggered()), this,SLOT(doUnSelectAll()));
+    actInvertSelection=new QAction(tr("Invert selection"),this);
+    connect(actInvertSelection,SIGNAL(triggered()), this,SLOT(doInvertSelection()));
+    actSelectEven=new QAction(tr("Select even"),this);
+    connect(actSelectEven,SIGNAL(triggered()), this,SLOT(doSelectEven()));
+    actSelectOdd=new QAction(tr("Select odd"),this);
+    connect(actSelectOdd,SIGNAL(triggered()), this,SLOT(doSelectOdd()));
+    actUpdate=new QAction(tr("Update"),this);
+    connect(actUpdate,SIGNAL(triggered()), this,SLOT(doUpdate()));
+    actCopyClipBoard=new QAction(tr("Copy"),this);
+    connect(actCopyClipBoard,SIGNAL(triggered()),SLOT(doCopyClipBoard()));
+    actPasteClipBoard=new QAction(tr("Paste"),this);
+    connect(actPasteClipBoard,SIGNAL(triggered()),SLOT(doPasteClipBoard()));
 }
 
 void SetPopup::prepareForAction(void)
 {
-selected_graph=par->gr_no;
-par->get_selection(&number_of_selected_sets,&selected_sets);
+    selected_graph=par->gr_no;
+    par->get_selection(&number_of_selected_sets,&selected_sets);
 }
 
 void SetPopup::finishAction(int preserveSelection)
 {
-par->update_number_of_entries();
-mainWin->mainArea->completeRedraw();
-if (preserveSelection==DO_PRESERVE_SELECTION)
-par->set_new_selection(number_of_selected_sets,selected_sets);
+    par->update_number_of_entries();
+    mainWin->mainArea->completeRedraw();
+    if (preserveSelection==DO_PRESERVE_SELECTION)
+        par->set_new_selection(number_of_selected_sets,selected_sets);
 }
 
 void SetPopup::doNothing(void)
 {
-;
+    ;
 }
 
 void SetPopup::doHide(void)
 {
-prepareForAction();
+    prepareForAction();
     ListOfChanges.clear();
     ListOfOldStates.clear();
-int * gnos=new int[number_of_selected_sets];
-int * snos=new int[number_of_selected_sets];
-sprintf(dummy,"with g%d",selected_graph);
-ListOfChanges << QString(dummy);
-ListOfOldStates << QString(dummy);
-for (int i=0;i<number_of_selected_sets;i++)
-{
-gnos[i]=selected_graph;
-snos[i]=selected_sets[i];
-    sprintf(dummy,"    s%d hidden true",selected_sets[i]);
+    int * gnos=new int[number_of_selected_sets];
+    int * snos=new int[number_of_selected_sets];
+    sprintf(dummy,"with g%d",selected_graph);
     ListOfChanges << QString(dummy);
-    sprintf(dummy,"    s%d hidden false",selected_sets[i]);
     ListOfOldStates << QString(dummy);
-set_set_hidden(selected_graph, selected_sets[i], TRUE);
-}
-///Undo-Stuff
-ShowHideSets(number_of_selected_sets,gnos,snos);
+    for (int i=0;i<number_of_selected_sets;i++)
+    {
+        gnos[i]=selected_graph;
+        snos[i]=selected_sets[i];
+        sprintf(dummy,"    s%d hidden true",selected_sets[i]);
+        ListOfChanges << QString(dummy);
+        sprintf(dummy,"    s%d hidden false",selected_sets[i]);
+        ListOfOldStates << QString(dummy);
+        set_set_hidden(selected_graph, selected_sets[i], TRUE);
+    }
+    ///Undo-Stuff
+    ShowHideSets(number_of_selected_sets,gnos,snos);
     ListOfChanges.clear();
     ListOfOldStates.clear();
-delete[] gnos;
-delete[] snos;
-finishAction(DO_PRESERVE_SELECTION);
+    delete[] gnos;
+    delete[] snos;
+    finishAction(DO_PRESERVE_SELECTION);
 }
 
 void SetPopup::doShow(void)
 {
-prepareForAction();
+    prepareForAction();
     ListOfChanges.clear();
     ListOfOldStates.clear();
-int * gnos=new int[number_of_selected_sets];
-int * snos=new int[number_of_selected_sets];
-sprintf(dummy,"with g%d",selected_graph);
-ListOfChanges << QString(dummy);
-ListOfOldStates << QString(dummy);
-for (int i=0;i<number_of_selected_sets;i++)
-{
-gnos[i]=selected_graph;
-snos[i]=selected_sets[i];
-    sprintf(dummy,"    s%d hidden false",selected_sets[i]);
+    int * gnos=new int[number_of_selected_sets];
+    int * snos=new int[number_of_selected_sets];
+    sprintf(dummy,"with g%d",selected_graph);
     ListOfChanges << QString(dummy);
-    sprintf(dummy,"    s%d hidden true",selected_sets[i]);
     ListOfOldStates << QString(dummy);
-set_set_hidden(selected_graph, selected_sets[i], FALSE);
-}
-///Undo-Stuff
-ShowHideSets(number_of_selected_sets,gnos,snos);
+    for (int i=0;i<number_of_selected_sets;i++)
+    {
+        gnos[i]=selected_graph;
+        snos[i]=selected_sets[i];
+        sprintf(dummy,"    s%d hidden false",selected_sets[i]);
+        ListOfChanges << QString(dummy);
+        sprintf(dummy,"    s%d hidden true",selected_sets[i]);
+        ListOfOldStates << QString(dummy);
+        set_set_hidden(selected_graph, selected_sets[i], FALSE);
+    }
+    ///Undo-Stuff
+    ShowHideSets(number_of_selected_sets,gnos,snos);
     ListOfChanges.clear();
     ListOfOldStates.clear();
-delete[] gnos;
-delete[] snos;
-finishAction(DO_PRESERVE_SELECTION);
+    delete[] gnos;
+    delete[] snos;
+    finishAction(DO_PRESERVE_SELECTION);
 }
 
 void SetPopup::doSendToBack(void)
 {
-int number;
-int * selection=new int[2];
-int gno=par->gr_no;
-par->get_selection(&number,&selection);
-if (number==1)
-{
-ChangeSetOrdering(gno,selection[0],PUSH_SET_TOBACK);
-pushset(gno, selection[0], PUSH_SET_TOBACK);
-}
-delete[] selection;
-par->update_number_of_entries();
-mainWin->mainArea->completeRedraw();
+    int number;
+    int * selection=new int[2];
+    int gno=par->gr_no;
+    par->get_selection(&number,&selection);
+    if (number==1)
+    {
+        ChangeSetOrdering(gno,selection[0],PUSH_SET_TOBACK);
+        pushset(gno, selection[0], PUSH_SET_TOBACK);
+    }
+    delete[] selection;
+    par->update_number_of_entries();
+    mainWin->mainArea->completeRedraw();
 }
 
 void SetPopup::doBringToFront(void)
 {
-int number;
-int * selection=new int[2];
-int gno=par->gr_no;
-par->get_selection(&number,&selection);
-if (number==1)
-{
-ChangeSetOrdering(gno,selection[0],PUSH_SET_TOFRONT);
-pushset(gno, selection[0], PUSH_SET_TOFRONT);
-}
-delete[] selection;
-par->update_number_of_entries();
-mainWin->mainArea->completeRedraw();
+    int number;
+    int * selection=new int[2];
+    int gno=par->gr_no;
+    par->get_selection(&number,&selection);
+    if (number==1)
+    {
+        ChangeSetOrdering(gno,selection[0],PUSH_SET_TOFRONT);
+        pushset(gno, selection[0], PUSH_SET_TOFRONT);
+    }
+    delete[] selection;
+    par->update_number_of_entries();
+    mainWin->mainArea->completeRedraw();
 }
 
 void SetPopup::doDuplicate(void)
 {
-int number;
-int * selection=new int[2];
-int gno=par->gr_no;
-int setno;
-int index=0;
-par->get_selection(&number,&selection);
-int * gnos=new int[number+2];
-int * snos=new int[number+2];
+    int number;
+    int * selection=new int[2];
+    int gno=par->gr_no;
+    int setno;
+    int index=0;
+    par->get_selection(&number,&selection);
+    int * gnos=new int[number+2];
+    int * snos=new int[number+2];
     for (int i=0;i<number;i++)
     {
-    setno = nextset(gno);
-    do_copyset(gno, selection[i], gno, setno);
-    gnos[index]=gno;
-    snos[index++]=setno;
+        setno = nextset(gno);
+        do_copyset(gno, selection[i], gno, setno);
+        gnos[index]=gno;
+        snos[index++]=setno;
     }
-SetsCreated(index,gnos,snos,UNDO_COMPLETE);
-delete[] selection;
-delete[] gnos;
-delete[] snos;
-par->update_number_of_entries_preserve_selection();
-mainWin->mainArea->completeRedraw();
+    SetsCreated(index,gnos,snos,UNDO_COMPLETE);
+    delete[] selection;
+    delete[] gnos;
+    delete[] snos;
+    par->update_number_of_entries_preserve_selection();
+    mainWin->mainArea->completeRedraw();
 }
 
 void SetPopup::doKill(void)
 {
-prepareForAction();
-if (yesno("Kill selected set(s)?", NULL, NULL, NULL))
-{
-    ListOfChanges.clear();
-    int * gnos=new int[number_of_selected_sets];
-    for (int i=0;i<number_of_selected_sets;i++)
+    prepareForAction();
+    if (yesno("Kill selected set(s)?", NULL, NULL, NULL))
     {
-    sprintf(dummy,"kill G%d.S%d",selected_graph,selected_sets[i]);
-    ListOfChanges << QString(dummy);
-    gnos[i]=selected_graph;
+        ListOfChanges.clear();
+        int * gnos=new int[number_of_selected_sets];
+        for (int i=0;i<number_of_selected_sets;i++)
+        {
+            sprintf(dummy,"kill G%d.S%d",selected_graph,selected_sets[i]);
+            ListOfChanges << QString(dummy);
+            gnos[i]=selected_graph;
+        }
+        SetsDeleted(number_of_selected_sets,gnos,selected_sets,UNDO_COMPLETE);//UndoStuff
+        delete[] gnos;
+        for (int i=0;i<number_of_selected_sets;i++)
+        {
+            killset(selected_graph, selected_sets[i]);
+        }
+        finishAction(DO_NOT_PRESERVE_SELECTION);
+        ListOfChanges.clear();
     }
-    SetsDeleted(number_of_selected_sets,gnos,selected_sets,UNDO_COMPLETE);//UndoStuff
-    delete[] gnos;
-	for (int i=0;i<number_of_selected_sets;i++)
-	{
-	killset(selected_graph, selected_sets[i]);
-	}
-finishAction(DO_NOT_PRESERVE_SELECTION);
-    ListOfChanges.clear();
-}
-else
-finishAction(DO_PRESERVE_SELECTION);
+    else
+        finishAction(DO_PRESERVE_SELECTION);
 }
 
 void SetPopup::doKillData(void)
 {
-prepareForAction();
-if (yesno("Kill data in selected set(s)?", NULL, NULL, NULL))
-{
-    int * gnos=new int[number_of_selected_sets];
-    for (int i=0;i<number_of_selected_sets;i++)
-    gnos[i]=selected_graph;
-    SetsDeleted(number_of_selected_sets,gnos,selected_sets,UNDO_COMPLETE);//UndoStuff
-    char dummy[128];
-    sprintf(dummy,"[G%d.S%d]",gnos[0],selected_sets[0]);
-    if (number_of_selected_sets>1)
+    prepareForAction();
+    if (yesno("Kill data in selected set(s)?", NULL, NULL, NULL))
     {
-    addAditionalDescriptionToLastNode(-1,QObject::tr("Kill set data"),QString(),-1);
+        int * gnos=new int[number_of_selected_sets];
+        for (int i=0;i<number_of_selected_sets;i++)
+            gnos[i]=selected_graph;
+        SetsDeleted(number_of_selected_sets,gnos,selected_sets,UNDO_COMPLETE);//UndoStuff
+        char dummy[128];
+        sprintf(dummy,"[G%d.S%d]",gnos[0],selected_sets[0]);
+        if (number_of_selected_sets>1)
+        {
+            addAditionalDescriptionToLastNode(-1,QObject::tr("Kill set data"),QString(),-1);
+        }
+        else
+        {
+            addAditionalDescriptionToLastNode(-1,QObject::tr("Kill set data")+QString(dummy),QString(),-1);
+        }
+        delete[] gnos;
+        for (int i=0;i<number_of_selected_sets;i++)
+        {
+            killsetdata(selected_graph, selected_sets[i]);
+        }
+        finishAction(DO_NOT_PRESERVE_SELECTION);
     }
     else
-    {
-    addAditionalDescriptionToLastNode(-1,QObject::tr("Kill set data")+QString(dummy),QString(),-1);
-    }
-    delete[] gnos;
-	for (int i=0;i<number_of_selected_sets;i++)
-	{
-	killsetdata(selected_graph, selected_sets[i]);
-	}
-finishAction(DO_NOT_PRESERVE_SELECTION);
-}
-else
-finishAction(DO_PRESERVE_SELECTION);
+        finishAction(DO_PRESERVE_SELECTION);
 }
 
 void SetPopup::doSwap(void)
 {
-int number;
-int * selection=new int[2];
-int gno=par->gr_no;
-par->get_selection(&number,&selection);
-if (number==2)
-{
-swapset(gno, selection[0], gno, selection[1]);
-UndoSwapSets(gno, selection[0], gno, selection[1]);
-}
-delete[] selection;
-par->update_number_of_entries();
-mainWin->mainArea->completeRedraw();
+    int number;
+    int * selection=new int[2];
+    int gno=par->gr_no;
+    par->get_selection(&number,&selection);
+    if (number==2)
+    {
+        swapset(gno, selection[0], gno, selection[1]);
+        UndoSwapSets(gno, selection[0], gno, selection[1]);
+    }
+    delete[] selection;
+    par->update_number_of_entries();
+    mainWin->mainArea->completeRedraw();
 }
 
 void SetPopup::doPackAllSets(void)
 {
-int gno=par->gr_no;
-SetsAboutToBePacked(gno);
-packsets(gno);
-par->update_number_of_entries();
-mainWin->mainArea->completeRedraw();
+    int gno=par->gr_no;
+    SetsAboutToBePacked(gno);
+    packsets(gno);
+    par->update_number_of_entries();
+    mainWin->mainArea->completeRedraw();
 }
 
 void SetPopup::doEditInSpreadSheet(void)
 {
-int gno=par->gr_no;
-int number;
-int * selection=new int[5];
-par->get_selection(&number,&selection);
-for (int i=0;i<number;i++)
-{
-showSetInSpreadSheet(gno,selection[i]);
-}
-delete[] selection;
+    int gno=par->gr_no;
+    int number;
+    int * selection=new int[5];
+    par->get_selection(&number,&selection);
+    for (int i=0;i<number;i++)
+    {
+        showSetInSpreadSheet(gno,selection[i]);
+    }
+    delete[] selection;
 }
 
 void SetPopup::doEditInTextEditor(void)
 {
-int gno=this->selected_graph;
-int setno=-1;
-if (this->number_of_selected_sets>0)
-{
-setno=this->selected_sets[0];
-}
-if (setno!= -1)
-{
-setcomment(gno, setno, "Editor");
-set_set_hidden(gno, setno, FALSE);
-if (FormSetEditor==NULL)
-{
-FormSetEditor=new frmSetEditor(0);
-}
-FormSetEditor->init(gno,setno);
-FormSetEditor->show();
-FormSetEditor->raise();
-FormSetEditor->activateWindow();
-///FormSetEditor->setModal(true);
-}
+    int gno=this->selected_graph;
+    int setno=-1;
+    if (this->number_of_selected_sets>0)
+    {
+        setno=this->selected_sets[0];
+    }
+    if (setno!= -1)
+    {
+        setcomment(gno, setno, "Editor");
+        set_set_hidden(gno, setno, FALSE);
+        if (FormSetEditor==NULL)
+        {
+            FormSetEditor=new frmSetEditor(0);
+        }
+        FormSetEditor->init(gno,setno);
+        FormSetEditor->show();
+        FormSetEditor->raise();
+        FormSetEditor->activateWindow();
+        ///FormSetEditor->setModal(true);
+    }
 }
 
 void SetPopup::doCreateByFormula(void)
 {
-if (FormLoadAndEvaluate==NULL)
-{
-FormLoadAndEvaluate=new frmLoadEval(0);
-}
-FormLoadAndEvaluate->show();
-FormLoadAndEvaluate->raise();
-FormLoadAndEvaluate->activateWindow();
+    if (FormLoadAndEvaluate==NULL)
+    {
+        FormLoadAndEvaluate=new frmLoadEval(0);
+    }
+    FormLoadAndEvaluate->show();
+    FormLoadAndEvaluate->raise();
+    FormLoadAndEvaluate->activateWindow();
 }
 
 void SetPopup::doCreateInSpreadsheet(void)
 {
     int setno,gno=selected_graph;
     if ((setno = nextset(gno)) != -1) {
-    setcomment(gno, setno, "Editor");
-    set_set_hidden(gno, setno, FALSE);
-    //create_ss_frame(gno, setno);
-    showSetInSpreadSheet(gno,setno);
+        setcomment(gno, setno, "Editor");
+        set_set_hidden(gno, setno, FALSE);
+        //create_ss_frame(gno, setno);
+        showSetInSpreadSheet(gno,setno);
     } else {
-    ;///cout << "error" << endl;
+        ;///cout << "error" << endl;
     }
 }
 
 void SetPopup::doCreateInTextEditor(void)
 {
-int gno=this->selected_graph;
-int setno;
-if ((setno = nextset(gno)) != -1)
-{
-setcomment(gno, setno, "Editor");
-set_set_hidden(gno, setno, FALSE);
-    if (FormSetEditor==NULL)
+    int gno=this->selected_graph;
+    int setno;
+    if ((setno = nextset(gno)) != -1)
     {
-    FormSetEditor=new frmSetEditor(0);
+        setcomment(gno, setno, "Editor");
+        set_set_hidden(gno, setno, FALSE);
+        if (FormSetEditor==NULL)
+        {
+            FormSetEditor=new frmSetEditor(0);
+        }
+        FormSetEditor->init(gno,setno);
+        FormSetEditor->show();
+        FormSetEditor->raise();
+        FormSetEditor->activateWindow();
+        ///FormSetEditor->setModal(true);
     }
-    FormSetEditor->init(gno,setno);
-    FormSetEditor->show();
-    FormSetEditor->raise();
-    FormSetEditor->activateWindow();
-///FormSetEditor->setModal(true);
-}
 }
 
 void SetPopup::doCreateFromBlockData(void)
 {
     if (FormEditBlockData==NULL)
     {
-    FormEditBlockData=new frmEditBlockData(mainWin);
+        FormEditBlockData=new frmEditBlockData(mainWin);
     }
     FormEditBlockData->init();
     int blockncols = get_blockncols();
     if (!blockncols)
-    FormEditBlockData->hide();
+        FormEditBlockData->hide();
     else
     {
-    FormEditBlockData->show();
-    FormEditBlockData->raise();
-    FormEditBlockData->activateWindow();
+        FormEditBlockData->show();
+        FormEditBlockData->raise();
+        FormEditBlockData->activateWindow();
     }
 }
 
 void SetPopup::doSelectAll(void)
 {
-par->selectAll();
+    par->selectAll();
 }
 
 void SetPopup::doUnSelectAll(void)
 {
-par->clearSelection();
+    par->clearSelection();
 }
 
 void SetPopup::doSelectEven(void)
 {
-int nr,*sel=new int[2];
-par->get_selection(&nr,&sel);
-int * ne_sel=new int[par->count()+2];
-int counter=0;
-for (int i=0;i<par->count();i++)
-{
-    if (i%2==0)//index is even
+    int nr,*sel=new int[2];
+    par->get_selection(&nr,&sel);
+    int * ne_sel=new int[par->count()+2];
+    int counter=0;
+    for (int i=0;i<par->count();i++)
     {
-    ne_sel[counter++]=i;
-    }
-    else//odd index will be inserted if it has already been selected
-    {
-        for (int j=0;j<nr;j++)
+        if (i%2==0)//index is even
         {
-            if (sel[j]==i)
-            {
             ne_sel[counter++]=i;
-            break;
+        }
+        else//odd index will be inserted if it has already been selected
+        {
+            for (int j=0;j<nr;j++)
+            {
+                if (sel[j]==i)
+                {
+                    ne_sel[counter++]=i;
+                    break;
+                }
             }
         }
     }
-}
-par->set_new_selection(counter,ne_sel);
-delete[] sel;
-delete[] ne_sel;
+    par->set_new_selection(counter,ne_sel);
+    delete[] sel;
+    delete[] ne_sel;
 }
 
 void SetPopup::doSelectOdd(void)
 {
-int nr,*sel=new int[2];
-par->get_selection(&nr,&sel);
-int * ne_sel=new int[par->count()+2];
-int counter=0;
-for (int i=0;i<par->count();i++)
-{
-    if (i%2!=0)//index is odd
+    int nr,*sel=new int[2];
+    par->get_selection(&nr,&sel);
+    int * ne_sel=new int[par->count()+2];
+    int counter=0;
+    for (int i=0;i<par->count();i++)
     {
-    ne_sel[counter++]=i;
-    }
-    else//even index will be inserted if it has already been selected
-    {
-        for (int j=0;j<nr;j++)
+        if (i%2!=0)//index is odd
         {
-            if (sel[j]==i)
-            {
             ne_sel[counter++]=i;
-            break;
+        }
+        else//even index will be inserted if it has already been selected
+        {
+            for (int j=0;j<nr;j++)
+            {
+                if (sel[j]==i)
+                {
+                    ne_sel[counter++]=i;
+                    break;
+                }
             }
         }
     }
-}
-par->set_new_selection(counter,ne_sel);
-delete[] sel;
-delete[] ne_sel;
+    par->set_new_selection(counter,ne_sel);
+    delete[] sel;
+    delete[] ne_sel;
 }
 
 void SetPopup::doUpdate(void)
 {
-par->update_number_of_entries_preserve_selection();
+    par->update_number_of_entries_preserve_selection();
 }
 
 void SetPopup::doInvertSelection(void)
 {
-int number=par->count()-number_of_selected_sets;
-int * n_selected_sets=new int[number];
-int index=0;
-bool in_list;
-for (int i=0;i<par->count();i++)
-{
-in_list=false;
-	for (int j=0;j<number_of_selected_sets;j++)
-	if (selected_sets[j]==i)
-	{
-	in_list=true;
-	break;
-	}
-		if (in_list==false)
-		{
-		n_selected_sets[index]=i;
-		index++;
-		}
-}
-par->set_new_selection(number,n_selected_sets);
-delete[] n_selected_sets;
+    int number=par->count()-number_of_selected_sets;
+    int * n_selected_sets=new int[number];
+    int index=0;
+    bool in_list;
+    for (int i=0;i<par->count();i++)
+    {
+        in_list=false;
+        for (int j=0;j<number_of_selected_sets;j++)
+            if (selected_sets[j]==i)
+            {
+                in_list=true;
+                break;
+            }
+        if (in_list==false)
+        {
+            n_selected_sets[index]=i;
+            index++;
+        }
+    }
+    par->set_new_selection(number,n_selected_sets);
+    delete[] n_selected_sets;
 }
 
 void SetPopup::doShowHidden(void)
 {
-par->show_hidden=!par->show_hidden;
-par->update_number_of_entries_preserve_selection();
+    par->show_hidden=!par->show_hidden;
+    par->update_number_of_entries_preserve_selection();
 }
 
 void SetPopup::doShowDataLess(void)
 {
-par->show_data_less=!par->show_data_less;
-par->update_number_of_entries_preserve_selection();
+    par->show_data_less=!par->show_data_less;
+    par->update_number_of_entries_preserve_selection();
 }
 
 void SetPopup::doViewSetComments(void)
 {
-par->show_comments=!par->show_comments;
-par->update_number_of_entries_preserve_selection();
+    par->show_comments=!par->show_comments;
+    par->update_number_of_entries_preserve_selection();
 }
 
 void SetPopup::doMove12(void)
 {
-if (number_of_selected_sets==2)
-{
-    int gno=par->gr_no;
-    int * gnos=new int[2];
-    gnos[0]=gnos[1]=gno;
-    char dummy[64];
-    sprintf(dummy, "Replace S%d?", selected_sets[1]);
-    if (yesno(dummy, NULL, NULL, NULL))
+    if (number_of_selected_sets==2)
     {
-        SaveSetStatesPrevious(2,gnos,selected_sets,UNDO_COMPLETE);
-    moveset(gno, selected_sets[0], gno, selected_sets[1]);
-        SetsModified(1,gnos,selected_sets+1,UNDO_COMPLETE);
-        sprintf(dummy,"Move [G%d.S%d]-->[G%d.S%d]",gno, selected_sets[0], gno, selected_sets[1]);
-        addAditionalDescriptionToLastNode(-1,QString(dummy),QString(),0);
+        int gno=par->gr_no;
+        int * gnos=new int[2];
+        gnos[0]=gnos[1]=gno;
+        char dummy[64];
+        sprintf(dummy, "Replace S%d?", selected_sets[1]);
+        if (yesno(dummy, NULL, NULL, NULL))
+        {
+            SaveSetStatesPrevious(2,gnos,selected_sets,UNDO_COMPLETE);
+            moveset(gno, selected_sets[0], gno, selected_sets[1]);
+            SetsModified(1,gnos,selected_sets+1,UNDO_COMPLETE);
+            sprintf(dummy,"Move [G%d.S%d]-->[G%d.S%d]",gno, selected_sets[0], gno, selected_sets[1]);
+            addAditionalDescriptionToLastNode(-1,QString(dummy),QString(),0);
+        }
+        delete[] gnos;
+        finishAction(DO_PRESERVE_SELECTION);
     }
-    delete[] gnos;
-    finishAction(DO_PRESERVE_SELECTION);
-}
 }
 
 void SetPopup::doMove21(void)
 {
-if (number_of_selected_sets==2)
-{
-    int gno=par->gr_no;
-    int * gnos=new int[2];
-    gnos[0]=gnos[1]=gno;
-    char dummy[64];
-    sprintf(dummy, "Replace S%d?", selected_sets[0]);
-    if (yesno(dummy, NULL, NULL, NULL))
+    if (number_of_selected_sets==2)
     {
-        SaveSetStatesPrevious(2,gnos,selected_sets,UNDO_COMPLETE);
-    moveset(gno, selected_sets[1], gno, selected_sets[0]);
-        //selected_sets[0]=selected_sets[1];
-        SetsModified(1,gnos,selected_sets,UNDO_COMPLETE);
-        sprintf(dummy,"Move [G%d.S%d]-->[G%d.S%d]",gno, selected_sets[1], gno, selected_sets[0]);
-        addAditionalDescriptionToLastNode(-1,QString(dummy),QString(),0);
+        int gno=par->gr_no;
+        int * gnos=new int[2];
+        gnos[0]=gnos[1]=gno;
+        char dummy[64];
+        sprintf(dummy, "Replace S%d?", selected_sets[0]);
+        if (yesno(dummy, NULL, NULL, NULL))
+        {
+            SaveSetStatesPrevious(2,gnos,selected_sets,UNDO_COMPLETE);
+            moveset(gno, selected_sets[1], gno, selected_sets[0]);
+            //selected_sets[0]=selected_sets[1];
+            SetsModified(1,gnos,selected_sets,UNDO_COMPLETE);
+            sprintf(dummy,"Move [G%d.S%d]-->[G%d.S%d]",gno, selected_sets[1], gno, selected_sets[0]);
+            addAditionalDescriptionToLastNode(-1,QString(dummy),QString(),0);
+        }
+        delete[] gnos;
+        finishAction(DO_PRESERVE_SELECTION);
     }
-    delete[] gnos;
-    finishAction(DO_PRESERVE_SELECTION);
-}
 }
 
 void SetPopup::doCopy12(void)
 {
-if (number_of_selected_sets==2)
-{
-    int gno=par->gr_no;
-    int * gnos=new int[2];
-    gnos[0]=gnos[1]=gno;
-    char dummy[64];
-    sprintf(dummy, "Overwrite S%d?", selected_sets[1]);
-    if (yesno(dummy, NULL, NULL, NULL))
+    if (number_of_selected_sets==2)
     {
-        SaveSetStatesPrevious(2,gnos,selected_sets,UNDO_COMPLETE);
-    do_copyset(gno, selected_sets[0], gno, selected_sets[1]);
-        SetsModified(2,gnos,selected_sets,UNDO_COMPLETE);
-        sprintf(dummy,"Copy [G%d.S%d]-->[G%d.S%d]",gno, selected_sets[0], gno, selected_sets[1]);
-        addAditionalDescriptionToLastNode(-1,QString(dummy),QString(),0);
+        int gno=par->gr_no;
+        int * gnos=new int[2];
+        gnos[0]=gnos[1]=gno;
+        char dummy[64];
+        sprintf(dummy, "Overwrite S%d?", selected_sets[1]);
+        if (yesno(dummy, NULL, NULL, NULL))
+        {
+            SaveSetStatesPrevious(2,gnos,selected_sets,UNDO_COMPLETE);
+            do_copyset(gno, selected_sets[0], gno, selected_sets[1]);
+            SetsModified(2,gnos,selected_sets,UNDO_COMPLETE);
+            sprintf(dummy,"Copy [G%d.S%d]-->[G%d.S%d]",gno, selected_sets[0], gno, selected_sets[1]);
+            addAditionalDescriptionToLastNode(-1,QString(dummy),QString(),0);
+        }
+        delete[] gnos;
+        finishAction(DO_PRESERVE_SELECTION);
     }
-    delete[] gnos;
-    finishAction(DO_PRESERVE_SELECTION);
-}
 }
 
 void SetPopup::doCopy21(void)
 {
-if (number_of_selected_sets==2)
-{
-    int gno=par->gr_no;
-    int * gnos=new int[2];
-    gnos[0]=gnos[1]=gno;
-    char dummy[64];
-    sprintf(dummy, "Overwrite S%d?", selected_sets[0]);
-    if (yesno(dummy, NULL, NULL, NULL))
+    if (number_of_selected_sets==2)
     {
-        SaveSetStatesPrevious(2,gnos,selected_sets,UNDO_COMPLETE);
-    do_copyset(gno, selected_sets[1], gno, selected_sets[0]);
-        SetsModified(2,gnos,selected_sets,UNDO_COMPLETE);
-        sprintf(dummy,"Copy [G%d.S%d]-->[G%d.S%d]",gno, selected_sets[1], gno, selected_sets[0]);
-        addAditionalDescriptionToLastNode(-1,QString(dummy),QString(),0);
+        int gno=par->gr_no;
+        int * gnos=new int[2];
+        gnos[0]=gnos[1]=gno;
+        char dummy[64];
+        sprintf(dummy, "Overwrite S%d?", selected_sets[0]);
+        if (yesno(dummy, NULL, NULL, NULL))
+        {
+            SaveSetStatesPrevious(2,gnos,selected_sets,UNDO_COMPLETE);
+            do_copyset(gno, selected_sets[1], gno, selected_sets[0]);
+            SetsModified(2,gnos,selected_sets,UNDO_COMPLETE);
+            sprintf(dummy,"Copy [G%d.S%d]-->[G%d.S%d]",gno, selected_sets[1], gno, selected_sets[0]);
+            addAditionalDescriptionToLastNode(-1,QString(dummy),QString(),0);
+        }
+        delete[] gnos;
+        finishAction(DO_PRESERVE_SELECTION);
     }
-    delete[] gnos;
-    finishAction(DO_PRESERVE_SELECTION);
-}
 }
 
 void SetPopup::doCopyClipBoard(void)
 {
-if (number_of_selected_sets<1) return;
-QString text;
-text.clear();
-char dummy[2048];
-int gno,sno,col;
-for (int i=0;i<number_of_selected_sets;i++)
-{
-    gno=this->par->gr_no;
-    sno=selected_sets[i];
-    col=dataset_cols(gno,sno);
-    for (int k=0;k<g[gno].p[sno].data.len;k++)
+    if (number_of_selected_sets<1) return;
+    QString text;
+    text.clear();
+    char dummy[2048];
+    int gno,sno,col;
+    for (int i=0;i<number_of_selected_sets;i++)
     {
-        for (int j=0;j<col;j++)
+        gno=this->par->gr_no;
+        sno=selected_sets[i];
+        col=dataset_cols(gno,sno);
+        for (int k=0;k<g[gno].p[sno].data.len;k++)
         {
-        sprintf(dummy,"%.8g\t",g[gno].p[sno].data.ex[j][k]);
-        text+=QString(dummy);
+            for (int j=0;j<col;j++)
+            {
+                sprintf(dummy,"%.8g\t",g[gno].p[sno].data.ex[j][k]);
+                text+=QString(dummy);
+            }
+            text+=QString("\n");
         }
-    text+=QString("\n");
+        text+=QString("\n");
     }
-text+=QString("\n");
-}
-if (SystemsDecimalPoint!='.') text.replace(QString("."),QString(SystemsDecimalPoint));
-QApplication::clipboard()->setText(text);
+    if (SystemsDecimalPoint!='.') text.replace(QString("."),QString(SystemsDecimalPoint));
+    QApplication::clipboard()->setText(text);
 }
 
 void SetPopup::doPasteClipBoard(void)
 {
-GeneralPaste(QApplication::clipboard()->mimeData());
+    GeneralPaste(QApplication::clipboard()->mimeData());
 }
 
 void SetPopup::update_menu_content(void)
@@ -4245,24 +4251,24 @@ void SetPopup::update_menu_content(void)
 
     if (number_of_selected_sets==0)
     {
-    actLabel->setText(tr("None"));
-    actHide->setEnabled(false);
-    actBringToFront->setEnabled(false);
-    actSendToBack->setEnabled(false);
-    actPackAllSets->setEnabled(false);
-    actShow->setEnabled(false);
-    actDuplicate->setEnabled(false);
-    actKill->setEnabled(false);
-    actKillData->setEnabled(false);
-    actSwap->setEnabled(false);
-    actEditInSpreadsheet->setEnabled(false);
-    actEditInTextEditor->setEnabled(false);
-    actCopy12->setVisible(false);
-    actCopy21->setVisible(false);
-    actMove12->setVisible(false);
-    actMove21->setVisible(false);
-    actCopyClipBoard->setEnabled(false);
-    /*actions()[2]->setEnabled(FALSE);
+        actLabel->setText(tr("None"));
+        actHide->setEnabled(false);
+        actBringToFront->setEnabled(false);
+        actSendToBack->setEnabled(false);
+        actPackAllSets->setEnabled(false);
+        actShow->setEnabled(false);
+        actDuplicate->setEnabled(false);
+        actKill->setEnabled(false);
+        actKillData->setEnabled(false);
+        actSwap->setEnabled(false);
+        actEditInSpreadsheet->setEnabled(false);
+        actEditInTextEditor->setEnabled(false);
+        actCopy12->setVisible(false);
+        actCopy21->setVisible(false);
+        actMove12->setVisible(false);
+        actMove21->setVisible(false);
+        actCopyClipBoard->setEnabled(false);
+        /*actions()[2]->setEnabled(FALSE);
     actions()[3]->setEnabled(FALSE);
     actions()[4]->setEnabled(FALSE);
     actions()[5]->setEnabled(FALSE);
@@ -4275,19 +4281,19 @@ void SetPopup::update_menu_content(void)
     }
     else
     {
-    actHide->setEnabled(true);
-    actBringToFront->setEnabled(true);
-    actSendToBack->setEnabled(true);
-    actPackAllSets->setEnabled(true);
-    actShow->setEnabled(true);
-    actDuplicate->setEnabled(true);
-    actKill->setEnabled(true);
-    actKillData->setEnabled(true);
-    actSwap->setEnabled(true);
-    actEditInSpreadsheet->setEnabled(true);
-    actEditInTextEditor->setEnabled(true);
-    actCopyClipBoard->setEnabled(true);
-    /*actions()[2]->setEnabled(TRUE);
+        actHide->setEnabled(true);
+        actBringToFront->setEnabled(true);
+        actSendToBack->setEnabled(true);
+        actPackAllSets->setEnabled(true);
+        actShow->setEnabled(true);
+        actDuplicate->setEnabled(true);
+        actKill->setEnabled(true);
+        actKillData->setEnabled(true);
+        actSwap->setEnabled(true);
+        actEditInSpreadsheet->setEnabled(true);
+        actEditInTextEditor->setEnabled(true);
+        actCopyClipBoard->setEnabled(true);
+        /*actions()[2]->setEnabled(TRUE);
     actions()[3]->setEnabled(TRUE);
     actions()[4]->setEnabled(TRUE);
     actions()[5]->setEnabled(TRUE);
@@ -4298,242 +4304,248 @@ void SetPopup::update_menu_content(void)
     mnuEdit->actions()[0]->setEnabled(TRUE);
     mnuEdit->actions()[1]->setEnabled(TRUE);*/
 
-    sprintf(dummy,"S");
-    for (int i=0;i<number_of_selected_sets;i++)
-    {
-    sprintf(dummy2,"%d",selected_sets[i]);
-    strcat(dummy,dummy2);
+        sprintf(dummy,"S");
+        for (int i=0;i<number_of_selected_sets;i++)
+        {
+            sprintf(dummy2,"%d",selected_sets[i]);
+            strcat(dummy,dummy2);
             if (i>2 && i!=number_of_selected_sets-1)
             {
-            strcat(dummy,",...");
-            break;
+                strcat(dummy,",...");
+                break;
             }
             else
             {
-            if (i!=number_of_selected_sets-1)
-            strcat(dummy,", S");
+                if (i!=number_of_selected_sets-1)
+                    strcat(dummy,", S");
             }
-    }
-    actLabel->setText(QString(dummy));
+        }
+        actLabel->setText(QString(dummy));
 
         if (number_of_selected_sets==1)
         {
-        actCopy12->setVisible(false);
-        actCopy21->setVisible(false);
-        actMove12->setVisible(false);
-        actMove21->setVisible(false);
-        actSwap->setEnabled(false);
-        actBringToFront->setEnabled(true);
-        actSendToBack->setEnabled(true);
-        actEditInSpreadsheet->setEnabled(true);
-        actEditInTextEditor->setEnabled(true);
-        }
-        else
-        {
-            if (number_of_selected_sets==2)
-            {
-            sprintf(dummy,"Copy S%d to S%d",selected_sets[0],selected_sets[1]);
-            actCopy12->setText(QString(dummy));
-            actCopy12->setVisible(true);
-            sprintf(dummy,"Copy S%d to S%d",selected_sets[1],selected_sets[0]);
-            actCopy21->setText(QString(dummy));
-            actCopy21->setVisible(true);
-            sprintf(dummy,"Move S%d to S%d",selected_sets[0],selected_sets[1]);
-            actMove12->setText(QString(dummy));
-            actMove12->setVisible(true);
-            sprintf(dummy,"Move S%d to S%d",selected_sets[1],selected_sets[0]);
-            actMove21->setText(QString(dummy));
-            actMove21->setVisible(true);
-            actSwap->setEnabled(true);
-            }
-            else
-            {
             actCopy12->setVisible(false);
             actCopy21->setVisible(false);
             actMove12->setVisible(false);
             actMove21->setVisible(false);
             actSwap->setEnabled(false);
+            actBringToFront->setEnabled(true);
+            actSendToBack->setEnabled(true);
+            actEditInSpreadsheet->setEnabled(true);
+            actEditInTextEditor->setEnabled(true);
+        }
+        else
+        {
+            if (number_of_selected_sets==2)
+            {
+                sprintf(dummy,"Copy S%d to S%d",selected_sets[0],selected_sets[1]);
+                actCopy12->setText(QString(dummy));
+                actCopy12->setVisible(true);
+                sprintf(dummy,"Copy S%d to S%d",selected_sets[1],selected_sets[0]);
+                actCopy21->setText(QString(dummy));
+                actCopy21->setVisible(true);
+                sprintf(dummy,"Move S%d to S%d",selected_sets[0],selected_sets[1]);
+                actMove12->setText(QString(dummy));
+                actMove12->setVisible(true);
+                sprintf(dummy,"Move S%d to S%d",selected_sets[1],selected_sets[0]);
+                actMove21->setText(QString(dummy));
+                actMove21->setVisible(true);
+                actSwap->setEnabled(true);
             }
-        actBringToFront->setEnabled(false);
-        actSendToBack->setEnabled(false);
-        actEditInSpreadsheet->setEnabled(false);
-        actEditInTextEditor->setEnabled(false);
+            else
+            {
+                actCopy12->setVisible(false);
+                actCopy21->setVisible(false);
+                actMove12->setVisible(false);
+                actMove21->setVisible(false);
+                actSwap->setEnabled(false);
+            }
+            actBringToFront->setEnabled(false);
+            actSendToBack->setEnabled(false);
+            actEditInSpreadsheet->setEnabled(false);
+            actEditInTextEditor->setEnabled(false);
         }
     }
-        if (QApplication::clipboard()->mimeData()->hasText() || QApplication::clipboard()->mimeData()->hasUrls())
+    if (QApplication::clipboard()->mimeData()->hasText() || QApplication::clipboard()->mimeData()->hasUrls())
         actPasteClipBoard->setEnabled(true);
-        else
+    else
         actPasteClipBoard->setEnabled(false);
 }
 
 uniList::uniList(int type,QWidget *parent):QListWidget(parent)
 {
-minimum_display=false;
-prevent_from_autoupdate=false;
-datType=type;
-partner=NULL;
-show_all_sets_marker=false;
-//set the standard-behavior (can be changed especially for some widgets)
-if (type==GRAPHLIST)
-{
-setBehavior(true,false,false);
-}
-else if (type==SETCHOICE)
-{
-setBehavior(false,true,true);
-}
-else//SetList
-{
-setBehavior(false,true,false);
-}
-connect(this,SIGNAL(itemDoubleClicked(QListWidgetItem *)),SLOT(entryDoubleClicked(QListWidgetItem *)));
-connect(this,SIGNAL(itemSelectionChanged()),SLOT(new_selection()));
+    minimum_display=false;
+    prevent_from_autoupdate=false;
+    datType=type;
+    partner=NULL;
+    show_all_sets_marker=false;
+    //set the standard-behavior (can be changed especially for some widgets)
+    if (type==GRAPHLIST)
+    {
+        setBehavior(true,false,false);
+    }
+    else if (type==SETCHOICE)
+    {
+        setBehavior(false,true,true);
+    }
+    else//SetList
+    {
+        setBehavior(false,true,false);
+    }
+    connect(this,SIGNAL(itemDoubleClicked(QListWidgetItem *)),SLOT(entryDoubleClicked(QListWidgetItem *)));
+    connect(this,SIGNAL(itemSelectionChanged()),SLOT(new_selection()));
 
-popupMenu1=new SetPopup(this);
-popupMenu1->hide();
-popupMenu2=new GraphPopup(this);
-popupMenu2->hide();
+    popupMenu1=new SetPopup(this);
+    popupMenu1->hide();
+    popupMenu2=new GraphPopup(this);
+    popupMenu2->hide();
 
-actCopyClipBoard=new QAction(tr("Copy"),this);
-actCopyClipBoard->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
-actPasteClipBoard=new QAction(tr("Paste"),this);
-actPasteClipBoard->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
-if (datType==SETLIST)
-{
-    this->addAction(actCopyClipBoard);
-    this->addAction(actPasteClipBoard);
-connect(actCopyClipBoard,SIGNAL(triggered()),SLOT(doCopyClipBoard()));
-connect(actPasteClipBoard,SIGNAL(triggered()),SLOT(doPasteClipBoard()));
-}
+    actCopyClipBoard=new QAction(tr("Copy"),this);
+    actCopyClipBoard->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
+    actPasteClipBoard=new QAction(tr("Paste"),this);
+    actPasteClipBoard->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
+    if (datType==SETLIST)
+    {
+        this->addAction(actCopyClipBoard);
+        this->addAction(actPasteClipBoard);
+        connect(actCopyClipBoard,SIGNAL(triggered()),SLOT(doCopyClipBoard()));
+        connect(actPasteClipBoard,SIGNAL(triggered()),SLOT(doPasteClipBoard()));
+    }
 
-number_of_entries=0;
-gr_no=0;
-entries=new int[2];
-text_entries=new QString[2];
-show_hidden=true;
-show_data_less=false;
-show_comments=true; //Show comments as default - Nimalendiran Kailasanathan 2013-10-09
+    number_of_entries=0;
+    gr_no=0;
+    entries=new int[2];
+    text_entries=new QString[2];
+    show_hidden=true;
+    show_data_less=false;
 
-if (type==GRAPHLIST)//register this List so that it may be updated later (live)
-{
-add_GraphSelector(this);
-}
-else if (type==SETCHOICE)
-{
-add_SetChoiceItem(this);
-}
-else
-{
-add_SetSelector(this);
-}
+#ifdef SKF_QtGrace
+    show_comments=true; //Show comments as default - Nimalendiran Kailasanathan 2013-10-09
+#else
+    show_comments=false;
+#endif
+
+
+    if (type==GRAPHLIST)//register this List so that it may be updated later (live)
+    {
+        add_GraphSelector(this);
+    }
+    else if (type==SETCHOICE)
+    {
+        add_SetChoiceItem(this);
+    }
+    else
+    {
+        add_SetSelector(this);
+    }
 }
 
 uniList::~uniList()
 {
-delete[] entries;
-delete[] text_entries;
+    delete[] entries;
+    delete[] text_entries;
 }
 
 void uniList::update_number_of_entries(void)
 {
-char dummy[2048];
-char hidden_char;
-int cols;
-int index=0;
-QString itemtext;
-disconnect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
-clear();
-if (datType==GRAPHLIST)
-{
-delete[] entries;
-entries=new int[number_of_graphs()>1?number_of_graphs()+1:2+1];
-	if (show_all_sets_marker==true)
-	{
-            if (minimum_display==false)
-            itemtext=tr("All graphs");
-            else
-            itemtext=tr("All");
-        new QListWidgetItem(itemtext, this);
-	entries[index]=-1;
-	index++;
-	}
-	for (int i=0;i<number_of_graphs();i++)
-	{
-	if (g[i].hidden!=0 && show_hidden==false) continue;//don't show hidden graphs
-        hidden_char=is_graph_hidden(i)?'-':'+';
-        ///sprintf(dummy,"(%c) G%d (%d sets)",hidden_char,i,number_of_sets(i));
-            if (minimum_display==false)
-            sprintf(dummy,"(%c) G%d (%d sets)",hidden_char,i,number_of_real_sets(i));
-            else
-            sprintf(dummy,"(%c) G%d",hidden_char,i);
-        new QListWidgetItem(QString(dummy), this);
-	entries[index]=i;
-	index++;
-	}
-}
-else if (datType==TEXTLIST)
-{
-index=number_of_entries;//This should by all that is needed.
-}
-else//SETLIST or SETCHOICE
-{
-if (gr_no<0 || gr_no>=number_of_graphs()) return;
-delete[] entries;
-entries=new int[g[gr_no].maxplot>1?g[gr_no].maxplot+1:2+1];
-	if (show_all_sets_marker==true)
-	{
-            if (minimum_display==false)
-            itemtext=tr("All sets");
-            else
-            itemtext=tr("All");
-        new QListWidgetItem(itemtext, this);
-	entries[index]=-1;
-	index++;
-	}
-	for (int i=0;i<g[gr_no].maxplot;i++)
+    char dummy[2048];
+    char hidden_char;
+    int cols;
+    int index=0;
+    QString itemtext;
+    disconnect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
+    clear();
+    if (datType==GRAPHLIST)
+    {
+        delete[] entries;
+        entries=new int[number_of_graphs()>1?number_of_graphs()+1:2+1];
+        if (show_all_sets_marker==true)
         {
-        if (!((show_data_less == true || is_set_active(gr_no, i) == TRUE) && (show_hidden == true || is_set_hidden(gr_no, i) != TRUE ))) continue;
-        ///if ((g[gr_no].p[i].hidden!=0 && show_hidden==false) || g[gr_no].p[i].data.len<=0) continue;//don't show hidden sets
-	hidden_char=g[gr_no].p[i].hidden==0?'+':'-';
-	cols=settype_cols(g[gr_no].p[i].type);
-        if (datType==SETLIST)
+            if (minimum_display==false)
+                itemtext=tr("All graphs");
+            else
+                itemtext=tr("All");
+            new QListWidgetItem(itemtext, this);
+            entries[index]=-1;
+            index++;
+        }
+        for (int i=0;i<number_of_graphs();i++)
         {
-                if (minimum_display==false)
-                sprintf(dummy,"(%c) G%d.S%d[%d][%d]",hidden_char,gr_no,i,cols,g[gr_no].p[i].data.len);
-                else
-                sprintf(dummy,"(%c) S%d",hidden_char,i);
-            if (show_comments)
+            if (g[i].hidden!=0 && show_hidden==false) continue;//don't show hidden graphs
+            hidden_char=is_graph_hidden(i)?'-':'+';
+            ///sprintf(dummy,"(%c) G%d (%d sets)",hidden_char,i,number_of_sets(i));
+            if (minimum_display==false)
+                sprintf(dummy,"(%c) G%d (%d sets)",hidden_char,i,number_of_real_sets(i));
+            else
+                sprintf(dummy,"(%c) G%d",hidden_char,i);
+            new QListWidgetItem(QString(dummy), this);
+            entries[index]=i;
+            index++;
+        }
+    }
+    else if (datType==TEXTLIST)
+    {
+        index=number_of_entries;//This should by all that is needed.
+    }
+    else//SETLIST or SETCHOICE
+    {
+        if (gr_no<0 || gr_no>=number_of_graphs()) return;
+        delete[] entries;
+        entries=new int[g[gr_no].maxplot>1?g[gr_no].maxplot+1:2+1];
+        if (show_all_sets_marker==true)
+        {
+            if (minimum_display==false)
+                itemtext=tr("All sets");
+            else
+                itemtext=tr("All");
+            new QListWidgetItem(itemtext, this);
+            entries[index]=-1;
+            index++;
+        }
+        for (int i=0;i<g[gr_no].maxplot;i++)
+        {
+            if (!((show_data_less == true || is_set_active(gr_no, i) == TRUE) && (show_hidden == true || is_set_hidden(gr_no, i) != TRUE ))) continue;
+            ///if ((g[gr_no].p[i].hidden!=0 && show_hidden==false) || g[gr_no].p[i].data.len<=0) continue;//don't show hidden sets
+            hidden_char=g[gr_no].p[i].hidden==0?'+':'-';
+            cols=settype_cols(g[gr_no].p[i].type);
+            if (datType==SETLIST)
             {
-            strcat(dummy," \"");
-            strcat(dummy,g[gr_no].p[i].comments);
-            strcat(dummy,"\"");
+                if (minimum_display==false)
+                    sprintf(dummy,"(%c) G%d.S%d[%d][%d]",hidden_char,gr_no,i,cols,g[gr_no].p[i].data.len);
+                else
+                    sprintf(dummy,"(%c) S%d",hidden_char,i);
+                if (show_comments)
+                {
+                    strcat(dummy," \"");
+                    strcat(dummy,g[gr_no].p[i].comments);
+                    strcat(dummy,"\"");
+                }
             }
-        }
-        else
-        {
-            if (minimum_display==false)
-            sprintf(dummy, "S%d (N=%d, %s)", i, getsetlength(gr_no, i), getcomment(gr_no, i));
             else
-            sprintf(dummy, "S%d", i);
+            {
+                if (minimum_display==false)
+                    sprintf(dummy, "S%d (N=%d, %s)", i, getsetlength(gr_no, i), getcomment(gr_no, i));
+                else
+                    sprintf(dummy, "S%d", i);
+            }
+            new QListWidgetItem(dummy, this);
+            entries[index]=i;
+            index++;
         }
-	new QListWidgetItem(dummy, this);
-	entries[index]=i;
-	index++;
-	}
-}
-number_of_entries=index;
-connect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
+    }
+    number_of_entries=index;
+    connect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
 }
 
 void uniList::update_number_of_entries_preserve_selection(void)
 {
-int ns,*sel=new int[2];
-disconnect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
-get_selection(&ns,&sel);
+    int ns,*sel=new int[2];
+    disconnect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
+    get_selection(&ns,&sel);
     /*cout << "selection:" << endl;
     for (int j=0;j<ns;j++)
     cout << j << ": " << sel[j] << endl;*/
-/*
+    /*
 if (0)//partner!=NULL)//this part did not work as desired --> I think this could be deleted
 {
 disconnect(partner,SIGNAL(itemSelectionChanged()),partner,SLOT(new_selection()));
@@ -4570,97 +4582,97 @@ else
 */
     if (datType==TEXTLIST)
     {
-    clear();
+        clear();
         for (int i=0;i<number_of_entries;i++)
-        new QListWidgetItem(QString(text_entries[i]), this);
+            new QListWidgetItem(QString(text_entries[i]), this);
     }
     else
     {
-    update_number_of_entries();
+        update_number_of_entries();
     }
     set_new_selection(ns,sel);
     new_selection();
-//}
-delete[] sel;
-connect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
+    //}
+    delete[] sel;
+    connect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
 }
 
 void uniList::set_graph_number(int gno,bool keep_selection)
 {
-gr_no=gno;
-int s_nr,*sel=new int[2];
-get_selection(&s_nr,&sel);
-update_number_of_entries();
-if (datType==GRAPHLIST)
-item(gno)->setSelected(TRUE);
-else if (keep_selection==true)
-set_new_selection(s_nr,sel);
-delete[] sel;
+    gr_no=gno;
+    int s_nr,*sel=new int[2];
+    get_selection(&s_nr,&sel);
+    update_number_of_entries();
+    if (datType==GRAPHLIST)
+        item(gno)->setSelected(TRUE);
+    else if (keep_selection==true)
+        set_new_selection(s_nr,sel);
+    delete[] sel;
 }
 
 void uniList::get_selection(int * number,int ** selection)
 {
-QModelIndexList list=selectedIndexes();
-*number=list.size();
-if (*number<=0) return;//return without deleting anything
-delete[] *selection;
-if (entries[list.at(0).row()]<0)
-{
-*number=number_of_entries-1;
-*selection=new int[*number];
-for (int i=0;i<*number;i++)
-*(*selection+i)=entries[i+1];
-}
-else
-{
-*selection=new int[*number];
-for (int i=0;i<*number;i++)
-*(*selection+i)=entries[list.at(i).row()];
-}
-sort(*number,*selection);
+    QModelIndexList list=selectedIndexes();
+    *number=list.size();
+    if (*number<=0) return;//return without deleting anything
+    delete[] *selection;
+    if (entries[list.at(0).row()]<0)
+    {
+        *number=number_of_entries-1;
+        *selection=new int[*number];
+        for (int i=0;i<*number;i++)
+            *(*selection+i)=entries[i+1];
+    }
+    else
+    {
+        *selection=new int[*number];
+        for (int i=0;i<*number;i++)
+            *(*selection+i)=entries[list.at(i).row()];
+    }
+    sort(*number,*selection);
 }
 
 void uniList::set_new_selection(int number,int * selection)
 {
-disconnect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
-int scroll=-1;
-if (number<0) goto end_set_new_selection;
-clearSelection();
-if (number==0) goto end_set_new_selection;
-for (int i=0;i<number;i++)
-{
-//if (selection[i]>count()) continue;//this is useless because the count does not say what numbers are present!
-	for (int j=0;j<count();j++)
-	{
+    disconnect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
+    int scroll=-1;
+    if (number<0) goto end_set_new_selection;
+    clearSelection();
+    if (number==0) goto end_set_new_selection;
+    for (int i=0;i<number;i++)
+    {
+        //if (selection[i]>count()) continue;//this is useless because the count does not say what numbers are present!
+        for (int j=0;j<count();j++)
+        {
             if (selection[i]==entries[j])
             {
-            item(j)->setSelected(TRUE);
-            if (scroll==-1) scroll=j;
+                item(j)->setSelected(TRUE);
+                if (scroll==-1) scroll=j;
             }
-	}
-}
-if (scroll!=-1)
-scrollToItem(item(scroll));
+        }
+    }
+    if (scroll!=-1)
+        scrollToItem(item(scroll));
 end_set_new_selection:
-connect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
+    connect(this,SIGNAL(itemSelectionChanged()),this,SLOT(new_selection()));
 }
 
 void uniList::new_selection(void)
 {
-QModelIndexList list=selectedIndexes();
-if (list.size()>0)
-{
-emit(new_selection(list.at(0).row()));
-}
-else
-{
-emit(new_selection(-1));
-}
+    QModelIndexList list=selectedIndexes();
+    if (list.size()>0)
+    {
+        emit(new_selection(list.at(0).row()));
+    }
+    else
+    {
+        emit(new_selection(-1));
+    }
 }
 
 void uniList::mousePressEvent(QMouseEvent * e)
 {
-Qt::KeyboardModifiers modif=e->modifiers();
+    Qt::KeyboardModifiers modif=e->modifiers();
     QCursor curs=mainWin->cursor();
     QCursor curs2(Qt::WhatsThisCursor);
     QCursor curs3=cursor();
@@ -4669,174 +4681,174 @@ Qt::KeyboardModifiers modif=e->modifiers();
     {
         if (datType==SETLIST)
         {
-        HelpCB("doc/UsersGuide.html#set-selector");
+            HelpCB("doc/UsersGuide.html#set-selector");
         }
         else if (datType==GRAPHLIST)
         {
-        HelpCB("doc/UsersGuide.html#graph-selector");
+            HelpCB("doc/UsersGuide.html#graph-selector");
         }
         else
         {
-        HelpCB("doc/UsersGuide.html#list-selector");
+            HelpCB("doc/UsersGuide.html#list-selector");
         }
         unsetCursor();
-    return;
+        return;
     }
-QPoint p=e->pos();
-QModelIndexList list=selectedIndexes();
-int number_of_selected_entries=list.size();
-QListWidgetItem * clickedItem=itemAt(p);
-int selected_no=row(clickedItem);
+    QPoint p=e->pos();
+    QModelIndexList list=selectedIndexes();
+    int number_of_selected_entries=list.size();
+    QListWidgetItem * clickedItem=itemAt(p);
+    int selected_no=row(clickedItem);
 
-bool already_selected=false;
-if (clickedItem!=0)
-already_selected=item(selected_no)->isSelected();
+    bool already_selected=false;
+    if (clickedItem!=0)
+        already_selected=item(selected_no)->isSelected();
 
-if (e->button() & Qt::RightButton)
-{
-	if (datType==SETLIST)
-	{
-	popupMenu1->selected_graph=gr_no;
-	get_selection(&popupMenu1->number_of_selected_sets,&popupMenu1->selected_sets);
-	sort(popupMenu1->number_of_selected_sets,popupMenu1->selected_sets);
-        popupMenu1->update_menu_content();
-	popupMenu1->exec(QCursor::pos());
-	}
+    if (e->button() & Qt::RightButton)
+    {
+        if (datType==SETLIST)
+        {
+            popupMenu1->selected_graph=gr_no;
+            get_selection(&popupMenu1->number_of_selected_sets,&popupMenu1->selected_sets);
+            sort(popupMenu1->number_of_selected_sets,popupMenu1->selected_sets);
+            popupMenu1->update_menu_content();
+            popupMenu1->exec(QCursor::pos());
+        }
         else if (datType==GRAPHLIST)
-	{
-        get_selection(&popupMenu2->number_of_selected_graphs,&popupMenu2->selected_graphs);
-        sort(popupMenu2->number_of_selected_graphs,popupMenu2->selected_graphs);
-        popupMenu2->selected_no=selected_no;
-        popupMenu2->update_menu_content();
-        popupMenu2->exec(QCursor::pos());
-	QListWidget::mousePressEvent(e);
-	}
-}
-else//Left Button clicked
-{
-    if (clickedItem==0)
-    {
-        return;//nothing to do if someone clicked outside the entries
+        {
+            get_selection(&popupMenu2->number_of_selected_graphs,&popupMenu2->selected_graphs);
+            sort(popupMenu2->number_of_selected_graphs,popupMenu2->selected_graphs);
+            popupMenu2->selected_no=selected_no;
+            popupMenu2->update_menu_content();
+            popupMenu2->exec(QCursor::pos());
+            QListWidget::mousePressEvent(e);
+        }
     }
-    if (number_of_selected_entries>1 && ((int)(modif&Qt::ControlModifier))==0)
+    else//Left Button clicked
     {
-        clearSelection();
-        item(selected_no)->setSelected(true);
+        if (clickedItem==0)
+        {
+            return;//nothing to do if someone clicked outside the entries
+        }
+        if (number_of_selected_entries>1 && ((int)(modif&Qt::ControlModifier))==0)
+        {
+            clearSelection();
+            item(selected_no)->setSelected(true);
+        }
+        else if (deselect_possible==true && already_selected==true)
+        {
+            item(selected_no)->setSelected(false);
+        }
+        else
+        {
+            QListWidget::mousePressEvent(e);
+        }
     }
-    else if (deselect_possible==true && already_selected==true)
-    {
-       item(selected_no)->setSelected(false);
-    }
-    else
-    {
-        QListWidget::mousePressEvent(e);
-    }
-}
 }
 
 void uniList::mouseReleaseEvent(QMouseEvent * e )
 {
-QPoint p=e->pos();
-//QModelIndexList list=selectedIndexes();
-//int number_of_selected_entries=list.size();
-QListWidgetItem * clickedItem=itemAt(p);
-//int selected_no=row(clickedItem);
-if (clickedItem!=0)
-QListWidget::mouseReleaseEvent(e);
+    QPoint p=e->pos();
+    //QModelIndexList list=selectedIndexes();
+    //int number_of_selected_entries=list.size();
+    QListWidgetItem * clickedItem=itemAt(p);
+    //int selected_no=row(clickedItem);
+    if (clickedItem!=0)
+        QListWidget::mouseReleaseEvent(e);
 }
 
 void uniList::keyReleaseEvent(QKeyEvent * e)
 {
-if (datType==GRAPHLIST || datType==SETLIST)
-{
-int k=e->key();
-Qt::KeyboardModifiers mod=e->modifiers();
-if (mod==Qt::ControlModifier)
-{
-    if (k==Qt::Key_I)
+    if (datType==GRAPHLIST || datType==SETLIST)
     {
-    popupMenu1->selected_graph=gr_no;
-    get_selection(&popupMenu1->number_of_selected_sets,&popupMenu1->selected_sets);
-    sort(popupMenu1->number_of_selected_sets,popupMenu1->selected_sets);
-    popupMenu1->doInvertSelection();
+        int k=e->key();
+        Qt::KeyboardModifiers mod=e->modifiers();
+        if (mod==Qt::ControlModifier)
+        {
+            if (k==Qt::Key_I)
+            {
+                popupMenu1->selected_graph=gr_no;
+                get_selection(&popupMenu1->number_of_selected_sets,&popupMenu1->selected_sets);
+                sort(popupMenu1->number_of_selected_sets,popupMenu1->selected_sets);
+                popupMenu1->doInvertSelection();
+            }
+            else if(k==Qt::Key_U)
+                clearSelection();
+        }
     }
-    else if(k==Qt::Key_U)
-    clearSelection();
-}
-}
 }
 
 void uniList::entryDoubleClicked(QListWidgetItem * c_item)
 {
-if (datType==SETLIST)
-{
-int cl_index=-1;
-for (int i=0;i<number_of_entries;i++)
-{
-	if (item(i)==c_item)
-	{
-	cl_index=i;
-	break;
-	}
-}
-if (cl_index>=0)
-showSetInSpreadSheet(gr_no,entries[cl_index]);
-}
-else if (datType==GRAPHLIST)
-{
-    int nr_sel,*sel=new int[2];
-    get_selection(&nr_sel,&sel);
-    int cg = get_cg();
-    if (sel[0] != cg) {
-        switch_current_graph(sel[0]);
-        mainWin->mainArea->completeRedraw();
+    if (datType==SETLIST)
+    {
+        int cl_index=-1;
+        for (int i=0;i<number_of_entries;i++)
+        {
+            if (item(i)==c_item)
+            {
+                cl_index=i;
+                break;
+            }
+        }
+        if (cl_index>=0)
+            showSetInSpreadSheet(gr_no,entries[cl_index]);
     }
-    delete[] sel;
-}
+    else if (datType==GRAPHLIST)
+    {
+        int nr_sel,*sel=new int[2];
+        get_selection(&nr_sel,&sel);
+        int cg = get_cg();
+        if (sel[0] != cg) {
+            switch_current_graph(sel[0]);
+            mainWin->mainArea->completeRedraw();
+        }
+        delete[] sel;
+    }
 }
 
 void uniList::add_Item(QString item)
 {
-QString * str=new QString[number_of_entries+1];
-int * tentr=new int[number_of_entries];
-for (int i=0;i<number_of_entries;i++)
-{
-str[i]=text_entries[i];
-tentr[i]=entries[i];
-}
-str[number_of_entries]=item;
-tentr[number_of_entries]=number_of_entries;
-delete[] text_entries;
-delete[] entries;
-text_entries=str;
-entries=tentr;
-number_of_entries++;
-update_number_of_entries_preserve_selection();
+    QString * str=new QString[number_of_entries+1];
+    int * tentr=new int[number_of_entries];
+    for (int i=0;i<number_of_entries;i++)
+    {
+        str[i]=text_entries[i];
+        tentr[i]=entries[i];
+    }
+    str[number_of_entries]=item;
+    tentr[number_of_entries]=number_of_entries;
+    delete[] text_entries;
+    delete[] entries;
+    text_entries=str;
+    entries=tentr;
+    number_of_entries++;
+    update_number_of_entries_preserve_selection();
 }
 
 void uniList::get_selection(int * number,QString ** selection)
 {
-QModelIndexList list=selectedIndexes();
-*number=list.size();
-if (*number<=0) return;
-delete[] *selection;
-*selection=new QString[*number];
-for (int i=0;i<*number;i++)
-*(*selection+i)=text_entries[list.at(i).row()];
-//sort(*number,*selection);
+    QModelIndexList list=selectedIndexes();
+    *number=list.size();
+    if (*number<=0) return;
+    delete[] *selection;
+    *selection=new QString[*number];
+    for (int i=0;i<*number;i++)
+        *(*selection+i)=text_entries[list.at(i).row()];
+    //sort(*number,*selection);
 }
 
 void uniList::setBehavior(bool deselect,bool multi,bool all_sets)
 {
-deselect_possible=deselect;
-show_all_sets_marker=all_sets;
+    deselect_possible=deselect;
+    show_all_sets_marker=all_sets;
     if (multi==true)
     {
-    setSelectionMode(QAbstractItemView::ExtendedSelection);
+        setSelectionMode(QAbstractItemView::ExtendedSelection);
     }
     else
     {
-    setSelectionMode(QAbstractItemView::SingleSelection);
+        setSelectionMode(QAbstractItemView::SingleSelection);
     }
 }
 
@@ -4854,23 +4866,23 @@ void uniList::doPasteClipBoard(void)
 {
     if (QApplication::clipboard()->mimeData()->hasUrls() || QApplication::clipboard()->mimeData()->hasText())
     {
-    GeneralPaste(QApplication::clipboard()->mimeData());
+        GeneralPaste(QApplication::clipboard()->mimeData());
     }
 }
 
 TreePopup::TreePopup(treeView *parent):QMenu(parent)
 {
-par2=NULL;
-par=parent;
-selected_type='0';
-gno=sno=-1;
-setTearOffEnabled(FALSE);
-CreateActions();
-//Create Menu itself
-addAction(actShow);
-addAction(actHide);
-addAction(actKill);
-addAction(actDuplicate);
+    par2=NULL;
+    par=parent;
+    selected_type='0';
+    gno=sno=-1;
+    setTearOffEnabled(FALSE);
+    CreateActions();
+    //Create Menu itself
+    addAction(actShow);
+    addAction(actHide);
+    addAction(actKill);
+    addAction(actDuplicate);
 }
 
 TreePopup::~TreePopup()
@@ -4880,14 +4892,14 @@ TreePopup::~TreePopup()
 
 void TreePopup::CreateActions(void)
 {
-actShow=new QAction(tr("Show"),this);
-connect(actShow,SIGNAL(triggered()),SLOT(doShow()));
-actHide=new QAction(tr("Hide"),this);
-connect(actHide,SIGNAL(triggered()),SLOT(doHide()));
-actKill=new QAction(tr("Kill"),this);
-connect(actKill,SIGNAL(triggered()),SLOT(doKill()));
-actDuplicate=new QAction(tr("Duplicate"),this);
-connect(actDuplicate,SIGNAL(triggered()),SLOT(doDuplicate()));
+    actShow=new QAction(tr("Show"),this);
+    connect(actShow,SIGNAL(triggered()),SLOT(doShow()));
+    actHide=new QAction(tr("Hide"),this);
+    connect(actHide,SIGNAL(triggered()),SLOT(doHide()));
+    actKill=new QAction(tr("Kill"),this);
+    connect(actKill,SIGNAL(triggered()),SLOT(doKill()));
+    actDuplicate=new QAction(tr("Duplicate"),this);
+    connect(actDuplicate,SIGNAL(triggered()),SLOT(doDuplicate()));
 }
 
 void TreePopup::doNothing(void)
@@ -4895,251 +4907,251 @@ void TreePopup::doNothing(void)
 
 void TreePopup::doShow(void)
 {
-doAction(1);
+    doAction(1);
 }
 
 void TreePopup::doHide(void)
 {
-doAction(2);
+    doAction(2);
 }
 
 void TreePopup::doKill(void)
 {
-doAction(3);
+    doAction(3);
 }
 
 void TreePopup::doDuplicate(void)
 {
-doAction(4);
+    doAction(4);
 }
 
 void TreePopup::doAction(int type)//type is the kind of action
 {
-int obj_type;
-bool d1;
-tickmarks * t2;
-char descr_axis[512];
-int undoObjIds[2];
-int undoObjIds2[2];
-legend l2;
-ListOfChanges.clear();
-ListOfOldStates.clear();
-switch ((int)selected_type)
-{
-default:
-case (int)'0'://nothing
-;
-break;
-case (int)'N'://String-Object
-case (int)'I'://Line-Object
-case (int)'B'://Box-Object
-case (int)'P'://Ellipse-Object
-    if (selected_type=='N')
-    obj_type=OBJECT_STRING;
-    else if (selected_type=='I')
-    obj_type=OBJECT_LINE;
-    else if (selected_type=='B')
-    obj_type=OBJECT_BOX;
-    else//'P'
-    obj_type=OBJECT_ELLIPSE;
-    undoObjIds[0]=gno;
+    int obj_type;
+    bool d1;
+    tickmarks * t2;
+    char descr_axis[512];
+    int undoObjIds[2];
+    int undoObjIds2[2];
+    legend l2;
+    ListOfChanges.clear();
+    ListOfOldStates.clear();
+    switch ((int)selected_type)
+    {
+    default:
+    case (int)'0'://nothing
+        ;
+        break;
+    case (int)'N'://String-Object
+    case (int)'I'://Line-Object
+    case (int)'B'://Box-Object
+    case (int)'P'://Ellipse-Object
+        if (selected_type=='N')
+            obj_type=OBJECT_STRING;
+        else if (selected_type=='I')
+            obj_type=OBJECT_LINE;
+        else if (selected_type=='B')
+            obj_type=OBJECT_BOX;
+        else//'P'
+            obj_type=OBJECT_ELLIPSE;
+        undoObjIds[0]=gno;
         if (type==1)//show
         {
-        SaveObjectData(undoObjIds[0],obj_type);
-        set_object_active(obj_type,undoObjIds[0],TRUE);
-        ObjectDataModified(undoObjIds[0],obj_type);
+            SaveObjectData(undoObjIds[0],obj_type);
+            set_object_active(obj_type,undoObjIds[0],TRUE);
+            ObjectDataModified(undoObjIds[0],obj_type);
         }
         else if (type==2)//hide
         {
-        SaveObjectData(undoObjIds[0],obj_type);
-        set_object_active(obj_type,undoObjIds[0],FALSE);
-        ObjectDataModified(undoObjIds[0],obj_type);
+            SaveObjectData(undoObjIds[0],obj_type);
+            set_object_active(obj_type,undoObjIds[0],FALSE);
+            ObjectDataModified(undoObjIds[0],obj_type);
         }
         else if (type==3)//kill
         {
-        ObjectsDeleted(1,undoObjIds,obj_type);
-        kill_object(obj_type,undoObjIds[0]);
+            ObjectsDeleted(1,undoObjIds,obj_type);
+            kill_object(obj_type,undoObjIds[0]);
         }
         else if (type==4)//duplicate
         {
-        undoObjIds[1]=duplicate_object(obj_type,undoObjIds[0]);
-        ObjectsCreated(1,undoObjIds+1,obj_type);
+            undoObjIds[1]=duplicate_object(obj_type,undoObjIds[0]);
+            ObjectsCreated(1,undoObjIds+1,obj_type);
         }
-break;
-case (int)'E'://Legend
-    if (type==1)//show
-    d1=true;
-    else//hide
-    d1=false;
+        break;
+    case (int)'E'://Legend
+        if (type==1)//show
+            d1=true;
+        else//hide
+            d1=false;
         get_graph_legend(gno,&l2);
-    undoObjIds[0]=gno;
-    SaveGraphStatesPrevious(1,undoObjIds,UNDO_APPEARANCE);
-    sprintf(dummy,"with g%d",gno);
-    ListOfChanges << QString(dummy);
-    ListOfOldStates << QString(dummy);
+        undoObjIds[0]=gno;
+        SaveGraphStatesPrevious(1,undoObjIds,UNDO_APPEARANCE);
+        sprintf(dummy,"with g%d",gno);
+        ListOfChanges << QString(dummy);
+        ListOfOldStates << QString(dummy);
         sprintf(dummy,"    legend %s",d1?"on":"off");
         ListOfChanges << QString(dummy);
         sprintf(dummy,"    legend %s",l2.active?"on":"off");
         ListOfOldStates << QString(dummy);
-    l2.active=(int)d1;
+        l2.active=(int)d1;
         set_graph_legend(gno, &l2);
-    GraphsModified(1,undoObjIds,UNDO_APPEARANCE);
-    addAditionalDescriptionToLastNode(-1,tr("Graph legend visibility changed"),QString(),-1);
-break;
-case (int)'S'://Set
-    undoObjIds[0]=gno;
-    undoObjIds2[0]=sno;
-    if (type==1)//show
-    {
-    set_set_hidden(gno, sno, FALSE);
-    ShowHideSets(1,undoObjIds,undoObjIds2);
-    }
-    else if (type==2)//hide
-    {
-    set_set_hidden(gno, sno, TRUE);
-    ShowHideSets(1,undoObjIds,undoObjIds2);
-    }
-    else if (type==3)//kill
-    {
-    SetsDeleted(1,undoObjIds,undoObjIds2,UNDO_COMPLETE);
-    killset(gno,sno);
-    }
-    else if (type==4)//duplicate
-    {
-    undoObjIds2[0]=nextset(gno);
-    do_copyset(gno, sno, gno, undoObjIds2[0]);
-    SetsCreated(1,undoObjIds,undoObjIds2,UNDO_COMPLETE);
-    }
-break;
-case (int)'A'://Axis
-    if (type==1)//show
-    d1=true;
-    else//hide
-    d1=false;
-    t2 = get_graph_tickmarks(gno,sno);
-    switch (sno)
-    {
-    case 0:
-    strcpy(descr_axis,"xaxis");
-    break;
-    case 1:
-    strcpy(descr_axis,"yaxis");
-    break;
-    case 2:
-    strcpy(descr_axis,"altxaxis");
-    break;
-    case 3:
-    strcpy(descr_axis,"altyaxis");
-    break;
-    }
-    sprintf(dummy,"with g%d",gno);
-    ListOfChanges << QString(dummy);
-    ListOfOldStates << QString(dummy);
-    if (int(d1)!=t2->active)
-    {
-    sprintf(dummy,"    %s %s",descr_axis,d1?"on":"off");
-    ListOfChanges << QString(dummy);
-    sprintf(dummy,"    %s %s",descr_axis,t2->active?"on":"off");
-    ListOfOldStates << QString(dummy);
-    }
-    t2->active=(int)d1;
-break;
-case (int)'R'://General Settings
-case (int)'L'://Label/Title
-    ;//no popup here --> this is not used at all
-break;
-case (int)'G'://Graph
-    undoObjIds[0]=gno;
-    undoObjIds2[0]=sno;
-    if (type==1)//show
-    {
-    sprintf(dummy,"g%d hidden false",gno);
-    ListOfChanges << QString(dummy);
-    sprintf(dummy,"g%d hidden %s",gno,is_graph_hidden(gno)?"true":"false");
-    ListOfOldStates << QString(dummy);
-    set_graph_hidden(gno, FALSE);
-    ShowHideGraphs(1,undoObjIds);
-    }
-    else if (type==2)//hide
-    {
-    sprintf(dummy,"g%d hidden true",gno);
-    ListOfChanges << QString(dummy);
-    sprintf(dummy,"g%d hidden %s",gno,is_graph_hidden(gno)?"true":"false");
-    ListOfOldStates << QString(dummy);
-    set_graph_hidden(gno, TRUE);
-    ShowHideGraphs(1,undoObjIds);
-    }
-    else if (type==3)//kill
-    {
-    GraphsDeleted(1,undoObjIds,UNDO_COMPLETE);
-    sprintf(dummy,"kill G%d",gno);
-    ListOfChanges << QString(dummy);
-    kill_graph(gno);
-    }
-    else if (type==4)//duplicate
-    {
-    new_set_no=-1;
-    duplicate_graph(gno);
-    //I don't know the command for duplicating graphs
-        if (new_set_no!=-1)
+        GraphsModified(1,undoObjIds,UNDO_APPEARANCE);
+        addAditionalDescriptionToLastNode(-1,tr("Graph legend visibility changed"),QString(),-1);
+        break;
+    case (int)'S'://Set
+        undoObjIds[0]=gno;
+        undoObjIds2[0]=sno;
+        if (type==1)//show
         {
-        undoObjIds[0]=new_set_no;
-        GraphsCreated(1,undoObjIds,UNDO_COMPLETE);
+            set_set_hidden(gno, sno, FALSE);
+            ShowHideSets(1,undoObjIds,undoObjIds2);
         }
+        else if (type==2)//hide
+        {
+            set_set_hidden(gno, sno, TRUE);
+            ShowHideSets(1,undoObjIds,undoObjIds2);
+        }
+        else if (type==3)//kill
+        {
+            SetsDeleted(1,undoObjIds,undoObjIds2,UNDO_COMPLETE);
+            killset(gno,sno);
+        }
+        else if (type==4)//duplicate
+        {
+            undoObjIds2[0]=nextset(gno);
+            do_copyset(gno, sno, gno, undoObjIds2[0]);
+            SetsCreated(1,undoObjIds,undoObjIds2,UNDO_COMPLETE);
+        }
+        break;
+    case (int)'A'://Axis
+        if (type==1)//show
+            d1=true;
+        else//hide
+            d1=false;
+        t2 = get_graph_tickmarks(gno,sno);
+        switch (sno)
+        {
+        case 0:
+            strcpy(descr_axis,"xaxis");
+            break;
+        case 1:
+            strcpy(descr_axis,"yaxis");
+            break;
+        case 2:
+            strcpy(descr_axis,"altxaxis");
+            break;
+        case 3:
+            strcpy(descr_axis,"altyaxis");
+            break;
+        }
+        sprintf(dummy,"with g%d",gno);
+        ListOfChanges << QString(dummy);
+        ListOfOldStates << QString(dummy);
+        if (int(d1)!=t2->active)
+        {
+            sprintf(dummy,"    %s %s",descr_axis,d1?"on":"off");
+            ListOfChanges << QString(dummy);
+            sprintf(dummy,"    %s %s",descr_axis,t2->active?"on":"off");
+            ListOfOldStates << QString(dummy);
+        }
+        t2->active=(int)d1;
+        break;
+    case (int)'R'://General Settings
+    case (int)'L'://Label/Title
+        ;//no popup here --> this is not used at all
+        break;
+    case (int)'G'://Graph
+        undoObjIds[0]=gno;
+        undoObjIds2[0]=sno;
+        if (type==1)//show
+        {
+            sprintf(dummy,"g%d hidden false",gno);
+            ListOfChanges << QString(dummy);
+            sprintf(dummy,"g%d hidden %s",gno,is_graph_hidden(gno)?"true":"false");
+            ListOfOldStates << QString(dummy);
+            set_graph_hidden(gno, FALSE);
+            ShowHideGraphs(1,undoObjIds);
+        }
+        else if (type==2)//hide
+        {
+            sprintf(dummy,"g%d hidden true",gno);
+            ListOfChanges << QString(dummy);
+            sprintf(dummy,"g%d hidden %s",gno,is_graph_hidden(gno)?"true":"false");
+            ListOfOldStates << QString(dummy);
+            set_graph_hidden(gno, TRUE);
+            ShowHideGraphs(1,undoObjIds);
+        }
+        else if (type==3)//kill
+        {
+            GraphsDeleted(1,undoObjIds,UNDO_COMPLETE);
+            sprintf(dummy,"kill G%d",gno);
+            ListOfChanges << QString(dummy);
+            kill_graph(gno);
+        }
+        else if (type==4)//duplicate
+        {
+            new_set_no=-1;
+            duplicate_graph(gno);
+            //I don't know the command for duplicating graphs
+            if (new_set_no!=-1)
+            {
+                undoObjIds[0]=new_set_no;
+                GraphsCreated(1,undoObjIds,UNDO_COMPLETE);
+            }
+        }
+        break;
     }
-break;
-}
-ListOfChanges.clear();
-ListOfOldStates.clear();
-mainWin->mainArea->completeRedraw();
-QTreeWidgetItem * ite=par->findItem(selected_type,gno,sno);
-par->itemClickedAt(ite,0);
+    ListOfChanges.clear();
+    ListOfOldStates.clear();
+    mainWin->mainArea->completeRedraw();
+    QTreeWidgetItem * ite=par->findItem(selected_type,gno,sno);
+    par->itemClickedAt(ite,0);
 }
 
 void TreePopup::updateEntries(char ty,int g,int s)
 {
-selected_type=ty;
-gno=g;
-sno=s;
-possible=true;
-actShow->setVisible(true);
-actHide->setVisible(true);
-actKill->setVisible(true);
-actDuplicate->setVisible(true);
-switch (int(ty))
-{
-case (int)'0':
-case (int)'R'://General
-case (int)'L'://Label/Title
-possible=false;
-break;
-case (int)'A'://Axis
-case (int)'E'://Legend
-//only show and hide
-actKill->setVisible(false);
-actDuplicate->setVisible(false);
-break;
-default:
-case (int)'N'://String-Object
-case (int)'I'://Line-Object
-case (int)'B'://Box-Object
-case (int)'P'://Ellipse-Object
-case (int)'G'://Graph
-case (int)'S'://Set
-//everything possible
-break;
-}
+    selected_type=ty;
+    gno=g;
+    sno=s;
+    possible=true;
+    actShow->setVisible(true);
+    actHide->setVisible(true);
+    actKill->setVisible(true);
+    actDuplicate->setVisible(true);
+    switch (int(ty))
+    {
+    case (int)'0':
+    case (int)'R'://General
+    case (int)'L'://Label/Title
+        possible=false;
+        break;
+    case (int)'A'://Axis
+    case (int)'E'://Legend
+        //only show and hide
+        actKill->setVisible(false);
+        actDuplicate->setVisible(false);
+        break;
+    default:
+    case (int)'N'://String-Object
+    case (int)'I'://Line-Object
+    case (int)'B'://Box-Object
+    case (int)'P'://Ellipse-Object
+    case (int)'G'://Graph
+    case (int)'S'://Set
+        //everything possible
+        break;
+    }
 }
 
 treeView::treeView(QWidget * parent):QTreeWidget(parent)
 {
-setSelectionMode(QAbstractItemView::SingleSelection);
-setColumnCount(1);
-setHeaderLabel(tr("Project..."));
-popup=new TreePopup(this);
-popup->hide();
+    setSelectionMode(QAbstractItemView::SingleSelection);
+    setColumnCount(1);
+    setHeaderLabel(tr("Project..."));
+    popup=new TreePopup(this);
+    popup->hide();
 
-connect(this,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(itemClickedAt(QTreeWidgetItem*,int)));
+    connect(this,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(itemClickedAt(QTreeWidgetItem*,int)));
 }
 
 void treeView::NameProject(void)
@@ -5159,461 +5171,461 @@ void treeView::AddMinorChild(QTreeWidgetItem * parent,QTreeWidgetItem * item)
 
 void treeView::ClearAll(void)
 {
-this->clear();
+    this->clear();
 }
 
 void treeView::RecreateCompleteTree(void)
 {
-ClearAll();
-char dummy[2048];
-QString dstr;
-QTreeWidgetItem * twi;
-QTreeWidgetItem * twi2;
-//general
-twi=new QTreeWidgetItem(this);
-twi->setText(0,tr("General Settings"));
-twi->setData(0,TREE_ROLE_GRAPH,QVariant(-1));
-twi->setData(0,TREE_ROLE_SET,QVariant(-1));
-twi->setData(0,TREE_ROLE_TYPE,QVariant('R'));
+    ClearAll();
+    char dummy[2048];
+    QString dstr;
+    QTreeWidgetItem * twi;
+    QTreeWidgetItem * twi2;
+    //general
+    twi=new QTreeWidgetItem(this);
+    twi->setText(0,tr("General Settings"));
+    twi->setData(0,TREE_ROLE_GRAPH,QVariant(-1));
+    twi->setData(0,TREE_ROLE_SET,QVariant(-1));
+    twi->setData(0,TREE_ROLE_TYPE,QVariant('R'));
     twi->setIcon(0,QIcon(*ActiveIcon));
-addTopLevelItem(twi);
-//graphs
-for (int i=0;i<number_of_graphs();i++)
-{
-sprintf(dummy,"Graph G%d, type=%s",i,graph_types(g[i].type));
-twi=new QTreeWidgetItem(this);
-twi->setText(0,QString(dummy));
-twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-twi->setData(0,TREE_ROLE_SET,QVariant(-1));
-twi->setData(0,TREE_ROLE_TYPE,QVariant('G'));
-    if (g[i].hidden==true)
-    twi->setIcon(0,QIcon(*HiddenIcon));
-    else
-    twi->setIcon(0,QIcon(*ActiveIcon));
-addTopLevelItem(twi);
-    //labels
-    twi2=new QTreeWidgetItem(twi);
-    twi2->setText(0,tr("Title"));
-    twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi2->setData(0,TREE_ROLE_SET,QVariant(0));
-    twi2->setData(0,TREE_ROLE_TYPE,QVariant('L'));
-    twi2->setIcon(0,QIcon(*ActiveIcon));
-    twi->addChild(twi2);
-    twi2=new QTreeWidgetItem(twi);
-    twi2->setText(0,tr("Subtitle"));
-    twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi2->setData(0,TREE_ROLE_SET,QVariant(1));
-    twi2->setData(0,TREE_ROLE_TYPE,QVariant('L'));
-    twi2->setIcon(0,QIcon(*ActiveIcon));
-    twi->addChild(twi2);
-    //axis
-    for (int j=0;j<MAXAXES;j++)
+    addTopLevelItem(twi);
+    //graphs
+    for (int i=0;i<number_of_graphs();i++)
     {
-        if (g[i].t[j] == NULL) continue;
-    twi2=new QTreeWidgetItem(twi);
-        switch (j)
+        sprintf(dummy,"Graph G%d, type=%s",i,graph_types(g[i].type));
+        twi=new QTreeWidgetItem(this);
+        twi->setText(0,QString(dummy));
+        twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+        twi->setData(0,TREE_ROLE_SET,QVariant(-1));
+        twi->setData(0,TREE_ROLE_TYPE,QVariant('G'));
+        if (g[i].hidden==true)
+            twi->setIcon(0,QIcon(*HiddenIcon));
+        else
+            twi->setIcon(0,QIcon(*ActiveIcon));
+        addTopLevelItem(twi);
+        //labels
+        twi2=new QTreeWidgetItem(twi);
+        twi2->setText(0,tr("Title"));
+        twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+        twi2->setData(0,TREE_ROLE_SET,QVariant(0));
+        twi2->setData(0,TREE_ROLE_TYPE,QVariant('L'));
+        twi2->setIcon(0,QIcon(*ActiveIcon));
+        twi->addChild(twi2);
+        twi2=new QTreeWidgetItem(twi);
+        twi2->setText(0,tr("Subtitle"));
+        twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+        twi2->setData(0,TREE_ROLE_SET,QVariant(1));
+        twi2->setData(0,TREE_ROLE_TYPE,QVariant('L'));
+        twi2->setIcon(0,QIcon(*ActiveIcon));
+        twi->addChild(twi2);
+        //axis
+        for (int j=0;j<MAXAXES;j++)
         {
-        case 0:
-        dstr=tr("X axis");
-        break;
-        case 1:
-        dstr=tr("Y axis");
-        break;
-        case 2:
-        dstr=tr("Alt X axis");
-        break;
-        case 3:
-        dstr=tr("Alt Y axis");
-        break;
+            if (g[i].t[j] == NULL) continue;
+            twi2=new QTreeWidgetItem(twi);
+            switch (j)
+            {
+            case 0:
+                dstr=tr("X axis");
+                break;
+            case 1:
+                dstr=tr("Y axis");
+                break;
+            case 2:
+                dstr=tr("Alt X axis");
+                break;
+            case 3:
+                dstr=tr("Alt Y axis");
+                break;
+            }
+            twi2->setText(0,dstr);
+            twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+            twi2->setData(0,TREE_ROLE_SET,QVariant(j));
+            twi2->setData(0,TREE_ROLE_TYPE,QVariant('A'));
+            if (g[i].t[j]->active==false)
+                twi2->setIcon(0,QIcon(*HiddenIcon));
+            else
+                twi2->setIcon(0,QIcon(*ActiveIcon));
+            twi->addChild(twi2);
         }
-    twi2->setText(0,dstr);
-    twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi2->setData(0,TREE_ROLE_SET,QVariant(j));
-    twi2->setData(0,TREE_ROLE_TYPE,QVariant('A'));
-        if (g[i].t[j]->active==false)
-        twi2->setIcon(0,QIcon(*HiddenIcon));
-        else
-        twi2->setIcon(0,QIcon(*ActiveIcon));
-    twi->addChild(twi2);
-    }
-    //all sets
-    for (int j=0;j<number_of_sets(i);j++)
-    {
-        if (is_set_active(i, j) == FALSE) continue;
-    sprintf(dummy,"Set S%d, type=%s",j,set_types(g[i].p[j].type));
-    twi2=new QTreeWidgetItem(twi);
-    twi2->setText(0,QString(dummy));
-    twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi2->setData(0,TREE_ROLE_SET,QVariant(j));
-    twi2->setData(0,TREE_ROLE_TYPE,QVariant('S'));
-        if (g[i].p[j].hidden==true)
-        twi2->setIcon(0,QIcon(*HiddenIcon));
-        else
-        twi2->setIcon(0,QIcon(*ActiveIcon));
-    twi->addChild(twi2);
-    }
-    //legend
-    twi2=new QTreeWidgetItem(twi);
-    twi2->setText(0,tr("Legend"));
-    twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi2->setData(0,TREE_ROLE_SET,QVariant(-1));
-    twi2->setData(0,TREE_ROLE_TYPE,QVariant('E'));
+        //all sets
+        for (int j=0;j<number_of_sets(i);j++)
+        {
+            if (is_set_active(i, j) == FALSE) continue;
+            sprintf(dummy,"Set S%d, type=%s",j,set_types(g[i].p[j].type));
+            twi2=new QTreeWidgetItem(twi);
+            twi2->setText(0,QString(dummy));
+            twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+            twi2->setData(0,TREE_ROLE_SET,QVariant(j));
+            twi2->setData(0,TREE_ROLE_TYPE,QVariant('S'));
+            if (g[i].p[j].hidden==true)
+                twi2->setIcon(0,QIcon(*HiddenIcon));
+            else
+                twi2->setIcon(0,QIcon(*ActiveIcon));
+            twi->addChild(twi2);
+        }
+        //legend
+        twi2=new QTreeWidgetItem(twi);
+        twi2->setText(0,tr("Legend"));
+        twi2->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+        twi2->setData(0,TREE_ROLE_SET,QVariant(-1));
+        twi2->setData(0,TREE_ROLE_TYPE,QVariant('E'));
         if (g[i].l.active!=true)
-        twi2->setIcon(0,QIcon(*HiddenIcon));
+            twi2->setIcon(0,QIcon(*HiddenIcon));
         else
-        twi2->setIcon(0,QIcon(*ActiveIcon));
-    twi->addChild(twi2);
-}//end graphs
-//strings
-for (int i = 0; i < maxstr; i++)
-{
-    if (!isactive_string(i)) continue;
-    twi=new QTreeWidgetItem(this);
-    sprintf(dummy," \"%s\"",pstr[i].alt_plotstring);
-    twi->setText(0,tr("String-Object")+QString(dummy));
-    twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi->setData(0,TREE_ROLE_SET,QVariant(-1));
-    twi->setData(0,TREE_ROLE_TYPE,QVariant('N'));
+            twi2->setIcon(0,QIcon(*ActiveIcon));
+        twi->addChild(twi2);
+    }//end graphs
+    //strings
+    for (int i = 0; i < maxstr; i++)
+    {
+        if (!isactive_string(i)) continue;
+        twi=new QTreeWidgetItem(this);
+        sprintf(dummy," \"%s\"",pstr[i].alt_plotstring);
+        twi->setText(0,tr("String-Object")+QString(dummy));
+        twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+        twi->setData(0,TREE_ROLE_SET,QVariant(-1));
+        twi->setData(0,TREE_ROLE_TYPE,QVariant('N'));
         if (pstr[i].active==TRUE)
-        twi->setIcon(0,QIcon(*ActiveIcon));
+            twi->setIcon(0,QIcon(*ActiveIcon));
         else
-        twi->setIcon(0,QIcon(*HiddenIcon));
-    addTopLevelItem(twi);
-}
-//lines
-for (int i = 0; i < maxlines; i++)
-{
-    if (!isactive_line(i)) continue;
-    twi=new QTreeWidgetItem(this);
-    twi->setText(0,tr("Line-Object"));
-    twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi->setData(0,TREE_ROLE_SET,QVariant(-1));
-    twi->setData(0,TREE_ROLE_TYPE,QVariant('I'));
+            twi->setIcon(0,QIcon(*HiddenIcon));
+        addTopLevelItem(twi);
+    }
+    //lines
+    for (int i = 0; i < maxlines; i++)
+    {
+        if (!isactive_line(i)) continue;
+        twi=new QTreeWidgetItem(this);
+        twi->setText(0,tr("Line-Object"));
+        twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+        twi->setData(0,TREE_ROLE_SET,QVariant(-1));
+        twi->setData(0,TREE_ROLE_TYPE,QVariant('I'));
         if (lines[i].active==TRUE)
-        twi->setIcon(0,QIcon(*ActiveIcon));
+            twi->setIcon(0,QIcon(*ActiveIcon));
         else
-        twi->setIcon(0,QIcon(*HiddenIcon));
-    addTopLevelItem(twi);
-}
-//boxes
-for (int i = 0; i < maxboxes; i++)
-{
-    if (!isactive_box(i)) continue;
-    twi=new QTreeWidgetItem(this);
-    twi->setText(0,tr("Box-Object"));
-    twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi->setData(0,TREE_ROLE_SET,QVariant(-1));
-    twi->setData(0,TREE_ROLE_TYPE,QVariant('B'));
+            twi->setIcon(0,QIcon(*HiddenIcon));
+        addTopLevelItem(twi);
+    }
+    //boxes
+    for (int i = 0; i < maxboxes; i++)
+    {
+        if (!isactive_box(i)) continue;
+        twi=new QTreeWidgetItem(this);
+        twi->setText(0,tr("Box-Object"));
+        twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+        twi->setData(0,TREE_ROLE_SET,QVariant(-1));
+        twi->setData(0,TREE_ROLE_TYPE,QVariant('B'));
         if (boxes[i].active==TRUE)
-        twi->setIcon(0,QIcon(*ActiveIcon));
+            twi->setIcon(0,QIcon(*ActiveIcon));
         else
-        twi->setIcon(0,QIcon(*HiddenIcon));
-    addTopLevelItem(twi);
-}
-//ellipses
-for (int i = 0; i < maxellipses; i++)
-{
-    if (!isactive_ellipse(i)) continue;
-    twi=new QTreeWidgetItem(this);
-    twi->setText(0,tr("Ellipse-Object"));
-    twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
-    twi->setData(0,TREE_ROLE_SET,QVariant(-1));
-    twi->setData(0,TREE_ROLE_TYPE,QVariant('P'));
+            twi->setIcon(0,QIcon(*HiddenIcon));
+        addTopLevelItem(twi);
+    }
+    //ellipses
+    for (int i = 0; i < maxellipses; i++)
+    {
+        if (!isactive_ellipse(i)) continue;
+        twi=new QTreeWidgetItem(this);
+        twi->setText(0,tr("Ellipse-Object"));
+        twi->setData(0,TREE_ROLE_GRAPH,QVariant(i));
+        twi->setData(0,TREE_ROLE_SET,QVariant(-1));
+        twi->setData(0,TREE_ROLE_TYPE,QVariant('P'));
         if (ellip[i].active==TRUE)
-        twi->setIcon(0,QIcon(*ActiveIcon));
+            twi->setIcon(0,QIcon(*ActiveIcon));
         else
-        twi->setIcon(0,QIcon(*HiddenIcon));
-    addTopLevelItem(twi);
-}
-expandAll();
+            twi->setIcon(0,QIcon(*HiddenIcon));
+        addTopLevelItem(twi);
+    }
+    expandAll();
 }
 
 void treeView::getItemData(QTreeWidgetItem * item,char & type,int & gno,int & sno)
 {
-type=item->data(0,TREE_ROLE_TYPE).toChar().toAscii();
-gno=item->data(0,TREE_ROLE_GRAPH).toInt();
-sno=item->data(0,TREE_ROLE_SET).toInt();
+    type=item->data(0,TREE_ROLE_TYPE).toChar().toAscii();
+    gno=item->data(0,TREE_ROLE_GRAPH).toInt();
+    sno=item->data(0,TREE_ROLE_SET).toInt();
 }
 
 QTreeWidgetItem * treeView::findItem(char type,int gno,int sno)
 {
-char t;
-int g,s;
-QTreeWidgetItem * item=NULL;
-QTreeWidgetItem * item2=NULL;
-for (int i=0;i<topLevelItemCount();i++)
-{
-item=topLevelItem(i);
-getItemData(item,t,g,s);
-if (t==type && g==gno && s==sno) goto end_select_item;
-    for (int j=0;j<item->childCount();j++)
+    char t;
+    int g,s;
+    QTreeWidgetItem * item=NULL;
+    QTreeWidgetItem * item2=NULL;
+    for (int i=0;i<topLevelItemCount();i++)
     {
-    item2=item->child(j);
-    getItemData(item2,t,g,s);
-        if (t==type && g==gno && s==sno)
+        item=topLevelItem(i);
+        getItemData(item,t,g,s);
+        if (t==type && g==gno && s==sno) goto end_select_item;
+        for (int j=0;j<item->childCount();j++)
         {
-        item=item2;
-        goto end_select_item;
+            item2=item->child(j);
+            getItemData(item2,t,g,s);
+            if (t==type && g==gno && s==sno)
+            {
+                item=item2;
+                goto end_select_item;
+            }
         }
     }
-}
 end_select_item:
-return item;
+    return item;
 }
 
 void treeView::itemClickedAt(QTreeWidgetItem * item,int col)
 {
-char type;
-int gno;
-int sno;
-getItemData(item,type,gno,sno);
-//cout << "type=" << type << " col=" << col << " G[" << gno << "].S[" << sno << "]" << endl;
-emit(newItemClicked(type,gno,sno));
+    char type;
+    int gno;
+    int sno;
+    getItemData(item,type,gno,sno);
+    //cout << "type=" << type << " col=" << col << " G[" << gno << "].S[" << sno << "]" << endl;
+    emit(newItemClicked(type,gno,sno));
 }
 
 void treeView::mousePressEvent(QMouseEvent * e)
 {
-char type;
-int gno;
-int sno;
-QPoint p=e->pos();
-QTreeWidgetItem * curItem=itemAt(p);
-if (curItem==NULL) return;
-clearSelection();
-curItem->setSelected(true);
+    char type;
+    int gno;
+    int sno;
+    QPoint p=e->pos();
+    QTreeWidgetItem * curItem=itemAt(p);
+    if (curItem==NULL) return;
+    clearSelection();
+    curItem->setSelected(true);
     if (e->button() & Qt::RightButton)
     {
         getItemData(curItem,type,gno,sno);
         //cout << type << " " << gno << " " << sno;
         popup->updateEntries(type,gno,sno);
         if (popup->possible==true)
-        popup->exec(QCursor::pos());
+            popup->exec(QCursor::pos());
     }
     else
     {
-    itemClickedAt(curItem,0);
+        itemClickedAt(curItem,0);
     }
 }
 
 void treeView::selectItem(char type,int gno,int sno)
 {
-QTreeWidgetItem * item=findItem(type,gno,sno);
+    QTreeWidgetItem * item=findItem(type,gno,sno);
     if (item!=NULL)
     {
-    clearSelection();
-    item->setSelected(true);
+        clearSelection();
+        item->setSelected(true);
     }
 }
 
 void LoadBinaryData(int gno,int setno,int settype,char * filename,struct BinReadInstructions inst)
 {
-plotarr * p;
-char dummy[256];
-int importcount=0;
-int readbytes;
-int allocated;
-int startcount;
-char * dest;
-int * positions=new int[inst.n_columns_to_read];//positions, where the different colums are in one complete column set
-int length_of_one_column_set=0;
+    plotarr * p;
+    char dummy[256];
+    int importcount=0;
+    int readbytes;
+    int allocated;
+    int startcount;
+    char * dest;
+    int * positions=new int[inst.n_columns_to_read];//positions, where the different colums are in one complete column set
+    int length_of_one_column_set=0;
 
-for (unsigned int i=0;i<inst.column_count;i++)//all columns in a set (to be read or not)
-length_of_one_column_set+=inst.column_type[i].size;
+    for (unsigned int i=0;i<inst.column_count;i++)//all columns in a set (to be read or not)
+        length_of_one_column_set+=inst.column_type[i].size;
 
-dest=new char[length_of_one_column_set+8];//prepare space to read one set
+    dest=new char[length_of_one_column_set+8];//prepare space to read one set
 
-if (inst.read_until_end_is_reached==true)
-{
-startcount=-1;//we will count downwards --> 0 is never reached
-}
-else
-{
-startcount=inst.datasets_to_read;//we will count downwards until zero is reached
-}
-//prepare set for writing
-int retval=activateset(gno,setno);
-set_dataset_type(gno,setno,settype);
-/*cout << "setlength=" << getsetlength(gno, setno) << endl;
+    if (inst.read_until_end_is_reached==true)
+    {
+        startcount=-1;//we will count downwards --> 0 is never reached
+    }
+    else
+    {
+        startcount=inst.datasets_to_read;//we will count downwards until zero is reached
+    }
+    //prepare set for writing
+    int retval=activateset(gno,setno);
+    set_dataset_type(gno,setno,settype);
+    /*cout << "setlength=" << getsetlength(gno, setno) << endl;
 cout << "number of cols=" << dataset_cols(gno, setno) << endl;
 cout << "number of cols new settype=" << settype_cols(settype) << endl;
 cout << "filename='" << filename << "'" << endl;*/
-p = &g[gno].p[setno];
-allocated=100;
-//prepare some space for the data that is to be read an stored
-p->data.len=0;
-for (unsigned int i=0;i<inst.n_columns_to_read;i++)
-{
-p->data.ex[i] = (double *)xrealloc(p->data.ex[i], allocated*sizeof(double));
-positions[i]=0;
-    for (int j=0;j<i;j++)
-    positions[i]+=inst.column_type[j].size;
-//cout << "column_offset[" << i << "]=" << positions[i] << endl;
-}
-ifstream ifi;
-ifi.open(filename);
-
-if (inst.length_of_header>0)
-{
-ifi.seekg(inst.length_of_header);
-}
-
-while (startcount!=0)
-{
-ifi.read(dest,length_of_one_column_set);//read one set of columns in one go into dest
-readbytes=(int)(ifi.gcount());
-if (readbytes!=length_of_one_column_set)
-{
-//cout << "error reading datacolumn; " << importcount << " sets already read" << endl;
-    sprintf(dummy,"[Information] Stopped reading after import of %d datasets.",importcount);
-    stufftext(dummy);
-break;
-}
-else//normal read operation
-{
-startcount--;
-//convert columns into dataset
-for (unsigned int i=0;i<inst.n_columns_to_read;i++)
-{
-    switch (inst.column_type[inst.col_numbers_to_read[i]].format)
-    {//get format of colum that is to be read
-    case COLUMN_SIG_CHAR:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (signed char*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_USIG_CHAR:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (unsigned char*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_SIG_SHORT:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (signed short*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_USIG_SHORT:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (unsigned short*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_SIG_INT:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (signed int*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_USIG_INT:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (unsigned int*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_SIG_LONG:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (signed long*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_USIG_LONG:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (unsigned long*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_FLOAT:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (float*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_DOUBLE:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (double*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    case COLUMN_LONG_DOUBLE:
-    p->data.ex[i][importcount]=(double)(
-                 *(
-                   (long double*)(
-                                  (void*)(dest+positions[i])
-                                 )
-                  )
-                  );
-    break;
-    }
-}
-//check for enough space for the next run
-    importcount++;
-    if (importcount==allocated)
+    p = &g[gno].p[setno];
+    allocated=100;
+    //prepare some space for the data that is to be read an stored
+    p->data.len=0;
+    for (unsigned int i=0;i<inst.n_columns_to_read;i++)
     {
-        allocated+=100;
-        for (unsigned int i=0;i<inst.n_columns_to_read;i++)
-        {
         p->data.ex[i] = (double *)xrealloc(p->data.ex[i], allocated*sizeof(double));
-        if (!p->data.ex[i]) cout << "error in reallocation" << endl;
-        }
+        positions[i]=0;
+        for (int j=0;j<i;j++)
+            positions[i]+=inst.column_type[j].size;
+        //cout << "column_offset[" << i << "]=" << positions[i] << endl;
     }
-}
-if (ifi.eof()) break;
-}
+    ifstream ifi;
+    ifi.open(filename);
 
-for (unsigned int i=0;i<inst.n_columns_to_read;i++)
-p->data.ex[i] = (double *)xrealloc(p->data.ex[i], importcount*sizeof(double));
-p->data.len=importcount;
+    if (inst.length_of_header>0)
+    {
+        ifi.seekg(inst.length_of_header);
+    }
 
-delete[] positions;
+    while (startcount!=0)
+    {
+        ifi.read(dest,length_of_one_column_set);//read one set of columns in one go into dest
+        readbytes=(int)(ifi.gcount());
+        if (readbytes!=length_of_one_column_set)
+        {
+            //cout << "error reading datacolumn; " << importcount << " sets already read" << endl;
+            sprintf(dummy,"[Information] Stopped reading after import of %d datasets.",importcount);
+            stufftext(dummy);
+            break;
+        }
+        else//normal read operation
+        {
+            startcount--;
+            //convert columns into dataset
+            for (unsigned int i=0;i<inst.n_columns_to_read;i++)
+            {
+                switch (inst.column_type[inst.col_numbers_to_read[i]].format)
+                {//get format of colum that is to be read
+                case COLUMN_SIG_CHAR:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (signed char*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_USIG_CHAR:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (unsigned char*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_SIG_SHORT:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (signed short*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_USIG_SHORT:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (unsigned short*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_SIG_INT:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (signed int*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_USIG_INT:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (unsigned int*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_SIG_LONG:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (signed long*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_USIG_LONG:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (unsigned long*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_FLOAT:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (float*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_DOUBLE:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (double*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                case COLUMN_LONG_DOUBLE:
+                    p->data.ex[i][importcount]=(double)(
+                                *(
+                                    (long double*)(
+                                        (void*)(dest+positions[i])
+                                        )
+                                    )
+                                );
+                    break;
+                }
+            }
+            //check for enough space for the next run
+            importcount++;
+            if (importcount==allocated)
+            {
+                allocated+=100;
+                for (unsigned int i=0;i<inst.n_columns_to_read;i++)
+                {
+                    p->data.ex[i] = (double *)xrealloc(p->data.ex[i], allocated*sizeof(double));
+                    if (!p->data.ex[i]) cout << "error in reallocation" << endl;
+                }
+            }
+        }
+        if (ifi.eof()) break;
+    }
+
+    for (unsigned int i=0;i<inst.n_columns_to_read;i++)
+        p->data.ex[i] = (double *)xrealloc(p->data.ex[i], importcount*sizeof(double));
+    p->data.len=importcount;
+
+    delete[] positions;
 }
 
 void GenerateLaTeXCommands(void)
 {
-LaTeXCommands.clear();
-equivalentCommands.clear();
-equivalentFont.clear();
+    LaTeXCommands.clear();
+    equivalentCommands.clear();
+    equivalentFont.clear();
 }
 
 void store_plot_string(plotstr * p,stdLineEdit * led)
 {
-QString text=led->text();
-char * te=new char[text.length()+2];
-strcpy(te,text.toAscii().constData());
-p->s_plotstring = copy_string(p->s_plotstring, te);
-p->alt_plotstring = copy_string(p->alt_plotstring, te);
-//ENTER LATEX-CONVERSION HERE
-delete[] te;
+    QString text=led->text();
+    char * te=new char[text.length()+2];
+    strcpy(te,text.toAscii().constData());
+    p->s_plotstring = copy_string(p->s_plotstring, te);
+    p->alt_plotstring = copy_string(p->alt_plotstring, te);
+    //ENTER LATEX-CONVERSION HERE
+    delete[] te;
 }
 

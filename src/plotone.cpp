@@ -55,7 +55,11 @@
 #include <iostream>
 #include "MainWindow.h"
 #include "rint.h"
+
+#ifdef SKF_QtGrace
 #include <QSvgRenderer>
+#endif
+
 FILE *prstream;
 
 extern MainWindow * mainWin;
@@ -70,7 +74,9 @@ extern bool startupphase;
 extern bool useQtFonts;
 extern QList<QFont> stdFontList;
 int RotationAngle;
+#ifdef SKF_QtGrace
 int png_setup_res = 100;
+#endif
 extern void WriteQtString(VPoint vp,int rot,int just,char * s);
 extern void WriteQtString(VPoint vp,int rot,int just,char * s,double charSize,int font,int color);
 extern QString get_filename_with_extension(int device);
@@ -170,41 +176,62 @@ void do_hardcopy(void)
         /* VMS doesn't like extensionless files */
         strcat(fname, ".prn");
     }
-  QTemporaryFile file;
-  file.open();
-  QString fileN;
-  fileN = file.fileName()+".svg";
-  file.close(); 
-  QByteArray byteArray = fileN.toUtf8();
-  char *cTempFileName = byteArray.data();
+
+
+#ifdef SKF_QtGrace
+
+    QTemporaryFile file;
+    file.open();
+    QString fileN;
+    fileN = file.fileName()+".svg";
+    file.close();
+    QByteArray byteArray = fileN.toUtf8();
+    char *cTempFileName = byteArray.data();
 
     Device_entry dev;
     dev = get_device_props(hdevice);
     if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"PNG"))
     {
-		prstream = grace_openw(fname);
+        prstream = grace_openw(fname);
 
         if(!prstream==NULL){
             fclose(prstream);
             prstream = grace_openw(cTempFileName);
         }
-		
+
     }else{
+
+
         prstream = grace_openw(fname);
     }
+#else
+    prstream = grace_openw(fname);
+#endif
 
     if (prstream == NULL)
     {
+#ifdef SKF_QtGrace
         //Export has been canceled by the user
         cancelExport = TRUE;
+#endif
+
         return;
     }
     
     /*Checks for Qt-stuff*/
+#ifndef SKF_QtGrace
+    Device_entry dev;
+    dev = get_device_props(hdevice);
+#endif
+
     int save_focus_flag=draw_focus_flag;
     int old_dev=curdevice;
     //cout << "dev.name=" << dev.name << " vergl=" << !strcmp(dev.name,"JPEG") << endl;
+#ifdef SKF_QtGrace
     if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP"))
+#else
+    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))
+#endif
     {
         select_device(0);
         /*plot on display and copy to file later*/
@@ -228,12 +255,17 @@ void do_hardcopy(void)
     }
     
     if (get_ptofile() == FALSE) {
+#ifdef SKF_QtGrace
         if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"PNG"))
         {
-        sprintf(tbuf, "%s %s", get_print_cmd(), cTempFileName);
+            sprintf(tbuf, "%s %s", get_print_cmd(), cTempFileName);
         }else{sprintf(tbuf, "%s %s", get_print_cmd(), fname);
 
-            }
+        }
+#else
+        sprintf(tbuf, "%s %s", get_print_cmd(), fname);
+#endif
+
         if (truncated_out == FALSE ||
                 yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
             system_wrap(tbuf);
@@ -244,9 +276,9 @@ void do_hardcopy(void)
     } else {
         if (truncated_out == TRUE) {
             errmsg("Graph exceeds selected format size. Probably, some digits do not fit the page area."
-		   " Please resize graph or select a new format size. "
-		   "If you just want to scale the graph to fit the page, then go to options and enable:"
-		   " \"Rescale plot on page size change\"");
+                   " Please resize graph or select a new format size. "
+                   "If you just want to scale the graph to fit the page, then go to options and enable:"
+                   " \"Rescale plot on page size change\"");
         }
     }
     
@@ -256,7 +288,11 @@ void do_hardcopy(void)
         cout << ba.at(i).constData() << endl;
     }*/
 
+#ifdef SKF_QtGrace
     if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP"))
+#else
+    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))
+#endif
     {
         /*cout << "Qt plotting routine 2nd half" << endl;
     plot on display and copy to file later*/
@@ -277,13 +313,14 @@ void do_hardcopy(void)
     }
     else
         select_device(tdevice);
+#ifdef SKF_QtGrace
 
     QString sFname(fname);
 
     if(!strcmp(dev.name,"PDF"))
     {
 
-       QString fileName = QString(cTempFileName);
+        QString fileName = QString(cTempFileName);
         //Read svg file and convert to pdf
         QSvgRenderer renderer(fileName);
 
@@ -299,8 +336,8 @@ void do_hardcopy(void)
 
         renderer.render(&painter);
         painter.end();
-		QFile::remove(cTempFileName);
-      
+        QFile::remove(cTempFileName);
+
     }
 
 
@@ -308,8 +345,8 @@ void do_hardcopy(void)
     {
 
         QString fileName = QString(cTempFileName);
-         //Read svg file and convert to png
-         QSvgRenderer renderer(fileName);
+        //Read svg file and convert to png
+        QSvgRenderer renderer(fileName);
 
         // Prepare a QImage with desired characteritisc
         QImage image(renderer.defaultSize()*png_setup_res/100, QImage::Format_RGB32);
@@ -323,10 +360,7 @@ void do_hardcopy(void)
         QFile::remove(cTempFileName);
     }
 
-
-
-
-
+#endif
 
 
 }
@@ -1224,7 +1258,7 @@ void drawsetline(int gno, int setno, plotarr *p,
 #if QT_VERSION < 0x040800
     if( ly > 1) qt45fix=false;  // Deactivated fix since it messed up most plots. 2013-11-25 DF.
     // The polylines with many points which
-    // are not solid (ly>1), are rendered incorrectly 
+    // are not solid (ly>1), are rendered incorrectly
     // in Qt 4.5. They are correct in 4.7.
     // BZ2033 contains an example that requires this fix.
     // The QPen::setStyle(Qt::SolidLine) are always displayed
@@ -1265,11 +1299,11 @@ void drawsetline(int gno, int setno, plotarr *p,
                 vpstmp[i].y -= lw/2.0;
                 
                 if(qt45fix){
-                   if(i>0) DrawLine( vpstmp[i-1],  vpstmp[i]);
+                    if(i>0) DrawLine( vpstmp[i-1],  vpstmp[i]);
                 }
             }
             if(!qt45fix){
-            DrawPolyline(vpstmp, setlen, POLYLINE_OPEN);
+                DrawPolyline(vpstmp, setlen, POLYLINE_OPEN);
             }
             xfree(vpstmp);
             break;
@@ -2308,7 +2342,7 @@ void draw_string(int gno, int i)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-       /*if (curdevice==0 && useQtFonts==true)
+        /*if (curdevice==0 && useQtFonts==true)
 {
 vp.x+=0.2;
 WriteQtString(vp, pstr.rot, pstr.just, pstr.s,pstr.charsize,pstr.font,pstr.color);

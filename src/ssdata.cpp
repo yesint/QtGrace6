@@ -416,7 +416,6 @@ int store_data(ss_data *ssd, int load_type, char *label)
 
         new_set_no=setno = nextset(gno);
         set_dataset_type(gno, setno, curtype);
-        set_set_hidden(gno,setno,false);/// I added this
 
         new_set_no=1;
         if (new_set_nos!=NULL) delete[] new_set_nos;

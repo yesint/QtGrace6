@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2000 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
+ *
  * Modified by Andreas Winter 2008-2012
- * 
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -43,15 +43,21 @@ using namespace std;
 
 extern double GeneralPageZoomFactor;
 unsigned int ndevices = 0;
+
+#ifdef SKF_QtGrace
 int curdevice = DEVICE_SCREEN;
+#else
+int curdevice = 0;
+#endif
+
 Device_entry *device_table = NULL;
 
 int is_valid_page_geometry(Page_geometry pg)
 {
     if (pg.width  > 0 &&
-	pg.height > 0 &&
-        pg.dpi > 0.0) {
-	return TRUE;
+            pg.height > 0 &&
+            pg.dpi > 0.0) {
+        return TRUE;
     } else {
         return FALSE;
     }
@@ -61,7 +67,7 @@ int set_page_geometry(Page_geometry pg)
 {
     if (is_valid_page_geometry(pg) == TRUE) {
         device_table[curdevice].pg = pg;
-	return RETURN_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
@@ -69,9 +75,9 @@ int set_page_geometry(Page_geometry pg)
 
 Page_geometry get_page_geometry(void)
 {
-static Page_geometry pg2;
-pg2=device_table[curdevice].pg;
-/*pg2.height=(unsigned long)(pg2.height*GeneralPageZoomFactor);
+    static Page_geometry pg2;
+    pg2=device_table[curdevice].pg;
+    /*pg2.height=(unsigned long)(pg2.height*GeneralPageZoomFactor);
 pg2.width=(unsigned long)(pg2.width*GeneralPageZoomFactor);*/
     return pg2;
     //return (device_table[curdevice].pg);
@@ -84,7 +90,7 @@ int set_page_dimensions(int wpp, int hpp, int rescale)
     if (wpp <= 0 || hpp <= 0) {
         return RETURN_FAILURE;
     } else {
-	if (rescale) {
+        if (rescale) {
             int wpp_old, hpp_old;
             
             get_device_page_dimensions(curdevice, &wpp_old, &hpp_old);
@@ -110,7 +116,7 @@ int set_page_dimensions(int wpp, int hpp, int rescale)
                 }
 
                 rescale_viewport(ext_x, ext_y);
-            } 
+            }
         }
         for (i = 0; i < ndevices; i++) {
             Page_geometry *pg = &device_table[i].pg;
@@ -155,7 +161,7 @@ int select_device(int dindex)
     } else {
         //cout << "select: " << dindex << " ndevices=" << ndevices << endl;
         curdevice = dindex;
-	return RETURN_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -165,14 +171,14 @@ int select_device(int dindex)
 int set_printer(int device)
 {
     if (device >= ndevices || device < 0 ||
-        device_table[device].type == DEVICE_TERM) {
+            device_table[device].type == DEVICE_TERM) {
         return RETURN_FAILURE;
     } else {
         hdevice = device;
         if (device_table[device].type != DEVICE_PRINT) {
             set_ptofile(TRUE);
         }
-	return RETURN_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -200,7 +206,7 @@ int get_device_by_name(char *dname)
     if (i >= ndevices) {
         return -1;
     } else {
-	return i;
+        return i;
     }
 }
 
@@ -237,12 +243,12 @@ void set_curdevice_data(void *data)
 int set_device_props(int deviceid, Device_entry device)
 {
     if (deviceid >= ndevices || deviceid < 0 ||
-        is_valid_page_geometry(device.pg) != TRUE) {
+            is_valid_page_geometry(device.pg) != TRUE) {
         return RETURN_FAILURE;
     }
     
     device_table[deviceid].type = device.type;
-/*
+    /*
  *     device_table[deviceid].init = device.init;
  *     device_table[deviceid].parser = device.parser;
  *     device_table[deviceid].setup = device.setup;
@@ -264,14 +270,14 @@ int parse_device_options(int dindex, char *options)
 {
     char *p, *oldp, opstring[64];
     int n;
-        
-    if (dindex >= ndevices || dindex < 0 || 
+
+    if (dindex >= ndevices || dindex < 0 ||
             device_table[dindex].parser == NULL) {
         return RETURN_FAILURE;
     } else {
         oldp = options;
         while ((p = strchr(oldp, ',')) != NULL) {
-	    n = MIN2((p - oldp), 64 - 1);
+            n = MIN2((p - oldp), 64 - 1);
             strncpy(opstring, oldp, n);
             opstring[n] = '\0';
             if (device_table[dindex].parser(opstring) != RETURN_SUCCESS) {
@@ -321,7 +327,7 @@ PageFormat get_page_format(int device)
     height_pp = (int) rint((double) 72*pg.height/pg.dpi);
     
     if ((width_pp == 612 && height_pp == 792) ||
-        (height_pp == 612 && width_pp == 792)) {
+            (height_pp == 612 && width_pp == 792)) {
         return PAGE_FORMAT_USLETTER;
     } else if ((width_pp == 595 && height_pp == 842) ||
                (height_pp == 595 && width_pp == 842)) {
@@ -337,7 +343,7 @@ PageFormat get_page_format(int device)
  */
 
 static int ptofile = FALSE;
-                           
+
 void set_ptofile(int flag)
 {
     ptofile = flag;

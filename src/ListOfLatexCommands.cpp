@@ -530,8 +530,12 @@ int recursive_replacer(char * text)
                                 strcpy(result+res_pos,dummy);//end command
                                 res_pos+=strlen(dummy);
 
+#ifdef SKF_QtGrace
                                 errmessage=QObject::tr("Warning:frac currently not supported by pdf, png, and svg export files");
                                 errmsg(errmessage.toAscii().constData());
+#endif
+
+
                             }
                             else
                             {
@@ -543,12 +547,12 @@ int recursive_replacer(char * text)
                         }
                         strcpy(result+res_pos,specCommands[com_nr].stop_com);
                         res_pos+=strlen(specCommands[com_nr].stop_com);
-
+#ifdef SKF_QtGrace
                         if(!strcmp("overline",middle_part)||!strcmp("sqrt",middle_part)||!strcmp("underline",middle_part)||!strcmp("frac",middle_part)){
                             errmessage=QObject::tr("Warning:" )+ QString(middle_part) + QObject::tr(" currently not supported by pdf, png, and svg export files");
                             errmsg(errmessage.toAscii().constData());
                         }
-
+#endif
                     }
                     else
                     {

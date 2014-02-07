@@ -42,7 +42,7 @@
 @default linestyle 1
 @default color 1
 @default pattern 1
-@default font 0
+@default font 4
 @default char size 1.000000
 @default symbol size 1.000000
 @default sformat "%.8g"
@@ -52,7 +52,7 @@
 @timestamp 0.03, 0.03
 @timestamp color 1
 @timestamp rot 0
-@timestamp font 0
+@timestamp font 4
 @timestamp char size 1.000000
 @timestamp def "*** *** -- --:--:-- ----"
 @r0 off
@@ -104,13 +104,13 @@
 @    world 0, 0, 1, 1
 @    stack world 0, 0, 0, 0
 @    znorm 1
-@    view 0.150000, 0.150000, 1.150000, 0.850000
+@    view 0.210000, 0.150000, 1.210000, 0.850000
 @    title ""
-@    title font 0
+@    title font 4
 @    title size 1.500000
 @    title color 1
 @    subtitle ""
-@    subtitle font 0
+@    subtitle font 4
 @    subtitle size 1.000000
 @    subtitle color 1
 @    xaxes scale Normal
@@ -128,7 +128,7 @@
 @    xaxis  label layout para
 @    xaxis  label place auto
 @    xaxis  label char size 1.000000
-@    xaxis  label font 0
+@    xaxis  label font 4
 @    xaxis  label color 1
 @    xaxis  label place normal
 @    xaxis  tick on
@@ -164,7 +164,7 @@
 @    xaxis  ticklabel stop type auto
 @    xaxis  ticklabel stop 0.000000
 @    xaxis  ticklabel char size 1.000000
-@    xaxis  ticklabel font 0
+@    xaxis  ticklabel font 4
 @    xaxis  ticklabel color 1
 @    xaxis  tick place both
 @    xaxis  tick spec type none
@@ -179,7 +179,7 @@
 @    yaxis  label layout para
 @    yaxis  label place auto
 @    yaxis  label char size 1.000000
-@    yaxis  label font 0
+@    yaxis  label font 4
 @    yaxis  label color 1
 @    yaxis  label place normal
 @    yaxis  tick on
@@ -215,7 +215,7 @@
 @    yaxis  ticklabel stop type auto
 @    yaxis  ticklabel stop 0.000000
 @    yaxis  ticklabel char size 1.000000
-@    yaxis  ticklabel font 0
+@    yaxis  ticklabel font 4
 @    yaxis  ticklabel color 1
 @    yaxis  tick place both
 @    yaxis  tick spec type none
@@ -229,8 +229,8 @@
 @    legend box linewidth 1.0
 @    legend box linestyle 1
 @    legend box fill color 0
-@    legend box fill pattern 1
-@    legend font 0
+@    legend box fill pattern 0
+@    legend font 4
 @    legend char size 1.000000
 @    legend color 1
 @    legend length 4

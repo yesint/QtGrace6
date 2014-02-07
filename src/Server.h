@@ -48,7 +48,7 @@ public:
 private slots:
     void    readSocket();
     void    ConnectToBeast(const char* sendParam, int sendLen);
-    void    sendDataToGrace();
+    void    sendDataToBeast();
     void    socket_disconnected();
     void    socket_readReady();
     void    socket_error(QLocalSocket::LocalSocketError);
@@ -74,7 +74,6 @@ private:
     QLocalServer*       m_fromBeast;
     QLocalSocket*       m_toBeast;
     QString             readServer;
-    QString             m_data;
 
     bool                socket_connected_busy;
     const char*         m_sendParam;
@@ -95,43 +94,29 @@ private:
     double*             xmaxPtr;
     double              xmin;
     double              xmax;
-    int                 printStrNameLength;
     string              printStrName;
     int                 conditionToExitFunction;
     char                *message;
     quint16             countNoOfRead;
     quint16             newDataSetReady;
-    double              *x;
-    double              *y;
-    bool                exchange_point_comma;//exchange ',' for '.' as decimal-seperator
     int                 new_set_no;
     int                 *new_set_nos;
     graph               *g;
     QList<QFont>        stdFontList;
-    QString             xValueStr;
-    QString             yValueStr;
     QString             fileNameStr;
-    QByteArray          fileNameBa;
-    QByteArray          xValueBa;
-    QByteArray          yValueBa;
-    char                *xValueChar;
-    char                *yValueChar;
-    char                *fileNameChar;
     QByteArray          dataFromBuffer;
     QBuffer             buffer;
-    QBuffer             xDataSetbuffer;
-    QBuffer             yDataSetbuffer;
-    quint16             countNoOfReadData;
-    qint64              availableBytesFromSocket;
     bool                readSocketIsLocked;
     bool                writeToTmpFile;
-    int                 gno;
-    int                 load; //read single set
-    int                 cursource; // read from temp file
     int                 paramLength;
     int                 countNoOfDataSets;
     QList<int>          saveCountNoOfDataSets;
     int                 oldNoask;
+    qint64              availableBytesFromSocket;
+    QByteArray          fileNameBa;
+    char                *fileNameChar;
+
+
 };
 
 

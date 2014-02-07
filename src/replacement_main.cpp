@@ -150,8 +150,12 @@ extern bool display_help_externally;
 extern bool immediateUpdate;
 extern bool updateRunning;
 extern bool useQtFonts;
+
+#ifdef SKF_QtGrace
 extern bool hdeviceFlag;
 extern int hardCopyDeviceNr;
+#endif
+
 extern QList<QFont> stdFontList;
 
 extern void copy_Grace_to_LaTeX(void);
@@ -448,7 +452,11 @@ int replacement_main(int argc, char **argv)
     int remove_flag = FALSE;	/* remove file after read */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
+
+#ifdef SKF_QtGrace
     hdeviceFlag = false;
+#endif
+
     char fd_name[GR_MAXPATHLEN];
 
     int wpp, hpp;
@@ -472,23 +480,27 @@ int replacement_main(int argc, char **argv)
 
     /* set the starting directory */
     set_workingdir(NULL);
+    
 
+#ifdef SKF_QtGrace
+    set_ptofile(TRUE);
+#else
 
     /*
          * print command
          */
-    //    if ((s = getenv("GRACE_PRINT_CMD")) != NULL) {
-    //	set_print_cmd(s);
-    //    }
-
-    //    /* if no print command defined, print to file by default */
-    //    s = get_print_cmd();
-    //    if (s == NULL || s[0] == '\0') {
-    set_ptofile(TRUE);
-    //    } else {
-    //        set_ptofile(FALSE);
-    //    }
-
+    if ((s = getenv("GRACE_PRINT_CMD")) != NULL) {
+        set_print_cmd(s);
+    }
+    
+    /* if no print command defined, print to file by default */
+    s = get_print_cmd();
+    if (s == NULL || s[0] == '\0') {
+        set_ptofile(TRUE);
+    } else {
+        set_ptofile(FALSE);
+    }
+#endif
     /*
          * editor
          */
@@ -561,7 +573,13 @@ int replacement_main(int argc, char **argv)
     //tdevice = register_dummy_drv();
     //#endif
 
+#ifdef SKF_QtGrace
+#else
+    tdevice = register_x11_drv();
+#endif
 
+
+#ifdef SKF_QtGrace
 
     hdevice = register_pdf_drv(); //default hardcopy
     register_qt_devices();
@@ -572,17 +590,38 @@ int replacement_main(int argc, char **argv)
 
     //Screen
     tdevice = register_x11_drv();
-
-    /*a QT special*/
-    //
-
-    //register_mif_drv();
-    //register_pnm_drv();
-    //register_mf_drv();
-
-
+    select_device(tdevice);
+#else
 
     select_device(tdevice);
+
+    hdevice = register_ps_drv();
+    register_eps_drv();
+
+#ifdef HAVE_LIBPDF
+    register_pdf_drv();
+#endif
+    register_mif_drv();
+    register_svg_drv();
+    register_pnm_drv();
+#ifdef HAVE_LIBJPEG
+    register_jpg_drv();
+#endif
+#ifdef HAVE_LIBPNG
+    register_png_drv();
+#endif
+    /*a QT special*/
+    register_qt_devices();
+
+    register_mf_drv();
+
+#endif
+
+
+
+
+
+
     /* check whether locale is correctly set */
     if (init_locale() != RETURN_SUCCESS) {
         errmsg(QObject::tr("Invalid or unsupported locale").toAscii().constData());
@@ -599,10 +638,7 @@ int replacement_main(int argc, char **argv)
     new_project(NULL);
 
     cur_graph = get_cg();
-    // cout<<"Starting args analysis"<<endl;
-    // for (i = 1; i < argc; i++) {
-    //       cout << i << " " << argv[i]<<endl;
-    //}
+
     if (argc >= 2) {
         for (i = 1; i < argc; i++) {
             if (argv[i][0] == '-' && argv[i][1] != '\0') {
@@ -800,31 +836,44 @@ int replacement_main(int argc, char **argv)
 #endif
                     } else if (argmatch(argv[i], "-hdevice", 5)) {
 
+#ifdef SKF_QtGrace
                         hardCopyDeviceNr = 0;
+#endif
                         i++;
                         if (i == argc) {
-                           // fprintf(stderr, "Missing argument for hardcopy device select flag\n");
+
+#ifndef SKF_QtGrace
+                            fprintf(stderr, "Missing argument for hardcopy device select flag\n");
+#endif
                             usage(stderr, argv[0]);
                         } else {
-                            //fprintf(stderr, "argv[i]=%s\n",argv[i]);
+#ifndef SKF_QtGrace
+                            fprintf(stderr, "argv[i]=%s\n",argv[i]);
+#endif
                             if (set_printer_by_name(argv[i]) != RETURN_SUCCESS) {
-                                  hdeviceFlag = false;
+
+#ifdef SKF_QtGrace
+                                hdeviceFlag = false;
+#endif
                                 errmsg(QObject::tr("Unknown or unsupported device").toAscii().constData());
                                 exit(1);
+
+#ifdef SKF_QtGrace
                             }else{
                                 hdeviceFlag = true;
 
                                 if(!strcmp("PDF",argv[i])){
-                                hardCopyDeviceNr = 0;
-                            }else if(!strcmp("PNG",argv[i])){
-                                     hardCopyDeviceNr = 1;
-                            }else if(!strcmp("PostScript",argv[i])){
-                                     hardCopyDeviceNr = 2;
-                            }else if(!strcmp("EPS",argv[i])){
-                                     hardCopyDeviceNr = 3;
-                            }else if(!strcmp("SVG",argv[i])){
-                                     hardCopyDeviceNr = 4;
-                            }
+                                    hardCopyDeviceNr = 0;
+                                }else if(!strcmp("PNG",argv[i])){
+                                    hardCopyDeviceNr = 1;
+                                }else if(!strcmp("PostScript",argv[i])){
+                                    hardCopyDeviceNr = 2;
+                                }else if(!strcmp("EPS",argv[i])){
+                                    hardCopyDeviceNr = 3;
+                                }else if(!strcmp("SVG",argv[i])){
+                                    hardCopyDeviceNr = 4;
+                                }
+#endif
                             }
                         }
                     } else if (argmatch(argv[i], "-log", 2)) {
@@ -1019,10 +1068,11 @@ int replacement_main(int argc, char **argv)
                             v.yv2 = atof(argv[i]);
                             set_graph_viewport(cur_graph, v);
                         }
-
-                        //2013-13-09 Nimalendiran Kailasanathan added command to hide qtGrace main application window and communication
-                        //with ViewBeast
-                    }   else if (argmatch(argv[i], "-connectToViewBeast", 2)) {
+                    }
+#ifdef SKF_QtGrace
+                //2013-13-09 Nimalendiran Kailasanathan added command to hide qtGrace main application window and communication
+                //with ViewBeast
+                    else if (argmatch(argv[i], "-connectToViewBeast", 2)) {
                         i++;
                         if (i > argc - 2) {
                             fprintf(stderr, "Missing parameter(s) to start View Beast connection\n");
@@ -1041,7 +1091,7 @@ int replacement_main(int argc, char **argv)
                         disableConsole = FALSE;
                     }
 
-
+#endif
                     else if (argmatch(argv[i], "-world", 2)) {
                         i++;
                         if (i > argc - 4) {
@@ -1129,7 +1179,13 @@ int replacement_main(int argc, char **argv)
      * just plot the graph and quit
      */
     if (gracebat == TRUE) {
+
+#ifdef SKF_QtGrace
         if (hdevice == 5) {
+#else
+
+        if (hdevice == 0) {
+#endif
             errmsg(QObject::tr("Terminal device can't be used for batch plotting").toAscii().constData());
             exit(1);
         }
@@ -1236,8 +1292,10 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-bxy       [x:y:etc.]                 Form a set from the current block data set\n");
     fprintf(stream, "                                        using the current set type from columns\n");
     fprintf(stream, "                                        given in the argument\n");
+#ifdef SKF_QtGrace
     fprintf(stream, "-connectToViewBeast [Server1 Server2] start connection to ViewBeast\n");
     fprintf(stream, "-hideMainWindow                       hide the qtGrace application window\n");
+#endif
     fprintf(stream, "-datehint  [iso|european|us\n");
     fprintf(stream, "            |days|seconds|nohint]     Set the hint for dates analysis\n");
     fprintf(stream, "                                        (it is only a hint for the parser)\n");
@@ -1544,10 +1602,13 @@ void update_set_lists(int gno)
      */
 void set_left_footer(char *s)
 {
-    /*cout << "set_left_footer:" ;
-        if(s) cout << s ; else cout << "NUUULLL";
-        cout << endl;
-        */
+#ifndef SKF_QtGrace
+    cout << "set_left_footer:" ;
+    if(s) cout << s ; else cout << "NUUULLL";
+    cout << endl;
+#endif
+
+
     if (s == NULL) {
         char * hbuf;
         char * buf;
@@ -1558,9 +1619,11 @@ void set_left_footer(char *s)
         //cout << "sizeof=" << hst.length()+1 << endl;
         strcpy(hbuf,hst.toAscii());
         sprintf(buf, "%s, %s, %s", hbuf, display_name(), get_docname());
-        //   cout << (int)(mainWin->isVisible()) << endl;
-        //   cout << (int)(mainWin->statusBar->isVisible()) << endl;
-        //   cout << buf << endl;
+#ifndef SKF_QtGrace
+        cout << (int)(mainWin->isVisible()) << endl;
+        cout << (int)(mainWin->statusBar->isVisible()) << endl;
+        cout << buf << endl;
+#endif
         mainWin->statusBar->showMessage(QString(buf));
         //mainWin->statusBar->showMessage(QString("HELLOHELLOWIN64"));
         //SetLabel(statlab, buf);

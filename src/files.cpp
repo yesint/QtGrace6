@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
+ *
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
+ *
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2002 Grace Development Team
- * 
+ *
  * Maintained by Evgeny Stambulchik
- * 
+ *
  * Modified by Andreas Winter 2008-2012
- * 
+ *
  *                           All Rights Reserved
- * 
+ *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- * 
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- * 
+ *
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -165,7 +165,7 @@ void save_qtGrace_Additions(FILE * pp)
         get_graph_box(i, &b);
         if (b.active == TRUE)
         {
-        fprintf(pp,"#QTGRACE_ADDITIONAL_PARAMETER: BOX %d ROT %d\n",i,b.rot);
+            fprintf(pp,"#QTGRACE_ADDITIONAL_PARAMETER: BOX %d ROT %d\n",i,b.rot);
         }
     }
     for (i = 0; i < number_of_ellipses(); i++)
@@ -173,14 +173,14 @@ void save_qtGrace_Additions(FILE * pp)
         get_graph_ellipse(i, &e);
         if (e.active == TRUE)
         {
-        fprintf(pp,"#QTGRACE_ADDITIONAL_PARAMETER: ELLIPSE %d ROT %d\n",i,e.rot);
+            fprintf(pp,"#QTGRACE_ADDITIONAL_PARAMETER: ELLIPSE %d ROT %d\n",i,e.rot);
         }
     }
     for (i=0;i<number_of_graphs();i++)
     {
         for (j=0;j<number_of_sets(i);j++)
         {
-        fprintf(pp,"#QTGRACE_ADDITIONAL_PARAMETER: G %d S %d POLYGONEBASESET %d\n",i,j,g[i].p[j].polygone_base_set);
+            fprintf(pp,"#QTGRACE_ADDITIONAL_PARAMETER: G %d S %d POLYGONEBASESET %d\n",i,j,g[i].p[j].polygone_base_set);
         }
     }
     fprintf(pp,"#QTGRACE_ADDITIONAL_PARAMETER: QTFONT_RESET 1\n");
@@ -192,110 +192,110 @@ void save_qtGrace_Additions(FILE * pp)
 
 void parse_qtGrace_Additions(char * s)
 {
-char c='\0';
-int read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: %c",&c);
-int data[3];
-char sdata[128];
-if (read_data>0)
-{
-//cout << "s=#" << s << "# --> read_data=" << read_data << " c=" << c << endl;
-    switch (c)
+    char c='\0';
+    int read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: %c",&c);
+    int data[3];
+    char sdata[128];
+    if (read_data>0)
     {
-    case 'B':
-    read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: BOX %d ROT %d",data,data+1);
-        if (read_data>0)
+        //cout << "s=#" << s << "# --> read_data=" << read_data << " c=" << c << endl;
+        switch (c)
         {
-            if (is_valid_box(data[0]))
-            boxes[data[0]].rot=data[1];
-        }
-    break;
-    case 'E':
-    read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: ELLIPSE %d ROT %d",data,data+1);
-        if (read_data>0)
-        {
-            if (is_valid_ellipse(data[0]))
-            ellip[data[0]].rot=data[1];
-        }
-    break;
-    case 'G':
-    read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: G %d S %d POLYGONEBASESET %d",data,data+1,data+2);
-        if (read_data>0)
-        {
-            if (is_valid_setno(data[0],data[1]))
-            g[data[0]].p[data[1]].polygone_base_set=data[2];
-        }
-    break;
-    case 'Q':
-    read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: QTFONT_RESET %d",data);
-        if (read_data>0)
-        {
-            if (data>0)
-            {
-            stdFontList.clear();
-            }
-        }
-        else
-        {
-        read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: QTFONT \"%s\"",sdata);
+        case 'B':
+            read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: BOX %d ROT %d",data,data+1);
             if (read_data>0)
             {
-            QFont stfont;
-            stfont.fromString(QString(sdata));
-            (void)addFontToDatabase(stfont);
+                if (is_valid_box(data[0]))
+                    boxes[data[0]].rot=data[1];
             }
+            break;
+        case 'E':
+            read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: ELLIPSE %d ROT %d",data,data+1);
+            if (read_data>0)
+            {
+                if (is_valid_ellipse(data[0]))
+                    ellip[data[0]].rot=data[1];
+            }
+            break;
+        case 'G':
+            read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: G %d S %d POLYGONEBASESET %d",data,data+1,data+2);
+            if (read_data>0)
+            {
+                if (is_valid_setno(data[0],data[1]))
+                    g[data[0]].p[data[1]].polygone_base_set=data[2];
+            }
+            break;
+        case 'Q':
+            read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: QTFONT_RESET %d",data);
+            if (read_data>0)
+            {
+                if (data>0)
+                {
+                    stdFontList.clear();
+                }
+            }
+            else
+            {
+                read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: QTFONT \"%s\"",sdata);
+                if (read_data>0)
+                {
+                    QFont stfont;
+                    stfont.fromString(QString(sdata));
+                    (void)addFontToDatabase(stfont);
+                }
+            }
+            break;
         }
-    break;
     }
-}
 }
 
 #ifdef _MSC_VER
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
 
 struct timezone 
 {
-  int  tz_minuteswest; /* minutes W of Greenwich */
-  int  tz_dsttime;     /* type of dst correction */
+    int  tz_minuteswest; /* minutes W of Greenwich */
+    int  tz_dsttime;     /* type of dst correction */
 };
 
 int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-  FILETIME ft;
-  unsigned __int64 tmpres = 0;
-  static int tzflag;
+    FILETIME ft;
+    unsigned __int64 tmpres = 0;
+    static int tzflag;
 
-  if (NULL != tv)
-  {
-    GetSystemTimeAsFileTime(&ft);
-
-    tmpres |= ft.dwHighDateTime;
-    tmpres <<= 32;
-    tmpres |= ft.dwLowDateTime;
-
-    /*converting file time to unix epoch*/
-    tmpres -= DELTA_EPOCH_IN_MICROSECS; 
-    tmpres /= 10;  /*convert into microseconds*/
-    tv->tv_sec = (long)(tmpres / 1000000UL);
-    tv->tv_usec = (long)(tmpres % 1000000UL);
-  }
-
-  if (NULL != tz)
-  {
-    if (!tzflag)
+    if (NULL != tv)
     {
-      _tzset();
-      tzflag++;
-    }
-    tz->tz_minuteswest = _timezone / 60;
-    tz->tz_dsttime = _daylight;
-  }
+        GetSystemTimeAsFileTime(&ft);
 
-  return 0;
+        tmpres |= ft.dwHighDateTime;
+        tmpres <<= 32;
+        tmpres |= ft.dwLowDateTime;
+
+        /*converting file time to unix epoch*/
+        tmpres -= DELTA_EPOCH_IN_MICROSECS;
+        tmpres /= 10;  /*convert into microseconds*/
+        tv->tv_sec = (long)(tmpres / 1000000UL);
+        tv->tv_usec = (long)(tmpres % 1000000UL);
+    }
+
+    if (NULL != tz)
+    {
+        if (!tzflag)
+        {
+            _tzset();
+            tzflag++;
+        }
+        tz->tz_minuteswest = _timezone / 60;
+        tz->tz_dsttime = _daylight;
+    }
+
+    return 0;
 }
 
 
@@ -313,7 +313,7 @@ static int time_spent(void)
     gettimeofday(&now, NULL);
 
     return 1000 * (now.tv_sec - read_begin.tv_sec)
-        + (now.tv_usec - read_begin.tv_usec) / 1000;
+            + (now.tv_usec - read_begin.tv_usec) / 1000;
 }
 
 /*
@@ -373,7 +373,7 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
     }
 
     *adrBuf  = newbuf;
-    *ptrSize = newsize;    
+    *ptrSize = newsize;
 
     return RETURN_SUCCESS;
 }
@@ -398,7 +398,7 @@ static int reopen_real_time_input(Input_buffer *ib)
     }
 
 #ifndef NONE_GUI
-///    xunregister_rti((XtInputId) ib->id);
+    ///    xunregister_rti((XtInputId) ib->id);
 #endif
 
     /* swapping the file descriptors */
@@ -406,7 +406,7 @@ static int reopen_real_time_input(Input_buffer *ib)
     ib->fd = fd;
 
 #ifndef NONE_GUI
-///    xregister_rti(ib);
+    ///    xregister_rti(ib);
 #endif
 
     return RETURN_SUCCESS;
@@ -433,17 +433,17 @@ void unregister_real_time_input(const char *name)
             /* name is usually the same pointer as ib->name so we cannot */
             /* free the string and output the message using name afterwards */
 #ifndef NONE_GUI
-///           xunregister_rti((XtInputId) ib->id);
+            ///           xunregister_rti((XtInputId) ib->id);
 #endif
             close(ib->fd);
             ib->fd = -1;
             xfree(ib->name);
             ib->name = NULL;
-        } else 
-        if (l2 > 0) {
-            /* this descriptor (if not dummy!) is still in use */
-            nb_rt++;
-        }
+        } else
+            if (l2 > 0) {
+                /* this descriptor (if not dummy!) is still in use */
+                nb_rt++;
+            }
     }
 }
 
@@ -463,7 +463,7 @@ int register_real_time_input(int fd, const char *name, int reopen)
         return RETURN_FAILURE;
     }
 
-///#ifdef HAVE_FCNTL
+    ///#ifdef HAVE_FCNTL
 #ifndef WINDOWS_SYSTEM
     if (fcntl(fd, F_GETFL) & O_WRONLY)
     {
@@ -511,7 +511,7 @@ int register_real_time_input(int fd, const char *name, int reopen)
     ib->name   = copy_string(ib->name, name);
     ib->used   = 0;
 #ifndef NONE_GUI
-///    xregister_rti (ib);
+    ///    xregister_rti (ib);
 #endif
 
     nb_rt++;
@@ -534,7 +534,7 @@ static int read_real_time_lines(Input_buffer *ib)
     /* have we enough space to store the characters ? */
     if (available < 2) {
         if (expand_line_buffer(&(ib->buf), &(ib->size), &cursor)
-            != RETURN_SUCCESS) {
+                != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }
         available = ib->buf + ib->size - cursor;
@@ -607,13 +607,13 @@ static int process_complete_lines(Input_buffer *ib)
 #ifndef NONE_GUI
                     /* this prevents from being called recursively by
                        the inner X loop of yesno */
-///                    xunregister_rti((XtInputId) ib->id);
+                    ///                    xunregister_rti((XtInputId) ib->id);
 #endif
                     if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
                         close_input = copy_string(close_input, "");
                     }
 #ifndef NONE_GUI
-///                    xregister_rti(ib);
+                    ///                    xregister_rti(ib);
 #endif
                     ib->errors = 0;
 
@@ -728,7 +728,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
             {
                 /* there is pending input */
                 if (read_real_time_lines(ib) != RETURN_SUCCESS
-                    || process_complete_lines(ib) != RETURN_SUCCESS) {
+                        || process_complete_lines(ib) != RETURN_SUCCESS) {
                     return RETURN_FAILURE;
                 }
 
@@ -798,7 +798,7 @@ static int read_long_line(FILE * fp, char **linebuf, int *buflen)
         /* do we have enough space to store the characters ? */
         if (available < 2) {
             if (expand_line_buffer(linebuf, buflen, &cursor)
-                != RETURN_SUCCESS) {
+                    != RETURN_SUCCESS) {
                 return RETURN_FAILURE;
             }
         }
@@ -838,26 +838,26 @@ FILE *grace_openw(char *fn)
 
     if (!fn || !fn[0]) {
         errmsg("No file name given");
-	return NULL;
+        return NULL;
     } else if (strcmp(fn, "-") == 0 || strcmp(fn, "stdout") == 0) {
         return stdout;
     } else {
         if (stat(fn, &statb) == 0) {
             /* check to make sure this is a file and not a dir */
             if (S_ISREG(statb.st_mode)) {
-	        sprintf(buf, "Overwrite %s?", fn);
-	        if (!yesno(buf, NULL, NULL, NULL)) {
-	            return NULL;
-	        }
+                sprintf(buf, "Overwrite %s?", fn);
+                if (!yesno(buf, NULL, NULL, NULL)) {
+                    return NULL;
+                }
             } else {
                 sprintf(buf, "%s is not a regular file!", fn);
                 errmsg(buf);
-	        return NULL;
+                return NULL;
             }
         }
         retval = filter_write(fn);
         if (!retval) {
-	    sprintf(buf, "Can't write to file %s, check permissions!", fn);
+            sprintf(buf, "Can't write to file %s, check permissions!", fn);
             errmsg(buf);
         }
         return retval;
@@ -870,15 +870,15 @@ char *grace_path(char *fn)
     struct stat statb;
 
     if (fn == NULL) {
-	return NULL;
+        return NULL;
     } else {
         strcpy(buf, fn);
         
-		if(strlen(fn)>2){
-			if(fn[1]==':'){
-			   return fn; //  This is a Windows full path like "c:\abc"
-			}
-		}
+        if(strlen(fn)>2){
+            if(fn[1]==':'){
+                return fn; //  This is a Windows full path like "c:\abc"
+            }
+        }
 
         switch (fn[0]) {
         case '/':
@@ -904,48 +904,48 @@ char *grace_path(char *fn)
         /* if we arrived here, the path is relative */
 
 
-		// The original trick was sprintf(buf,"%s/../%s",qt_grace_exe_dir,fn);
+        // The original trick was sprintf(buf,"%s/../%s",qt_grace_exe_dir,fn);
         // The trick does not work because "stat" does not accept "/../" on Windows
- 		
-		QDir dir_above_bin(qt_grace_exe_dir);  // XXXqtgrace/bin
-		dir_above_bin.cdUp();  // becomes XXXqtgrace/
-		QString qs_dir_above_bin=dir_above_bin.path();
-		qs_dir_above_bin+="/";
-		qs_dir_above_bin+=fn; // Note that "fn" can be  a directory or file or a/b
-		// becomes  XXXqtgrace/a/b 
-		strcpy(buf, qs_dir_above_bin.toAscii());
+
+        QDir dir_above_bin(qt_grace_exe_dir);  // XXXqtgrace/bin
+        dir_above_bin.cdUp();  // becomes XXXqtgrace/
+        QString qs_dir_above_bin=dir_above_bin.path();
+        qs_dir_above_bin+="/";
+        qs_dir_above_bin+=fn; // Note that "fn" can be  a directory or file or a/b
+        // becomes  XXXqtgrace/a/b
+        strcpy(buf, qs_dir_above_bin.toAscii());
 
 
-		if (stat(buf, &statb) == 0) {
-			/* ok, we found it */
-			return buf;
-		}
+        if (stat(buf, &statb) == 0) {
+            /* ok, we found it */
+            return buf;
+        }
         
-	/* second try: in .grace/ in the current dir */
+        /* second try: in .grace/ in the current dir */
         strcpy(buf, ".grace/");
-	strcat(buf, fn);
+        strcat(buf, fn);
         if (stat(buf, &statb) == 0) {
             return buf;
         }
         
-	/* third try: in .grace/ in the $HOME dir */
-	strcpy(buf, get_userhome());
-	strcat(buf, ".grace/");
-	strcat(buf, fn);
+        /* third try: in .grace/ in the $HOME dir */
+        strcpy(buf, get_userhome());
+        strcat(buf, ".grace/");
+        strcat(buf, fn);
         if (stat(buf, &statb) == 0) {
             return buf;
         }
 
-	/* the last attempt: in $GRACE_HOME */
+        /* the last attempt: in $GRACE_HOME */
         strcpy(buf, get_grace_home());
-	strcat(buf, "/");
-	strcat(buf, fn);
+        strcat(buf, "/");
+        strcat(buf, fn);
         if (stat(buf, &statb) == 0) {
             return buf;
         }
         
-	/* giving up... */
-	strcpy(buf, fn);
+        /* giving up... */
+        strcpy(buf, fn);
         return buf;
     }
 }
@@ -960,7 +960,7 @@ char *grace_exe_path(char *fn)
     } else {
         cp = strchr(fn, ' ');
         if (cp == NULL) {
-///return grace_path(fn);
+            ///return grace_path(fn);
             return exe_path_translate(grace_path(fn));
         } else {
             strcpy(buf, fn);
@@ -968,7 +968,7 @@ char *grace_exe_path(char *fn)
             strcpy(buf, grace_path(buf));
             strcat(buf, " ");
             strcat(buf, cp);
-///return buf;
+            ///return buf;
             return exe_path_translate(buf);
         }
     }
@@ -984,87 +984,87 @@ FILE *grace_openr(char *fn2, int src)
 {
     struct stat statb;
     char *tfn;
-static char buf[GR_MAXPATHLEN + 50];
-static char fn[GR_MAXPATHLEN + 50];
-//Qt-stuff for checking file existence
+    static char buf[GR_MAXPATHLEN + 50];
+    static char fn[GR_MAXPATHLEN + 50];
+    //Qt-stuff for checking file existence
     //QString realFileName=FileCodec->toUnicode(fn2);
     //QFile * file1=new QFile(realFileName);
-QFile * file1=new QFile(QString(fn2));
+    QFile * file1=new QFile(QString(fn2));
     bool exists=file1->exists();
-if (exists==true)
-{
-strcpy(fn,fn2);
-}
-else
-{
-strcpy(buf,file1->fileName().toAscii());
-QFile * file2;
-if (strcmp(buf,"gracerc.user")==0)
-{//first: search in dir of executable
-    file2=new QFile(QString(qt_grace_exe_dir)+QDir::separator()+QString(buf));//realFileName);//QString(buf));
-    exists=file2->exists();
-    if (exists==false)
-    {//if not found: search in users home dir
-    delete file2;
-    file2=new QFile(QString(user_home_dir)+QDir::separator()+QString(buf));//realFileName);//QString(buf));
-    exists=file2->exists();
-        if (exists==true)
-        {
-        sprintf(fn,"%s/%s",user_home_dir,buf);
-        }
-    }
-    else//exists==true
-    {//found in dir of executable
-    sprintf(fn,"%s/%s",qt_grace_exe_dir,buf);
-    }
-}
-else
-{
-    file2=new QFile(QString(qt_grace_exe_dir)+QDir::separator()+QString(fn2));
-    exists=file2->exists();
     if (exists==true)
     {
-    sprintf(fn,"%s/%s",qt_grace_exe_dir,fn2);
+        strcpy(fn,fn2);
     }
-}
-    if (exists==false)//nothing found, use original file name and tell users that this did not work
+    else
     {
-    strcpy(fn,fn2);
+        strcpy(buf,file1->fileName().toAscii());
+        QFile * file2;
+        if (strcmp(buf,"gracerc.user")==0)
+        {//first: search in dir of executable
+            file2=new QFile(QString(qt_grace_exe_dir)+QDir::separator()+QString(buf));//realFileName);//QString(buf));
+            exists=file2->exists();
+            if (exists==false)
+            {//if not found: search in users home dir
+                delete file2;
+                file2=new QFile(QString(user_home_dir)+QDir::separator()+QString(buf));//realFileName);//QString(buf));
+                exists=file2->exists();
+                if (exists==true)
+                {
+                    sprintf(fn,"%s/%s",user_home_dir,buf);
+                }
+            }
+            else//exists==true
+            {//found in dir of executable
+                sprintf(fn,"%s/%s",qt_grace_exe_dir,buf);
+            }
+        }
+        else
+        {
+            file2=new QFile(QString(qt_grace_exe_dir)+QDir::separator()+QString(fn2));
+            exists=file2->exists();
+            if (exists==true)
+            {
+                sprintf(fn,"%s/%s",qt_grace_exe_dir,fn2);
+            }
+        }
+        if (exists==false)//nothing found, use original file name and tell users that this did not work
+        {
+            strcpy(fn,fn2);
+        }
+        delete file2;
     }
-    delete file2;
-}
-delete file1;
+    delete file1;
 
     if (!fn || !fn[0]) {
         errmsg("No file name given");
-	return NULL;
+        return NULL;
     }
     switch (src) {
     case SOURCE_DISK:
         tfn = grace_path(fn);
-	if (strcmp(tfn, "-") == 0 || strcmp(tfn, "stdin") == 0) {
+        if (strcmp(tfn, "-") == 0 || strcmp(tfn, "stdin") == 0) {
             return stdin;
-	} else if (stat(tfn, &statb)) {
+        } else if (stat(tfn, &statb)) {
             sprintf(buf, "Can't stat file %s", tfn);
             errmsg(buf);
-	    return NULL;
-	/* check to make sure this is a file and not a dir */
-	} else if (!S_ISREG(statb.st_mode)) {
+            return NULL;
+            /* check to make sure this is a file and not a dir */
+        } else if (!S_ISREG(statb.st_mode)) {
             sprintf(buf, "%s is not a regular file", tfn);
             errmsg(buf);
-	    return NULL;
+            return NULL;
         } else {
-	    return filter_read(tfn);
+            return filter_read(tfn);
             ///return 0;
-	}
+        }
         break;
     case SOURCE_PIPE:
         tfn = grace_exe_path(fn);
-	return popen(tfn, "r");
-	break;
+        return popen(tfn, "r");
+        break;
     default:
         errmsg("Wrong call to grace_openr()");
-	return NULL;
+        return NULL;
     }
 }
 
@@ -1090,9 +1090,9 @@ int getparms(char *plfile)
     FILE *pp=grace_openr(plfile, SOURCE_DISK);
 
     if (pp==NULL) {
-    char dummy[1024];
-    sprintf(dummy,"%s/%s",qt_grace_exe_dir,plfile);
-    pp=grace_openr(dummy, SOURCE_DISK);
+        char dummy[1024];
+        sprintf(dummy,"%s/%s",qt_grace_exe_dir,plfile);
+        pp=grace_openr(dummy, SOURCE_DISK);
     }
 
     if (pp== NULL) {
@@ -1108,7 +1108,7 @@ int getparms(char *plfile)
                 if (errcnt > MAXERR) {
                     if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
                         grace_close(pp);
-		        xfree(linebuf);
+                        xfree(linebuf);
                         return 0;
                     } else {
                         errcnt = 0;
@@ -1149,13 +1149,13 @@ static int uniread(FILE *fp, int load_type, char *label)
 
     while (read_long_line(fp, &linebuf, &linelen) == RETURN_SUCCESS)
     {
-	linecount++;
+        linecount++;
         s = linebuf;
         while (*s == ' ' || *s == '\t' || *s == '\n')
         {
             s++;
         }
-	/* skip comments */
+        /* skip comments */
         if (*s == '#') {
             parse_qtGrace_Additions(s);
             continue;
@@ -1168,23 +1168,23 @@ static int uniread(FILE *fp, int load_type, char *label)
         /*   command     end-of-set      EOL   */
         if (*s == '@' || *s == '&' || *s == '\0')
         {
-	    /* a data break line */
+            /* a data break line */
             if (breakon != TRUE)
             {
-		/* free excessive storage */
+                /* free excessive storage */
                 realloc_ss_data(&ssd, nrows);
 
                 new_set_no=0;
                 if (new_set_nos!=NULL)
                 {
-                delete[] new_set_nos;
-                new_set_nos=NULL;
+                    delete[] new_set_nos;
+                    new_set_nos=NULL;
                 }
 
                 /* store accumulated data in set(s) */
                 if (store_data(&ssd, load_type, label) != RETURN_SUCCESS)
                 {
-		    xfree(linebuf);
+                    xfree(linebuf);
                     return RETURN_FAILURE;
                 }
                 
@@ -1199,20 +1199,20 @@ static int uniread(FILE *fp, int load_type, char *label)
             {
                 /*int retval = */scanner(s + 1);
                 /*cout << "s=" << s << " | " << retval << endl;*/
-	        continue;
+                continue;
             }
         }
         else
         {
             if (breakon)
             {
-		/* parse the data line */
+                /* parse the data line */
                 XCFREE(formats);
                 if (parse_ss_row(s, &nncols, &nscols, &formats) != RETURN_SUCCESS)
                 {
-		    errmsg("Can't parse data");
-		    xfree(linebuf);
-		    return RETURN_FAILURE;
+                    errmsg("Can't parse data");
+                    xfree(linebuf);
+                    return RETURN_FAILURE;
                 }
                 
                 if (load_type == LOAD_SINGLE)
@@ -1229,9 +1229,9 @@ static int uniread(FILE *fp, int load_type, char *label)
                     }
                     else
                     {
-		        errmsg("Column count incorrect");
-		        xfree(linebuf);
-		        return RETURN_FAILURE;
+                        errmsg("Column count incorrect");
+                        xfree(linebuf);
+                        return RETURN_FAILURE;
                     }
                 }
 
@@ -1240,13 +1240,13 @@ static int uniread(FILE *fp, int load_type, char *label)
                 /* init the data storage */
                 if (init_ss_data(&ssd, ncols, formats) != RETURN_SUCCESS)
                 {
-		    errmsg("Malloc failed in uniread()");
-		    xfree(linebuf);
-		    return RETURN_FAILURE;
+                    errmsg("Malloc failed in uniread()");
+                    xfree(linebuf);
+                    return RETURN_FAILURE;
                 }
                 
-		breakon = FALSE;
-	    }
+                breakon = FALSE;
+            }
             if (nrows % BUFSIZE == 0)
             {
                 if (realloc_ss_data(&ssd, nrows + BUFSIZE) != RETURN_SUCCESS)
@@ -1255,8 +1255,8 @@ static int uniread(FILE *fp, int load_type, char *label)
                     free_ss_data(&ssd);
                     xfree(linebuf);
                     return RETURN_FAILURE;
-		}
-	    }
+                }
+            }
 
             if (insert_data_row(&ssd, nrows, s) != RETURN_SUCCESS)
             {
@@ -1279,9 +1279,9 @@ static int uniread(FILE *fp, int load_type, char *label)
             }
             else
             {
-	        nrows++;
+                nrows++;
             }
-	}
+        }
     }
 
     if (nrows > 0)
@@ -1292,15 +1292,15 @@ static int uniread(FILE *fp, int load_type, char *label)
         new_set_no=0;
         if (new_set_nos!=NULL)
         {
-        delete[] new_set_nos;
-        new_set_nos=NULL;
+            delete[] new_set_nos;
+            new_set_nos=NULL;
         }
 
         /* store accumulated data in set(s) */
         if (store_data(&ssd, load_type, label) != RETURN_SUCCESS)
         {
-	    xfree(linebuf);
-	    return RETURN_FAILURE;
+            xfree(linebuf);
+            return RETURN_FAILURE;
         }
 
         append_to_storage(&nr_count,&maj_new_nrs,new_set_no,new_set_nos);
@@ -1324,28 +1324,28 @@ int getdata(int gno, char *fn, int src, int load_type)
     int save_version, cur_version;
     char fn2[1024];
 #ifdef WINDOWS_SYSTEM
-int p,p2=0;
-for (p=0;p<=strlen(fn);p++)
-{
-    if (fn[p]=='\\')
+    int p,p2=0;
+    for (p=0;p<=strlen(fn);p++)
     {
-        fn2[p2]=fn[p];
-        p2++;
-        fn2[p2]=fn[p];
-        p2++;
+        if (fn[p]=='\\')
+        {
+            fn2[p2]=fn[p];
+            p2++;
+            fn2[p2]=fn[p];
+            p2++;
+        }
+        else
+        {
+            fn2[p2]=fn[p];
+            p2++;
+        }
     }
-    else
-    {
-    fn2[p2]=fn[p];
-    p2++;
-    }
-}
 #else
-strcpy(fn2,fn);
+    strcpy(fn2,fn);
 #endif
     fp = grace_openr(fn2, src);
     if (fp == NULL) {
-	return RETURN_FAILURE;
+        return RETURN_FAILURE;
     }
     
     save_version = get_project_version();
@@ -1400,10 +1400,10 @@ void outputset(int gno, int setno, char *fname, char *dformat)
     FILE *cp;
     
     if ((cp = grace_openw(fname)) == NULL) {
-	return;
+        return;
     } else {
         write_set(gno, setno, cp, dformat, TRUE);
-	grace_close(cp);
+        grace_close(cp);
     }
 }
 
@@ -1419,7 +1419,7 @@ int load_project_file(char *fn, int as_n_template)
     if (wipeout()) {
         exchange_point_comma=old_dec_sep;
         reset_default_states();
-	return RETURN_FAILURE;
+        return RETURN_FAILURE;
     } else {
         if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
             if (as_n_template == FALSE) {
@@ -1429,7 +1429,7 @@ int load_project_file(char *fn, int as_n_template)
             clear_dirtystate();
             retval = RETURN_SUCCESS;
         } else {
- 	    retval = RETURN_FAILURE;
+            retval = RETURN_FAILURE;
         }
 
         /* try to switch to the first active graph */
@@ -1440,10 +1440,10 @@ int load_project_file(char *fn, int as_n_template)
             }
         }
 
-///#ifndef NONE_GUI
+        ///#ifndef NONE_GUI
         ReqUpdateColorSel = TRUE;
         update_all();
-///#endif
+        ///#endif
         exchange_point_comma=old_dec_sep;
 
         reset_default_states();
@@ -1468,9 +1468,15 @@ int new_project(char *n_template)
     char *s;
     char dummy[1024];
     if (n_template == NULL || n_template[0] == '\0') {
-    sprintf(dummy,"%s/Default.agr",qt_grace_exe_dir);
-    retval = load_project_file(dummy, TRUE);
-///        retval = load_project_file("n_templates/Default.agr", TRUE);
+
+#ifdef SKF_QtGrace
+        sprintf(dummy,"%s/DefaultBEAST.agr",qt_grace_exe_dir);
+#else
+        sprintf(dummy,"%s/Default.agr",qt_grace_exe_dir);
+#endif
+
+        retval = load_project_file(dummy, TRUE);
+        ///        retval = load_project_file("n_templates/Default.agr", TRUE);
     } else if (n_template[0] == '/') {
         retval = load_project_file(n_template, TRUE);
     } else {
@@ -1506,7 +1512,7 @@ int save_project(char *fn)
     
     if ((cp = grace_openw(fn)) == NULL) {
         noask = noask_save;
-	return RETURN_FAILURE;
+        return RETURN_FAILURE;
     }
     
     putparms(-1, cp, TRUE);
@@ -1542,7 +1548,7 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
     char **s;
 
     if (cp == NULL) {
-	return RETURN_FAILURE;
+        return RETURN_FAILURE;
     }
     
     if (is_set_active(gno, setno) == TRUE) {
@@ -1595,13 +1601,13 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
  *
  */
 int readnetcdf(int gno,
-	       int setno,
-	       char *netcdfname,
-	       char *xvar,
-	       char *yvar,
-	       int nstart,
-	       int nstop,
-	       int nstride)
+               int setno,
+               char *netcdfname,
+               char *xvar,
+               char *yvar,
+               int nstart,
+               int nstop,
+               int nstride)
 {
     int cdfid;			/* netCDF id */
     int i, n;
@@ -1626,164 +1632,164 @@ int readnetcdf(int gno,
 
     ncopts = 0;			/* no crash on error */
 
-/*
+    /*
  * get a set if on entry setno == -1, if setno=-1, then fail
  */
     if (setno == -1) {
-	if ((setno = nextset(gno)) == -1) {
-	    return 0;
-	}
+        if ((setno = nextset(gno)) == -1) {
+            return 0;
+        }
     } else {
-	if (is_set_active(gno, setno)) {
-	    killset(gno, setno);
-	}
+        if (is_set_active(gno, setno)) {
+            killset(gno, setno);
+        }
     }
-/*
+    /*
  * open the netcdf file and locate the variable to read
  */
     if ((cdfid = ncopen(netcdfname, NC_NOWRITE)) == -1) {
-	errmsg("Can't open file.");
-	return 0;
+        errmsg("Can't open file.");
+        return 0;
     }
     if (xvar != NULL) {
-	if ((x_id = ncvarid(cdfid, xvar)) == -1) {
-	    char ebuf[256];
-	    sprintf(ebuf, "readnetcdf(): No such variable %s for X", xvar);
-	    errmsg(ebuf);
-	    return 0;
-	}
-	ncvarinq(cdfid, x_id, NULL, &xdatatype, &xndims, xdim, &xnatts);
-	ncdiminq(cdfid, xdim[0], NULL, &nx);
-	if (xndims != 1) {
-	    errmsg("Number of dimensions for X must be 1.");
-	    return 0;
-	}
+        if ((x_id = ncvarid(cdfid, xvar)) == -1) {
+            char ebuf[256];
+            sprintf(ebuf, "readnetcdf(): No such variable %s for X", xvar);
+            errmsg(ebuf);
+            return 0;
+        }
+        ncvarinq(cdfid, x_id, NULL, &xdatatype, &xndims, xdim, &xnatts);
+        ncdiminq(cdfid, xdim[0], NULL, &nx);
+        if (xndims != 1) {
+            errmsg("Number of dimensions for X must be 1.");
+            return 0;
+        }
     }
     if ((y_id = ncvarid(cdfid, yvar)) == -1) {
-	char ebuf[256];
-	sprintf(ebuf, "readnetcdf(): No such variable %s for Y", yvar);
-	errmsg(ebuf);
-	return 0;
+        char ebuf[256];
+        sprintf(ebuf, "readnetcdf(): No such variable %s for Y", yvar);
+        errmsg(ebuf);
+        return 0;
     }
     ncvarinq(cdfid, y_id, NULL, &ydatatype, &yndims, ydim, &ynatts);
     ncdiminq(cdfid, ydim[0], NULL, &ny);
     if (yndims != 1) {
-	errmsg("Number of dimensions for Y must be 1.");
-	return 0;
+        errmsg("Number of dimensions for Y must be 1.");
+        return 0;
     }
     if (xvar != NULL) {
-	n = nx < ny ? nx : ny;
+        n = nx < ny ? nx : ny;
     } else {
-	n = ny;
+        n = ny;
     }
     if (n <= 0) {
-	errmsg("Length of dimension == 0.");
-	return 0;
+        errmsg("Length of dimension == 0.");
+        return 0;
     }
-/*
+    /*
  * allocate for this set
  */
     x = xcalloc(n, SIZEOF_DOUBLE);
     y = xcalloc(n, SIZEOF_DOUBLE);
     if (x == NULL || y == NULL) {
-	XCFREE(x);
-	XCFREE(y);
-	ncclose(cdfid);
-	return 0;
+        XCFREE(x);
+        XCFREE(y);
+        ncclose(cdfid);
+        return 0;
     }
     start[0] = 0;
     count[0] = n;		/* This will retrieve whole file, modify
-				 * these values to get subset. This will only
-				 * work for single-dimension vars.  You need
-				 * to add dims to start & count for
-				 * multi-dimensional. */
+                 * these values to get subset. This will only
+                 * work for single-dimension vars.  You need
+                 * to add dims to start & count for
+                 * multi-dimensional. */
 
-/*
+    /*
  * read the variables from the netcdf file
  */
     if (xvar != NULL) {
-/* TODO should check for other data types here */
-/* TODO should check for NULL on the xcallocs() */
-/* TODO making assumptions about the sizes of shorts and longs */
-	switch (xdatatype) {
-	case NC_SHORT:
-	    xs = xcalloc(n, SIZEOF_SHORT);
-	    ncvarget(cdfid, x_id, start, count, (void *) xs);
-	    for (i = 0; i < n; i++) {
-		x[i] = xs[i];
-	    }
-	    xfree(xs);
-	    break;
-	case NC_LONG:
-	    xl = xcalloc(n, SIZEOF_LONG);
-	    ncvarget(cdfid, x_id, start, count, (void *) xl);
-	    for (i = 0; i < n; i++) {
-		x[i] = xl[i];
-	    }
-	    xfree(xl);
-	    break;
-	case NC_FLOAT:
-	    xf = xcalloc(n, SIZEOF_FLOAT);
-	    ncvarget(cdfid, x_id, start, count, (void *) xf);
-	    for (i = 0; i < n; i++) {
-		x[i] = xf[i];
-	    }
-	    xfree(xf);
-	    break;
-	case NC_DOUBLE:
-	    ncvarget(cdfid, x_id, start, count, (void *) x);
-	    break;
-	default:
-	    errmsg("Data type not supported");
-	    XCFREE(x);
-	    XCFREE(y);
-	    ncclose(cdfid);
-	    return 0;
-	    break;
-	}
+        /* TODO should check for other data types here */
+        /* TODO should check for NULL on the xcallocs() */
+        /* TODO making assumptions about the sizes of shorts and longs */
+        switch (xdatatype) {
+        case NC_SHORT:
+            xs = xcalloc(n, SIZEOF_SHORT);
+            ncvarget(cdfid, x_id, start, count, (void *) xs);
+            for (i = 0; i < n; i++) {
+                x[i] = xs[i];
+            }
+            xfree(xs);
+            break;
+        case NC_LONG:
+            xl = xcalloc(n, SIZEOF_LONG);
+            ncvarget(cdfid, x_id, start, count, (void *) xl);
+            for (i = 0; i < n; i++) {
+                x[i] = xl[i];
+            }
+            xfree(xl);
+            break;
+        case NC_FLOAT:
+            xf = xcalloc(n, SIZEOF_FLOAT);
+            ncvarget(cdfid, x_id, start, count, (void *) xf);
+            for (i = 0; i < n; i++) {
+                x[i] = xf[i];
+            }
+            xfree(xf);
+            break;
+        case NC_DOUBLE:
+            ncvarget(cdfid, x_id, start, count, (void *) x);
+            break;
+        default:
+            errmsg("Data type not supported");
+            XCFREE(x);
+            XCFREE(y);
+            ncclose(cdfid);
+            return 0;
+            break;
+        }
     } else {			/* just load index */
-	for (i = 0; i < n; i++) {
-	    x[i] = i + 1;
-	}
+        for (i = 0; i < n; i++) {
+            x[i] = i + 1;
+        }
     }
     switch (ydatatype) {
     case NC_SHORT:
-	ys = xcalloc(n, SIZEOF_SHORT);
-	ncvarget(cdfid, y_id, start, count, (void *) ys);
-	for (i = 0; i < n; i++) {
-	    y[i] = ys[i];
-	}
-	break;
+        ys = xcalloc(n, SIZEOF_SHORT);
+        ncvarget(cdfid, y_id, start, count, (void *) ys);
+        for (i = 0; i < n; i++) {
+            y[i] = ys[i];
+        }
+        break;
     case NC_LONG:
-	yl = xcalloc(n, SIZEOF_LONG);
-	ncvarget(cdfid, y_id, start, count, (void *) yl);
-	for (i = 0; i < n; i++) {
-	    y[i] = yl[i];
-	}
-	break;
+        yl = xcalloc(n, SIZEOF_LONG);
+        ncvarget(cdfid, y_id, start, count, (void *) yl);
+        for (i = 0; i < n; i++) {
+            y[i] = yl[i];
+        }
+        break;
     case NC_FLOAT:
-/* TODO should check for NULL here */
-	yf = xcalloc(n, SIZEOF_FLOAT);
-	ncvarget(cdfid, y_id, start, count, (void *) yf);
-	for (i = 0; i < n; i++) {
-	    y[i] = yf[i];
-	}
-	xfree(yf);
-	break;
+        /* TODO should check for NULL here */
+        yf = xcalloc(n, SIZEOF_FLOAT);
+        ncvarget(cdfid, y_id, start, count, (void *) yf);
+        for (i = 0; i < n; i++) {
+            y[i] = yf[i];
+        }
+        xfree(yf);
+        break;
     case NC_DOUBLE:
-	ncvarget(cdfid, y_id, start, count, (void *) y);
-	break;
+        ncvarget(cdfid, y_id, start, count, (void *) y);
+        break;
     default:
-	errmsg("Data type not supported");
-	XCFREE(x);
-	XCFREE(y);
-	ncclose(cdfid);
-	return 0;
-	break;
+        errmsg("Data type not supported");
+        XCFREE(x);
+        XCFREE(y);
+        ncclose(cdfid);
+        return 0;
+        break;
     }
     ncclose(cdfid);
 
-/*
+    /*
  * initialize stuff for the newly created set
  */
     activateset(gno, setno);
@@ -1815,58 +1821,58 @@ int write_netcdf(char *fname)
     ncid = nccreate(fname, NC_CLOBBER);
     ncattput(ncid, NC_GLOBAL, "Contents", NC_CHAR, 11, (void *) "grace sets");
     for (i = 0; i < number_of_graphs(); i++) {
-	if (is_graph_active(i)) {
-	    for (j = 0; j < number_of_sets(i); j++) {
-		if (is_set_active(i, j)) {
-		    char s[64];
+        if (is_graph_active(i)) {
+            for (j = 0; j < number_of_sets(i); j++) {
+                if (is_set_active(i, j)) {
+                    char s[64];
 
-		    sprintf(buf, "g%d_s%d_comment", i, j);
-		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR,
-		    strlen(getcomment(i, j)), (void *) getcomment(i, j));
+                    sprintf(buf, "g%d_s%d_comment", i, j);
+                    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR,
+                             strlen(getcomment(i, j)), (void *) getcomment(i, j));
 
-		    sprintf(buf, "g%d_s%d_type", i, j);
-		    strcpy(s, set_types(dataset_type(i, j)));
-		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR, strlen(s), (void *) s);
+                    sprintf(buf, "g%d_s%d_type", i, j);
+                    strcpy(s, set_types(dataset_type(i, j)));
+                    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR, strlen(s), (void *) s);
 
-		    sprintf(buf, "g%d_s%d_n", i, j);
-		    n_dim = ncdimdef(ncid, buf, getsetlength(i, j));
-		    dims[0] = n_dim;
-		    getsetminmax(i, j, &x1, &x2, &y1, &y2);
-		    sprintf(buf, "g%d_s%d_x", i, j);
-		    x_id = ncvardef(ncid, buf, NC_DOUBLE, 1, dims);
-		    ncattput(ncid, x_id, "min", NC_DOUBLE, 1, (void *) &x1);
-		    ncattput(ncid, x_id, "max", NC_DOUBLE, 1, (void *) &x2);
-		    dims[0] = n_dim;
-		    sprintf(buf, "g%d_s%d_y", i, j);
-		    y_id = ncvardef(ncid, buf, NC_DOUBLE, 1, dims);
-		    ncattput(ncid, y_id, "min", NC_DOUBLE, 1, (void *) &y1);
-		    ncattput(ncid, y_id, "max", NC_DOUBLE, 1, (void *) &y2);
-		}
-	    }
-	}
+                    sprintf(buf, "g%d_s%d_n", i, j);
+                    n_dim = ncdimdef(ncid, buf, getsetlength(i, j));
+                    dims[0] = n_dim;
+                    getsetminmax(i, j, &x1, &x2, &y1, &y2);
+                    sprintf(buf, "g%d_s%d_x", i, j);
+                    x_id = ncvardef(ncid, buf, NC_DOUBLE, 1, dims);
+                    ncattput(ncid, x_id, "min", NC_DOUBLE, 1, (void *) &x1);
+                    ncattput(ncid, x_id, "max", NC_DOUBLE, 1, (void *) &x2);
+                    dims[0] = n_dim;
+                    sprintf(buf, "g%d_s%d_y", i, j);
+                    y_id = ncvardef(ncid, buf, NC_DOUBLE, 1, dims);
+                    ncattput(ncid, y_id, "min", NC_DOUBLE, 1, (void *) &y1);
+                    ncattput(ncid, y_id, "max", NC_DOUBLE, 1, (void *) &y2);
+                }
+            }
+        }
     }
     ncendef(ncid);
     ncclose(ncid);
     if ((ncid = ncopen(fname, NC_WRITE)) == -1) {
-	errmsg("Can't open file.");
-	return 1;
+        errmsg("Can't open file.");
+        return 1;
     }
     for (i = 0; i < number_of_graphs(); i++) {
-	if (is_graph_active(i)) {
-	    for (j = 0; j < number_of_sets(i); j++) {
-		if (is_set_active(i, j)) {
-		    len[0] = getsetlength(i, j);
-		    x = getx(i, j);
-		    y = gety(i, j);
-		    sprintf(buf, "g%d_s%d_x", i, j);
-		    x_id = ncvarid(ncid, buf);
-		    sprintf(buf, "g%d_s%d_y", i, j);
-		    y_id = ncvarid(ncid, buf);
-		    ncvarput(ncid, x_id, &it, len, (void *) x);
-		    ncvarput(ncid, y_id, &it, len, (void *) y);
-		}
-	    }
-	}
+        if (is_graph_active(i)) {
+            for (j = 0; j < number_of_sets(i); j++) {
+                if (is_set_active(i, j)) {
+                    len[0] = getsetlength(i, j);
+                    x = getx(i, j);
+                    y = gety(i, j);
+                    sprintf(buf, "g%d_s%d_x", i, j);
+                    x_id = ncvarid(ncid, buf);
+                    sprintf(buf, "g%d_s%d_y", i, j);
+                    y_id = ncvarid(ncid, buf);
+                    ncvarput(ncid, x_id, &it, len, (void *) x);
+                    ncvarput(ncid, y_id, &it, len, (void *) y);
+                }
+            }
+        }
     }
 
     ncclose(ncid);
