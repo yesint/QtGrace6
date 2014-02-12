@@ -87,6 +87,8 @@ public:
 
 #ifdef SKF_QtGrace
     LocalSocketIpcServer *SocketConnection;
+	// The font used by application before any setting was applied
+    QFont * originalSystemFont;
 #endif
 
     int windowWidth,windowHeight;
@@ -124,8 +126,10 @@ public:
     QMenu * mnuPlot;
     QMenu * mnuView;
     QMenu * mnuWindow;
+	QMenu * mnuOptions;
     QMenu * mnuHelp;
     QMenu * mnuExample;
+
 
     QPushButton * cmdDraw;
     QPushButton * cmdZoom,*cmdAutoScale;
@@ -158,7 +162,7 @@ public:
     QAction *actHelpOnContext,*actHelpUsersGuide,*actHelpTutorial,*actHelpFAQ,*actHelpChanges,*actHelpComments,*actHelpLicense,*actHelpAbout;
 
 #ifdef SKF_QtGrace
-        QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll,*actFontSize;
+        QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll,*actFontSize,*actConfigureFont,*actResetToSystemFont;
 #else
         QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll;
 #endif
@@ -243,6 +247,10 @@ public slots:
     void ShowToolBar(void);
     void PageSetup(void);
     void FontSettings(void);
+	void ConfigureFontDlg(void);
+	void ResetToSystemFont(void);
+	void SaveFontConfiguration(QFont font);
+	void ReadFontConfiguration(void);
     void Redraw(void);
     void UpdateAll(void);
     void Commands(void);

@@ -847,8 +847,10 @@ void register_qt_devices(void)
 
 frmEditColumnProp::frmEditColumnProp(QWidget * parent):QDialog(parent)
 {
-    setFont(stdFont);
-    setWindowTitle(tr("qtGrace: Edit set properties"));
+	#ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	setWindowTitle(tr("qtGrace: Edit set properties"));
     setWindowIcon(QIcon(*GraceIcon));
     int number;
     QString entr[35];
@@ -913,7 +915,10 @@ void frmEditColumnProp::initToColumn(int i)
 
 frmSpreadSheet::frmSpreadSheet(QWidget * parent,int g_no,int s_no):QDialog(parent)
 {
-    setFont(stdFont);
+   #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
     setWindowTitle(tr("qtGrace: Spreadsheet dataset editor"));
     setWindowIcon(QIcon(*GraceIcon));
     CreateActions();
@@ -1358,7 +1363,10 @@ void frmSpreadSheet::doCopySelected(void)
 
 frmSpreadSheet2::frmSpreadSheet2(QWidget * parent):QDialog(parent)
 {
-    setFont(stdFont);
+   #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
     setWindowTitle(tr("qtGrace: Spreadsheet dataset editor"));
     setWindowIcon(QIcon(*GraceIcon));
     number_of_rows=50;//visible rows --> this should be enough...
@@ -1548,7 +1556,7 @@ void myTableWidget::keyReleaseEvent(QKeyEvent * event)
 frmSpreadSheet3::frmSpreadSheet3(QWidget * parent):QDialog(parent)
 {
     working=false;
-    setFont(stdFont);
+    //setFont(stdFont);
     setWindowTitle(tr("qtGrace: Spreadsheet dataset editor"));
     setWindowIcon(QIcon(*GraceIcon));
 
@@ -2779,7 +2787,7 @@ void frmLine_Props::update4(double v)
 
 frmLineProps::frmLineProps(QWidget * parent,bool edit):QDialog(parent)
 {
-    setFont(stdFont);
+ //   setFont(stdFont);
     if (edit)
         setWindowTitle(tr("Edit Line"));
     else
@@ -3356,7 +3364,10 @@ void frmEllipse_Props::update4(double v)
 
 frmEllipseProps::frmEllipseProps(QWidget * parent,bool edit,bool ellip):QDialog(parent)
 {
-    setFont(stdFont);
+   #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
     if (edit)
     {
         if (ellip)
@@ -3401,7 +3412,7 @@ frmPointExplorer::frmPointExplorer(QWidget * parent):QDialog(parent)
 {
     int minwidth=72;
     track_setno=-1;
-    setFont(stdFont);
+  //  setFont(stdFont);
     setWindowTitle(tr("qtGrace: Point explorer"));
     setWindowIcon(QIcon(*GraceIcon));
 
@@ -4000,7 +4011,7 @@ void frmText_Props::update4(double v)
 
 frmTextProps::frmTextProps(QWidget * parent,bool edit):QDialog(parent)
 {
-    setFont(stdFont);
+ //   setFont(stdFont);
     if (edit)
         setWindowTitle(tr("Edit String"));
     else
@@ -4032,7 +4043,10 @@ void frmTextProps::doClose(void)
 
 frmDrawObjects::frmDrawObjects(QWidget * parent):QDialog(parent)
 {
-    setFont(stdFont);
+   #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
     setWindowTitle(tr("qtGrace: Objects"));
     setWindowIcon(QIcon(*GraceIcon));
     cmdText=new QPushButton(tr("Text"));
@@ -4540,7 +4554,7 @@ void frmPlot_Appearance::init(void)
 
 frmPlotAppearance::frmPlotAppearance(QWidget * parent):QDialog(parent)
 {
-    setFont(stdFont);
+  //  setFont(stdFont);
     setWindowTitle(tr("qtGrace: Plot appearance"));
     setWindowIcon(QIcon(*GraceIcon));
 
@@ -4580,7 +4594,7 @@ frmLocatorProps::frmLocatorProps(QWidget * parent):QDialog(parent)
     QString * entr=new QString[33];
     char dummy[10];
 
-    setFont(stdFont);
+  //  setFont(stdFont);
     setWindowTitle(tr("qtGrace: Locator properties"));
     setWindowIcon(QIcon(*GraceIcon));
 
@@ -4787,7 +4801,10 @@ void frmLocatorProps::update_locator_items(int gno)
 
 frmConsole::frmConsole(QWidget * parent):QDialog(parent)
 {
-    setFont(stdFont);
+   #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
     setWindowTitle(tr("qtGrace: Console"));
     setWindowIcon(QIcon(*GraceIcon));
     CreateActions();
@@ -4919,7 +4936,7 @@ frmSetOp::frmSetOp(QWidget * parent):QDialog(parent)
     int number;
     QString entr[6];
 
-    setFont(stdFont);
+  //  setFont(stdFont);
     setWindowTitle(tr("qtGrace: Data set operations"));
     setWindowIcon(QIcon(*GraceIcon));
     CreateActions();
@@ -5233,7 +5250,10 @@ void frmSetOp::doHelpOnSetOp(void)
 
 frmCommands::frmCommands(QWidget * parent):QDialog(parent)
 {
-    setFont(stdFont);
+   #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
     setWindowTitle(tr("qtGrace: Commands"));
     setWindowIcon(QIcon(*GraceIcon));
 
@@ -5564,7 +5584,10 @@ frmDeviceOptions::frmDeviceOptions(int device,QWidget * parent):QDialog(parent)
     QString entr[5];
 
     Device=device;
-    setFont(stdFont);
+   #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
     setWindowIcon(QIcon(*GraceIcon));
 
     grpPSoptions=new QGroupBox(tr("PS options"),this);
@@ -5931,7 +5954,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
     int number;
     QString entr[13];
     int i_entr[13];
-    setFont(stdFont);
+  //  setFont(stdFont);
 
 #ifdef SKF_QtGrace
     //2013-07-03 Change window title for the new dialogs- Nimal Kailasanathan
@@ -7330,7 +7353,10 @@ void frmDeviceSetup::doDevOpt(void)
     {
         int number;
         QString entr[6>nr_of_translations?6:nr_of_translations];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Preferences"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -7839,7 +7865,10 @@ spread3->table->update();*/
 
     frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Arrange Graphs"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -8051,7 +8080,10 @@ spread3->table->update();*/
     {
         int number=5;
         QString entr[5];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Overlay Graphs"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -8173,7 +8205,10 @@ spread3->table->update();*/
     {
         int number=4;
         QString entr[4];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Autoscale Graphs"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -8299,7 +8334,10 @@ spread3->table->update();*/
         int number;
         char dummy[128];
         QString entr[50];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Data set properties"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -8710,7 +8748,10 @@ spread3->table->update();*/
     {
         int number;
         QString entr[5];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Set operations"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -8946,7 +8987,10 @@ spread3->table->update();*/
     {
         int number;
         QString entr[32];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Feature extraction"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -9598,7 +9642,10 @@ spread3->table->update();*/
 
     frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: About"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -9751,7 +9798,10 @@ lblInfo[19]=new QLabel(QString(buf),grpBuildInfo);
         int number2,offset=0,offset2=0;
         QString entr2[32];
         char dummy[32];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
 
         grpRead=new QGroupBox(QString(""),this);
@@ -10732,7 +10782,10 @@ end_fromIOFormOK:
     frmFontTool::frmFontTool(QWidget * parent):QDialog(parent)
     {
         //0x152f   = 338 * 16 = 5423
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Font tool"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -10956,7 +11009,10 @@ end_fromIOFormOK:
     {
         int number;
         QString entr[7];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
         setWindowTitle(tr("qtGrace: Fourier transforms"));
 
@@ -11368,7 +11424,10 @@ end_fromIOFormOK:
         char dummy[128];
         QString entr[9];
         int values[9];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
         setWindowTitle(tr("qtGrace: Filters"));
 
@@ -12083,7 +12142,10 @@ end_fromIOFormOK:
     {
         int number;
         QString entr[2];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
         setWindowTitle(tr("qtGrace: Hot links"));
         lblLinkSet=new QLabel(tr("Link set:"),this);
@@ -12398,7 +12460,10 @@ cout << "readable=" << readable << endl;*/
         char dummy[16];
         int number;
         QString entr[MAXREGION>12?MAXREGION+2:12];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
         setWindowTitle(tr(""));
         windowtype=type;
@@ -12585,7 +12650,10 @@ cout << "readable=" << readable << endl;*/
         int number;
         QString entr[NUMBER_OF_SETTYPES>20?NUMBER_OF_SETTYPES:20];
         QString ending=tr(" from column:");
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
         setWindowTitle(tr("qtGrace: Edit block data"));
 
@@ -12875,7 +12943,10 @@ cout << "readable=" << readable << endl;*/
         entr[3]=QString("Y2 =");
         entr[4]=QString("Y3 =");
         entr[5]=QString("Y4 =");
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Load & evaluate"));
         setWindowIcon(QIcon(*GraceIcon));
         grpParameterMesh=new QGroupBox(tr("Parameter mesh ($t)"),this);
@@ -13084,7 +13155,10 @@ cout << "readable=" << readable << endl;*/
 
     grpSelect::grpSelect(QString title,QWidget *parent):QGroupBox( parent )
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         titleString=title;
         setTitle(title);
 
@@ -13142,7 +13216,10 @@ cout << "readable=" << readable << endl;*/
 
     frmEvalExpr::frmEvalExpr(MainWindow * parWind,QWidget *parent):QDialog( parent )
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
         parentWindow=parWind;
         setWindowTitle(tr("qtGrace: evaluateExpression"));
@@ -13525,7 +13602,10 @@ cout << "readable=" << readable << endl;*/
     {
         frmOpenFitPara=NULL;
         frmSaveFitPara=NULL;
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Non-linear curve fitting"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -14134,7 +14214,10 @@ layout->addWidget(buttonGroup,4,0,1,2);
         char dummy[128];
         WindowType=type;
         QString * entr=new QString[maxgraph>4?maxgraph+1:5];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
         if (type==INTERPOLATIONWINDOW)
             setWindowTitle(tr("qtGrace: Interpolation"));
@@ -14511,7 +14594,10 @@ layout->addWidget(buttonGroup,4,0,1,2);
     {
         int number;
         QString entr[15];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
 
         layout=new QVBoxLayout;
@@ -14912,7 +14998,10 @@ layout->addWidget(buttonGroup,4,0,1,2);
 
     frmCorrelation::frmCorrelation(int type,QWidget * parent):QDialog(parent)
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
 
         layout=new QVBoxLayout;
@@ -15029,7 +15118,10 @@ layout->addWidget(buttonGroup,4,0,1,2);
     {
         int number;
         QString entr[6];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowIcon(QIcon(*GraceIcon));
         layout=new QVBoxLayout;
         layout->setMargin(STD_MARGIN);
@@ -17057,7 +17149,10 @@ tabMa->cmbType
 
     frmSetAppearance::frmSetAppearance(QWidget * parent):QDialog(parent)
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Set Appearance"));
         setWindowIcon(QIcon(*GraceIcon));
         QVBoxLayout * layout=new QVBoxLayout;
@@ -18345,7 +18440,10 @@ tabMain->ledSubtitle->setText(QString(labs.stitle.s));*/
 
     frmGraphApp::frmGraphApp(QWidget * parent):QDialog(parent)
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Graph Appearance"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -18757,7 +18855,10 @@ tabMain->ledSubtitle->setText(QString(labs.stitle.s));*/
         int number;
         curaxis=X_AXIS;
         QString * entr=new QString[5];
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Axis"));
         setWindowIcon(QIcon(*GraceIcon));
 
@@ -20166,7 +20267,10 @@ cout << ListOfOldStates.at(i).toAscii().constData() << endl;*/
 
     frmAxisProp::frmAxisProp(QWidget * parent):QDialog(parent)
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Axis"));
         setWindowIcon(QIcon(*GraceIcon));
         QVBoxLayout * layout=new QVBoxLayout;
@@ -20200,7 +20304,10 @@ cout << ListOfOldStates.at(i).toAscii().constData() << endl;*/
     frmNetCDF::frmNetCDF(QWidget * parent):QDialog(parent)
     {
         cmdQuery=new QPushButton(tr("Close"),this);
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: netCDF"));
         setWindowIcon(QIcon(*GraceIcon));
         lblSelX=new QLabel(tr("Select set X:"));
@@ -22767,7 +22874,10 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
     {
         fname=new char[GR_MAXPATHLEN];
         fname[0]='\0';
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: SetEditor"));
         setWindowIcon(QIcon(*GraceIcon));
         layout=new QVBoxLayout;
@@ -22924,7 +23034,10 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
 
     frmUndoList::frmUndoList(QWidget * parent):QDialog(parent)
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: UndoList"));
         setWindowIcon(QIcon(*GraceIcon));
         layout=new QVBoxLayout;
@@ -23236,7 +23349,10 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
     {
         GlobalInhibitor=true;
         oldSetting='0';
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Explorer"));
         setWindowIcon(QIcon(*GraceIcon));
         layout=new QGridLayout;
@@ -23583,7 +23699,10 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
         tmp_path_pos[1]=6;
         tmp_path_point_shown=0;
 
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Color Management"));
         setWindowIcon(QIcon(*GraceIcon));
         colorsel=new ColorSelector(this);//shows current palette
@@ -24202,7 +24321,10 @@ cout << "count_ziel=" << (segments-1)*points_per_segment+points_last_segment+2 <
 
     frmRealTimeInputManager::frmRealTimeInputManager(QWidget * parent):QDialog(parent)
     {
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: Real Time Input"));
         setWindowIcon(QIcon(*GraceIcon));
         frmOpen=NULL;
@@ -24759,7 +24881,10 @@ end_guess_col_f:
         import_info.textsep='"';
         import_info.dec_sep_komma=false;
 
-        setFont(stdFont);
+       #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
         setWindowTitle(tr("qtGrace: CSV-import"));
         setWindowIcon(QIcon(*GraceIcon));
 

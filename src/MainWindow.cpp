@@ -31,8 +31,10 @@
 #include "undo_module.h"
 #include "device.h"
 
-
+#include <QFile>
+#include <QMessageBox>
 #include <QDesktopWidget>
+#include <QSettings>
 
 using namespace std;
 
@@ -254,13 +256,18 @@ void init_Patterns(void)
 MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     #ifdef SKF_QtGrace
     ,SocketConnection(NULL)
+	,originalSystemFont(NULL)
   #endif
+
 {
 
 
     QPixmap HelpPixmap;
 
-    setFont(stdFont);
+   #ifndef SKF_QtGrace
+      setFont(stdFont);
+	#endif
+	
 
     setWindowTitle(tr("qtGrace: untitled"));
 
@@ -268,6 +275,11 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     //2013-07-03 changed main window size to - Nimal Kailasanathan
     windowWidth=1060;
     windowHeight=800;
+
+	//Save default system font
+	originalSystemFont=new QFont(QApplication::font());
+	//Read font settings for .ini file
+	ReadFontConfiguration();
 #else
     windowWidth=872;
     windowHeight=670;
@@ -400,7 +412,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuData->addMenu(mnuImport);
     mnuData->addMenu(mnuExport);
 
-    //The Plo-Menu and its entries
+    //The Plot-Menu and its entries
     mnuPlot	=new QMenu(tr("&Plot"), this );
     mnuPlot->setTearOffEnabled(TRUE);
     mnuPlot->addAction(actPlotAppearance);
@@ -441,6 +453,14 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuWindow->addAction(actColManager);
     mnuWindow->addAction(actRealTimeInput);
 
+#ifdef SKF_QtGrace
+    //The Options-Menu and its entries
+    mnuOptions=new QMenu(tr("&Options"),  this );
+    mnuOptions->setTearOffEnabled(TRUE);
+  
+	mnuOptions->addAction(actConfigureFont);
+    mnuOptions->addAction(actResetToSystemFont);
+#endif
     //The Help-Menu and its entries
     mnuHelp	=new QMenu(tr("&Help"),  this );
     mnuHelp->setTearOffEnabled(TRUE);
@@ -470,6 +490,9 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     menuBar->addMenu( mnuView );
     menuBar->addMenu( mnuWindow );
     menuBar->addSeparator();
+#ifdef SKF_QtGrace
+	menuBar->addMenu( mnuOptions );
+#endif
     menuBar->addMenu( mnuHelp );
 
     stdBarHeight=menuBar->height()-7;
@@ -1976,6 +1999,104 @@ void MainWindow::FontSettings(void)
     #endif
 }
 
+
+
+void MainWindow::ConfigureFontDlg(){
+    #ifdef SKF_QtGrace
+	QMessageBox msgBox;
+    bool ok;
+    QFont f( QFontDialog::getFont( &ok, QApplication::font() ) );
+    if(!ok) return; // Cancel pressed
+    if(f.pointSize()>14) {
+		msgBox.setText ("Fonts with point size larger than 14 are not recommended.\n"
+                    "Please restart Beauty, then font change will take a full effect.\n"
+                    "To restore font to default one please use Properties/Reset font");
+    } else {
+		msgBox.setText ("Please restart QtGrace, then font change will take a full effect.\n"
+                    "To restore font to default one please use Properties/Reset font"
+                    );
+    }
+  
+   QApplication::setFont(f);
+   SaveFontConfiguration(f);
+   #endif
+}
+
+
+void MainWindow::ResetToSystemFont(){
+      #ifdef SKF_QtGrace
+	assert(originalSystemFont);
+     QApplication::setFont(*originalSystemFont);
+     QMessageBox::information(NULL, "Reset fonts", 
+                             "Please restart QtGrace, then font change will take a full effect.");
+
+	 QFile file(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"));
+
+	if( !file.exists()) {
+        return;  
+	}else{
+		SaveFontConfiguration(*originalSystemFont);
+	}
+ #endif
+}
+
+void MainWindow::SaveFontConfiguration(QFont font)
+{
+	 #ifdef SKF_QtGrace
+    //QtGrace application font settings
+
+	QSettings fontSettings(QString(qt_grace_exe_dir+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
+    
+	fontSettings.beginGroup("FontSettings");
+
+    fontSettings.setValue("font", font.family());
+    
+    int size = font.pointSize();
+    fontSettings.setValue( "size",size);
+
+    int weight = font.weight();
+    fontSettings.setValue("weight", weight);
+   
+    int italic = font.italic();
+    fontSettings.setValue("italics", italic);
+	fontSettings.endGroup();
+	 #endif
+}
+
+void MainWindow::ReadFontConfiguration()
+{
+ #ifdef SKF_QtGrace
+QFile file(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"));
+
+//Check file exist otherwise use default font settings
+if( !file.exists()) {
+        return;  
+}
+
+
+//Read font settings from .ini file
+QSettings fontSettings(QString(qt_grace_exe_dir+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
+
+fontSettings.beginGroup("FontSettings");
+
+QString fontName = fontSettings.value("font","").toString();
+
+int fontSize = fontSettings.value("size","").toInt();
+
+int fontWeight = fontSettings.value("weight","").toInt();
+
+int italics = fontSettings.value("italics","").toInt();
+
+QStringList keys = fontSettings.allKeys();
+if( keys.isEmpty()) {
+        return;  
+}else{
+	QApplication::setFont(QFont(fontName, fontSize, fontWeight, italics));
+}
+ #endif
+}
+
+
 void MainWindow::Redraw(void)
 {
     mainArea->completeRedraw();
@@ -1996,8 +2117,6 @@ void MainWindow::Commands(void)
     FormCommands->raise();
     FormCommands->activateWindow();
 }
-
-
 
 
 void MainWindow::PointExplorer(void)
@@ -2433,10 +2552,18 @@ void MainWindow::CreateActions(void)
     actShowToolBar->setCheckable(TRUE);
     actShowToolBar->setChecked(TRUE);
     connect(actShowToolBar, SIGNAL(triggered()), this, SLOT(ShowToolBar()));
+
 #ifdef SKF_QtGrace
     actFontSize= new QAction(tr("&Font settings" ), this);
     connect(actFontSize, SIGNAL(triggered()), this, SLOT(FontSettings()));
     actPageSetup= new QAction(tr("&Screen setup" ), this);
+
+	//Actions for option menu
+	actConfigureFont= new QAction(tr("&Configure fonts..." ), this);
+    connect(actConfigureFont, SIGNAL(triggered()), this, SLOT(ConfigureFontDlg()));
+	actResetToSystemFont= new QAction(tr("&Reset fonts..." ), this);
+    connect(actResetToSystemFont, SIGNAL(triggered()), this, SLOT(ResetToSystemFont()));
+
 #else
     actPageSetup= new QAction(tr("&PageSetup" ), this);
 #endif

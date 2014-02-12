@@ -633,8 +633,12 @@ int main( int argc, char **argv )
 
     stdFont=a->font();
 
+
+
+
 #ifdef SKF_QtGrace
-    //BZ2067
+    //BZ2067	
+	//Load font settings from .ini file
 #else
     stdFont.setPixelSize(14);
 #endif
