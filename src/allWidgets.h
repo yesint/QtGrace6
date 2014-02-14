@@ -28,6 +28,7 @@
 
 #ifdef SKF_QtGrace
 #include <QDoubleSpinBox>
+#include <QList>
 #endif
 #include <QLabel>
 
@@ -2779,18 +2780,37 @@ class frmFontSettings:public QDialog
 public:
     frmFontSettings(QWidget * parent=0);
     QGridLayout * layout;
-    QLabel * lblTest;
+    QLabel * lblFont;
+	QLabel * lblMinMaxFont;
     QSpinBox * spinFontSize;
     frmText_Props * TextProperties;
     frmAxis_Prop * AxisProperties;
     frmGraph_App * GraphProperties;
     frmPlot_Appearance * PlotAppearance;
     stdButtonGroup * aac;
+	void saveDefaultFont();
+
 public slots:
     void updateFont(int v);
     void doAccept(void);
     void doClose(void);
-    void doReset(void);
+    void doReset(void); 
+
+private: 
+	double defaultTimestampFontSize;
+	bool startUpdate;
+	void closeEvent(QCloseEvent *);
+	
+	QList<double> defaultTitleFontSize;
+	QList<double> defaultSubTitleFontSize;
+	QList<double> defaultLegendFontSize;
+	QList<double> defaultXLabelsBarsFontSize;
+	QList<double> defaultYLabelsBarsFontSize;
+	QList<double> defaultXTickLabelsFontSize;
+	QList<double> defaultYTickLabelsFontSize;
+	QList<double> defaultStringsFontSize;
+
+	       
 };
 
 

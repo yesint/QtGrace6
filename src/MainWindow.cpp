@@ -1985,6 +1985,7 @@ FormDeviceSetup->show();
     FormDeviceSetup->activateWindow();
 }
 
+
 void MainWindow::FontSettings(void)
 {
     #ifdef SKF_QtGrace
@@ -1992,10 +1993,13 @@ void MainWindow::FontSettings(void)
     {
         FormFontSettings=new frmFontSettings(this);
     }
+	FormFontSettings->spinFontSize->setValue(100);
+	FormFontSettings->saveDefaultFont();
     FormFontSettings->show();
     FormFontSettings->resize(FormFontSettings->width(),FormFontSettings->width()/3);
     FormFontSettings->raise();
     FormFontSettings->activateWindow();
+	connect(FormFontSettings,SIGNAL(closeEvent()),SLOT(FormFontSettings->doClose()));
     #endif
 }
 

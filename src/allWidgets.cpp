@@ -23218,45 +23218,55 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
 
     frmFontSettings::frmFontSettings(QWidget * parent):QDialog(parent)
     {
-        GlobalInhibitor=true;
+		startUpdate = true; //This flag is used to avoid an update when the dialogue has 
+							//been closed and reopens again (default spinbox value is 
+							//always set to 100, when the dialogue starts).
+		GlobalInhibitor=true;
         setWindowTitle(tr("qtGrace: Font Settings"));
         setWindowIcon(QIcon(*GraceIcon));
         layout=new QGridLayout;
-        layout->setMargin(STD_MARGIN);
-        layout->setSpacing(30);
-
-        lblTest=new QLabel("Font Size",this);
+	    lblMinMaxFont = new QLabel(tr("Enter a font size between " "%1 and %2:").arg(10).arg(200));
+		lblFont=new QLabel("The update process may take\na little while, so please be patient.",this);
 
         AxisProperties=new frmAxis_Prop(this);
+		AxisProperties->hide();
+		//Select current axis
+		AxisProperties->selApplyTo->setCurrentIndex(0);
 
         GraphProperties=new frmGraph_App(this);
         GraphProperties->listGraph->prevent_from_autoupdate=false;
+		GraphProperties->hide();
 
         PlotAppearance=new frmPlot_Appearance(this);
         PlotAppearance->buttonGroup->hide();
         PlotAppearance->hide();
 
+		defaultTimestampFontSize = PlotAppearance->timestamp_size_item->value();
+
         aac=new stdButtonGroup(this);
         aac->cmdAccept->setText("Reset"); //Rename accept button to reset
-        aac->cmdApply->setText("OK"); //Rename apply button to OK
+        aac->cmdApply->setText("Apply"); //Rename apply button to OK
         connect(aac->cmdApply,SIGNAL(clicked()),SLOT(doAccept()));
         connect(aac->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
         connect(aac->cmdAccept,SIGNAL(clicked()),SLOT(doReset()));
+		
         spinFontSize=new QSpinBox();
         spinFontSize->setSingleStep(1);
         spinFontSize->setRange(10,200);
         spinFontSize->setSuffix("%");
-        spinFontSize->setValue(100);
+     
+		spinFontSize->setValue(100);
 
-        layout->addWidget(spinFontSize,0,0,0,1);
-        layout->addWidget(lblTest,0,0,1,1);
-
+        layout->addWidget(spinFontSize,0,1);
+		layout->addWidget(lblMinMaxFont,0,0);
+        layout->addWidget(lblFont,1,0);
+		
 		spinFontSize->setKeyboardTracking(false);
-        
+        double test;
 		connect(spinFontSize, SIGNAL(valueChanged(int)),
                 this, SLOT(updateFont(int)));
 
-        layout->addWidget(aac,1,0,1,2);
+        layout->addWidget(aac,2,0);
         setLayout(layout);
         aac->cmdApply->setDefault(true);
         GlobalInhibitor=false;
@@ -23264,85 +23274,195 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
 #endif
     void frmFontSettings::doAccept(void)
     {
-        #ifdef SKF_QtGrace
-        updateFont(spinFontSize->value());
-        doClose();
-        #endif
+        #ifdef SKF_QtGrace	
+			updateFont(spinFontSize->value());	
+		#endif
     }
 
     void frmFontSettings::updateFont(int v)
     {
         #ifdef SKF_QtGrace
-		
+	
+		if(startUpdate){
+
 		#ifdef _MSC_VER
 	    Sleep(500);
 		#else
         sleep(0.5);
 		#endif
 
-
         int noOfGraphs =  number_of_graphs();
         plotstr string_text;
 
-        //Apply to current axis and current graph
-        int currentAxisAndGraph = 0;
+        //Apply to current axis
+        int currentAxis = 0;
+		
+	    double currentTimestampFontSize = PlotAppearance->timestamp_size_item->value();
+		
+		if(v == 100){
+			currentTimestampFontSize = defaultTimestampFontSize;
+		}
 
         PlotAppearance->init();
-        PlotAppearance->timestamp_size_item->setValue(v);
+        PlotAppearance->timestamp_size_item->setValue(currentTimestampFontSize/100*v);
+
 
         //Change Title, subtitle and legend character size
 
         for(int i = 0; i<noOfGraphs;i++){
 
-            switch_current_graph(i);
+			switch_current_graph(i);
 
-            GraphProperties->tabTitles->sldTitleCharSize->setValue(1.5*v);
-            GraphProperties->tabTitles->sldSubCharSize->setValue(v);
-            GraphProperties->tabLegends->sldTextSize->setValue(v);
-            GraphProperties->doApply();
+  
+			double currentTitleFontSize = GraphProperties->tabTitles->sldTitleCharSize->value();
+			double currentSubTitleFontSize = GraphProperties->tabTitles->sldSubCharSize->value();
+			double currentLegendFontSize = GraphProperties->tabLegends->sldTextSize->value();
 
-            AxisProperties->update_ticks(i);
+			if(v == 100){
+				currentTitleFontSize = defaultTitleFontSize.at(i);
+				currentSubTitleFontSize = defaultSubTitleFontSize.at(i);
+				currentLegendFontSize = defaultLegendFontSize.at(i);
+			}
+		
+            GraphProperties->tabTitles->sldTitleCharSize->setValue(currentTitleFontSize/100*v);
+            GraphProperties->tabTitles->sldSubCharSize->setValue(currentSubTitleFontSize/100*v);
+            GraphProperties->tabLegends->sldTextSize->setValue(currentLegendFontSize/100*v);
+			GraphProperties->graphapp_aac_cb();
 
-            AxisProperties->selApplyTo->setCurrentIndex(currentAxisAndGraph);
+			AxisProperties->selApplyTo->setCurrentIndex(currentAxis);
+           // AxisProperties->update_ticks(i);
+        			
+			AxisProperties->set_axis_proc(0);
+			double currentXTickLabelsFontSize = AxisProperties->tabTickLabels->sldCharSize->value();
+			double currentXLabelsBarsFontSize = AxisProperties->tabLabelsBars->sldCharSize->value();
 
-            for(int j = 0; j<MAXAXES;j++){
-                AxisProperties->selEdit->setCurrentIndex(j);
-                AxisProperties->tabTickLabels->sldCharSize->setValue(v);
-                AxisProperties->tabLabelsBars->sldCharSize->setValue(v);
-                AxisProperties->doApply();
-            }
+			if(v == 100){
+				currentXTickLabelsFontSize = defaultXTickLabelsFontSize.at(i);
+				currentXLabelsBarsFontSize = defaultXLabelsBarsFontSize.at(i);
+			}
+
+			AxisProperties->tabTickLabels->sldCharSize->setValue(currentXTickLabelsFontSize/100*v);
+            AxisProperties->tabLabelsBars->sldCharSize->setValue(currentXLabelsBarsFontSize/100*v);
+			AxisProperties->axes_aac_cb();
+			
+			AxisProperties->set_axis_proc(1);
+			double currentYTickLabelsFontSize = AxisProperties->tabTickLabels->sldCharSize->value();
+			double currentYLabelsBarsFontSize = AxisProperties->tabLabelsBars->sldCharSize->value();
+
+			if(v == 100){
+				currentYTickLabelsFontSize = defaultYTickLabelsFontSize.at(i);
+				currentYLabelsBarsFontSize = defaultYLabelsBarsFontSize.at(i);
+			}
+
+			AxisProperties->tabTickLabels->sldCharSize->setValue(currentYTickLabelsFontSize/100*v);
+            AxisProperties->tabLabelsBars->sldCharSize->setValue(currentYLabelsBarsFontSize/100*v);
+			AxisProperties->axes_aac_cb();
         }
 
         //Change string character size
-
-        for (int i=0;i<maxstr;i++){
+		int k = 0;
+     
+		for (int i=0;i<maxstr;i++){
             if (!isactive_string(i)) continue;{
                 get_graph_string(i, &string_text);
                 if (strlen(string_text.s_plotstring) && (string_text.charsize > 0.0) && string_text.active) {
-                    string_text.charsize = (double) v/100;
-                    set_graph_string(i,&string_text);
+                    
+					string_text.charsize = (double) string_text.charsize/100*v;
+                	
+					if(v == 100){
+					string_text.charsize = defaultStringsFontSize.at(k);
+					k++;
+					}   
+										
+					set_graph_string(i,&string_text);
                 }
             }
         }
 
-        // Update time stamp changes
-        PlotAppearance->doApply();
+        // Update time stamp changes		
+		PlotAppearance->doApply();
+		}
+		startUpdate = true;
 #endif
     }
 
 
-    void frmFontSettings::doClose(void)
-    {
-#ifdef SKF_QtGrace
-        hide();
-        #endif
-    }
+void frmFontSettings::doClose(void)
+{
+	#ifdef SKF_QtGrace
+		hide();
+		startUpdate = false;
+		//Clear default font size
+		defaultTitleFontSize.clear();
+		defaultSubTitleFontSize.clear();
+		defaultLegendFontSize.clear();
+		defaultXLabelsBarsFontSize.clear();
+		defaultYLabelsBarsFontSize.clear();
+		defaultXTickLabelsFontSize.clear();
+		defaultYTickLabelsFontSize.clear();
+		defaultStringsFontSize.clear();
 
-    void frmFontSettings::doReset(void)
-    {
+	#endif
+}
+
+void frmFontSettings::doReset(void)
+{
+	#ifdef SKF_QtGrace
         spinFontSize->setValue(100);
-    }
+    #endif
+}
 
+void frmFontSettings::closeEvent(QCloseEvent *)
+{	
+	#ifdef SKF_QtGrace
+		doClose();
+	#endif
+}
+
+
+void frmFontSettings::saveDefaultFont(void)
+
+{		for(int i = 0; i<number_of_graphs();i++){
+
+				switch_current_graph(i);
+  
+				defaultTimestampFontSize = PlotAppearance->timestamp_size_item->value();
+
+				defaultTitleFontSize.append(GraphProperties->tabTitles->sldTitleCharSize->value());
+				defaultSubTitleFontSize.append(GraphProperties->tabTitles->sldSubCharSize->value());
+				defaultLegendFontSize.append(GraphProperties->tabLegends->sldTextSize->value());
+
+				//Select x-axis		
+				AxisProperties->set_axis_proc(0);
+				defaultXTickLabelsFontSize.append(AxisProperties->tabTickLabels->sldCharSize->value());
+				defaultXLabelsBarsFontSize.append(AxisProperties->tabLabelsBars->sldCharSize->value());
+
+				//Select Y-axis
+				AxisProperties->set_axis_proc(1);
+				defaultYTickLabelsFontSize.append(AxisProperties->tabTickLabels->sldCharSize->value());
+     			defaultYLabelsBarsFontSize.append(AxisProperties->tabLabelsBars->sldCharSize->value()); 
+	}
+
+		//Change string character size
+				plotstr string_text;
+				  for (int i=0;i<maxstr;i++){
+
+					   if (!isactive_string(i)) continue;{
+
+					      get_graph_string(i, &string_text);
+
+						     if (strlen(string_text.s_plotstring) 
+								 && (string_text.charsize > 0.0) 
+								 && string_text.active) {  
+
+								 defaultStringsFontSize.append(string_text.charsize);
+							  }
+							}
+						 }
+
+
+
+}
 
 
     frmExplorer::frmExplorer(QWidget * parent):QDialog(parent)
