@@ -495,7 +495,13 @@ int main( int argc, char **argv )
 #ifdef LINUX_SYSTEM
     cout << "Linux" << endl;
 #endif*/
-
+/*
+ #if QT_VERSION < 0x050000
+    QApplication::setStyle(new BeautyStyle(3,3));
+ #else
+    //QApplication::setStyle(new BeautyStyle(3,3));
+ #endif
+*/
     QApplication * a=new QApplication( argc, argv );
 
 
@@ -612,7 +618,12 @@ int main( int argc, char **argv )
         //a.installTranslator(&translator[i]);//-->install later
     }
 
-    allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+	#ifdef SKF_QtGrace	
+		allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+	#else
+		allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+	#endif
+
     allPrefs->sync();
     allPrefs->beginGroup(QString("ExtraPreferences"));
     int sellang=allPrefs->value(QString("language"),QVariant(0)).toInt();
@@ -899,7 +910,14 @@ void read_settings(void)
 {
     /*allPrefs=new QSettings(QString("Grace"),QString("qtGrace"));
     allPrefs->setPath(QSettings::IniFormat,QSettings::UserScope,qt_grace_exe_dir);*/
-    allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+ 
+	#ifdef SKF_QtGrace	
+		allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+	#else
+		allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+	#endif
+
+
     allPrefs->sync();
     allPrefs->beginGroup(QString("Preferences"));
 
@@ -1029,7 +1047,12 @@ void write_settings(void)
 {
     /*allPrefs=new QSettings(QString("Grace"),QString("qtGrace"));
     allPrefs->setPath(QSettings::IniFormat,QSettings::UserScope,qt_grace_exe_dir);*/
-    allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+	#ifdef SKF_QtGrace	
+		allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+	#else
+		allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+	#endif
+
     allPrefs->beginGroup(QString("Preferences"));
     allPrefs->setValue(QString("dontaskquestions"),QVariant(FormPreferences->noask_item->isChecked()));
     allPrefs->setValue(QString("allowdoubleclickoncanvas"),QVariant(FormPreferences->dc_item->isChecked()));

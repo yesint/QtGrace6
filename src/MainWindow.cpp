@@ -2034,7 +2034,7 @@ void MainWindow::ResetToSystemFont(){
      QMessageBox::information(NULL, "Reset fonts", 
                              "Please restart QtGrace, then font change will take a full effect.");
 
-	 QFile file(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"));
+	 QFile file(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"));
 
 	if( !file.exists()) {
         return;  
@@ -2049,7 +2049,7 @@ void MainWindow::SaveFontConfiguration(QFont font)
 	 #ifdef SKF_QtGrace
     //QtGrace application font settings
 
-	QSettings fontSettings(QString(qt_grace_exe_dir+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
+	QSettings fontSettings(QString(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
     
 	fontSettings.beginGroup("FontSettings");
 
@@ -2070,16 +2070,15 @@ void MainWindow::SaveFontConfiguration(QFont font)
 void MainWindow::ReadFontConfiguration()
 {
  #ifdef SKF_QtGrace
-QFile file(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"));
+QFile file(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"));
 
 //Check file exist otherwise use default font settings
 if( !file.exists()) {
         return;  
 }
 
-
 //Read font settings from .ini file
-QSettings fontSettings(QString(qt_grace_exe_dir+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
+QSettings fontSettings(QString(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
 
 fontSettings.beginGroup("FontSettings");
 
