@@ -29,7 +29,9 @@
 #include "undo_module.h"
 #include "device.h"
 
-
+#ifndef SKF_QtGrace
+#include "skfStyle.h"
+#endif
 extern int replacement_main(int argc,char **argv);
 
 char BI_VERSION[128];
@@ -495,13 +497,15 @@ int main( int argc, char **argv )
 #ifdef LINUX_SYSTEM
     cout << "Linux" << endl;
 #endif*/
-/*
- #if QT_VERSION < 0x050000
-    QApplication::setStyle(new BeautyStyle(3,3));
+
+	//SKF font style. Enabling same default font for different OS.
+#ifndef SKF_QtGrace
+#if QT_VERSION < 0x050000
+    QApplication::setStyle(new SKFStyle(3,3));
  #else
-    //QApplication::setStyle(new BeautyStyle(3,3));
+    //QApplication::setStyle(new SKFStyle(3,3));
  #endif
-*/
+#endif
     QApplication * a=new QApplication( argc, argv );
 
 
