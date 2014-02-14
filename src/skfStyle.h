@@ -21,11 +21,11 @@
 #endif
 
 
-class BeautyStyle:public MYSTYLE
+class skfStyle:public MYSTYLE
 {
 public:
-    BeautyStyle(int marginIn,int spacingIn):MYSTYLE(),margin(marginIn),spacing(spacingIn) {};
-    virtual ~BeautyStyle(){};
+    skfStyle(int marginIn,int spacingIn):MYSTYLE(),margin(marginIn),spacing(spacingIn) {};
+    virtual ~skfStyle(){};
     int margin;
     int spacing;
     virtual int pixelMetric ( PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const {
