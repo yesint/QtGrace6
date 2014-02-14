@@ -2012,13 +2012,15 @@ void MainWindow::ConfigureFontDlg(){
     QFont f( QFontDialog::getFont( &ok, QApplication::font() ) );
     if(!ok) return; // Cancel pressed
     if(f.pointSize()>14) {
-		msgBox.setText ("Fonts with point size larger than 14 are not recommended.\n"
+		
+		  QMessageBox::information(NULL, "Reset fonts","Fonts with point size larger than 14 are not recommended.\n"
                     "Please restart Beauty, then font change will take a full effect.\n"
-                    "To restore font to default one please use Properties/Reset font");
+                    "To restore font to default one please use Options/Reset font");
     } else {
-		msgBox.setText ("Please restart QtGrace, then font change will take a full effect.\n"
-                    "To restore font to default one please use Properties/Reset font"
-                    );
+	  QMessageBox::information(NULL, "Reset fonts", 
+                             "Please restart QtGrace, then font change will take a full effect.\n"
+                    "To restore font to default one please use Options/Reset font");
+
     }
   
    QApplication::setFont(f);
