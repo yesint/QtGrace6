@@ -2025,7 +2025,9 @@ void MainWindow::ConfigureFontDlg(){
   
    QApplication::setFont(f);
    SaveFontConfiguration(f);
-   #endif
+   doFitPage();
+
+#endif
 }
 
 
@@ -2042,7 +2044,10 @@ void MainWindow::ResetToSystemFont(){
         return;  
 	}else{
 		SaveFontConfiguration(*originalSystemFont);
+		doFitPage();
+
 	}
+
  #endif
 }
 
@@ -2097,6 +2102,7 @@ if( keys.isEmpty()) {
         return;  
 }else{
 	QApplication::setFont(QFont(fontName, fontSize, fontWeight, italics));
+
 }
  #endif
 }
@@ -2379,10 +2385,17 @@ void MainWindow::doFitPage(void)
     int zoomLevel = int(log(fact) / (sldPageZoom->ScalingFactor * log(10.)));
     if (zoomLevel<0) zoomLevel--;
     zoomLevel = zoomLevel > 100 ? 100 : (zoomLevel < -100 ? -100 : zoomLevel);
-    sldPageZoom->setValue(zoomLevel);
-    // b) reset position sliders to 0
+
+	#ifdef SKF_QtGrace
+    sldPageZoom->setValue(zoomLevel-1); //Because we don't want to see the scroll bar when we change the application font size.
+    #else
+	sldPageZoom->setValue(zoomLevel);
+	#endif
+
+	// b) reset position sliders to 0
     mainArea->scroll->horizontalScrollBar()->setValue(0);
     mainArea->scroll->verticalScrollBar()->setValue(0);
+
 }
 
 void MainWindow::doExit(void)
@@ -2430,7 +2443,7 @@ void MainWindow::CreateActions(void)
     //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
 
     actExportToFile= new QAction(tr("Plot to file..."), this);
-    actExportToFile->setStatusTip(tr("Export to BMP, JPEG, PNG..."));
+    actExportToFile->setStatusTip(tr("Export to PDF, SVG, PNG..."));
     connect(actExportToFile, SIGNAL(triggered()), this, SLOT(ExportToFile()));
 #endif
 
