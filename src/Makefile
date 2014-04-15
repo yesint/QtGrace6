@@ -54,7 +54,8 @@ SRC=$(CFILES) $(CPPFILES) $(TOMOCFILES) $(T1CFILES)
 
 B_INCLUDES= 
 
-INCLUDES= -I.	$(B_INCLUDES) $(QTINCLUDE)
+INCLUDES= -I.	$(B_INCLUDES) $(QTINCLUDE) \
+	$(INCLFFTW3)
 
 
 
@@ -62,7 +63,7 @@ INCLUDES= -I.	$(B_INCLUDES) $(QTINCLUDE)
 LIBS = 	-L$(XHOME)/lib64 \
 	-L$(XHOME)/lib \
         -lm \
-        -L$(QT4HOME)/lib/$(ABI) $(QT4LIBS)  $(XTRLIBS) 
+        -L$(QT4HOME)/lib/$(ABI) $(QT4LIBS)  $(XTRLIBS) $(LIBFFTW3)
 INCLUDES += -I$(QT4HOME)/include/QtSvg
 
 
@@ -71,6 +72,7 @@ ifneq (,$(findstring -DQT5,$(commdef)))
 QT4LIBS += -lQt5Svg
 endif
 
+CCFLAGS+=-DHAVE_FFTW
 ifneq (,$(findstring LINUX,$(ABI)))
 CCFLAGS+=-DLINUX_SYSTEM 
 #LIBS+=-lQtWebKit
