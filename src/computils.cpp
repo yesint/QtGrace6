@@ -743,12 +743,14 @@ void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invfla
 	errmsg("Set length < 2");
 	return;
     }
+#ifndef HAVE_FFTW
     if (fftflag) {
 	if ((i2 = ilog2(ilen)) <= 0) {
 	    errmsg("Set length not a power of 2");
 	    return;
 	}
     }
+#endif
     new_set_no=specset = nextset(get_cg());
     if (specset != -1) {
 	activateset(get_cg(), specset);
