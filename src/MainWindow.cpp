@@ -70,6 +70,7 @@ extern frmInterpolation * FormInterpolation;
 extern frmSetOp * FormSetOperations;
 extern frmCommands * FormCommands;
 extern frmDeviceSetup * FormDeviceSetup;
+extern frmDeviceSetup * FormDeviceSetup2;
 extern frmPreferences * FormPreferences;
 extern frmArrangeGraphs * FormArrangeGraphs;
 extern frmOverlayGraphs * FormOverlayGraphs;
@@ -1218,11 +1219,21 @@ void MainWindow::Exit(void)
 void MainWindow::ExportToFile(void)
 {
     #ifdef SKF_QtGrace
-    FormDeviceSetup=new frmDeviceSetup(3,this);
-    FormDeviceSetup->show();
-    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PDF")); //Set PDF file as default in export file menu
-    FormDeviceSetup->raise();
-    FormDeviceSetup->activateWindow();
+
+    if (FormDeviceSetup2==NULL)
+    {
+        FormDeviceSetup2=new frmDeviceSetup(3,this);
+
+        if (default_Print_Device==-1)//last one
+            FormDeviceSetup2->devices_item->setCurrentIndex(stdOutputFormat);
+        else
+            FormDeviceSetup2->devices_item->setCurrentIndex(default_Print_Device);
+    }
+
+  FormDeviceSetup2->show();
+  FormDeviceSetup2->raise();
+  FormDeviceSetup2->activateWindow();
+
 #endif
 }
 

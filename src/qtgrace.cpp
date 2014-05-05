@@ -91,6 +91,7 @@ frmColorManagement * FormColManage;
 frmRealTimeInputManager * FormRTIManage;
 frmCommands * FormCommands;
 frmDeviceSetup * FormDeviceSetup;
+frmDeviceSetup * FormDeviceSetup2;
 frmPreferences * FormPreferences;
 frmArrangeGraphs * FormArrangeGraphs;
 frmOverlayGraphs * FormOverlayGraphs;

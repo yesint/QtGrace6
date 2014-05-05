@@ -6107,6 +6107,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
         devices_item=new StdSelector(grpDevSetup,tr("Print to:"),number,entr);
     }else if (windowTitle == 3){
         devices_item=new StdSelector(grpDevSetup,tr("Select file format:"),number-1,entr); //-1 remove screen from list
+
     }
     else{
 
@@ -6118,6 +6119,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
 
 
     connect(devices_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(DeviceChanged(int)));
+
     number=2;
     entr[0]=tr("Landscape");
     entr[1]=tr("Portrait");
