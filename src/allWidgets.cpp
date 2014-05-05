@@ -6252,7 +6252,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
         cmdDoPrint=new QPushButton(tr("Print to File"),this);
         connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrint2()));
     }else if (windowTitle == 3){
-        cmdDoPrint=new QPushButton(tr("Export"),this);
+        cmdDoPrint=new QPushButton(tr("Save image to file"),this);
         connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrint3()));
 
     }
