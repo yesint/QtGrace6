@@ -1317,7 +1317,7 @@ static int uniread(FILE *fp, int load_type, char *label)
     return RETURN_SUCCESS;
 }
 
-int getdata(int gno, char *fn, int src, int load_type)
+int getdata(int gno, char *fn, int src, int load_type, int autoscale)
 {
     FILE *fp;
     int retval;
@@ -1363,7 +1363,9 @@ int getdata(int gno, char *fn, int src, int load_type)
         postprocess_project(cur_version);
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
-        autoscale_graph(gno, autoscale_onread);
+        if(autoscale){
+            autoscale_graph(gno, autoscale_onread);
+        }
     }
     set_project_version(save_version);
 
@@ -1421,7 +1423,7 @@ int load_project_file(char *fn, int as_n_template)
         reset_default_states();
         return RETURN_FAILURE;
     } else {
-        if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
+        if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE,1) == RETURN_SUCCESS) {
             if (as_n_template == FALSE) {
                 set_docname(fn);
                 mainWin->addToHistory(fn);

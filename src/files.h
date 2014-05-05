@@ -59,7 +59,7 @@ FILE *grace_openr(char *fn, int src);
 void grace_close(FILE *fp);
 
 int getparms(char *plfile);
-int getdata(int gno, char *fn, int src, int type);
+int getdata(int gno, char *fn, int src, int type, int autoscale);
 int update_set_from_file(int gno, int setno, char *fn, int src);
 
 int readblockdata(int gno, char *fn, FILE * fp);

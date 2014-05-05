@@ -342,7 +342,7 @@ gnos=snos=NULL;
             autoscale_onread=id[0][4];
             cursource=id[0][2];
             load=id[0][3];
-            getdata(id[0][0], dummy, cursource, load);//new set(s) imported
+            getdata(id[0][0], dummy, cursource, load,1);//new set(s) imported
                 gnos=new int[new_set_no+2];
                 snos=new int[new_set_no+2];
                 slen=new_set_no;
@@ -360,7 +360,7 @@ gnos=snos=NULL;
             load=id[0][1];
                 for (int j=0;j<this->origin[3];j++)//load from all files
                 {
-                getdata(id[0][4], old_str[j], cursource, load);//new set(s) imported
+                getdata(id[0][4], old_str[j], cursource, load,1);//new set(s) imported
                     if (slen==0)//new
                     {
                         gnos=new int[new_set_no+2];
@@ -461,7 +461,7 @@ gnos=snos=NULL;
         {
             autoscale_onread=id[0][4];
             strcpy(dummy,savedFileName.toAscii());
-        getdata(id[0][0], dummy, id[0][2], id[0][3]);
+        getdata(id[0][0], dummy, id[0][2], id[0][3],1);
         create_set_fromblock(id[0][0],id[0][1],id[0][3],id[1][0],id[2],id[1][1],id[0][4]);
             id[0][1]=new_set_no;
             sprintf(dummy,"[G%d.S%d]",id[0][0],id[0][1]);

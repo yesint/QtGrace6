@@ -3429,11 +3429,11 @@ actions:
 	    xfree($3);
 	}
 	| READ BLOCK sexpr {
-	    getdata(whichgraph, $3, SOURCE_DISK, LOAD_BLOCK);
+        getdata(whichgraph, $3, SOURCE_DISK, LOAD_BLOCK,1);
 	    xfree($3);
 	}
 	| READ BLOCK sourcetype sexpr {
-	    getdata(whichgraph, $4, $3, LOAD_BLOCK);
+        getdata(whichgraph, $4, $3, LOAD_BLOCK,1);
 	    xfree($4);
 	}
 	| BLOCK xytype sexpr {
@@ -3466,11 +3466,11 @@ actions:
 	    xfree($4);
 	}
 	| READ NXY sexpr {
-	    getdata(whichgraph, $3, SOURCE_DISK, LOAD_NXY);
+        getdata(whichgraph, $3, SOURCE_DISK, LOAD_NXY,1);
 	    xfree($3);
 	}
 	| READ NXY sourcetype sexpr {
-	    getdata(whichgraph, $4, $3, LOAD_NXY);
+        getdata(whichgraph, $4, $3, LOAD_NXY,1);
 	    xfree($4);
 	}
 	| WRITE selectset {
@@ -5844,7 +5844,7 @@ int scanner(char *s)
     
     if (gotread) {
 	gotread = FALSE;
-        getdata(whichgraph, readfile, cursource, LOAD_SINGLE);
+        getdata(whichgraph, readfile, cursource, LOAD_SINGLE,1);
     }
     
     if (gotnlfit) {

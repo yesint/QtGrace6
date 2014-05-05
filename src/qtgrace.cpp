@@ -1161,7 +1161,7 @@ cout << endl;
                 delete[] new_set_nos;
                 new_set_nos=NULL;//important!!!
             }
-            getdata(get_cg(), filename, 0, LOAD_NXY);
+            getdata(get_cg(), filename, 0, LOAD_NXY,1);
             if (new_set_no>0 && new_set_nos!=NULL)
             {
                 m1=(len)/deltasize;
@@ -1246,7 +1246,7 @@ cout << endl;
                     delete[] new_set_nos;
                     new_set_nos=NULL;
                 }
-                getdata(get_cg(), filename, 0, LOAD_NXY);
+                getdata(get_cg(), filename, 0, LOAD_NXY,1);
                 sprintf(dummy,"READ NXY \"%s\"",filename);
                 ListOfChanges << QString(dummy);
                 if (new_set_no>0 && new_set_nos!=NULL)

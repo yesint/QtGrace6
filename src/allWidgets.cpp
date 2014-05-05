@@ -10266,7 +10266,7 @@ QMessageBox::information(this,"encoded",encodedString);
                 }
                 new_set_no=0;
                 //cout << "A3 " << graphno << " " << filename << " " << cursource << " " << load << endl;
-                getdata(graphno, filename, cursource, load);
+                getdata(graphno, filename, cursource, load,1);
                 if (selLoadAs->currentIndex()==2)//Block data
                 {
                     if (frmEdBlock==NULL)
@@ -23000,7 +23000,7 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
         }
         /*else
         cout << "new set" << endl;*/
-        getdata(gno, fname, SOURCE_DISK, LOAD_SINGLE);
+        getdata(gno, fname, SOURCE_DISK, LOAD_SINGLE,1);
         setcomment(gno, setno, "Editor");
         autoscale_onread = save_autos;
 

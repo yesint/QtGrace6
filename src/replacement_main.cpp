@@ -931,7 +931,7 @@ int replacement_main(int argc, char **argv)
                             fprintf(stderr, "Missing filename for block data\n");
                             usage(stderr, argv[0]);
                         } else {
-                            getdata(cur_graph, argv[i], cursource, LOAD_BLOCK);
+                            getdata(cur_graph, argv[i], cursource, LOAD_BLOCK,1);
                         }
                     } else if (argmatch(argv[i], "-bxy", 4)) {
                         i++;
@@ -955,7 +955,7 @@ int replacement_main(int argc, char **argv)
                             fprintf(stderr, "Missing filename for nxy data\n");
                             usage(stderr, argv[0]);
                         } else {
-                            getdata(cur_graph, argv[i], cursource, LOAD_NXY);
+                            getdata(cur_graph, argv[i], cursource, LOAD_NXY,1);
                         }
                     } else if (argmatch(argv[i], "-type", 2) ||
                                argmatch(argv[i], "-settype", 8)) {
@@ -1138,7 +1138,7 @@ int replacement_main(int argc, char **argv)
                     }
             } else {
                 if (i != argc) {
-                    if (getdata(cur_graph, argv[i], cursource, LOAD_SINGLE) == RETURN_SUCCESS) {
+                    if (getdata(cur_graph, argv[i], cursource, LOAD_SINGLE,1) == RETURN_SUCCESS) {
                         set_docname(argv[i]);
                         copy_Grace_to_LaTeX();
                         if (remove_flag)
@@ -1190,7 +1190,7 @@ int replacement_main(int argc, char **argv)
             exit(1);
         }
         if (inpipe == TRUE) {
-            getdata(cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE);
+            getdata(cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE,1);
             inpipe = FALSE;
         }
         if (batchfile[0]) {
@@ -1222,7 +1222,7 @@ int replacement_main(int argc, char **argv)
 
         if (inpipe == TRUE)
         {
-            getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
+            getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE,1);
             inpipe = FALSE;
         }
         if (batchfile[0])
@@ -1249,7 +1249,7 @@ void cli_loop(void)
 
     if (inpipe == TRUE)
     {
-        getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
+        getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE,1);
         inpipe = FALSE;
     }
     if (batchfile[0])
