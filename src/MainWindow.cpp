@@ -1230,6 +1230,7 @@ void MainWindow::ExportToFile(void)
             FormDeviceSetup2->devices_item->setCurrentIndex(default_Print_Device);
     }
 
+  FormDeviceSetup2->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
   FormDeviceSetup2->show();
   FormDeviceSetup2->raise();
   FormDeviceSetup2->activateWindow();
