@@ -33,15 +33,18 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,oldNoask(0)
   ,debugFile(NULL)
   ,debugOut(NULL)
-  ,mode(100)
+  ,mode(0)
   ,debugFlag(false){
 
 	#ifdef _MSC_VER
-		debugFlag = true;
+	  if(getenv("QTGRACEDEBUG")) {
+		  cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n"; 	
+		  debugFlag = true;
+	  }
 	#endif
 
     if(debugFlag){
-        debugFile = new QFile("C:\debug_out.txt");
+        debugFile = new QFile("QTGRACEDEBUG.txt");
         debugFile->open(QIODevice::WriteOnly | QIODevice::Text);
         debugOut = new QTextStream(debugFile);
         *debugOut<<"***DEBUG MODE ENABLE***\n";
@@ -114,8 +117,8 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
     messageToBeastPtr->abort();
     delete messageToBeastPtr;
     messageToBeastPtr = NULL;
-
-    if(debugFlag){
+ 
+	if(debugFlag){
         debugFile->close();
         delete debugFile;
         delete debugOut;
@@ -212,7 +215,7 @@ void LocalSocketIpcServer::readSocket() {
     }
 
     if(debugFlag){
-        *debugOut<<"10:35 Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes\n";
+        *debugOut<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes\n";
     }
 
     /* read all data from socket */
@@ -356,7 +359,8 @@ void LocalSocketIpcServer::readSocket() {
         break;
     }
 
-    case 7:{//REDRAW_AND_WRITEPS(7)
+    case 7://REDRAW_AND_WRITEPS(7)
+		{
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
         }
@@ -515,7 +519,7 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
     switch (dataType){
 
     case 1: //Read command
-        command = *((int*)(newDataFromSocket));
+		{command = *((int*)(newDataFromSocket));
 
         if(debugFlag){*debugOut<< " The command is int, 4 bytes are "<<
                                   (int)(newDataFromSocket[0]) << " " <<
@@ -523,18 +527,18 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
                                                                                                 (int)(newDataFromSocket[2]) << " " <<
                                                                                                                                (int)(newDataFromSocket[3]) << " ";
         }
-        break;
+		break;}
 
     case 2: //Read data length
-        dataLength = *((int*)(newDataFromSocket));
+		{dataLength = *((int*)(newDataFromSocket));
         if(debugFlag){
             *debugOut<< " Got data length= "<< dataLength <<"\n";
         }
-        break;
+		break;}
 
     case 3: //Read data set
 
-        if(command!=6 && command!=8){
+		{if(command!=6 && command!=8){
             dataSet1Ptr = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
         else{
@@ -545,11 +549,12 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
             }
 
         }
-        break;
+		break;
+		}
 
     case 4: //Read Plot settings from ViewBeast dialogue
 
-        if(command==6){ //Min x-axis length
+		{ if(command==6){ //Min x-axis length
             xminPtr = (double *)newDataFromSocket;
             xmin = xminPtr[0];
         }
@@ -560,9 +565,10 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
             dataSet2Ptr = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
         break;
+		}
 
     case 5://Read Plot settings from ViewBeast dialogue
-        if(command==6){  //Max x-axis length
+		{  if(command==6){  //Max x-axis length
             xmaxPtr = (double *)newDataFromSocket;
             xmax = xmaxPtr[0];
 
@@ -573,7 +579,7 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
         }
         else{}
         break;
-
+		}
     default:
         break;
     }
@@ -585,7 +591,7 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
 
     case 1:
 
-        readDataFromSocket(messagePtr,availableBytesFromSocket, READ_COMMAND);
+		{ readDataFromSocket(messagePtr,availableBytesFromSocket, READ_COMMAND);
 
         if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99 || command == 98 || command == 9 || command == 12)
             conditionToExitFunction = 0;
@@ -593,39 +599,39 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
             conditionToExitFunction = 1;
 
         break;
-
+		}
     case 2:
-        readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATALENGTH);
+		{ readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATALENGTH);
         conditionToExitFunction = 1;
         break;
-
+		}
     case 3:
-        readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_1);
+		{readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_1);
 
         if(debugFlag){        *debugOut<< " Analysing(3) mode= "<< mode<<"\n" ;
         }
         if((command == 6 && mode == 2)|| (command == 8 && mode == 3) || command == 2)
             conditionToExitFunction = 1;
         break;
-
+		}
 
     case 4:
-        readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_2);
+		{ readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_2);
         if(debugFlag){   *debugOut<< " Analysing(4) mode= "<< mode<<"\n" ;
         }
         if((command == 6 && mode == 2)|| (command == 8 && mode == 3))
             conditionToExitFunction = 1;
 
         break;
-
+		}
     case 5:
-        readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_3);
+		{ readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_3);
         break;
-
+		}
 
     default:
-        conditionToExitFunction = 1;
-        break;
+		{  conditionToExitFunction = 1;
+		break;}
     }
 
 }
@@ -724,7 +730,7 @@ void LocalSocketIpcServer::setScalingMode()
 
     switch(mode){
     case 2:
-        graphNo = dataLength;
+		{ graphNo = dataLength;
         world w;
         w.xg2 = xmax;
         w.xg1 = xmin;
@@ -734,20 +740,20 @@ void LocalSocketIpcServer::setScalingMode()
         autoscale_graph(graphNo, 2);
         //update_all();
         break;
-
+		}
     case 1:
-        /* autoscale all axis - default*/
+		{ /* autoscale all axis - default*/
         autoscale_graph(graphNo, 3);
         //  update_all();
         break;
-
+		}
     case 0:
         /* no autoscale */
 
         break;
     default:
-        fprintf(stderr, "Wrong autoscale mode!\n");
-        break;
+		{ fprintf(stderr, "Wrong autoscale mode!\n");
+		break;}
     }
 
     mode = 0;

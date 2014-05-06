@@ -170,10 +170,8 @@ private:
     QByteArray          fileNameBa;
 	
 	//! files for debug
-    QFile      *debugFile;
-    
+    QFile      *debugFile;    
 	QTextStream         *debugOut;
-
 	bool debugFlag;
 
 };
