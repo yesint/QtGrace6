@@ -18,6 +18,8 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <sys/stat.h>
+#include <QFile>
+#include <QTextStream>
 
 #include "graphutils.h"
 #include "files.h"
@@ -166,9 +168,13 @@ private:
     qint64              availableBytesFromSocket;
     //! Byte array used to save a temporary file name
     QByteArray          fileNameBa;
+	
+	//! files for debug
+    QFile      *debugFile;
+    
+	QTextStream         *debugOut;
 
-
-
+	bool debugFlag;
 
 };
 
