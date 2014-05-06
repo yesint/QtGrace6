@@ -234,7 +234,7 @@ static int bit_swap(int i, int nu)
 #else
 /* Start of new FFTW-based transforms by Marcus H. Mendenhall */
 
-#include <fftw.h>
+#include <fftw3.h>
 #include <string.h>
 
 static char  *wisdom_file=0;
@@ -259,62 +259,62 @@ static void save_wisdom(void){
 
 void dft(double *jr, double *ji, int n, int iflag)
 {
-  fftw_plan plan;
-  int i;
-  double ninv;
-  FFTW_COMPLEX *cbuf;
-  static int wisdom_inited=0;
-  char *ram_cache_wisdom;
-  int plan_flags;
-
-  if(!wisdom_inited)  {
-    wisdom_inited=1;
-    wisdom_file=getenv("GRACE_FFTW_WISDOM_FILE");
-    ram_cache_wisdom=getenv("GRACE_FFTW_RAM_WISDOM");
-
-    if(ram_cache_wisdom) sscanf(ram_cache_wisdom, "%d", &using_wisdom);
-    /* turn on wisdom if it is requested even without persistent storage */
-
-    if(wisdom_file && wisdom_file[0] ) {
-      /* if a file was specified in GRACE_FFTW_WISDOM_FILE, try to read it */
-      FILE *wf;
-      fftw_status fstat;
-      wf=fopen(wisdom_file,"r");
-      if(wf) {
-	fstat=fftw_import_wisdom_from_file(wf);
-	fclose(wf);
-	initial_wisdom=fftw_export_wisdom_to_string();
-      } else initial_wisdom=0;
-      atexit(save_wisdom);
-      using_wisdom=1; /* if a file is specified, always use wisdom */
+    fftw_plan plan;
+    int i;
+    double ninv;
+    fftw_complex *cbuf;
+    static int wisdom_inited=0;
+    char *ram_cache_wisdom;
+    int plan_flags;
+    
+    if(!wisdom_inited)  {
+	wisdom_inited=1;
+	wisdom_file=getenv("GRACE_FFTW_WISDOM_FILE");
+	ram_cache_wisdom=getenv("GRACE_FFTW_RAM_WISDOM");
+	
+	if(ram_cache_wisdom) sscanf(ram_cache_wisdom, "%d", &using_wisdom);
+	/* turn on wisdom if it is requested even without persistent storage */
+	
+	if(wisdom_file && wisdom_file[0] ) {
+	    /* if a file was specified in GRACE_FFTW_WISDOM_FILE, try to read it */
+	    FILE *wf;
+	    int fstat;
+	    wf=fopen(wisdom_file,"r");
+	    if(wf) {
+		fstat=fftw_import_wisdom_from_file(wf);
+		fclose(wf);
+		initial_wisdom=fftw_export_wisdom_to_string();
+	    } else initial_wisdom=0;
+	    atexit(save_wisdom);
+	    using_wisdom=1; /* if a file is specified, always use wisdom */
+	}
     }
-  }
+    
+    plan_flags=using_wisdom ? FFTW_MEASURE : FFTW_ESTIMATE;
 
-  plan_flags=using_wisdom? (FFTW_USE_WISDOM | FFTW_MEASURE) : FFTW_ESTIMATE;
+    cbuf = static_cast<fftw_complex*>( fftw_malloc(sizeof(fftw_complex) * n) );
+    if(!cbuf) return;
 
-  plan=fftw_create_plan(n, iflag?FFTW_BACKWARD:FFTW_FORWARD,
-		   plan_flags | FFTW_IN_PLACE);
-  cbuf=xcalloc(n, sizeof(*cbuf));
-  if(!cbuf) return;
-  for(i=0; i<n; i++) {
-    cbuf[i].re=jr[i]; cbuf[i].im=ji[i];
-  }
-  fftw(plan, 1, cbuf, 1, 1, 0, 1, 1);
-  fftw_destroy_plan(plan);
-
-  if(!iflag) {
-    ninv=1.0/n;
     for(i=0; i<n; i++) {
-    jr[i]=cbuf[i].re*ninv; ji[i]=cbuf[i].im*ninv;
+	cbuf[i][0]=jr[i]; cbuf[i][1]=ji[i];
     }
-  } else {
-    for(i=0; i<n; i++) {
-      jr[i]=cbuf[i].re; ji[i]=cbuf[i].im;
+    
+    plan=fftw_plan_dft_1d(n, cbuf, cbuf, iflag?FFTW_BACKWARD:FFTW_FORWARD,plan_flags);
+    fftw_execute(plan);
+    fftw_destroy_plan(plan);
+    
+    if(!iflag) {
+	ninv=1.0/n;
+	for(i=0; i<n; i++) {
+	    jr[i]=cbuf[i][0]*ninv; ji[i]=cbuf[i][1]*ninv;
+	}
+    } else {
+	for(i=0; i<n; i++) {
+	    jr[i]=cbuf[i][0]; ji[i]=cbuf[i][1];
+	}
     }
-  }
-
-  XCFREE(cbuf);
-  
+    
+    fftw_free(cbuf);    
 }
 
 void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv)
