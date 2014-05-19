@@ -407,6 +407,13 @@ void LocalSocketIpcServer::readSocket() {
         }
         /* kill me */
         /* printf("got killed"); */
+
+		if(debugFlag){
+        debugFile->close();
+        delete debugFile;
+        delete debugOut;
+    }
+
         exit(0);
         countNoOfRead = 0;
         break;
