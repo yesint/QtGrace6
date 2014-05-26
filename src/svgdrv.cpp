@@ -31,7 +31,7 @@
  */
 
 ///#include <config.h>
-
+#include <locale>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -276,7 +276,26 @@ static void define_pattern(int i, int c, Svg_data *data)
  */
 static char *escape_specials(unsigned char *s, int len)
 {
-    static char *es = NULL;
+  //Check for non-ASCII characters and replace with question marks.
+  static char *esn = NULL;
+
+  esn = (char*)xrealloc(esn, (1)*sizeof(char));
+
+  for (int i = 0; i < len; i++) {
+        if (!isprint(s[i]))
+        {
+            esn[0] = '?';
+            esn[1] = '\0';
+
+			QString nonAsciiWarning = "The symbol: "+ QString(s[i]) +" can't be printed and the whole label containing the symbol will be replaced my a question mark (?)";
+            errmsg(nonAsciiWarning.toAscii().constData());
+
+            return (esn);
+		}
+    }
+
+   static char *es = NULL;
+
     int i, elen = 0;
 
     elen = 0;
@@ -1148,6 +1167,10 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
             tm->cxx, tm->cyx,
             -tm->cxy, -tm->cyy,
             scaleval(vp.x), scaleval(vp.y));
+
+
+
+
 
     fprintf(prstream,"%s",escape_specials((unsigned char *) s, len));
 
