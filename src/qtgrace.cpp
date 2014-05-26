@@ -499,13 +499,13 @@ int main( int argc, char **argv )
     cout << "Linux" << endl;
 #endif*/
 
-	//SKF font style. Enabling same default font for different OS.
+    //SKF font style. Enabling same default font for different OS.
 #ifdef SKF_QtGrace
 #if QT_VERSION < 0x050000
     QApplication::setStyle(new skfStyle(3,3));
- #else
+#else
     //QApplication::setStyle(new skfStyle(3,3));
- #endif
+#endif
 #endif
 
     QApplication * a=new QApplication( argc, argv );
@@ -624,11 +624,11 @@ int main( int argc, char **argv )
         //a.installTranslator(&translator[i]);//-->install later
     }
 
-	#ifdef SKF_QtGrace	
-		allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
-	#else
-		allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
-	#endif
+#ifdef SKF_QtGrace
+    allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+#else
+    allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+#endif
 
     allPrefs->sync();
     allPrefs->beginGroup(QString("ExtraPreferences"));
@@ -654,8 +654,8 @@ int main( int argc, char **argv )
 
 
 #ifdef SKF_QtGrace
-    //BZ2067	
-	//Load font settings from .ini file
+    //BZ2067
+    //Load font settings from .ini file
 #else
     stdFont.setPixelSize(14);
 #endif
@@ -916,12 +916,12 @@ void read_settings(void)
 {
     /*allPrefs=new QSettings(QString("Grace"),QString("qtGrace"));
     allPrefs->setPath(QSettings::IniFormat,QSettings::UserScope,qt_grace_exe_dir);*/
- 
-	#ifdef SKF_QtGrace	
-		allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
-	#else
-		allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
-	#endif
+
+#ifdef SKF_QtGrace
+    allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+#else
+    allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+#endif
 
 
     allPrefs->sync();
@@ -1025,15 +1025,26 @@ void read_settings(void)
     if (FormDeviceSetup==NULL)
     {
 #ifdef SKF_QtGrace
-                FormDeviceSetup=new frmDeviceSetup(1,mainWin);
+        FormDeviceSetup=new frmDeviceSetup(1,mainWin);
+
+
 #else
         FormDeviceSetup=new frmDeviceSetup(mainWin);
 #endif
         //initialize this only on startup
-        if (default_Print_Device==-1)//last one
+        if (default_Print_Device==-1){//last one
             FormDeviceSetup->devices_item->setCurrentIndex(stdOutputFormat);
-        else
+#ifdef SKF_QtGrace
+            FormDeviceSetup->setStartQtgrace(false);
+#endif
+        }
+        else{
             FormDeviceSetup->devices_item->setCurrentIndex(default_Print_Device);
+#ifdef SKF_QtGrace
+            FormDeviceSetup->setStartQtgrace(false);
+#endif
+
+        }
     }
     FormDeviceSetup->hide();
 
@@ -1053,11 +1064,11 @@ void write_settings(void)
 {
     /*allPrefs=new QSettings(QString("Grace"),QString("qtGrace"));
     allPrefs->setPath(QSettings::IniFormat,QSettings::UserScope,qt_grace_exe_dir);*/
-	#ifdef SKF_QtGrace	
-		allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
-	#else
-		allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
-	#endif
+#ifdef SKF_QtGrace
+    allPrefs=new QSettings(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+#else
+    allPrefs=new QSettings(qt_grace_exe_dir+QString("/qtGrace_Settings.ini"),QSettings::IniFormat);
+#endif
 
     allPrefs->beginGroup(QString("Preferences"));
     allPrefs->setValue(QString("dontaskquestions"),QVariant(FormPreferences->noask_item->isChecked()));

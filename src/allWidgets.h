@@ -866,8 +866,8 @@ public:
     QGroupBox * grpOutput;
     QGroupBox * grpPage;
     QGroupBox * grpFonts;
-
 #ifdef SKF_QtGrace
+    bool startQtgrace;
     QGroupBox * grpOptions;
 #endif
 
@@ -926,6 +926,7 @@ public:
     QVBoxLayout * layout3;
 #ifdef SKF_QtGrace
     QVBoxLayout * layout4;
+    void setStartQtgrace(bool value);
 #endif
     QVBoxLayout * layout;
 

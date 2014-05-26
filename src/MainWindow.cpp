@@ -1120,7 +1120,8 @@ if (FormDeviceSetup!=NULL) dev = get_device_props(FormDeviceSetup->cur_dev);
 sprintf(print_file,"%s.%s",get_docbname(),dev.fext);
 if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(QString(print_file));*/
 
-            if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+            if (FormDeviceSetup!=NULL)
+                FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
         }
 
         break;
@@ -1230,7 +1231,8 @@ void MainWindow::ExportToFile(void)
             FormDeviceSetup2->devices_item->setCurrentIndex(default_Print_Device);
     }
 
-  FormDeviceSetup2->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+  //FormDeviceSetup2->printfile_item->setText(get_filename_with_extension(FormDeviceSetup2->cur_dev));
+  FormDeviceSetup2->setStartQtgrace(false);
   FormDeviceSetup2->show();
   FormDeviceSetup2->raise();
   FormDeviceSetup2->activateWindow();
