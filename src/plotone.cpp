@@ -83,7 +83,10 @@ extern QString get_filename_with_extension(int device);
 
 using namespace std;
 
-
+void doPlotFit(void)
+{
+    mainWin->doFitPage();
+}
 
 /*
  * draw all active graphs
@@ -129,10 +132,13 @@ void drawgraph(void)
     leavegraphics();
 
     mainWin->mainArea->contentChanged=true;
+
     if (!startupphase)
     {
         mainWin->mainArea->repaint();
+
         qApp->processEvents();
+
     }
 }
 

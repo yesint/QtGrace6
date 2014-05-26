@@ -255,9 +255,9 @@ void init_Patterns(void)
 }
 
 MainWindow::MainWindow( QWidget *parent):QWidget( parent )
-    #ifdef SKF_QtGrace
-    ,SocketConnection(NULL)
-	,originalSystemFont(NULL)
+  #ifdef SKF_QtGrace
+  ,SocketConnection(NULL)
+  ,originalSystemFont(NULL)
   #endif
 
 {
@@ -265,10 +265,10 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 
     QPixmap HelpPixmap;
 
-   #ifndef SKF_QtGrace
-      setFont(stdFont);
-	#endif
-	
+#ifndef SKF_QtGrace
+    setFont(stdFont);
+#endif
+
 
     setWindowTitle(tr("qtGrace: untitled"));
 
@@ -277,10 +277,10 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     windowWidth=1060;
     windowHeight=800;
 
-	//Save default system font
-	originalSystemFont=new QFont(QApplication::font());
-	//Read font settings for .ini file
-	ReadFontConfiguration();
+    //Save default system font
+    originalSystemFont=new QFont(QApplication::font());
+    //Read font settings for .ini file
+    ReadFontConfiguration();
 #else
     windowWidth=872;
     windowHeight=670;
@@ -458,8 +458,8 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     //The Options-Menu and its entries
     mnuOptions=new QMenu(tr("&Options"),  this );
     mnuOptions->setTearOffEnabled(TRUE);
-  
-	mnuOptions->addAction(actConfigureFont);
+
+    mnuOptions->addAction(actConfigureFont);
     mnuOptions->addAction(actResetToSystemFont);
 #endif
     //The Help-Menu and its entries
@@ -492,7 +492,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     menuBar->addMenu( mnuWindow );
     menuBar->addSeparator();
 #ifdef SKF_QtGrace
-	menuBar->addMenu( mnuOptions );
+    menuBar->addMenu( mnuOptions );
 #endif
     menuBar->addMenu( mnuHelp );
 
@@ -680,7 +680,14 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     //The main drawing area
     mainArea=new MainArea(this);
     mainArea->setGeometry(toolBar1->width(),stdBarHeight+statLocBar->height(),windowWidth-toolBar1->width(),windowHeight-statusBar->height()-stdBarHeight-statLocBar->height());
+#ifdef SKF_QtGrace
+    QPalette Pal(palette());
+    // set white background
+    Pal.setColor(QPalette::Background, Qt::white);
+    mainArea->setAutoFillBackground(true);
+    mainArea->setPalette(Pal);
     mainArea->show();
+#endif
 
     mainGrid=new QGridLayout();
     mainGrid->setMargin(2);
@@ -1219,7 +1226,7 @@ void MainWindow::Exit(void)
 //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
 void MainWindow::ExportToFile(void)
 {
-    #ifdef SKF_QtGrace
+#ifdef SKF_QtGrace
 
     if (FormDeviceSetup2==NULL)
     {
@@ -1231,11 +1238,11 @@ void MainWindow::ExportToFile(void)
             FormDeviceSetup2->devices_item->setCurrentIndex(default_Print_Device);
     }
 
-  //FormDeviceSetup2->printfile_item->setText(get_filename_with_extension(FormDeviceSetup2->cur_dev));
-  FormDeviceSetup2->setStartQtgrace(false);
-  FormDeviceSetup2->show();
-  FormDeviceSetup2->raise();
-  FormDeviceSetup2->activateWindow();
+    //FormDeviceSetup2->printfile_item->setText(get_filename_with_extension(FormDeviceSetup2->cur_dev));
+    FormDeviceSetup2->setStartQtgrace(false);
+    FormDeviceSetup2->show();
+    FormDeviceSetup2->raise();
+    FormDeviceSetup2->activateWindow();
 
 #endif
 }
@@ -1987,7 +1994,7 @@ void MainWindow::PageSetup(void)
     }
 #endif
 
-FormDeviceSetup->show();
+    FormDeviceSetup->show();
 
 #ifdef SKF_QtGrace
     FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("SCREEN")); //Set screen as default for display settings
@@ -2002,77 +2009,77 @@ FormDeviceSetup->show();
 
 void MainWindow::FontSettings(void)
 {
-    #ifdef SKF_QtGrace
+#ifdef SKF_QtGrace
     if (FormFontSettings==NULL)
     {
         FormFontSettings=new frmFontSettings(this);
     }
-	FormFontSettings->spinFontSize->setValue(100);
-	FormFontSettings->saveDefaultFont();
+    FormFontSettings->spinFontSize->setValue(100);
+    FormFontSettings->saveDefaultFont();
     FormFontSettings->show();
     FormFontSettings->resize(FormFontSettings->width(),FormFontSettings->width()/3);
     FormFontSettings->raise();
     FormFontSettings->activateWindow();
-	connect(FormFontSettings,SIGNAL(closeEvent()),SLOT(FormFontSettings->doClose()));
-    #endif
+    connect(FormFontSettings,SIGNAL(closeEvent()),SLOT(FormFontSettings->doClose()));
+#endif
 }
 
 
 
 void MainWindow::ConfigureFontDlg(){
-    #ifdef SKF_QtGrace
-	QMessageBox msgBox;
+#ifdef SKF_QtGrace
+    QMessageBox msgBox;
     bool ok;
     QFont f( QFontDialog::getFont( &ok, QApplication::font() ) );
     if(!ok) return; // Cancel pressed
     if(f.pointSize()>14) {
-		
-		  QMessageBox::information(NULL, "Reset fonts","Fonts with point size larger than 14 are not recommended.\n"
-                    "Please restart Beauty, then font change will take a full effect.\n"
-                    "To restore font to default one please use Options/Reset font");
+
+        QMessageBox::information(NULL, "Reset fonts","Fonts with point size larger than 14 are not recommended.\n"
+                                 "Please restart Beauty, then font change will take a full effect.\n"
+                                 "To restore font to default one please use Options/Reset font");
     } else {
-	  QMessageBox::information(NULL, "Reset fonts", 
-                             "Please restart QtGrace, then font change will take a full effect.\n"
-                    "To restore font to default one please use Options/Reset font");
+        QMessageBox::information(NULL, "Reset fonts",
+                                 "Please restart QtGrace, then font change will take a full effect.\n"
+                                 "To restore font to default one please use Options/Reset font");
 
     }
-  
-   QApplication::setFont(f);
-   SaveFontConfiguration(f);
-   doFitPage();
+
+    QApplication::setFont(f);
+    SaveFontConfiguration(f);
+    doFitPage();
 
 #endif
 }
 
 
 void MainWindow::ResetToSystemFont(){
-      #ifdef SKF_QtGrace
-	assert(originalSystemFont);
-     QApplication::setFont(*originalSystemFont);
-     QMessageBox::information(NULL, "Reset fonts", 
+#ifdef SKF_QtGrace
+    assert(originalSystemFont);
+    QApplication::setFont(*originalSystemFont);
+    QMessageBox::information(NULL, "Reset fonts",
                              "Please restart QtGrace, then font change will take a full effect.");
 
-	 QFile file(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"));
+    QFile file(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"));
 
-	if( !file.exists()) {
-        return;  
-	}else{
-		SaveFontConfiguration(*originalSystemFont);
-		doFitPage();
+    if( !file.exists()) {
+        return;
+    }else{
+        SaveFontConfiguration(*originalSystemFont);
+        doFitPage();
 
-	}
+    }
 
- #endif
+#endif
 }
 
 void MainWindow::SaveFontConfiguration(QFont font)
 {
-	 #ifdef SKF_QtGrace
+#ifdef SKF_QtGrace
     //QtGrace application font settings
 
-	QSettings fontSettings(QString(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
+    QSettings fontSettings(QString(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
     
-	fontSettings.beginGroup("FontSettings");
+    fontSettings.beginGroup("FontSettings");
 
     fontSettings.setValue("font", font.family());
     
@@ -2081,55 +2088,58 @@ void MainWindow::SaveFontConfiguration(QFont font)
 
     int weight = font.weight();
     fontSettings.setValue("weight", weight);
-   
+
     int italic = font.italic();
     fontSettings.setValue("italics", italic);
-	fontSettings.endGroup();
-	 #endif
+    fontSettings.endGroup();
+#endif
 }
 
 void MainWindow::ReadFontConfiguration()
 {
- #ifdef SKF_QtGrace
-QFile file(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"));
+#ifdef SKF_QtGrace
+    QFile file(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"));
 
-//Check file exist otherwise use default font settings
-if( !file.exists()) {
-        return;  
-}
+    //Check file exist otherwise use default font settings
+    if( !file.exists()) {
+        return;
+    }
 
-//Read font settings from .ini file
-QSettings fontSettings(QString(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
+    //Read font settings from .ini file
+    QSettings fontSettings(QString(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
 
-fontSettings.beginGroup("FontSettings");
+    fontSettings.beginGroup("FontSettings");
 
-QString fontName = fontSettings.value("font","").toString();
+    QString fontName = fontSettings.value("font","").toString();
 
-int fontSize = fontSettings.value("size","").toInt();
+    int fontSize = fontSettings.value("size","").toInt();
 
-int fontWeight = fontSettings.value("weight","").toInt();
+    int fontWeight = fontSettings.value("weight","").toInt();
 
-int italics = fontSettings.value("italics","").toInt();
+    int italics = fontSettings.value("italics","").toInt();
 
-QStringList keys = fontSettings.allKeys();
-if( keys.isEmpty()) {
-        return;  
-}else{
-	QApplication::setFont(QFont(fontName, fontSize, fontWeight, italics));
+    QStringList keys = fontSettings.allKeys();
+    if( keys.isEmpty()) {
+        return;
+    }else{
+        QApplication::setFont(QFont(fontName, fontSize, fontWeight, italics));
 
-}
- #endif
+    }
+#endif
 }
 
 
 void MainWindow::Redraw(void)
 {
+
     mainArea->completeRedraw();
+    doFitPage();
 }
 
 void MainWindow::UpdateAll(void)
 {
     update_all();
+
 }
 
 void MainWindow::Commands(void)
@@ -2400,13 +2410,13 @@ void MainWindow::doFitPage(void)
     if (zoomLevel<0) zoomLevel--;
     zoomLevel = zoomLevel > 100 ? 100 : (zoomLevel < -100 ? -100 : zoomLevel);
 
-	#ifdef SKF_QtGrace
+#ifdef SKF_QtGrace
     sldPageZoom->setValue(zoomLevel-2); //Because we don't want to see the scroll bar when we change the application font size.
-    #else
-	sldPageZoom->setValue(zoomLevel);
-	#endif
+#else
+    sldPageZoom->setValue(zoomLevel);
+#endif
 
-	// b) reset position sliders to 0
+    // b) reset position sliders to 0
     mainArea->scroll->horizontalScrollBar()->setValue(0);
     mainArea->scroll->verticalScrollBar()->setValue(0);
 
@@ -2590,10 +2600,10 @@ void MainWindow::CreateActions(void)
     connect(actFontSize, SIGNAL(triggered()), this, SLOT(FontSettings()));
     actPageSetup= new QAction(tr("&Screen setup" ), this);
 
-	//Actions for option menu
-	actConfigureFont= new QAction(tr("&Configure fonts..." ), this);
+    //Actions for option menu
+    actConfigureFont= new QAction(tr("&Configure fonts..." ), this);
     connect(actConfigureFont, SIGNAL(triggered()), this, SLOT(ConfigureFontDlg()));
-	actResetToSystemFont= new QAction(tr("&Reset fonts..." ), this);
+    actResetToSystemFont= new QAction(tr("&Reset fonts..." ), this);
     connect(actResetToSystemFont, SIGNAL(triggered()), this, SLOT(ResetToSystemFont()));
 
 #else
@@ -3658,6 +3668,7 @@ QImage paintXOR(QImage * canvas,QImage * toDraw)//draw "toDraw" at position in X
 void MainArea::completeRedraw(void)
 {
     //cout << "Complete redraw()" << endl;
+
     update_all();
     xdrawgraph();
     /*Incorporated into drawgraph as part of xdrawgraph

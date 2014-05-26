@@ -56,6 +56,7 @@
 extern "C" {
 #endif
 
+void doPlotFit(void);
 void drawgraph(void);
 void do_hardcopy(void);
 

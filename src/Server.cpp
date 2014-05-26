@@ -1,6 +1,6 @@
 #include "Server.h"
 #include "undo_module.h"
-//#include <MainWindow.h>
+
 #ifdef _MSC_VER
 #include <windows.h>
 // Sleep()
@@ -9,6 +9,7 @@
 #endif
 #include <QtNetwork/QLocalSocket>
 #include <QMessageBox>
+
 extern bool startupphase;
 
 
@@ -425,6 +426,7 @@ void LocalSocketIpcServer::readSocket() {
         }
         update_all();
         xdrawgraph();
+        doPlotFit();
 
         writeToTmpFile=true;
         countNoOfRead = 0;
@@ -804,6 +806,7 @@ void LocalSocketIpcServer::writeDataToTmpFile()
 */
         //Read data from tmp file and update QtGrace plot
         getdata(gno, fileNameChar,cursource,load,0);
+
         update_all();
         buffer.close();
         dataFromBuffer.clear();
