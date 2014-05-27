@@ -2411,7 +2411,7 @@ void MainWindow::doFitPage(void)
     zoomLevel = zoomLevel > 100 ? 100 : (zoomLevel < -100 ? -100 : zoomLevel);
 
 #ifdef SKF_QtGrace
-    sldPageZoom->setValue(zoomLevel-2); //Because we don't want to see the scroll bar when we change the application font size.
+    sldPageZoom->setValue(zoomLevel-5); //Because we don't want to see the scroll bar when we change the application font size.
 #else
     sldPageZoom->setValue(zoomLevel);
 #endif
