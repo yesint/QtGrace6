@@ -35,14 +35,12 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,debugFile(NULL)
   ,debugOut(NULL)
   ,mode(0)
-  ,debugFlag(false){
-
-	#ifdef _MSC_VER
-	  if(getenv("QTGRACEDEBUG")) {
-		  cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n"; 	
-		  debugFlag = true;
-	  }
-	#endif
+  ,debugFlag(false)
+{
+    if(getenv("QTGRACEDEBUG")) {
+      cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n"; 	
+      debugFlag = true;
+    }
 
     if(debugFlag){
         debugFile = new QFile("QTGRACEDEBUG.txt");
