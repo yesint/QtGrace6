@@ -204,20 +204,36 @@ QPoint VPoint2XPoint(VPoint vp)
  * viewport coordinates
  */
 VPoint xlibdev2VPoint(int x, int y)
+
 {
-    VPoint vp;
+
+VPoint vp;
 
     if (win_scale == 0) {
+
         vp.x = (double) 0.0;
+
         vp.y = (double) 0.0;
+
     } else {
-        vp.x = (double) x / win_scale;
-        vp.y = (double) (win_h - y) / win_scale;
+
+        vp.x = ((double) x) / win_scale;
+
+        vp.y = (double) ((double)win_h - (double)y) / win_scale;
+
+        if (vp.x<0.0) vp.x = 0.0;
+
+        else if (vp.x>win_w) vp.x = ((double)win_w-1) / win_scale;
+
+        if (vp.y<0.0) vp.y = 0.0;
+
+        else if (vp.y>win_h) vp.y = ((double)win_h-1) / win_scale;
+
     }
 
-    return (vp);        
-}
+return (vp);
 
+}
 void xlibupdatecmap(void)
 {
     /* TODO: replace!!! */
