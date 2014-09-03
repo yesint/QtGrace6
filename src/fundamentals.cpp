@@ -4225,7 +4225,14 @@ void SetPopup::doCopyClipBoard(void)
         {
             for (int j=0;j<col;j++)
             {
+
+#ifdef SKF_QtGrace
+                sprintf(dummy,"%.18g\t",g[gno].p[sno].data.ex[j][k]);
+#else
                 sprintf(dummy,"%.8g\t",g[gno].p[sno].data.ex[j][k]);
+#endif
+
+
                 text+=QString(dummy);
             }
             text+=QString("\n");

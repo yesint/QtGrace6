@@ -45,7 +45,7 @@
 @default font 4
 @default char size 1.000000
 @default symbol size 1.000000
-@default sformat "%.8g"
+@default sformat "%.18g"
 @background color 0
 @page background fill on
 @timestamp off

@@ -1349,7 +1349,12 @@ void frmSpreadSheet::doCopySelected(void)
     {
         for (int j=0;j<col;j++)
         {
+#ifdef SKF_QtGrace
+
+            sprintf(dummy,"%.18g\t",g[gno].p[sno].data.ex[j][sel[k]]);
+#else
             sprintf(dummy,"%.8g\t",g[gno].p[sno].data.ex[j][sel[k]]);
+#endif
             text+=QString(dummy);
         }
         text+=QString("\n");
@@ -6505,7 +6510,7 @@ void frmDeviceSetup::DeviceChanged(int device_id)
     //Replace default doc name with current filename from plot to file dialogue
     if(!printfile_item->text().isEmpty() && !startQtgrace){
 
-       //Remove file extension from current filename.
+        //Remove file extension from current filename.
         int j = 0;
         int dotPos = 0;
 
@@ -9852,9 +9857,21 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     lblDescription=new QLabel(tr("Project description:"),grpDescription);
 
     ledFormat=new stdLineEdit(grpWrite,tr("Format:"));
+
+#ifdef SKF_QtGrace
+    ledFormat->lenText->setText(QString("\%.18g"));
+#else
     ledFormat->lenText->setText(QString("\%.8g"));
+#endif
+
     ledFormat2=new stdLineEdit(grpWrite,tr("Data format:"));
+
+#ifdef SKF_QtGrace
+    ledFormat2->lenText->setText(QString("\%.18g"));
+#else
     ledFormat2->lenText->setText(QString("\%.8g"));
+#endif
+
     ledTitle=new stdLineEdit(grpTitle,tr("Title:"));
     ledTitle->lenText->setText(QString("A fit"));
 
@@ -10491,6 +10508,11 @@ QMessageBox::information(this,"encoded",encodedString);
             set_project_description(neDescr);
             delete[] neDescr;
         }
+
+        //Update sformat from save as and export dialogue
+        const char *sformatFromDialog = ledFormat2->lenText->text().toStdString().c_str();
+        strcpy(sformat, sformatFromDialog);
+
         emit(newFileSelectedForIO(formType,selectedFile,FileExists,isWriteable,isReadable));
     }
 end_fromIOFormOK:

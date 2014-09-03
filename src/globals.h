@@ -188,7 +188,11 @@ GLOBAL(nr, int, 0);
 GLOBAL(resfp, FILE *, NULL);
 
 /* format for saving data sets */
+#ifdef SKF_QtGrace
+GLOBALARR(sformat, char, 128, "%.18g");
+#else
 GLOBALARR(sformat, char, 128, "%.8g");
+#endif
 
 #ifdef HAVE_NETCDF
 GLOBALARR(netcdf_name, char, 512, "");

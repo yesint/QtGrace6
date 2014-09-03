@@ -433,7 +433,7 @@ static void auto_ticks(int gno, int axis)
 	t->tmajor = exp(d)/(1.0 + exp(d));
     } 
     else {
-	d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
+    d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
 	t->tmajor = d;
     }
 
