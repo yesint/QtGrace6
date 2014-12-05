@@ -48,6 +48,9 @@ public:
 
 
 private slots:
+
+    //! Create a unique file name
+    const char *createUniqueFileName();
     //! Read data from socket (ViewBeast) and process the data.
     void    readSocket();
     //! Connect to ViewBeast to send data from QtGrace to ViewBeast
@@ -154,8 +157,7 @@ private:
     QByteArray          dataFromBuffer;
     //! buffer contains all the data received from ViewBeast. The buffer is then loaded to QtGrace
     QBuffer             buffer;
-    //!
-    bool                readSocketIsLocked;
+
     //!
     bool                writeToTmpFile;
     //!
@@ -168,12 +170,12 @@ private:
     qint64              availableBytesFromSocket;
     //! Byte array used to save a temporary file name
     QByteArray          fileNameBa;
-	
-	//! files for debug
-    QFile      *debugFile;    
-	QTextStream         *debugOut;
-	bool debugFlag;
 
+    //! files for debug
+    QFile      *debugFile;
+    QTextStream         *debugOut;
+    bool debugFlag;
+    bool readSocketIsLocked;
 };
 
 

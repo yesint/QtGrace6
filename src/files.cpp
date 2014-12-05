@@ -1124,6 +1124,237 @@ int getparms(char *plfile)
     return 1;
 }
 
+
+
+ int readDataFromClient(char* dataIn, int load_type,char *label)
+{
+     int save_version, cur_version;
+
+
+     save_version = get_project_version();
+     set_project_version(0);
+
+     set_parser_gno(0);
+
+    int nrows, ncols, nncols, nscols, nncols_req;
+    int *formats = NULL;
+    int breakon, readerror;
+    ss_data ssd;
+    char *s, tbuf[128];
+    char *linebuf=NULL;
+    int linelen=0;   /* a misleading name ... */
+    int linecount;
+ 
+
+    //we have to reserve some memory here for input-data
+    int * maj_new_nrs=NULL;
+    int nr_count=0;
+
+    linecount = 0;
+    readerror = 0;
+    nrows = 0;
+    
+    breakon = TRUE;
+    
+    memset(&ssd, 0, sizeof(ssd));
+
+
+    linebuf = strtok(dataIn,"\n");
+
+    while (linebuf != NULL)
+    {
+        linecount++;
+        s = (char*) malloc(strlen(linebuf)+2);
+
+        strcpy(s,linebuf);
+        strcat(s,"\n");
+
+        linebuf = strtok(NULL, "\n");
+
+        while (*s == ' ' || *s == '\t' || *s == '\n')
+        {
+            s++;
+        }
+        /* skip comments */
+        if (*s == '#') {
+            parse_qtGrace_Additions(s);
+            continue;
+        }
+        if (exchange_point_comma && (*s==',' || *s=='.'))
+        {
+            if (*s=='.') *s=',';
+            else *s='.';
+        }
+        /*   command     end-of-set      EOL   */
+        if (*s == '@' || *s == '&' || *s == '\0')
+        {
+            /* a data break line */
+            if (breakon != TRUE)
+            {
+                /* free excessive storage */
+                realloc_ss_data(&ssd, nrows);
+
+                new_set_no=0;
+                if (new_set_nos!=NULL)
+                {
+                    delete[] new_set_nos;
+                    new_set_nos=NULL;
+                }
+
+                /* store accumulated data in set(s) */
+                if (store_data(&ssd, load_type, label) != RETURN_SUCCESS)
+                {
+                    xfree(linebuf);
+                    return RETURN_FAILURE;
+                }
+                
+                append_to_storage(&nr_count,&maj_new_nrs,new_set_no,new_set_nos);
+
+                /* reset state registers */
+                nrows = 0;
+                readerror = 0;
+                breakon = TRUE;
+            }
+            if (*s == '@')
+            {
+                /*int retval = */scanner(s + 1);
+                /*cout << "s=" << s << " | " << retval << endl;*/
+                continue;
+            }
+        }
+        else
+        {
+            if (breakon)
+            {
+                /* parse the data line */
+                XCFREE(formats);
+                if (parse_ss_row(s, &nncols, &nscols, &formats) != RETURN_SUCCESS)
+                {
+                    errmsg("Can't parse data");
+                    xfree(linebuf);
+                    return RETURN_FAILURE;
+                }
+                
+                if (load_type == LOAD_SINGLE)
+                {
+                    nncols_req = settype_cols(curtype);
+                    if (nncols_req <= nncols)
+                    {
+                        nncols = nncols_req;
+                    }
+                    else if (nncols_req == nncols + 1)
+                    {
+                        /* X from index, OK */
+                        ;
+                    }
+                    else
+                    {
+                        errmsg("Column count incorrect");
+                        xfree(linebuf);
+                        return RETURN_FAILURE;
+                    }
+                }
+
+                ncols = nncols + nscols;
+
+                /* init the data storage */
+                if (init_ss_data(&ssd, ncols, formats) != RETURN_SUCCESS)
+                {
+                    errmsg("Malloc failed in uniread()");
+                    xfree(linebuf);
+                    return RETURN_FAILURE;
+                }
+                
+                breakon = FALSE;
+            }
+            if (nrows % BUFSIZE == 0)
+            {
+                if (realloc_ss_data(&ssd, nrows + BUFSIZE) != RETURN_SUCCESS)
+                {
+                    errmsg("Malloc failed in uniread()");
+                    free_ss_data(&ssd);
+                    xfree(linebuf);
+                    return RETURN_FAILURE;
+                }
+            }
+
+            if (insert_data_row(&ssd, nrows, s) != RETURN_SUCCESS)
+            {
+                sprintf(tbuf, "Error parsing line %d, skipped", linecount);
+                errmsg(tbuf);
+                readerror++;
+                if (readerror > MAXERR)
+                {
+                    if (yesno("Lots of errors, abort?", NULL, NULL, NULL))
+                    {
+                        free_ss_data(&ssd);
+                        xfree(linebuf);
+                        return RETURN_FAILURE;
+                    }
+                    else
+                    {
+                        readerror = 0;
+                    }
+                }
+            }
+            else
+            {
+                nrows++;
+            }
+        }
+    }
+
+    if (nrows > 0)
+    {
+        /* free excessive storage */
+        realloc_ss_data(&ssd, nrows);
+
+        new_set_no=0;
+        if (new_set_nos!=NULL)
+        {
+            delete[] new_set_nos;
+            new_set_nos=NULL;
+        }
+
+        /* store accumulated data in set(s) */
+        if (store_data(&ssd, load_type, label) != RETURN_SUCCESS)
+        {
+            xfree(linebuf);
+            return RETURN_FAILURE;
+        }
+
+        append_to_storage(&nr_count,&maj_new_nrs,new_set_no,new_set_nos);
+    }
+
+    xfree(linebuf);
+    xfree(formats);
+
+    new_set_no=nr_count;
+    if (new_set_nos!=NULL) delete[] new_set_nos;
+    new_set_nos=maj_new_nrs;
+    maj_new_nrs=NULL;
+
+    cur_version = get_project_version();
+    if (cur_version != 0) {
+        /* a complete project */
+        postprocess_project(cur_version);
+    } else if (load_type != LOAD_BLOCK) {
+        /* just a few sets */
+        if(1){
+            autoscale_graph(0, autoscale_onread);
+        }
+    }
+    set_project_version(save_version);
+
+
+    return RETURN_SUCCESS;
+}
+
+
+
+
+
+
 static int uniread(FILE *fp, int load_type, char *label)
 {
     int nrows, ncols, nncols, nscols, nncols_req;
@@ -1316,6 +1547,25 @@ static int uniread(FILE *fp, int load_type, char *label)
 
     return RETURN_SUCCESS;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int getdata(int gno, char *fn, int src, int load_type, int autoscale)
 {

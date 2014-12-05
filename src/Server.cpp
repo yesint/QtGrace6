@@ -38,7 +38,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,debugFlag(false)
 {
     if(getenv("QTGRACEDEBUG")) {
-      cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n"; 	
+      cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n";
       debugFlag = true;
     }
 
@@ -68,7 +68,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
         }
     }
 
-    messageFromBeastPtr->setMaxPendingConnections(300);
+   // messageFromBeastPtr->setMaxPendingConnections(300);
 
     connect(messageFromBeastPtr, SIGNAL(newConnection()), this, SLOT(readSocket()));
 
@@ -98,7 +98,19 @@ void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
         *debugOut<< "2) Connect to Server\n"+readServer;
         *debugOut<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
     }
-    messageToBeastPtr->abort();
+
+
+	//Wait to write to QLocalSocket buffer until previous data has been analysed by ViewBeast and sends a disconnect signal.
+    while(messageToBeastPtr->state()==QLocalSocket::ConnectedState)
+    {
+		 if(!messageToBeastPtr->waitForDisconnected(60000)){
+			 //We don't want to wait for a disconnect signal from ViewBeast forever.
+            QMessageBox::information(0,"Communication Error",messageToBeastPtr->errorString() + ". Try to restart QtGrace");
+            exit(0);
+          }
+
+    }
+
     messageSendGraphParam = sendParam;
     messageParamGraphLength = sendLen;
     messageToBeastPtr->connectToServer(readServer);
@@ -116,8 +128,8 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
     messageToBeastPtr->abort();
     delete messageToBeastPtr;
     messageToBeastPtr = NULL;
- 
-	if(debugFlag){
+
+    if(debugFlag){
         debugFile->close();
         delete debugFile;
         delete debugOut;
@@ -131,19 +143,7 @@ void LocalSocketIpcServer::readSocket() {
     if(debugFlag){
         *debugOut<<"readSocket() START\n";
     }
-    if(readSocketIsLocked){
-        if(debugFlag){
-            *debugOut<<"readSocket() SLEEPING because pervious invpcation has not finished yet\n";
-        }
-        //sleep(1);
-        qApp->processEvents();
-        if(debugFlag){
-            *debugOut<<"readSocket() ENDSLEEPING because pervious invpcation has not finished yet\n";
-        }
-        // waiting because the previous call is not done
-        // all the work it should do.
-    }
-    readSocketIsLocked=true;
+
 
     conditionToExitFunction = 0;
 
@@ -166,51 +166,31 @@ void LocalSocketIpcServer::readSocket() {
         bytesNeeded= dataLength;
     }
 
-    while (clientConnection->bytesAvailable() != bytesNeeded){
+	while (clientConnection->bytesAvailable() < bytesNeeded){
         if(debugFlag){
             *debugOut<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable()<<"\n";
         }
-        clientConnection->waitForReadyRead(5000);
-    }
-    if(debugFlag){
-        *debugOut<<"Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable()<<"\n";
-    }
-
-    QDataStream in(clientConnection);
-
-#if QT_VERSION >= 0x040700
-    in.setVersion(QDataStream::Qt_4_7);
-#else
-    in.setVersion(QDataStream::Qt_4_0);
-#endif
-
-    if (clientConnection->bytesAvailable() < (int)sizeof(quint16)) {
-        if(debugFlag){
-            *debugOut<<"readSocket() FAIL 2"<<"\n";
-        }
-        delete clientConnection;
-        return;
+        clientConnection->waitForReadyRead();
+	
     }
 
     availableBytesFromSocket = clientConnection->bytesAvailable();
     messagePtr=new char[availableBytesFromSocket+1];
-    messagePtr[availableBytesFromSocket]=0; // ensure that
+
+    // ensure that
     // 0-terminated character strings
     // come here correctly.
+    messagePtr[availableBytesFromSocket]=0;
 
     int receivedFromRead=clientConnection->read(messagePtr,availableBytesFromSocket);
-    in.readRawData(messagePtr,availableBytesFromSocket);
-    if(debugFlag){
-        *debugOut<<"Reads " << receivedFromRead << " bytes\n";
-    }
-    for(int i=0;i<receivedFromRead;i++)
+
+    if (receivedFromRead==-1) {
         if(debugFlag){
-            *debugOut<<"Pos "<< i <<" byte="<< (int)(messagePtr[i])<<"\n" ;
+            *debugOut<<"readSocket() FAIL 2"<<"\n";
         }
-    if(availableBytesFromSocket!=receivedFromRead){
-        if(debugFlag){
-            *debugOut<< "All available data not read!\n";
-        }
+        clientConnection->disconnectFromServer();
+        delete clientConnection;
+        return;
     }
 
     if(debugFlag){
@@ -226,11 +206,11 @@ void LocalSocketIpcServer::readSocket() {
         if(debugFlag){
             *debugOut<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command<<"\n";
         }
-        readSocketIsLocked=false; // should be unlocked when "returns" from
-        // this function.
+        clientConnection->disconnectFromServer();
         delete clientConnection;
         return;
     }
+
 
     //Execute task from ViewBeast
     if(debugFlag){
@@ -268,14 +248,6 @@ void LocalSocketIpcServer::readSocket() {
         buffer.write("\n");
         newDataSetReady=1;
         countNoOfDataSets++;
-
-        //Debug to test data from ViewBeast
-        /*   QFile file("/home/nimal/test/qtgrace/qtgracegraphtest.txt");
-        file.open(QIODevice::WriteOnly);
-        file.write(buffer.data());
-        file.close();
-*/
-        //*debugOut<<buffer.data();
 
         break;
     }
@@ -359,7 +331,7 @@ void LocalSocketIpcServer::readSocket() {
     }
 
     case 7://REDRAW_AND_WRITEPS(7)
-		{
+        {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
         }
@@ -395,7 +367,7 @@ void LocalSocketIpcServer::readSocket() {
             *debugOut<<"Run Command" << command<<"\n";
         }
         messageFromBeastPtr->close();
-        messageToBeastPtr->abort();
+
         break;
     }
 
@@ -407,7 +379,7 @@ void LocalSocketIpcServer::readSocket() {
         /* kill me */
         /* printf("got killed"); */
 
-		if(debugFlag){
+        if(debugFlag){
         debugFile->close();
         delete debugFile;
         delete debugOut;
@@ -454,62 +426,21 @@ void LocalSocketIpcServer::readSocket() {
     if(debugFlag){
         *debugOut<<"Command was performed " << command<<"\n";
     }
-    readSocketIsLocked=false; // should be unlocked when "returns" from
-    // this function.
+
+    clientConnection->disconnectFromServer();
     delete clientConnection;
     if(debugFlag){
         *debugOut<<"readSocket() DONE\n";
     }
+
+
+
+
 }
 
 void LocalSocketIpcServer::sendDataToBeast(){
 
-    if(socketConnectedBusy){
-        cerr << " It is busy already ! "<< endl;
-        exit(0);
-    }
-    socketConnectedBusy=true;
-
-#ifdef _MSC_VER
-    Sleep(1); //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
-
-#else
-    usleep(1000);
-#endif
-
-    if(false){
-        std::cerr << "writeRawData "<<messageParamGraphLength<<" bytes "<<std::endl;
-        std::cerr << " data are: ";
-        //if(m_len>0 && m_sendMessage [0] == 8) sleep(1);
-        for(int i=0;i<20;i++){
-            if (i<messageParamGraphLength) {
-                std::cerr << (int)(messageSendGraphParam[i]) << " ";
-            } else {
-                std::cerr <<  "...";
-            }
-
-        }
-        std::cerr << std::endl;
-    }
-
-    QByteArray block;
-
-    QDataStream out(&block, QIODevice::WriteOnly);
-
-
-#if QT_VERSION >= 0x040700
-    out.setVersion(QDataStream::Qt_4_7);
-#else
-    out.setVersion(QDataStream::Qt_4_0);
-#endif
-
-    out.writeRawData(messageSendGraphParam,messageParamGraphLength);
-    out.device()->seek(0);
-    messageToBeastPtr->write(block);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
-    messageToBeastPtr->flush();
-
-    messageToBeastPtr->waitForBytesWritten(20000);
-    socketConnectedBusy=false;
+    messageToBeastPtr->write(messageSendGraphParam,messageParamGraphLength);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
 
 }
 
@@ -526,7 +457,7 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
     switch (dataType){
 
     case 1: //Read command
-		{command = *((int*)(newDataFromSocket));
+        {command = *((int*)(newDataFromSocket));
 
         if(debugFlag){*debugOut<< " The command is int, 4 bytes are "<<
                                   (int)(newDataFromSocket[0]) << " " <<
@@ -534,18 +465,18 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
                                                                                                 (int)(newDataFromSocket[2]) << " " <<
                                                                                                                                (int)(newDataFromSocket[3]) << " ";
         }
-		break;}
+        break;}
 
     case 2: //Read data length
-		{dataLength = *((int*)(newDataFromSocket));
+        {dataLength = *((int*)(newDataFromSocket));
         if(debugFlag){
             *debugOut<< " Got data length= "<< dataLength <<"\n";
         }
-		break;}
+        break;}
 
     case 3: //Read data set
 
-		{if(command!=6 && command!=8){
+        {if(command!=6 && command!=8){
             dataSet1Ptr = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
         else{
@@ -556,12 +487,12 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
             }
 
         }
-		break;
-		}
+        break;
+        }
 
     case 4: //Read Plot settings from ViewBeast dialogue
 
-		{ if(command==6){ //Min x-axis length
+        { if(command==6){ //Min x-axis length
             xminPtr = (double *)newDataFromSocket;
             xmin = xminPtr[0];
         }
@@ -572,10 +503,10 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
             dataSet2Ptr = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
         break;
-		}
+        }
 
     case 5://Read Plot settings from ViewBeast dialogue
-		{  if(command==6){  //Max x-axis length
+        {  if(command==6){  //Max x-axis length
             xmaxPtr = (double *)newDataFromSocket;
             xmax = xmaxPtr[0];
 
@@ -586,7 +517,7 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
         }
         else{}
         break;
-		}
+        }
     default:
         break;
     }
@@ -598,7 +529,7 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
 
     case 1:
 
-		{ readDataFromSocket(messagePtr,availableBytesFromSocket, READ_COMMAND);
+        { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_COMMAND);
 
         if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99 || command == 98 || command == 9 || command == 12)
             conditionToExitFunction = 0;
@@ -606,39 +537,39 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
             conditionToExitFunction = 1;
 
         break;
-		}
+        }
     case 2:
-		{ readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATALENGTH);
+        { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATALENGTH);
         conditionToExitFunction = 1;
         break;
-		}
+        }
     case 3:
-		{readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_1);
+        {readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_1);
 
         if(debugFlag){        *debugOut<< " Analysing(3) mode= "<< mode<<"\n" ;
         }
         if((command == 6 && mode == 2)|| (command == 8 && mode == 3) || command == 2)
             conditionToExitFunction = 1;
         break;
-		}
+        }
 
     case 4:
-		{ readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_2);
+        { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_2);
         if(debugFlag){   *debugOut<< " Analysing(4) mode= "<< mode<<"\n" ;
         }
         if((command == 6 && mode == 2)|| (command == 8 && mode == 3))
             conditionToExitFunction = 1;
 
         break;
-		}
+        }
     case 5:
-		{ readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_3);
+        { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_3);
         break;
-		}
+        }
 
     default:
-		{  conditionToExitFunction = 1;
-		break;}
+        {  conditionToExitFunction = 1;
+        break;}
     }
 
 }
@@ -737,7 +668,7 @@ void LocalSocketIpcServer::setScalingMode()
 
     switch(mode){
     case 2:
-		{ graphNo = dataLength;
+        { graphNo = dataLength;
         world w;
         w.xg2 = xmax;
         w.xg1 = xmin;
@@ -747,20 +678,21 @@ void LocalSocketIpcServer::setScalingMode()
         autoscale_graph(graphNo, 2);
         //update_all();
         break;
-		}
+        }
     case 1:
-		{ /* autoscale all axis - default*/
+        { /* autoscale all axis - default*/
         autoscale_graph(graphNo, 3);
         //  update_all();
         break;
-		}
+        }
     case 0:
         /* no autoscale */
+		autoscale_onread = AUTOSCALE_NONE;
 
         break;
     default:
-		{ fprintf(stderr, "Wrong autoscale mode!\n");
-		break;}
+        { fprintf(stderr, "Wrong autoscale mode!\n");
+        break;}
     }
 
     mode = 0;
@@ -769,42 +701,15 @@ void LocalSocketIpcServer::setScalingMode()
 
 void LocalSocketIpcServer::writeDataToTmpFile()
 {
-    //Write to tmp file
-    char *fileNameChar = NULL;
-    int  gno = 0;
-    int  load = 0; //read single set
-    int  cursource = 0; // read from temp file
 
     if (writeToTmpFile){
-        //Write all data to tmp file and update graph in qtGrace
-        //A text stream to save the data from beast
-        QTemporaryFile   file;
-        QTextStream out(&file);
-
-        if (file.open()) {
-            //Convert temporary filename to a char
-            fileNameStr = file.fileName();
-            fileNameBa = fileNameStr.toLocal8Bit();
-            fileNameChar = fileNameBa.data();
-            //qDebug()<<file.fileName();
-        }
-        out <<dataFromBuffer;
-        file.close();
 
         if(debugFlag){*debugOut<<"******START READ FROM TEMP FILE***********\n";
             *debugOut<<dataFromBuffer;
         }
-        /*        if (newSetNosPtr!=NULL)
-        {
-            delete[] newSetNosPtr;
-            newSetNosPtr=NULL;
-        }
 
-        new_set_no=0;
-*/
         //Read data from tmp file and update QtGrace plot
-        getdata(gno, fileNameChar,cursource,load,0);
-
+        readDataFromClient(dataFromBuffer.data(),0,"plot");
         update_all();
         buffer.close();
         dataFromBuffer.clear();
@@ -908,33 +813,6 @@ void LocalSocketIpcServer::setLayoutMode(){
 
 void LocalSocketIpcServer::sendParam(){
 
-    //Create a temp file to get an unique file name
-    QTemporaryFile  parFile;
-    char *fileNamePtr = NULL;
-
-    if (parFile.open()) {
-        //Convert temporary filename to a char
-        fileNamePtr = parFile.fileName().toLocal8Bit().data();
-    }else{
-        QMessageBox::information(0,"Communication Error","Communication error: try to restart");
-        exit(0);
-        countNoOfRead = 0;
-    }
-
-    //Delete temporary file
-    parFile.close();
-
-    //Create a new file to save all QtGrace graph data
-    FILE* pFile = fopen(fileNamePtr, "w");
-    putparms(-1, pFile, TRUE);
-
-    fclose(pFile);
-    parFile.open();
-
-    QByteArray graphParamToSend = parFile.readAll();
-
-    parFile.close();
-
     //Send QtGrace document name to ViewBeast (PD file)
 
     int qtGraceDocStrNameLength = qtGraceDocStrName.length();
@@ -943,12 +821,20 @@ void LocalSocketIpcServer::sendParam(){
     ConnectToBeast(qtGraceDocStrName.data(),qtGraceDocStrNameLength);
 
     //Send QtGrace graph parameters settings (PD file)
+    int graphParamToSendLength = 1000000;
+    char *pp = new char[graphParamToSendLength];
+    sprintf(pp, "\0");
 
-    int graphParamToSendLength = graphParamToSend.length();
+    for(size_t i=0; i<graphParamToSendLength;i++){
+        sprintf(pp+strlen(pp),"\0");
+    }
 
-    ConnectToBeast((const char *)(&graphParamToSendLength),sizeof(int));
-    ConnectToBeast(graphParamToSend.data(),graphParamToSendLength);
+    putparmbeast(-1,pp,TRUE);
 
+    int paramLength = strlen(pp);
+    ConnectToBeast((const char *)(&paramLength),sizeof(int));
+    ConnectToBeast(pp,paramLength);
+    delete[] pp;
 }
 
 
@@ -967,3 +853,17 @@ void LocalSocketIpcServer::socketError(QLocalSocket::LocalSocketError) {
     if(debugFlag){*debugOut<< "socket_error\n";}
 }
 
+const char* LocalSocketIpcServer::createUniqueFileName(){
+
+    //get current date and time
+    QDateTime dateTime = QDateTime::currentDateTime();
+    QString dateTimeString = dateTime.toString("hhmmsszzz");
+
+    QString sendToBeast = "qtGrace"+dateTimeString;
+    QByteArray fileNameBa1 = sendToBeast.toLocal8Bit();
+
+    return fileNameBa1.data();
+
+
+
+}

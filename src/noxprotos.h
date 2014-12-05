@@ -119,7 +119,9 @@ void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv);
 float humlik(const float x, const float y);
 
 void putparms(int gno, FILE * pp, int embed);
+void putparmbeast(int gno, char *pp, int embed);
 void put_fitparms(FILE * pp, int embed);
+void put_fitparmsbeast(char * pp, int embed);
 
 void get_graph_box(int i, boxtype * b);
 void get_graph_line(int i, linetype * l);
