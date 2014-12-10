@@ -851,6 +851,10 @@ void LocalSocketIpcServer::socketReadReady() {
 
 void LocalSocketIpcServer::socketError(QLocalSocket::LocalSocketError) {
     if(debugFlag){*debugOut<< "socket_error\n";}
+
+    if(messageToBeastPtr->error()!=QAbstractSocket::RemoteHostClosedError)
+        QMessageBox::information(0,"Communication Error",messageToBeastPtr->errorString() + ". Try to restart QtGrace");
+
 }
 
 const char* LocalSocketIpcServer::createUniqueFileName(){
