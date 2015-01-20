@@ -137,7 +137,7 @@ static int init_svg_data(void)
         data->pattern_empty[i]   = FALSE;
         data->pattern_full[i]    = FALSE;
     }
-    
+
     svg_updatecmap();
 
     data->group_is_open = FALSE;
@@ -179,7 +179,7 @@ void svg_updatecmap(void)
 {
     int i;
     Svg_data *data;
-    
+
     data = (Svg_data *) get_curdevice_data();
     if (data == NULL) {
         return;
@@ -274,27 +274,29 @@ static void define_pattern(int i, int c, Svg_data *data)
 /*
  * escape special characters
  */
-static char *escape_specials(unsigned char *s, int len)
+static char *escape_specials(unsigned char *s, int len,char *fontalias)
 {
-  //Check for non-ASCII characters and replace with question marks.
-  static char *esn = NULL;
+    //Check for non-ASCII characters and replace with question marks.
+    static char *esn = NULL;
 
-  esn = (char*)xrealloc(esn, (1)*sizeof(char));
+    if(strcmp(fontalias,"Symbol")){
+        esn = (char*)xrealloc(esn, (1)*sizeof(char));
 
-  for (int i = 0; i < len; i++) {
-        if (!isprint(s[i]))
-        {
-            esn[0] = '?';
-            esn[1] = '\0';
+        for (int i = 0; i < len; i++) {
+            if (!isprint(s[i]))
+            {
+                esn[0] = '?';
+                esn[1] = '\0';
 
-			QString nonAsciiWarning = "The symbol: "+ QString(s[i]) +" can't be printed and the whole label containing the symbol will be replaced by a question mark (?)";
-            errmsg(nonAsciiWarning.toAscii().constData());
+                QString nonAsciiWarning = "The symbol: "+ QString(s[i]) +" can't be printed and the whole label containing the symbol will be replaced by a question mark (?)";
+                errmsg(nonAsciiWarning.toAscii().constData());
 
-            return (esn);
-		}
+                return (esn);
+            }
+        }
     }
 
-   static char *es = NULL;
+    static char *es = NULL;
 
     int i, elen = 0;
 
@@ -637,7 +639,7 @@ int svginitgraphics(void)
 
     /* device-dependent routines */
     devupdatecmap   = svg_updatecmap;
-    
+
     devdrawpixel    = svg_drawpixel;
     devdrawpolyline = svg_drawpolyline;
     devfillpolygon  = svg_fillpolygon;
@@ -665,12 +667,12 @@ int svginitgraphics(void)
             0.0, 0.0, page_width_pp, page_height_pp);
     fprintf(prstream, " <g transform=\"translate(0,%.4f) scale(1,-1)\">\n",
             page_height_pp);
-    
+
     /* project description */
     if (get_project_description() != NULL) {
         fprintf(prstream, " <desc>%s</desc>\n", get_project_description());
     }
-    
+
     return RETURN_SUCCESS;
 }
 
@@ -885,7 +887,7 @@ void svg_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
     if (a1 == a2) {
         return;
     }
-    
+
     center.x = 0.5*(vp1.x + vp2.x);
     center.y = 0.5*(vp1.y + vp2.y);
     rx       = 0.5*fabs(vp2.x - vp1.x);
@@ -944,7 +946,7 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
         fprintf(prstream,"   <ellipse  rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",scaleval(rx), scaleval(ry),scaleval(0), scaleval(0));
     } else {
         VPoint start, end;
-        
+
         /*start.x = center.x + rx*cos((M_PI/180.0)*a1);
         start.y = center.y + ry*sin((M_PI/180.0)*a1);
         end.x   = center.x + rx*cos((M_PI/180.0)*a2);
@@ -988,7 +990,7 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     fprintf(prstream, "</g>");
 }
 
-void svg_putpixmap(VPoint vp, int width, int height, char *databits, 
+void svg_putpixmap(VPoint vp, int width, int height, char *databits,
                    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     /* not implemented yet */
@@ -1002,7 +1004,7 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
     double fsize = scaleval(1);
 
     svg_group_props(FALSE, TRUE);
-    
+
     fprintf(prstream, "   <text  ");
 
 
@@ -1071,12 +1073,12 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
         family[dash - fontalias] = '\0';
     }
     fprintf(prstream, " style=\"font-family:'%s'", family);
-    
+
     familyff=get_fontfamilyname(font);
     if (strcmp(family,familyff) != 0){
         fprintf(prstream, ",'%s'",familyff);
     }
-    
+
     copy_string(family, NULL);
 
     if (get_italic_angle(font) != 0) {
@@ -1172,7 +1174,7 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
 
 
 
-    fprintf(prstream,"%s",escape_specials((unsigned char *) s, len));
+    fprintf(prstream,"%s",escape_specials((unsigned char *) s, len,fontalias));
 
     fprintf(prstream, "</text>\n");
 
