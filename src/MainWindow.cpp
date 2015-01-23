@@ -258,10 +258,11 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
   #ifdef SKF_QtGrace
   ,SocketConnection(NULL)
   ,originalSystemFont(NULL)
+  ,isDeleteExportDialogue(true)
+
   #endif
 
 {
-
 
     QPixmap HelpPixmap;
 
@@ -721,6 +722,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mainGrid->setRowMinimumHeight(0,0);
 #endif
     setLayout(mainGrid);
+
 }
 
 MainWindow::~MainWindow()
@@ -1221,6 +1223,31 @@ void MainWindow::Exit(void)
     }
 }
 
+#ifdef SKF_QtGrace
+QString MainWindow::getExportName(void)
+{
+    if (FormDeviceSetup2!=NULL)
+    {
+        return   FormDeviceSetup2->printfile_item->text();
+
+    }else{
+        return printfileName;
+    }
+}
+
+void MainWindow::setExportName(QString setName)
+{
+
+
+    if (FormDeviceSetup2!=NULL)
+    {
+      FormDeviceSetup2->printfile_item->setText(setName);
+    }else{
+        printfileName = setName;
+    }
+
+}
+#endif
 
 
 //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
@@ -1228,14 +1255,23 @@ void MainWindow::ExportToFile(void)
 {
 #ifdef SKF_QtGrace
 
-    if (FormDeviceSetup2==NULL)
+
+    if (FormDeviceSetup2==NULL || isDeleteExportDialogue )
     {
+
+
+        isDeleteExportDialogue = false;
         FormDeviceSetup2=new frmDeviceSetup(3,this);
+
+        if(!printfileName.isEmpty()) {
+            FormDeviceSetup2->printfile_item->setText(printfileName);
+        }
 
         if (default_Print_Device==-1)//last one
             FormDeviceSetup2->devices_item->setCurrentIndex(stdOutputFormat);
         else
             FormDeviceSetup2->devices_item->setCurrentIndex(default_Print_Device);
+
     }
 
     //FormDeviceSetup2->printfile_item->setText(get_filename_with_extension(FormDeviceSetup2->cur_dev));
@@ -1243,6 +1279,7 @@ void MainWindow::ExportToFile(void)
     FormDeviceSetup2->show();
     FormDeviceSetup2->raise();
     FormDeviceSetup2->activateWindow();
+
 
 #endif
 }
@@ -3084,6 +3121,11 @@ void MainWindow::load_example(char *data)
 
     unset_wait_cursor();
 }
+ #ifdef SKF_QtGrace
+void MainWindow::deleteExportDialogue(bool setValue) {
+    isDeleteExportDialogue = setValue;
+}
+#endif
 
 void MainWindow::set_stack_message(void)
 {

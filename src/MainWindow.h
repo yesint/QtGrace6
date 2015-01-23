@@ -183,6 +183,14 @@ public:
     virtual void resizeEvent( QResizeEvent * e);
     virtual void mouseReleaseEvent(QMouseEvent * event);
     virtual void keyPressEvent( QKeyEvent * e );
+#ifdef SKF_QtGrace
+    bool isDeleteExportDialogue;
+
+public:
+    void deleteExportDialogue(bool setValue);
+    QString printfileName;
+#endif
+
 public slots:
     //Menu Actions
     void newFile(void);
@@ -193,6 +201,11 @@ public slots:
     void Print(void);
     void PrintSetup(void);
     void ExportToFile(void);
+#ifdef SKF_QtGrace
+    QString getExportName(void);
+    void setExportName(QString setName);
+#endif
+
     void Exit(void);
     void DataSets(void);
     void Explorer(void);

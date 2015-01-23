@@ -927,6 +927,7 @@ public:
 #ifdef SKF_QtGrace
     QVBoxLayout * layout4;
     void setStartQtgrace(bool value);
+    QString newOutputFileName;
 #endif
     QVBoxLayout * layout;
 

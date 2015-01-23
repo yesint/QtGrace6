@@ -12,7 +12,6 @@
 
 extern bool startupphase;
 
-
 // initialize server
 LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent)
   ,socketConnectedBusy(false)
@@ -711,6 +710,7 @@ void LocalSocketIpcServer::writeDataToTmpFile()
         //Read data from tmp file and update QtGrace plot
         readDataFromClient(dataFromBuffer.data(),0,"plot");
         update_all();
+        setResetExportDialogue(true);
         buffer.close();
         dataFromBuffer.clear();
         buffer.open(QIODevice::Append);

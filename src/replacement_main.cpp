@@ -1517,6 +1517,14 @@ void set_pagelayout(int layout)
 
 extern int ReqUpdateColorSel;
 
+
+
+ #ifdef SKF_QtGrace
+void setResetExportDialogue(bool setValue) {
+    mainWin->deleteExportDialogue(setValue);
+}
+#endif
+
 void update_all(void)
 {
     static int gno;
@@ -1562,6 +1570,7 @@ void update_all(void)
             FormExplorer->tree->getItemData(items.at(0),selected_type,gno,sno);
             FormExplorer->tree->RecreateCompleteTree();
             FormExplorer->tree->selectItem(selected_type,gno,sno);
+
         }
     }
     mainWin->set_stack_message();

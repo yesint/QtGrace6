@@ -191,7 +191,9 @@ void update_ss_editors(int gno);
 void do_ext_editor(int gno, int setno);
 
 void set_graph_selectors(int gno);
-
+ #ifdef SKF_QtGrace
+void setResetExportDialogue(bool setValue);
+#endif
 void update_props_items(void);
 void update_all(void);
 void update_all_cb(void *data);

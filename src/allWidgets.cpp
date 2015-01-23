@@ -7325,10 +7325,17 @@ void frmDeviceSetup::doNativePrinterDialog(void) {
     static char dummy[1024];
     this->hide();
 
+#ifdef SKF_QtGrace
+        newOutputFileName =  mainWin->getExportName();
+        if(newOutputFileName.isEmpty())
+            newOutputFileName =  get_filename_with_extension(0);
+#endif
+
     if (stdPrinter==NULL)
     {
         stdPrinter=new QPrinter();
         stdPrinter->setFromTo(1,1);
+
     }
 
     if (page_orient_item->currentIndex()==0)//landscape
@@ -7339,6 +7346,10 @@ void frmDeviceSetup::doNativePrinterDialog(void) {
     {
         stdPrinter->setOrientation(QPrinter::Portrait);
     }
+#ifdef SKF_QtGrace
+
+    stdPrinter->setOutputFileName(newOutputFileName);
+#endif
 
     QPrintDialog printDialog(stdPrinter, this);
 
@@ -7350,6 +7361,7 @@ void frmDeviceSetup::doNativePrinterDialog(void) {
             xdrawgraph();
 
 #ifdef SKF_QtGrace
+            mainWin->setExportName(stdPrinter->outputFileName());
 #else
             GeneralPainter->end(); //2013-11-19 BZ2033 Disabled
 #endif
@@ -7383,7 +7395,8 @@ void frmDeviceSetup::doNativePrinterDialog(void) {
     }
     else
     {
-        this->show();
+
+       this->show();
     }
     useQPrinter=false;
 
