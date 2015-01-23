@@ -185,7 +185,7 @@ public:
     virtual void keyPressEvent( QKeyEvent * e );
 #ifdef SKF_QtGrace
     bool isDeleteExportDialogue;
-
+    bool newFileName;
 public:
     void deleteExportDialogue(bool setValue);
     QString printfileName;

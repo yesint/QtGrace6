@@ -259,6 +259,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
   ,SocketConnection(NULL)
   ,originalSystemFont(NULL)
   ,isDeleteExportDialogue(true)
+  ,newFileName(true)
 
   #endif
 
@@ -1226,11 +1227,20 @@ void MainWindow::Exit(void)
 #ifdef SKF_QtGrace
 QString MainWindow::getExportName(void)
 {
+
+
     if (FormDeviceSetup2!=NULL)
     {
         return   FormDeviceSetup2->printfile_item->text();
 
     }else{
+
+        if(isDeleteExportDialogue && newFileName){
+            printfileName = "";
+        }
+
+        newFileName = false;
+
         return printfileName;
     }
 }
@@ -3124,6 +3134,7 @@ void MainWindow::load_example(char *data)
  #ifdef SKF_QtGrace
 void MainWindow::deleteExportDialogue(bool setValue) {
     isDeleteExportDialogue = setValue;
+    newFileName = setValue;
 }
 #endif
 
