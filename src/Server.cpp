@@ -38,7 +38,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 {
     if(getenv("QTGRACEDEBUG")) {
       cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n";
-      debugFlag = true;
+      debugFlag = true;     
     }
 
     if(debugFlag){
@@ -46,7 +46,8 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
         debugFile->open(QIODevice::WriteOnly | QIODevice::Text);
         debugOut = new QTextStream(debugFile);
         *debugOut<<"***DEBUG MODE ENABLE***\n";
-    }
+        debugOut->flush();
+       }
 
     for(int i=0;i<10;i++){
         saveCountNoOfDataSets.append(0);
@@ -60,10 +61,12 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
     if(listenOK){
         if(debugFlag){
             *debugOut<< "Start the Server (listen OK)\n"<<endl;
+            debugOut->flush();
         }
     }  else{
         if(debugFlag){
             *debugOut<< "Not able to start the Server\n"<<endl;
+            debugOut->flush();
         }
     }
 
@@ -88,6 +91,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
             this, SLOT(socketError(QLocalSocket::LocalSocketError)));
     if(debugFlag){
         *debugOut<<"Done constructor\n";
+        debugOut->flush();
     }
 
 }
@@ -96,6 +100,7 @@ void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
     if(debugFlag){
         *debugOut<< "2) Connect to Server\n"+readServer;
         *debugOut<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
+        debugOut->flush();
     }
 
 
@@ -119,6 +124,7 @@ void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
 LocalSocketIpcServer::~LocalSocketIpcServer() {
     if(debugFlag){
         *debugOut<<"Server deletion\n";
+        debugOut->flush();
     }
     messageFromBeastPtr->close();
     delete messageFromBeastPtr;
@@ -141,6 +147,7 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
 void LocalSocketIpcServer::readSocket() {
     if(debugFlag){
         *debugOut<<"readSocket() START\n";
+        debugOut->flush();
     }
 
 
@@ -153,6 +160,7 @@ void LocalSocketIpcServer::readSocket() {
     //Specifiy the amount of bytes to be read
     if(debugFlag){
         *debugOut<<"countNoOfRead="<<countNoOfRead<<" command="<<command<<"\n";
+         debugOut->flush();
     }
     int bytesNeeded;
     if(countNoOfRead==1 || countNoOfRead==2 ||(command == 6 && countNoOfRead==3) || command == 8){
@@ -168,6 +176,7 @@ void LocalSocketIpcServer::readSocket() {
 	while (clientConnection->bytesAvailable() < bytesNeeded){
         if(debugFlag){
             *debugOut<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable()<<"\n";
+             debugOut->flush();
         }
         clientConnection->waitForReadyRead();
 	
@@ -186,6 +195,7 @@ void LocalSocketIpcServer::readSocket() {
     if (receivedFromRead==-1) {
         if(debugFlag){
             *debugOut<<"readSocket() FAIL 2"<<"\n";
+             debugOut->flush();
         }
         clientConnection->disconnectFromServer();
         delete clientConnection;
@@ -194,6 +204,7 @@ void LocalSocketIpcServer::readSocket() {
 
     if(debugFlag){
         *debugOut<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes\n";
+        debugOut->flush();
     }
 
     /* read all data from socket */
@@ -204,6 +215,7 @@ void LocalSocketIpcServer::readSocket() {
     if (conditionToExitFunction) {
         if(debugFlag){
             *debugOut<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command<<"\n";
+             debugOut->flush();
         }
         clientConnection->disconnectFromServer();
         delete clientConnection;
@@ -219,9 +231,9 @@ void LocalSocketIpcServer::readSocket() {
 
     case 1://Read PLOT_INFO(1)
     {
-
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+             debugOut->flush();
         }
         buffer.write(dataSet1Ptr);
         writeToTmpFile=true;
@@ -234,6 +246,7 @@ void LocalSocketIpcServer::readSocket() {
     {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+             debugOut->flush();
         }
         readXYData(dataSet1Ptr, dataSet2Ptr);
         countNoOfRead = 0;
@@ -242,7 +255,9 @@ void LocalSocketIpcServer::readSocket() {
     }
     case 12://WRITE_DATAVEC_FINISH(2)
 
-    {  if(debugFlag){ *debugOut<<"Run Command" << command<<"\n";}
+    {  if(debugFlag){
+            *debugOut<<"Run Command" << command<<"\n";
+             debugOut->flush();}
         countNoOfRead = 0;
         buffer.write("\n");
         newDataSetReady=1;
@@ -254,6 +269,7 @@ void LocalSocketIpcServer::readSocket() {
     case 3://READ_MODE(3)
 
     {    if(debugFlag){    *debugOut<<"Run Command" << command<<"\n";
+       debugOut->flush();
         }
         sendParam();
         countNoOfRead = 0;
@@ -305,9 +321,12 @@ void LocalSocketIpcServer::readSocket() {
     case 5://PS_FILENAME(5)
     {    if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+             debugOut->flush();
         }
+
         //hdevice=1;
         readPsFileName();
+
         countNoOfRead = 0;
         break;
     }
@@ -315,7 +334,11 @@ void LocalSocketIpcServer::readSocket() {
     {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+            debugOut->flush();
         }
+
+
+
         startupphase=true;
         oldNoask=noask;
         noask=true; // prevent questions
@@ -333,7 +356,14 @@ void LocalSocketIpcServer::readSocket() {
         {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+            *debugOut<<"fileName" <<   get_docname()<<"\n";
+
+
+            debugOut->flush();
         }
+
+
+
         /* force a hardcopy */
         set_pagelayout(PAGE_FIXED);
         update_all();
@@ -350,12 +380,14 @@ void LocalSocketIpcServer::readSocket() {
     {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+            debugOut->flush();
         }
         startupphase=true;
         setLayoutMode();
         startupphase=false;
         if(debugFlag){
             *debugOut<<"Was setLayoutMode" << command<<"\n";
+            debugOut->flush();
         }
         countNoOfRead = 0;
         break;
@@ -364,6 +396,7 @@ void LocalSocketIpcServer::readSocket() {
     {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+            debugOut->flush();
         }
         messageFromBeastPtr->close();
 
@@ -374,6 +407,7 @@ void LocalSocketIpcServer::readSocket() {
     {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+            debugOut->flush();
         }
         /* kill me */
         /* printf("got killed"); */
@@ -392,6 +426,7 @@ void LocalSocketIpcServer::readSocket() {
     {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+            debugOut->flush();
         }
         update_all();
         xdrawgraph();
@@ -405,6 +440,7 @@ void LocalSocketIpcServer::readSocket() {
     {
         if(debugFlag){
             *debugOut<<"Run Command" << command<<"\n";
+            debugOut->flush();
         }
         countNoOfRead = 0;
         break;
@@ -414,6 +450,7 @@ void LocalSocketIpcServer::readSocket() {
     {
         if(debugFlag){
             *debugOut<<"INVALID COMMAND STOP" << command<<"\n";
+            debugOut->flush();
         }
         QMessageBox::information(0,"Communication Error","Communication error: try to restart");
 
@@ -424,12 +461,14 @@ void LocalSocketIpcServer::readSocket() {
     }
     if(debugFlag){
         *debugOut<<"Command was performed " << command<<"\n";
+        debugOut->flush();
     }
 
     clientConnection->disconnectFromServer();
     delete clientConnection;
     if(debugFlag){
         *debugOut<<"readSocket() DONE\n";
+        debugOut->flush();
     }
 
 
@@ -463,6 +502,7 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
                                                                  (int)(newDataFromSocket[1]) << " " <<
                                                                                                 (int)(newDataFromSocket[2]) << " " <<
                                                                                                                                (int)(newDataFromSocket[3]) << " ";
+        debugOut->flush();
         }
         break;}
 
@@ -470,6 +510,7 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
         {dataLength = *((int*)(newDataFromSocket));
         if(debugFlag){
             *debugOut<< " Got data length= "<< dataLength <<"\n";
+        debugOut->flush();
         }
         break;}
 
@@ -483,6 +524,7 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
 
             if(debugFlag){
                 *debugOut<< " Got mode= "<< mode<<"\n" ;
+           debugOut->flush();
             }
 
         }
@@ -546,6 +588,7 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
         {readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_1);
 
         if(debugFlag){        *debugOut<< " Analysing(3) mode= "<< mode<<"\n" ;
+        debugOut->flush();
         }
         if((command == 6 && mode == 2)|| (command == 8 && mode == 3) || command == 2)
             conditionToExitFunction = 1;
@@ -555,6 +598,7 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
     case 4:
         { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_2);
         if(debugFlag){   *debugOut<< " Analysing(4) mode= "<< mode<<"\n" ;
+        debugOut->flush();
         }
         if((command == 6 && mode == 2)|| (command == 8 && mode == 3))
             conditionToExitFunction = 1;
@@ -705,6 +749,7 @@ void LocalSocketIpcServer::writeDataToTmpFile()
 
         if(debugFlag){*debugOut<<"******START READ FROM TEMP FILE***********\n";
             *debugOut<<dataFromBuffer;
+            debugOut->flush();
         }
 
         //Read data from tmp file and update QtGrace plot
@@ -716,6 +761,7 @@ void LocalSocketIpcServer::writeDataToTmpFile()
         buffer.open(QIODevice::Append);
         if(debugFlag){
             *debugOut<<"******END READ FROM TEMP FILE***********\n";
+            debugOut->flush();
         }
     }
 
@@ -841,16 +887,21 @@ void LocalSocketIpcServer::sendParam(){
 
 
 void LocalSocketIpcServer::socketDisconnected() {
-    if(debugFlag){*debugOut<< "socket_disconnected\n";}
+    if(debugFlag){*debugOut<< "socket_disconnected\n";
+    debugOut->flush();
+    }
 }
 
 
 void LocalSocketIpcServer::socketReadReady() {
-    if(debugFlag){ *debugOut<< "socket_readReady\n";}
+    if(debugFlag){ *debugOut<< "socket_readReady\n";
+    debugOut->flush();}
 }
 
 void LocalSocketIpcServer::socketError(QLocalSocket::LocalSocketError) {
-    if(debugFlag){*debugOut<< "socket_error\n";}
+    if(debugFlag){*debugOut<< "socket_error\n";
+    debugOut->flush();
+    }
 
     if(messageToBeastPtr->error()!=QAbstractSocket::RemoteHostClosedError)
         QMessageBox::information(0,"Communication Error",messageToBeastPtr->errorString() + ". Try to restart QtGrace");
