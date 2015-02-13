@@ -1,3 +1,22 @@
+/***************************************************************************
+ *   Copyright (C) 2015                                                    *
+ *                                                                         *                                                                         *
+ *   This file is free software; you can redistribute it and/or modify     *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
 #include "Server.h"
 #include "undo_module.h"
 
@@ -14,287 +33,313 @@ extern bool startupphase;
 
 // initialize server
 LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent)
-  ,socketConnectedBusy(false)
-  ,messagePtr(NULL)
+  ,isDebugFlagOn_m(false)
+  ,messageSendGraphParam_m(NULL)
+  ,messageParamGraphLength_m(0)
+  ,messagePtr_m(NULL)
   ,dataSet1Ptr(NULL)
-  ,dataSet2Ptr(NULL)
-  ,command(0)
-  ,dataLength(0)
-  ,graphNo(0)
-  ,xmin(0)
-  ,xmax(0)
-  ,conditionToExitFunction(0)
-  ,countNoOfRead(0)
-  ,newDataSetReady(1)
-  ,newSetNosPtr(NULL)
-  ,writeToTmpFile(true)
-  ,numGraphs(0)
-  ,countNoOfDataSets(0)
-  ,oldNoask(0)
-  ,debugFile(NULL)
-  ,debugOut(NULL)
-  ,mode(0)
-  ,debugFlag(false)
+  ,dataSet2Ptr_m(NULL)
+  ,command_m(READ_MODE)
+  ,dataLength_m(0)
+  ,graphNo_m(0)
+  ,xmin_m(0)
+  ,xmax_m(0)
+  ,conditionToExitFunction_m(0)
+  ,countNoOfRead_m(0)
+  ,newDataSetReady_m(1)
+  ,isWriteToTmpFile_m(true)
+  ,numGraphs_m(0)
+  ,countNoOfDataSets_m(0)
+  ,oldNoask_m(0)
+  ,debugFile_m(NULL)
+  ,debugOut_m(NULL)
+  ,mode_m(DEFAULT_LAYOUT)
+  ,xminPtr_m(NULL)
+  ,xmaxPtr_m(NULL)
+  ,columns_m(0)
+  ,rows_m(0)
+  ,qtGraceDocStrName_m("Untitled")
+  ,dataFromBuffer_m(" ")
+  ,availableBytesFromSocket_m(0)
+  ,messageFromClienttPtr_m(NULL)
+  ,messageToClientPtr_(NULL)
+  ,readServer_m("")
+
 {
     if(getenv("QTGRACEDEBUG")) {
       cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n";
-      debugFlag = true;     
+      isDebugFlagOn_m = true;
     }
 
-    if(debugFlag){
-        debugFile = new QFile("QTGRACEDEBUG.txt");
-        debugFile->open(QIODevice::WriteOnly | QIODevice::Text);
-        debugOut = new QTextStream(debugFile);
-        *debugOut<<"***DEBUG MODE ENABLE***\n";
-        debugOut->flush();
+    if(isDebugFlagOn_m){
+        debugFile_m = new QFile("QTGRACEDEBUG.txt");
+        debugFile_m->open(QIODevice::WriteOnly | QIODevice::Text);
+        debugOut_m = new QTextStream(debugFile_m);
+        *debugOut_m<<"***DEBUG MODE ENABLE***\n";
+        debugOut_m->flush();
        }
 
     for(int i=0;i<10;i++){
-        saveCountNoOfDataSets.append(0);
+        saveCountNoOfDataSets_m.append(0);
     }
 
     //Read from Beast
-    messageFromBeastPtr = new QLocalServer(this);
+    messageFromClienttPtr_m = new QLocalServer(this);
 
-
-    bool listenOK=messageFromBeastPtr->listen(writeServerName);
+    bool listenOK=messageFromClienttPtr_m->listen(writeServerName);
     if(listenOK){
-        if(debugFlag){
-            *debugOut<< "Start the Server (listen OK)\n"<<endl;
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<< "Start the Server (listen OK)\n"<<endl;
+            debugOut_m->flush();
         }
     }  else{
-        if(debugFlag){
-            *debugOut<< "Not able to start the Server\n"<<endl;
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<< "Not able to start the Server\n"<<endl;
+            debugOut_m->flush();
         }
     }
 
-   // messageFromBeastPtr->setMaxPendingConnections(300);
 
-    connect(messageFromBeastPtr, SIGNAL(newConnection()), this, SLOT(readSocket()));
+    connect(messageFromClienttPtr_m, SIGNAL(newConnection()), this, SLOT(readSocket()));
 
     //Buffer to save data from socket
-    buffer.setBuffer(&dataFromBuffer);
-    buffer.open(QIODevice::Append);
+    buffer_m.setBuffer(&dataFromBuffer_m);
+    buffer_m.open(QIODevice::Append);
 
-    readSocketIsLocked=false;
+    //Write to client
+    readServer_m = readServerName;
+    messageToClientPtr_ =   new QLocalSocket(this);
+    connect(messageToClientPtr_, SIGNAL(connected()), this, SLOT(sendDataToBeast()));
+    connect(messageToClientPtr_, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
+    connect(messageToClientPtr_, SIGNAL(readyRead()), this, SLOT(socketReadReady()));
 
-    //Write to Beasst
-    readServer = readServerName;
-    messageToBeastPtr =   new QLocalSocket(this);
-    connect(messageToBeastPtr, SIGNAL(connected()), this, SLOT(sendDataToBeast()));
-    connect(messageToBeastPtr, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
-    connect(messageToBeastPtr, SIGNAL(readyRead()), this, SLOT(socketReadReady()));
-
-    connect(messageToBeastPtr, SIGNAL(error(QLocalSocket::LocalSocketError)),
+    connect(messageToClientPtr_, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socketError(QLocalSocket::LocalSocketError)));
-    if(debugFlag){
-        *debugOut<<"Done constructor\n";
-        debugOut->flush();
+    if(isDebugFlagOn_m){
+        *debugOut_m<<"Done constructor\n";
+        debugOut_m->flush();
     }
 
 }
 
 void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
-    if(debugFlag){
-        *debugOut<< "2) Connect to Server\n"+readServer;
-        *debugOut<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
-        debugOut->flush();
+    if(isDebugFlagOn_m){
+        *debugOut_m<< "2) Connect to Server\n"+readServer_m;
+        *debugOut_m<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
+        debugOut_m->flush();
     }
 
 
-	//Wait to write to QLocalSocket buffer until previous data has been analysed by ViewBeast and sends a disconnect signal.
-    while(messageToBeastPtr->state()==QLocalSocket::ConnectedState)
+    //Wait to write to QLocalSocket buffer until previous data has been analysed by client and sends a disconnect signal.
+    while(messageToClientPtr_->state()==QLocalSocket::ConnectedState)
     {
-		 if(!messageToBeastPtr->waitForDisconnected(60000)){
-			 //We don't want to wait for a disconnect signal from ViewBeast forever.
-            QMessageBox::information(0,"Communication Error",messageToBeastPtr->errorString() + ". Try to restart QtGrace");
+         if(!messageToClientPtr_->waitForDisconnected(60000)){
+             //We don't want to wait for a disconnect signal from client forever.
+            QMessageBox::information(0,"Communication Error",messageToClientPtr_->errorString() + ". Try to restart QtGrace");
             exit(0);
           }
 
     }
 
-    messageSendGraphParam = sendParam;
-    messageParamGraphLength = sendLen;
-    messageToBeastPtr->connectToServer(readServer);
+    messageSendGraphParam_m = sendParam;
+    messageParamGraphLength_m = sendLen;
+    messageToClientPtr_->connectToServer(readServer_m);
 
 }
 
 LocalSocketIpcServer::~LocalSocketIpcServer() {
-    if(debugFlag){
-        *debugOut<<"Server deletion\n";
-        debugOut->flush();
+    if(isDebugFlagOn_m){
+        *debugOut_m<<"Server deletion\n";
+        debugOut_m->flush();
     }
-    messageFromBeastPtr->close();
-    delete messageFromBeastPtr;
-    messageFromBeastPtr = NULL;
+    messageFromClienttPtr_m->close();
+    delete messageFromClienttPtr_m;
+    messageFromClienttPtr_m = NULL;
 
-    messageToBeastPtr->abort();
-    delete messageToBeastPtr;
-    messageToBeastPtr = NULL;
+    messageToClientPtr_->abort();
+    delete messageToClientPtr_;
+    messageToClientPtr_ = NULL;
 
-    if(debugFlag){
-        debugFile->close();
-        delete debugFile;
-        delete debugOut;
+    if(isDebugFlagOn_m){
+        debugFile_m->close();
+        delete debugFile_m;
+        delete debugOut_m;
     }
 
 }
 
-
-
 void LocalSocketIpcServer::readSocket() {
-    if(debugFlag){
-        *debugOut<<"readSocket() START\n";
-        debugOut->flush();
+    if(isDebugFlagOn_m){
+        *debugOut_m<<"readSocket() START\n";
+        debugOut_m->flush();
     }
 
 
-    conditionToExitFunction = 0;
+    conditionToExitFunction_m = 0;
 
-    QLocalSocket *clientConnection = messageFromBeastPtr->nextPendingConnection();
+    QLocalSocket *clientConnection = messageFromClienttPtr_m->nextPendingConnection();
 
-    countNoOfRead++;
+    countNoOfRead_m++;
 
     //Specifiy the amount of bytes to be read
-    if(debugFlag){
-        *debugOut<<"countNoOfRead="<<countNoOfRead<<" command="<<command<<"\n";
-         debugOut->flush();
+    if(isDebugFlagOn_m){
+        *debugOut_m<<"countNoOfRead="<<countNoOfRead_m<<" command="<<command_m<<"\n";
+         debugOut_m->flush();
     }
     int bytesNeeded;
-    if(countNoOfRead==1 || countNoOfRead==2 ||(command == 6 && countNoOfRead==3) || command == 8){
+    if(countNoOfRead_m==1 ||
+            countNoOfRead_m==2 ||
+            (command_m == SET_SCALING_MODE && countNoOfRead_m==3) ||
+            command_m == SET_LAYOUT_MODE){
         bytesNeeded=(int)sizeof(quint32);
-    }else if (command==2){
-        bytesNeeded= dataLength*8;
-    }else if(command == 6 && mode==2){
+    }else if (command_m==WRITE_DATAVEC){
+        bytesNeeded= dataLength_m*8;
+    }else if(command_m == SET_SCALING_MODE && mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY){
         bytesNeeded=(int)sizeof(double);
     }else{
-        bytesNeeded= dataLength;
+        bytesNeeded= dataLength_m;
     }
 
-	while (clientConnection->bytesAvailable() < bytesNeeded){
-        if(debugFlag){
-            *debugOut<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable()<<"\n";
-             debugOut->flush();
+    while (clientConnection->bytesAvailable() < bytesNeeded){
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable()<<"\n";
+             debugOut_m->flush();
         }
         clientConnection->waitForReadyRead();
-	
+
     }
 
-    availableBytesFromSocket = clientConnection->bytesAvailable();
-    messagePtr=new char[availableBytesFromSocket+1];
+    availableBytesFromSocket_m = clientConnection->bytesAvailable();
+    messagePtr_m=new char[availableBytesFromSocket_m+1];
 
     // ensure that
     // 0-terminated character strings
     // come here correctly.
-    messagePtr[availableBytesFromSocket]=0;
+    messagePtr_m[availableBytesFromSocket_m]=0;
 
-    int receivedFromRead=clientConnection->read(messagePtr,availableBytesFromSocket);
+    int receivedFromRead=clientConnection->read(messagePtr_m,availableBytesFromSocket_m);
 
     if (receivedFromRead==-1) {
-        if(debugFlag){
-            *debugOut<<"readSocket() FAIL 2"<<"\n";
-             debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"readSocket() FAIL 2"<<"\n";
+             debugOut_m->flush();
         }
         clientConnection->disconnectFromServer();
         delete clientConnection;
         return;
     }
 
-    if(debugFlag){
-        *debugOut<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes\n";
-        debugOut->flush();
+    if(isDebugFlagOn_m){
+        *debugOut_m<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes\n";
+        debugOut_m->flush();
     }
 
-    /* read all data from socket */
+    // Read all data from socket
 
-    saveDataFromSocket(countNoOfRead);
-    delete[] messagePtr;
+    saveDataFromSocket(countNoOfRead_m);
+    delete[] messagePtr_m;
 
-    if (conditionToExitFunction) {
-        if(debugFlag){
-            *debugOut<<"An argument countNoOfRead " << countNoOfRead<< " for cmd="<< command<<"\n";
-             debugOut->flush();
+    if (conditionToExitFunction_m) {
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"An argument countNoOfRead " << countNoOfRead_m<< " for cmd="<< command_m<<"\n";
+             debugOut_m->flush();
         }
         clientConnection->disconnectFromServer();
         delete clientConnection;
         return;
     }
 
-
-    //Execute task from ViewBeast
-    if(debugFlag){
-        *debugOut<<"Command No (" << command<< ")\n";
+    //Execute task from client
+    if(isDebugFlagOn_m){
+        *debugOut_m<<"Command No (" << command_m<< ")\n";
     }
-    switch (command){
 
-    case 1://Read PLOT_INFO(1)
+    executeTaskFromClient();
+
+    if(isDebugFlagOn_m){
+        *debugOut_m<<"Command was performed " << command_m<<"\n";
+        debugOut_m->flush();
+    }
+
+    clientConnection->disconnectFromServer();
+    delete clientConnection;
+    if(isDebugFlagOn_m){
+        *debugOut_m<<"readSocket() DONE\n";
+        debugOut_m->flush();
+    }
+
+}
+
+void LocalSocketIpcServer::executeTaskFromClient()
+{
+    switch (command_m){
+
+    case PLOT_INFO://Read PLOT_INFO(1)
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-             debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+             debugOut_m->flush();
         }
-        buffer.write(dataSet1Ptr);
-        writeToTmpFile=true;
-        countNoOfRead = 0;
+        buffer_m.write(dataSet1Ptr);
+        isWriteToTmpFile_m=true;
+        countNoOfRead_m = 0;
         break;
     }
 
-    case 2://WRITE_DATAVEC(2)
+    case WRITE_DATAVEC://WRITE_DATAVEC(2)
 
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-             debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+             debugOut_m->flush();
         }
-        readXYData(dataSet1Ptr, dataSet2Ptr);
-        countNoOfRead = 0;
-        newDataSetReady=0;
+        readXYData(dataSet1Ptr, dataSet2Ptr_m);
+        countNoOfRead_m = 0;
+        newDataSetReady_m=0;
         break;
     }
-    case 12://WRITE_DATAVEC_FINISH(2)
+    case WRITE_DATAVEC_FINISHED:
 
-    {  if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-             debugOut->flush();}
-        countNoOfRead = 0;
-        buffer.write("\n");
-        newDataSetReady=1;
-        countNoOfDataSets++;
+    {  if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+             debugOut_m->flush();}
+        countNoOfRead_m = 0;
+        buffer_m.write("\n");
+        newDataSetReady_m=1;
+        countNoOfDataSets_m++;
 
         break;
     }
 
-    case 3://READ_MODE(3)
+    case READ_MODE:
 
-    {    if(debugFlag){    *debugOut<<"Run Command" << command<<"\n";
-       debugOut->flush();
+    {    if(isDebugFlagOn_m){    *debugOut_m<<"Run Command" << command_m<<"\n";
+       debugOut_m->flush();
         }
         sendParam();
-        countNoOfRead = 0;
+        countNoOfRead_m = 0;
         break;
     }
-    case 4://REDRAW(4)
+    case REDRAW:
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
         }
 
         set_page_dimensions(733,538,1);
         //set_page_geometry()
 
         startupphase=true;
-        oldNoask=noask;
+        oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
         setScalingMode();
-        noask=oldNoask;
+        noask=oldNoask_m;
         startupphase=false;
 
         //Update legend properties
-        for(int igno = 0; igno < graphNo+1; igno++){
-            for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets.at(igno); iSetNo++){
+        for(int igno = 0; igno < graphNo_m+1; igno++){
+            for(int iSetNo = 0; iSetNo < saveCountNoOfDataSets_m.at(igno); iSetNo++){
                 set_legend_string(igno,iSetNo,get_legend_string(igno,iSetNo));
 
                 char* gotComment=getcomment(igno, iSetNo);
@@ -312,173 +357,148 @@ void LocalSocketIpcServer::readSocket() {
             }
         }
 
-        countNoOfDataSets = 0;
-        countNoOfRead = 0;
-        writeToTmpFile=false;
+        countNoOfDataSets_m = 0;
+        countNoOfRead_m = 0;
+        isWriteToTmpFile_m=false;
 
         break;
     }
-    case 5://PS_FILENAME(5)
-    {    if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-             debugOut->flush();
+    case PS_FILENAME:
+    {    if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+             debugOut_m->flush();
         }
-
-        //hdevice=1;
         readPsFileName();
 
-        countNoOfRead = 0;
+        countNoOfRead_m = 0;
         break;
     }
-    case 6://SET_SCALING_MODE(6)
+    case SET_SCALING_MODE:
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+            debugOut_m->flush();
         }
-
-
-
         startupphase=true;
-        oldNoask=noask;
+        oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
         setScalingMode();
-        noask=oldNoask;
+        noask=oldNoask_m;
         startupphase=false;
 
-        countNoOfRead = 0;
-        writeToTmpFile=false;
+        countNoOfRead_m = 0;
+        isWriteToTmpFile_m=false;
         break;
     }
 
-    case 7://REDRAW_AND_WRITEPS(7)
+    case REDRAW_AND_WRITEPS://REDRAW_AND_WRITEPS(7)
         {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-            *debugOut<<"fileName" <<   get_docname()<<"\n";
-
-
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+            *debugOut_m<<"fileName" <<   get_docname()<<"\n";
+            debugOut_m->flush();
         }
-
-
-
         /* force a hardcopy */
         set_pagelayout(PAGE_FIXED);
         update_all();
 
-
-        oldNoask=noask;
+        oldNoask_m=noask;
         noask=true; // prevent questions
         do_hardcopy();
-        noask=oldNoask;
-        countNoOfRead = 0;
+        noask=oldNoask_m;
+        countNoOfRead_m = 0;
         break;
     }
-    case 8://SET_LAYOUT_MODE(8)
+    case SET_LAYOUT_MODE:
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+            debugOut_m->flush();
         }
         startupphase=true;
         setLayoutMode();
         startupphase=false;
-        if(debugFlag){
-            *debugOut<<"Was setLayoutMode" << command<<"\n";
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Was setLayoutMode" << command_m<<"\n";
+            debugOut_m->flush();
         }
-        countNoOfRead = 0;
+        countNoOfRead_m = 0;
         break;
     }
-    case 9://Close connection to Beast(9)
+    case DELETE_CONNECTION:
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+            debugOut_m->flush();
         }
-        messageFromBeastPtr->close();
+        messageFromClienttPtr_m->close();
 
         break;
     }
 
-    case 42://KILL_CHILD(42)
+    case KILL_CHILD:
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+            debugOut_m->flush();
         }
         /* kill me */
         /* printf("got killed"); */
 
-        if(debugFlag){
-        debugFile->close();
-        delete debugFile;
-        delete debugOut;
+        if(isDebugFlagOn_m){
+        debugFile_m->close();
+        delete debugFile_m;
+        delete debugOut_m;
     }
 
         exit(0);
-        countNoOfRead = 0;
+        countNoOfRead_m = 0;
         break;
     }
-    case 99://END_COMM(99)
+    case END_COMM:
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+            debugOut_m->flush();
         }
         update_all();
         xdrawgraph();
         doPlotFit();
 
-        writeToTmpFile=true;
-        countNoOfRead = 0;
+        isWriteToTmpFile_m=true;
+        countNoOfRead_m = 0;
         break;
     }
-    case 98://TEST_CONNECTION(98)
+    case TEST_CONNECTION:
     {
-        if(debugFlag){
-            *debugOut<<"Run Command" << command<<"\n";
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Run Command" << command_m<<"\n";
+            debugOut_m->flush();
         }
-        countNoOfRead = 0;
+        countNoOfRead_m = 0;
         break;
     }
 
     default:
     {
-        if(debugFlag){
-            *debugOut<<"INVALID COMMAND STOP" << command<<"\n";
-            debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"INVALID COMMAND STOP" << command_m<<"\n";
+            debugOut_m->flush();
         }
         QMessageBox::information(0,"Communication Error","Communication error: try to restart");
 
         exit(0);
-        countNoOfRead = 0;
+        countNoOfRead_m = 0;
         break;
     }
     }
-    if(debugFlag){
-        *debugOut<<"Command was performed " << command<<"\n";
-        debugOut->flush();
-    }
-
-    clientConnection->disconnectFromServer();
-    delete clientConnection;
-    if(debugFlag){
-        *debugOut<<"readSocket() DONE\n";
-        debugOut->flush();
-    }
-
-
-
-
 }
+
 
 void LocalSocketIpcServer::sendDataToBeast(){
 
-    messageToBeastPtr->write(messageSendGraphParam,messageParamGraphLength);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
+    messageToClientPtr_->write(messageSendGraphParam_m,messageParamGraphLength_m);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
 
 }
 
@@ -491,75 +511,155 @@ char* LocalSocketIpcServer::copyDataFromSocket(int availableBytes, char* dataFro
 
 }
 
-void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int availableBytes, int dataType){
-    switch (dataType){
+void LocalSocketIpcServer::getCommandFromClient(int commandFromsocket)
+{
+    switch (commandFromsocket) {
+    case 1:
+        command_m = PLOT_INFO ;
+        break;
+    case 2:
+         command_m = WRITE_DATAVEC ;
+        break;
+    case 12:
+         command_m =  WRITE_DATAVEC_FINISHED;
+        break;
+    case 3:
+        command_m =  READ_MODE;
+        break;
+    case 4:
+         command_m =  REDRAW;
+        break;
+    case 5:
+        command_m =  PS_FILENAME;
+        break;
+    case 6:
+        command_m =  SET_SCALING_MODE;
+        break;
+    case 7:
+        command_m =  REDRAW_AND_WRITEPS;
+        break;
+    case 8:
+         command_m = SET_LAYOUT_MODE;
+        break;
+    case 42:
+        command_m = KILL_CHILD;
+        break;
+    case 9:
+        command_m = DELETE_CONNECTION;
+        break;
+    case 99:
+         command_m = END_COMM;
+        break;
+    case 98:
+         command_m = TEST_CONNECTION;
+        break;
+    default:
+        QMessageBox::information(0,"Communication Error","Communication error: Command not found");
+        exit(0);
+        break;
+    }
 
-    case 1: //Read command
-        {command = *((int*)(newDataFromSocket));
 
-        if(debugFlag){*debugOut<< " The command is int, 4 bytes are "<<
+}
+
+void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int availableBytes, readCommands readMode){
+    switch (readMode){
+
+    case START_READ:
+    {
+        int commandFromsocket = *((int*)(newDataFromSocket));
+
+        getCommandFromClient(commandFromsocket);
+
+        if(isDebugFlagOn_m){*debugOut_m<< " The command is int, 4 bytes are "<<
                                   (int)(newDataFromSocket[0]) << " " <<
-                                                                 (int)(newDataFromSocket[1]) << " " <<
-                                                                                                (int)(newDataFromSocket[2]) << " " <<
-                                                                                                                               (int)(newDataFromSocket[3]) << " ";
-        debugOut->flush();
+                                  (int)(newDataFromSocket[1]) << " " <<
+                                  (int)(newDataFromSocket[2]) << " " <<
+                                  (int)(newDataFromSocket[3]) << " ";
+            debugOut_m->flush();
         }
-        break;}
+        break;
+    }
 
-    case 2: //Read data length
-        {dataLength = *((int*)(newDataFromSocket));
-        if(debugFlag){
-            *debugOut<< " Got data length= "<< dataLength <<"\n";
-        debugOut->flush();
+    case READ_DATALENGTH: //Read data length
+        {
+        dataLength_m = *((int*)(newDataFromSocket));
+        if(isDebugFlagOn_m){
+            *debugOut_m<< " Got data length= "<< dataLength_m <<"\n";
+        debugOut_m->flush();
         }
-        break;}
+        break;
+    }
 
-    case 3: //Read data set
+    case READ_DATASET_1:
 
-        {if(command!=6 && command!=8){
+        {
+        if(command_m!=SET_SCALING_MODE && command_m!=SET_LAYOUT_MODE){
             dataSet1Ptr = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
         else{
-            mode = *((int*)(newDataFromSocket));
 
-            if(debugFlag){
-                *debugOut<< " Got mode= "<< mode<<"\n" ;
-           debugOut->flush();
+            int modeFromClient = *((int*)(newDataFromSocket));
+
+            switch (modeFromClient) {
+            case 0:
+                mode_m = DEFAULT_LAYOUT;
+                break;
+            case 1:
+                mode_m = AUTOSCALE_ALL_AXES_OR_JOIN_PLOT;
+                break;
+            case 2:
+                mode_m = AUTOSCALE_Y_AXIS_OR_OVERLAY;
+                break;
+            case 3:
+                mode_m = GRAPH_POSITION;
+                break;
+            default:
+                break;
+            }
+
+            if(isDebugFlagOn_m){
+                *debugOut_m<< " Got mode= "<< mode_m<<"\n" ;
+           debugOut_m->flush();
             }
 
         }
         break;
         }
 
-    case 4: //Read Plot settings from ViewBeast dialogue
+    case READ_PLOT_SETTINGS_1_FROM_CLIENT: //Read Plot settings from client dialogue
 
-        { if(command==6){ //Min x-axis length
-            xminPtr = (double *)newDataFromSocket;
-            xmin = xminPtr[0];
+        {
+        if(command_m == SET_SCALING_MODE){ //Min x-axis length
+            xminPtr_m = (double *)newDataFromSocket;
+            xmin_m = xminPtr_m[0];
         }
-        else if(command == 8){ // Numbers of columns
-            columns = *((int*)(newDataFromSocket));
+        else if(command_m == SET_LAYOUT_MODE){ // Numbers of columns
+            columns_m = *((int*)(newDataFromSocket));
         }
         else{
-            dataSet2Ptr = copyDataFromSocket(availableBytes,newDataFromSocket);
+            dataSet2Ptr_m = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
         break;
         }
 
-    case 5://Read Plot settings from ViewBeast dialogue
-        {  if(command==6){  //Max x-axis length
-            xmaxPtr = (double *)newDataFromSocket;
-            xmax = xmaxPtr[0];
+    case READ_PLOT_SETTINGS_2_FROM_CLIENT://Read Plot settings from client dialogue
+        {
+        if(command_m == SET_SCALING_MODE){  //Max x-axis length
+            xmaxPtr_m = (double *)newDataFromSocket;
+            xmax_m = xmaxPtr_m[0];
 
         }
-        else if(command == 8) //numbers of graphs
+        if(command_m == SET_LAYOUT_MODE) //numbers of graphs
         {
-            numGraphs = *((int*)(newDataFromSocket));
+            numGraphs_m = *((int*)(newDataFromSocket));
         }
-        else{}
+
         break;
         }
     default:
+        QMessageBox::information(0,"Communication Error","Communication error: Command not found");
+        exit(0);
         break;
     }
 }
@@ -569,50 +669,70 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
     switch (numberOfRead){
 
     case 1:
+        {
+        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m,  START_READ);
 
-        { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_COMMAND);
+        if(command_m == READ_MODE || command_m == REDRAW ||
+                command_m == REDRAW_AND_WRITEPS || command_m == KILL_CHILD ||
+                command_m == END_COMM || command_m == TEST_CONNECTION ||
+                command_m == DELETE_CONNECTION || command_m == WRITE_DATAVEC_FINISHED)
 
-        if(command == 3 || command == 4 || command == 7 || command == 42 || command == 99 || command == 98 || command == 9 || command == 12)
-            conditionToExitFunction = 0;
+            conditionToExitFunction_m = 0;
         else
-            conditionToExitFunction = 1;
+            conditionToExitFunction_m = 1;
 
         break;
         }
     case 2:
-        { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATALENGTH);
-        conditionToExitFunction = 1;
+        {
+        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_DATALENGTH);
+        conditionToExitFunction_m = 1;
         break;
         }
     case 3:
-        {readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_1);
+        {
+        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_DATASET_1);
 
-        if(debugFlag){        *debugOut<< " Analysing(3) mode= "<< mode<<"\n" ;
-        debugOut->flush();
+        if(isDebugFlagOn_m){
+            *debugOut_m<< " Analysing(3) mode= "<< mode_m<<"\n" ;
+         debugOut_m->flush();
         }
-        if((command == 6 && mode == 2)|| (command == 8 && mode == 3) || command == 2)
-            conditionToExitFunction = 1;
+
+        if((command_m == SET_SCALING_MODE && mode_m == AUTOSCALE_Y_AXIS_OR_OVERLAY)||
+                (command_m == SET_LAYOUT_MODE && mode_m == GRAPH_POSITION) ||
+                command_m == WRITE_DATAVEC)
+
+            conditionToExitFunction_m = 1;
         break;
         }
 
     case 4:
-        { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_2);
-        if(debugFlag){   *debugOut<< " Analysing(4) mode= "<< mode<<"\n" ;
-        debugOut->flush();
+        {
+        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_PLOT_SETTINGS_1_FROM_CLIENT);
+
+        if(isDebugFlagOn_m){
+            *debugOut_m<< " Analysing(4) mode= "<< mode_m<<"\n" ;
+             debugOut_m->flush();
         }
-        if((command == 6 && mode == 2)|| (command == 8 && mode == 3))
-            conditionToExitFunction = 1;
+
+        if((command_m == SET_SCALING_MODE && mode_m == AUTOSCALE_Y_AXIS_OR_OVERLAY)||
+                (command_m == SET_LAYOUT_MODE && mode_m == GRAPH_POSITION))
+
+            conditionToExitFunction_m = 1;
 
         break;
         }
     case 5:
-        { readDataFromSocket(messagePtr,availableBytesFromSocket, READ_DATASET_3);
+        {
+        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_PLOT_SETTINGS_2_FROM_CLIENT);
         break;
         }
 
     default:
-        {  conditionToExitFunction = 1;
-        break;}
+        {
+        conditionToExitFunction_m = 1;
+        break;
+    }
     }
 
 }
@@ -631,11 +751,11 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
     x = (double *) xData;
     y = (double *) yData;
 
-    if (newDataSetReady)
-        buffer.write("@TYPE xy");
+    if (newDataSetReady_m)
+        buffer_m.write("@TYPE xy");
 
     //Check for invalid data and replace with 0;
-    for(int i=0; i<dataLength; i++){
+    for(int i=0; i<dataLength_m; i++){
         if(fabs(x[i])>1e200 || (x[i]!=0 && fabs(x[i])<1e-200))  {
             cout<<"Invalid numeric data in x["<<i<<"]="<<x[i]<<endl;
             // exit(0);
@@ -661,15 +781,15 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
         xValueBa = xValueStr.toLocal8Bit();
         xValueChar = xValueBa.data();
 
-        buffer.write("\n \t");
-        buffer.write(xValueChar);
+        buffer_m.write("\n \t");
+        buffer_m.write(xValueChar);
 
-        buffer.write("\t");
+        buffer_m.write("\t");
 
         yValueStr = QString::number(y[i],'g',20);
         yValueBa = yValueStr.toLocal8Bit();
         yValueChar = yValueBa.data();
-        buffer.write(yValueChar);
+        buffer_m.write(yValueChar);
 
     }
 
@@ -679,10 +799,10 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
 void LocalSocketIpcServer::readPsFileName(){
 
     // Read the item name from socket
-    dataSet1Ptr[dataLength] = '\0';
+    dataSet1Ptr[dataLength_m] = '\0';
 
     // Printstring length is 128, be careful
-    if(dataLength > 125){ // three bytes for .ps
+    if(dataLength_m > 125){ // three bytes for .ps
         printf("\nItem name for QtGrace document couldn't be read, line to long!\n"); // BZ629-3 beep removed
         delete[]dataSet1Ptr;
         return;
@@ -690,7 +810,7 @@ void LocalSocketIpcServer::readPsFileName(){
 
     // set the document name
     if(dataSet1Ptr[0] != '\0'){
-        qtGraceDocStrName = (string)dataSet1Ptr;
+        qtGraceDocStrName_m = (string)dataSet1Ptr;
         set_docname(dataSet1Ptr);
     }
 
@@ -701,36 +821,28 @@ void LocalSocketIpcServer::readPsFileName(){
 
 void LocalSocketIpcServer::setScalingMode()
 {
-    /* Autoscaling Information */
-    //            autoscale_byset(int gno, int setno, int autos_type);
 
-    /* mode 0 = no autoscale       */
-    /* mode 1 = autoscale all axis */
-    /* mode 2 = autoscale y axis   */
-
-
-    switch(mode){
-    case 2:
-        { graphNo = dataLength;
+    switch(mode_m){
+    case AUTOSCALE_Y_AXIS_OR_OVERLAY:
+        { graphNo_m = dataLength_m;
         world w;
-        w.xg2 = xmax;
-        w.xg1 = xmin;
-        set_graph_world(graphNo, w);
+        w.xg2 = xmax_m;
+        w.xg1 = xmin_m;
+        set_graph_world(graphNo_m, w);
 
         /* autoscale y axis */
-        autoscale_graph(graphNo, 2);
-        //update_all();
+        autoscale_graph(graphNo_m, 2);
         break;
         }
-    case 1:
+    case AUTOSCALE_ALL_AXES_OR_JOIN_PLOT:
         { /* autoscale all axis - default*/
-        autoscale_graph(graphNo, 3);
+        autoscale_graph(graphNo_m, 3);
         //  update_all();
         break;
         }
-    case 0:
+    case DEFAULT_LAYOUT:
         /* no autoscale */
-		autoscale_onread = AUTOSCALE_NONE;
+        autoscale_onread = AUTOSCALE_NONE;
 
         break;
     default:
@@ -738,30 +850,30 @@ void LocalSocketIpcServer::setScalingMode()
         break;}
     }
 
-    mode = 0;
+    mode_m = DEFAULT_LAYOUT;
 
 }
 
 void LocalSocketIpcServer::writeDataToTmpFile()
 {
 
-    if (writeToTmpFile){
+    if (isWriteToTmpFile_m){
 
-        if(debugFlag){*debugOut<<"******START READ FROM TEMP FILE***********\n";
-            *debugOut<<dataFromBuffer;
-            debugOut->flush();
+        if(isDebugFlagOn_m){*debugOut_m<<"******START READ FROM TEMP FILE***********\n";
+            *debugOut_m<<dataFromBuffer_m;
+            debugOut_m->flush();
         }
 
         //Read data from tmp file and update QtGrace plot
-        readDataFromClient(dataFromBuffer.data(),0,"plot");
+        readDataFromClient(dataFromBuffer_m.data(),0,"plot");
         update_all();
         setResetExportDialogue(true);
-        buffer.close();
-        dataFromBuffer.clear();
-        buffer.open(QIODevice::Append);
-        if(debugFlag){
-            *debugOut<<"******END READ FROM TEMP FILE***********\n";
-            debugOut->flush();
+        buffer_m.close();
+        dataFromBuffer_m.clear();
+        buffer_m.open(QIODevice::Append);
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"******END READ FROM TEMP FILE***********\n";
+            debugOut_m->flush();
         }
     }
 
@@ -770,7 +882,7 @@ void LocalSocketIpcServer::writeDataToTmpFile()
 void LocalSocketIpcServer::setLayoutMode(){
 
     //Set layout for graph: "graphNo"
-    graphNo = dataLength;
+    graphNo_m = dataLength_m;
 
     //Set QtGrace plot viewport
     view v;
@@ -780,91 +892,87 @@ void LocalSocketIpcServer::setLayoutMode(){
     v.yv2 = 0.85;
 
     //Update legend properties dialogue
-    for(int iSetNo = 0; iSetNo < countNoOfDataSets; iSetNo++){
-        set_legend_string(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));
+    for(int iSetNo = 0; iSetNo < countNoOfDataSets_m; iSetNo++){
+        set_legend_string(graphNo_m,iSetNo,get_legend_string(graphNo_m,iSetNo));
         QString gotCommentQString;
-        char*gotComment=getcomment(graphNo, iSetNo);
+        char*gotComment=getcomment(graphNo_m, iSetNo);
         if(gotComment)gotCommentQString=gotComment;
-        if( gotCommentQString.toLatin1() == fileNameStr.toLatin1())
+        if( gotCommentQString.toLatin1().isEmpty())
         {
-            setcomment(graphNo,iSetNo,gotComment);
+            setcomment(graphNo_m,iSetNo,gotComment);
 
         }else{
-            setcomment(graphNo,iSetNo,get_legend_string(graphNo,iSetNo));}
+            setcomment(graphNo_m,iSetNo,get_legend_string(graphNo_m,iSetNo));}
     }
 
 
-    if(mode ==1){
-        //When join there will only be one graph, even ViewBeast sends it as more than one
-        saveCountNoOfDataSets.replace(0,countNoOfDataSets);
+    if(mode_m ==AUTOSCALE_ALL_AXES_OR_JOIN_PLOT){
+        //When join there will only be one graph, even client sends it as more than one
+        saveCountNoOfDataSets_m.replace(0,countNoOfDataSets_m);
 
     }else{
-        saveCountNoOfDataSets.replace(graphNo,countNoOfDataSets);
-        countNoOfDataSets = 0;
+        saveCountNoOfDataSets_m.replace(graphNo_m,countNoOfDataSets_m);
+        countNoOfDataSets_m = 0;
 
     }
 
     //Set graph position, i.e. numbers of columns and rows.
 
-    switch(mode){
+    switch(mode_m){
 
-    case 3:{
+    case GRAPH_POSITION:
+    {
 
-        if(columns==0){
-            rows = 1;
+        if(columns_m==0){
+            rows_m = 1;
         }
         else {
-            rows = numGraphs/columns;
-            if(numGraphs%columns != 0)
-                rows ++;
+            rows_m = numGraphs_m/columns_m;
+            if(numGraphs_m%columns_m != 0)
+                rows_m ++;
         }
 
         double offset = 0.15;
-        double vgapArrangeGraph =0.2*numGraphs;
-        double hgabArrangeGraph =0.2*numGraphs;
+        double vgapArrangeGraph =0.2*numGraphs_m;
+        double hgabArrangeGraph =0.2*numGraphs_m;
 
-        arrange_graphs_simple(rows, columns,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+        arrange_graphs_simple(rows_m, columns_m,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
 
         break;
     }
-    case 2: //overlay
+    case AUTOSCALE_Y_AXIS_OR_OVERLAY: //overlay
     {
-        if(graphNo != 0)  { // Lay all on the first one.
-            //#define GOVERLAY_SMART_AXES_DISABLED  0
-            //#define GOVERLAY_SMART_AXES_NONE      1
-            //#define GOVERLAY_SMART_AXES_X         2
-            //#define GOVERLAY_SMART_AXES_Y         3
-            //#define GOVERLAY_SMART_AXES_XY        4
-            overlay_graphs(graphNo, 0, 4);
+        if(graphNo_m != 0)  { // Lay all on the first one.
+            overlay_graphs(graphNo_m, 0, GOVERLAY_SMART_AXES_XY);
         }
 
         break;
     }
-    case 1:
-    {    // join, do nothing
+    case AUTOSCALE_ALL_AXES_OR_JOIN_PLOT:
+    {
+        // join, do nothing
         break;
     }
-    case 0:{
-
+    case DEFAULT_LAYOUT:{
         //do nothing
-
         break;
     }
     default:
         fprintf(stderr, "Wrong layout mode!\n");
         break;
     }
-    mode = 0;
+
+    mode_m = DEFAULT_LAYOUT;
 }
 
 void LocalSocketIpcServer::sendParam(){
 
-    //Send QtGrace document name to ViewBeast (PD file)
+    //Send QtGrace document name to client (PD file)
 
-    int qtGraceDocStrNameLength = qtGraceDocStrName.length();
+    int qtGraceDocStrNameLength = qtGraceDocStrName_m.length();
 
     ConnectToBeast((const char *)(&qtGraceDocStrNameLength),sizeof(int));
-    ConnectToBeast(qtGraceDocStrName.data(),qtGraceDocStrNameLength);
+    ConnectToBeast(qtGraceDocStrName_m.data(),qtGraceDocStrNameLength);
 
     //Send QtGrace graph parameters settings (PD file)
     int graphParamToSendLength = 1000000;
@@ -884,27 +992,25 @@ void LocalSocketIpcServer::sendParam(){
 }
 
 
-
-
 void LocalSocketIpcServer::socketDisconnected() {
-    if(debugFlag){*debugOut<< "socket_disconnected\n";
-    debugOut->flush();
+    if(isDebugFlagOn_m){*debugOut_m<< "socket_disconnected\n";
+    debugOut_m->flush();
     }
 }
 
 
 void LocalSocketIpcServer::socketReadReady() {
-    if(debugFlag){ *debugOut<< "socket_readReady\n";
-    debugOut->flush();}
+    if(isDebugFlagOn_m){ *debugOut_m<< "socket_readReady\n";
+    debugOut_m->flush();}
 }
 
 void LocalSocketIpcServer::socketError(QLocalSocket::LocalSocketError) {
-    if(debugFlag){*debugOut<< "socket_error\n";
-    debugOut->flush();
+    if(isDebugFlagOn_m){*debugOut_m<< "socket_error\n";
+    debugOut_m->flush();
     }
 
-    if(messageToBeastPtr->error()!=QAbstractSocket::RemoteHostClosedError)
-        QMessageBox::information(0,"Communication Error",messageToBeastPtr->errorString() + ". Try to restart QtGrace");
+    if(messageToClientPtr_->error()!=QAbstractSocket::RemoteHostClosedError)
+        QMessageBox::information(0,"Communication Error",messageToClientPtr_->errorString() + ". Try to restart QtGrace");
 
 }
 

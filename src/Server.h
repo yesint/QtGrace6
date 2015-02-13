@@ -1,3 +1,22 @@
+/***************************************************************************
+ *   Copyright (C) 2015                                                    *
+ *                                                                         *                                                                         *
+ *   This file is free software; you can redistribute it and/or modify     *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
 #ifndef SERVER_H
 #define SERVER_H
 
@@ -39,6 +58,49 @@
 #endif
 #define CHUNKSIZE 2*PIPE_BUF
 
+
+enum dataCommands{
+
+    //! Each communication with a client
+    //! is initialized with a command to tell QtGrace
+    //! how to handle incoming data.
+    PLOT_INFO,
+    WRITE_DATAVEC,
+    WRITE_DATAVEC_FINISHED,
+    READ_MODE,
+    REDRAW,
+    PS_FILENAME,
+    SET_SCALING_MODE,
+    REDRAW_AND_WRITEPS,
+    SET_LAYOUT_MODE,
+    KILL_CHILD,
+    DELETE_CONNECTION,
+    TEST_CONNECTION,
+    END_COMM
+};
+
+
+enum plotModes{
+
+    //! The client can send different plot ayouts
+    AUTOSCALE_ALL_AXES_OR_JOIN_PLOT,
+    AUTOSCALE_Y_AXIS_OR_OVERLAY,
+    DEFAULT_LAYOUT,
+    GRAPH_POSITION
+};
+
+
+enum readCommands{
+    //! Tell QtGrace what to read from the client
+    START_READ,
+    READ_DATALENGTH,
+    READ_DATASET_1,
+    READ_PLOT_SETTINGS_1_FROM_CLIENT,
+    READ_PLOT_SETTINGS_2_FROM_CLIENT
+};
+
+
+
 class LocalSocketIpcServer: public QObject
 {
     Q_OBJECT
@@ -47,15 +109,19 @@ public:
     ~LocalSocketIpcServer();
 
 
+    void getCommandFromClient(int commandFromsocket);
+
+    void executeTaskFromClient();
+
 private slots:
 
     //! Create a unique file name
     const char *createUniqueFileName();
-    //! Read data from socket (ViewBeast) and process the data.
+    //! Read data from socket (client) and process the data.
     void    readSocket();
-    //! Connect to ViewBeast to send data from QtGrace to ViewBeast
+    //! Connect to client to send data from QtGrace
     void    ConnectToBeast(const char* sendParam, int sendLen);
-    //! Send data from QtGrace to ViewBeast
+    //! Send data from QtGrace to client
     void    sendDataToBeast();
     //! Check if socket is disconnected (for debug)
     void    socketDisconnected();
@@ -67,115 +133,93 @@ private slots:
 private:
     //! Read .ps filename from socket and set the QtGrace document name.
     void    readPsFileName();
-    //! Set layout settings received from ViewBeast
+    //! Set layout settings received from client
     void    setLayoutMode();
-    //! Set graph scalling received from ViewBeast
+    //! Set graph scalling received from client
     void    setScalingMode();
-    //! Writes all the data received from ViewBeast to a temp file. Following the data is read to QtGrace
+    //! Writes all the data received from client to a temp file. Following the data is read to QtGrace
     void    writeDataToTmpFile();
-    //! Send graph data to ViewBeast (for PD files)
+    //! Send graph data to client (for PD files)
     void    sendParam();
-    //! Copy data from socket received from ViewBeast
+    //! Copy data from socket received from client
     char*   copyDataFromSocket(int availableBytes, char* dataFromSocket);
-    //! Read graph data and plot settings from ViewBeast
-    void    readDataFromSocket(char *dataFromSocket,int availableBytes, int dataType);
+    //! Read graph data and plot settings from client
+    void    readDataFromSocket(char *dataFromSocket, int availableBytes, readCommands readMode);
     //! Save the data read from the socket
     void    saveDataFromSocket(int numberOfRead);
-    //! Read data from a file and load it to QtGrace
-   // int     getdata(int gno, char *fn, int src, int load_type);
-    //!
-   // void    parse_qtGrace_Additions(char * s);
-    //!
-  //  int     uniread(FILE *fp, int load_type, char *label);
-    //!
-  //  int     read_long_line(FILE *fp, char **linebuf, int *buflen);
-    //!
-  //  int     expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
     //! Read and clean x and y plot data
     void    readXYData(char* xData, char* yData);
 
 private:
-    //! New local server to read data from ViewBeast
-    QLocalServer*       messageFromBeastPtr;
-    //! New local socket to send data to ViewBeast
-    QLocalSocket*       messageToBeastPtr;
-    //! Name on the server (used to estabilish communication between ViewBeast and QtGrace
-    QString             readServer;
-    //! Variable to ensure new data is not send before the old data has been send from QtGrace to ViewBeast
-    bool                socketConnectedBusy;
+    //! To enable debug
+    bool isDebugFlagOn_m;
     //! Graph data and settings (PD file)
-    const char*         messageSendGraphParam;
+    const char*         messageSendGraphParam_m;
     //! Length of: "messageSendGraphParam"
-    int                 messageParamGraphLength;
-    //!
+    int                 messageParamGraphLength_m;
+    //! Message from client
+    char                *messagePtr_m;
+    //! The data received from the client part1
     char                *dataSet1Ptr;
-    //!
-    char                *dataSet2Ptr;
-    //!
-    int                 *newSetNosPtr;
-    //!
-    graph               *graphPtr;
-    //!
-    char                *messagePtr;
-    //! Pointer to min plot x-axis length
-    double              *xminPtr;
-    //! Point to max plot x-axis length
-    double              *xmaxPtr;
+    //! The data received from the client part2
+    char                *dataSet2Ptr_m;
     //! What to read command
-    int                 command;
-    //! Length of data received from ViewBeast
-    int                 dataLength;
-    //! Graph layout is given by the mode send by ViewBeast
-    int                 mode;
-    //! Numbers of columns for the plot
-    int                 columns;
+    dataCommands        command_m;
+    //! Length of data received from Client
+    int                 dataLength_m;
     //! Graph number
-    int                 graphNo;
-    //! Numbers of rows for the plot
-    int                 rows;
-    //! Total numbers of graphs
-    int                 numGraphs;
+    int                 graphNo_m;
     //! Min plot x-axis length
-    double              xmin;
+    double              xmin_m;
     //! Max plot x-axis length
-    double              xmax;
-    //! QtGrace document name. The name is used for the plot to file and when exporting to a PD file
-    string              qtGraceDocStrName;
+    double              xmax_m;
     //! Condition to exit read function
-    int                 conditionToExitFunction;
-    //! Count the number of time there has been read from the socket. Depending on the number different taks are performed
-    quint16             countNoOfRead;
+    int                 conditionToExitFunction_m;
+    //! Count the number of time there has been read from the socket.
+    //! Depending on the number different taks are performed
+    quint16             countNoOfRead_m;
     //! Indicator to new data is ready on the socket to be read
-    quint16             newDataSetReady;
-    //!
-    int                 new_set_no;
-    //!
-    QList<QFont>        stdFontList;
-    //!
-    QString             fileNameStr;
-    //!
-    QByteArray          dataFromBuffer;
-    //! buffer contains all the data received from ViewBeast. The buffer is then loaded to QtGrace
-    QBuffer             buffer;
-
-    //!
-    bool                writeToTmpFile;
-    //!
-    int                 countNoOfDataSets;
-    //!
-    QList<int>          saveCountNoOfDataSets;
+    quint16             newDataSetReady_m;
+    //! Flag to tell QtGrace when to write data received from client to a temporary file
+    bool                isWriteToTmpFile_m;
+    //! Total numbers of graphs
+    int                 numGraphs_m;
+    //! Counter to count the numbers of dataset received from the client
+    int                 countNoOfDataSets_m;
     //! Status of QtGrace warning messages (should there be a warning or not)
-    int                 oldNoask;
+    int                 oldNoask_m;
+    //! File for debug messages
+    QFile               *debugFile_m;
+    //! Stream for debugging
+    QTextStream         *debugOut_m;
+    //! Graph layout is given by the mode send by Client
+    plotModes            mode_m;
+    //! Pointer to min plot x-axis length
+    double              *xminPtr_m;
+    //! Point to max plot x-axis length
+    double              *xmaxPtr_m;
+    //! Numbers of columns for the plot
+    int                 columns_m;
+    //! Numbers of rows for the plot
+    int                 rows_m;
+    //! QtGrace document name. The name is used for the plot to
+    //! file and when exporting to a PD file
+    string              qtGraceDocStrName_m;
+    //! Buffer to save data from client
+    QByteArray          dataFromBuffer_m;
+    //! buffer contains all the data received from client.
+    //! The buffer is then loaded to QtGrace
+    QBuffer             buffer_m;
     //! Number of bytes available on the socket
-    qint64              availableBytesFromSocket;
-    //! Byte array used to save a temporary file name
-    QByteArray          fileNameBa;
-
-    //! files for debug
-    QFile      *debugFile;
-    QTextStream         *debugOut;
-    bool debugFlag;
-    bool readSocketIsLocked;
+    qint64              availableBytesFromSocket_m;
+    //! New local server to read data from client
+    QLocalServer*       messageFromClienttPtr_m;
+    //! New local socket to send data to client
+    QLocalSocket*       messageToClientPtr_;
+    //! Name on the server (used to estabilish communication between Client and QtGrace
+    QString             readServer_m;
+    //! Save the numbers of data sets
+    QList<int>          saveCountNoOfDataSets_m;
 };
 
 
