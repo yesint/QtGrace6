@@ -74,7 +74,6 @@ enum dataCommands{
     REDRAW_AND_WRITEPS,
     SET_LAYOUT_MODE,
     KILL_CHILD,
-    DELETE_CONNECTION,
     TEST_CONNECTION,
     END_COMM
 };
@@ -82,7 +81,7 @@ enum dataCommands{
 
 enum plotModes{
 
-    //! The client can send different plot ayouts
+    //! The client can send different plot layouts
     AUTOSCALE_ALL_AXES_OR_JOIN_PLOT,
     AUTOSCALE_Y_AXIS_OR_OVERLAY,
     DEFAULT_LAYOUT,

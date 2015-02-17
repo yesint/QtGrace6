@@ -426,16 +426,6 @@ void LocalSocketIpcServer::executeTaskFromClient()
         countNoOfRead_m = 0;
         break;
     }
-    case DELETE_CONNECTION:
-    {
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
-        messageFromClienttPtr_m->close();
-
-        break;
-    }
 
     case KILL_CHILD:
     {
@@ -543,9 +533,6 @@ void LocalSocketIpcServer::getCommandFromClient(int commandFromsocket)
         break;
     case 42:
         command_m = KILL_CHILD;
-        break;
-    case 9:
-        command_m = DELETE_CONNECTION;
         break;
     case 99:
          command_m = END_COMM;
@@ -675,7 +662,7 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
         if(command_m == READ_MODE || command_m == REDRAW ||
                 command_m == REDRAW_AND_WRITEPS || command_m == KILL_CHILD ||
                 command_m == END_COMM || command_m == TEST_CONNECTION ||
-                command_m == DELETE_CONNECTION || command_m == WRITE_DATAVEC_FINISHED)
+                command_m == WRITE_DATAVEC_FINISHED)
 
             conditionToExitFunction_m = 0;
         else
