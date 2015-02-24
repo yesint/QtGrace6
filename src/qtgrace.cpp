@@ -672,7 +672,7 @@ int main( int argc, char **argv )
     if(connectToViewBeast){
         mainWin->SocketConnection = new LocalSocketIpcServer(sendToBeast,readFromBeast,mainWin);
     }else{
-        fprintf(stderr, "Not able to start View Beast connection\n");
+        fprintf(stderr, "Not able to connect to client\n");
     }
 #endif
 
