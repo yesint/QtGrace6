@@ -87,7 +87,7 @@
 #define MINOR_REV 1
 #define PATCHLEVEL 22
 #define RETSIGTYPE void
-
+#include <QtGui>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

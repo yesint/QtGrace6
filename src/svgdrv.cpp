@@ -289,7 +289,7 @@ static char *escape_specials(unsigned char *s, int len,char *fontalias)
                 esn[1] = '\0';
 
                 QString nonAsciiWarning = "The symbol: "+ QString(s[i]) +" can't be printed and the whole label containing the symbol will be replaced by a question mark (?)";
-                errmsg(nonAsciiWarning.toAscii().constData());
+                errmsg(nonAsciiWarning.toLatin1().constData());
 
                 return (esn);
             }

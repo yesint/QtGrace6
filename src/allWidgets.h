@@ -21,6 +21,7 @@
 #ifndef ALLWIDGETS_H
 #define ALLWIDGETS_H
 
+
 #include <QtGui>
 #include <fstream>
 #include <cstring>
@@ -31,6 +32,7 @@
 #include <QList>
 #endif
 #include <QLabel>
+#include <QGroupBox>
 
 #include "draw.h"
 #include "graphs.h"
@@ -713,6 +715,8 @@ public slots:
     void doHelpOnSetOp(void);
 };
 
+
+
 class frmCommands:public QDialog
 {
     Q_OBJECT
@@ -723,7 +727,9 @@ public:
     QLineEdit * lenCommand;
     //QTextEdit * txtCommands;
     QListWidget * list;
-    QGroupBox * grp1,*grp2;
+
+    QGroupBox * grp1_x;
+	QGroupBox * grp2_x;
     QHBoxLayout * layout1,*layout2;
     QVBoxLayout * layout;
 

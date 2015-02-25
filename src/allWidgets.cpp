@@ -5270,9 +5270,8 @@ frmCommands::frmCommands(QWidget * parent):QDialog(parent)
     //txtCommands=new QTextEdit(this);
     list=new QListWidget(this);
     connect(list,SIGNAL(itemDoubleClicked(QListWidgetItem*)),SLOT(doDoubleClick(QListWidgetItem*)));
-    grp1=new QGroupBox(this);
-    grp2=new QGroupBox(this);
-
+    grp1_x=new QGroupBox(this);
+    grp2_x=new QGroupBox(this);
     layout1=new QHBoxLayout();
     layout1->setMargin(STD_MARGIN);
     layout2=new QHBoxLayout();
@@ -5280,15 +5279,15 @@ frmCommands::frmCommands(QWidget * parent):QDialog(parent)
     layout=new QVBoxLayout();
     layout->setMargin(STD_MARGIN);
 
-    cmdAdd=new QPushButton(tr("Add"),grp1);
+    cmdAdd=new QPushButton(tr("Add"),grp1_x);
     connect(cmdAdd,SIGNAL(clicked()),SLOT(doAdd()));
-    cmdDelete=new QPushButton(tr("Delete"),grp1);
+    cmdDelete=new QPushButton(tr("Delete"),grp1_x);
     connect(cmdDelete,SIGNAL(clicked()),SLOT(doDelete()));
-    cmdReplace=new QPushButton(tr("Replace"),grp1);
+    cmdReplace=new QPushButton(tr("Replace"),grp1_x);
     connect(cmdReplace,SIGNAL(clicked()),SLOT(doReplace()));
-    cmdUp=new QPushButton(tr("Up"),grp1);
+    cmdUp=new QPushButton(tr("Up"),grp1_x);
     connect(cmdUp,SIGNAL(clicked()),SLOT(doUp()));
-    cmdDown=new QPushButton(tr("Down"),grp1);
+    cmdDown=new QPushButton(tr("Down"),grp1_x);
     connect(cmdDown,SIGNAL(clicked()),SLOT(doDown()));
 
     layout1->addWidget(cmdAdd);
@@ -5296,19 +5295,19 @@ frmCommands::frmCommands(QWidget * parent):QDialog(parent)
     layout1->addWidget(cmdReplace);
     layout1->addWidget(cmdUp);
     layout1->addWidget(cmdDown);
-    grp1->setLayout(layout1);
+    grp1_x->setLayout(layout1);
 
-    cmdRead=new QPushButton(tr("Read..."),grp2);
+    cmdRead=new QPushButton(tr("Read..."),grp2_x);
     connect(cmdRead,SIGNAL(clicked()),SLOT(doRead()));
-    cmdSave=new QPushButton(tr("Save..."),grp2);
+    cmdSave=new QPushButton(tr("Save..."),grp2_x);
     connect(cmdSave,SIGNAL(clicked()),SLOT(doSave()));
-    cmdClear=new QPushButton(tr("Clear"),grp2);
+    cmdClear=new QPushButton(tr("Clear"),grp2_x);
     connect(cmdClear,SIGNAL(clicked()),SLOT(doClear()));
-    cmdReplay=new QPushButton(tr("Replay"),grp2);
+    cmdReplay=new QPushButton(tr("Replay"),grp2_x);
     connect(cmdReplay,SIGNAL(clicked()),SLOT(doReplay()));
-    cmdClose=new QPushButton(tr("Close"),grp2);
+    cmdClose=new QPushButton(tr("Close"),grp2_x);
     connect(cmdClose,SIGNAL(clicked()),SLOT(doClose()));
-    cmdHelp=new QPushButton(tr("Help"),grp2);
+    cmdHelp=new QPushButton(tr("Help"),grp2_x);
     connect(cmdHelp,SIGNAL(clicked()),SLOT(doHelp()));
 
     layout2->addWidget(cmdRead);
@@ -5317,12 +5316,12 @@ frmCommands::frmCommands(QWidget * parent):QDialog(parent)
     layout2->addWidget(cmdReplay);
     layout2->addWidget(cmdClose);
     layout2->addWidget(cmdHelp);
-    grp2->setLayout(layout2);
+    grp2_x->setLayout(layout2);
 
     //layout->addWidget(txtCommands);
     layout->addWidget(list);
-    layout->addWidget(grp1);
-    layout->addWidget(grp2);
+    layout->addWidget(grp1_x);
+    layout->addWidget(grp2_x);
     layout->addWidget(lblCommand);
     layout->addWidget(lenCommand);
     setLayout(layout);
