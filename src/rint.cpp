@@ -1,4 +1,4 @@
-#ifdef _MSC_VER
+#if _MSC_VER<1800
 #include "rint.h"
 #include <cmath>
 
