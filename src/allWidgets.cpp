@@ -9762,7 +9762,11 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     sprintf(buf, "Xbae version: %s ", bi_gui_xbae());
 lblInfo[19]=new QLabel(QString(buf),grpBuildInfo);
 */
+#ifdef _MSC_VER
+    sprintf(buf, "Qt version: %s , MSC version: %d ", QT_VERSION_STR,_MSC_VER);
+#else
     sprintf(buf, "Qt version: %s ", QT_VERSION_STR);
+#endif
     lblInfo[19]=new QLabel(QString(buf),grpBuildInfo);
 
     sprintf(buf, "T1lib: %s ", T1_GetLibIdent());
