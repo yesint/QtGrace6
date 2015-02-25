@@ -68,8 +68,7 @@ INCLUDES += -I$(QT4HOME)/include/QtSvg
 
 
 ifneq (,$(findstring -DQT5,$(commdef)))
-#INCLUDES += -I$(QT4HOME)/include/QtWebKitWidgets
-QT4LIBS += -lQt5Svg
+## Note: this should come from above .head instead !
 endif
 
 CCFLAGS+=-DHAVE_FFTW
