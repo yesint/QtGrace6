@@ -641,16 +641,28 @@ void setpointer(VPoint vp)
     ///XWarpPointer(disp, None, xwin, 0, 0, 0, 0, x, y);
 }
 
-char *display_name(void)
+char * display_name(void)
 {
-	char * the_display_name;
-    //return DisplayString(disp);
-#if QT_VERSION < 0x050000
-	QString dn=QDesktopServices::displayName(QDesktopServices::DesktopLocation);
-	if(dn.isEmpty())the_display_name="";
-	else the_display_name=dn .toAscii().data();
+static char * the_display_name=NULL;
+QString dn;
+/*#if QT_VERSION >= 0x050000
+return QStandardPaths::displayName(QStandardPaths::DesktopLocation).toLocal8Bit().data();
 #else
-    the_display_name= QStandardPaths::displayName(QStandardPaths::DesktopLocation).toAscii().data();
+return QDesktopServices::displayName(QDesktopServices::DesktopLocation).toLocal8Bit().data();
+#endif*/
+#if QT_VERSION < 0x050000
+dn=QDesktopServices::displayName(QDesktopServices::DesktopLocation);
+//if(dn.isEmpty())the_display_name="";
+//else the_display_name=dn.toLocal8Bit().data();
+#else
+dn=QStandardPaths::displayName(QStandardPaths::DesktopLocation);
+//the_display_name=QStandardPaths::displayName(QStandardPaths::DesktopLocation).toLocal8Bit().data();
+//qDebug() << QStandardPaths::displayName(QStandardPaths::DesktopLocation);
 #endif
-	return strdup(the_display_name);
+if (dn.isEmpty()) dn=QString("");
+int len=strlen(dn.toLocal8Bit().constData());
+if (the_display_name!=NULL) delete[] the_display_name;
+the_display_name=new char[8+len];
+strcpy(the_display_name,dn.toLocal8Bit().constData());
+return the_display_name;
 }
