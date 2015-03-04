@@ -1,3 +1,4 @@
+#ifdef _MSC_VER
 #if _MSC_VER<1800
 #include "rint.h"
 #include <cmath>
@@ -16,5 +17,6 @@ double rint(double x)
 
     else return floor(x+0.5);
 }
+#endif
 #endif
 
