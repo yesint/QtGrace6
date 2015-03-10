@@ -117,17 +117,19 @@ private slots:
     //! Create a unique file name
     const char *createUniqueFileName();
     //! Read data from socket (client) and process the data.
-    void    readSocket();
+    void    readFromClient();
     //! Connect to client to send data from QtGrace
-    void    ConnectToBeast(const char* sendParam, int sendLen);
+    void    ConnectToClient(const char* sendParam, int sendLen);
     //! Send data from QtGrace to client
-    void    sendDataToBeast();
+    void    sendDataToClient();
     //! Check if socket is disconnected (for debug)
     void    socketDisconnected();
     //! Check if socket is ready to be read from (for debug)
     void    socketReadReady();
     //! Returns any socket errors (for debug)
     void    socketError(QLocalSocket::LocalSocketError);
+
+    void    createNewSocketConnection();
 
 private:
     //! Read .ps filename from socket and set the QtGrace document name.
@@ -219,6 +221,10 @@ private:
     QString             readServer_m;
     //! Save the numbers of data sets
     QList<int>          saveCountNoOfDataSets_m;
+
+    QLocalSocket *clientConnection;
+
+
 };
 
 

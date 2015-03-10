@@ -64,6 +64,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,messageFromClienttPtr_m(NULL)
   ,messageToClientPtr_(NULL)
   ,readServer_m("")
+  ,clientConnection(NULL)
 
 {
     if(getenv("QTGRACEDEBUG")) {
@@ -99,22 +100,20 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
         }
     }
 
-
-    connect(messageFromClienttPtr_m, SIGNAL(newConnection()), this, SLOT(readSocket()));
+    connect(messageFromClienttPtr_m, SIGNAL(newConnection()), this, SLOT(createNewSocketConnection()));
 
     //Buffer to save data from socket
     buffer_m.setBuffer(&dataFromBuffer_m);
     buffer_m.open(QIODevice::Append);
 
     //Write to client
+    messageToClientPtr_ = new QLocalSocket(this);
     readServer_m = readServerName;
-    messageToClientPtr_ =   new QLocalSocket(this);
-    connect(messageToClientPtr_, SIGNAL(connected()), this, SLOT(sendDataToBeast()));
+    connect(messageToClientPtr_, SIGNAL(connected()), this, SLOT(sendDataToClient()));
     connect(messageToClientPtr_, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
-    connect(messageToClientPtr_, SIGNAL(readyRead()), this, SLOT(socketReadReady()));
-
     connect(messageToClientPtr_, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socketError(QLocalSocket::LocalSocketError)));
+
     if(isDebugFlagOn_m){
         *debugOut_m<<"Done constructor\n";
         debugOut_m->flush();
@@ -122,7 +121,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 
 }
 
-void LocalSocketIpcServer::ConnectToBeast( const char* sendParam, int sendLen) {
+void LocalSocketIpcServer::ConnectToClient( const char* sendParam, int sendLen) {
     if(isDebugFlagOn_m){
         *debugOut_m<< "2) Connect to Server\n"+readServer_m;
         *debugOut_m<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
@@ -160,6 +159,12 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
     delete messageToClientPtr_;
     messageToClientPtr_ = NULL;
 
+    if(clientConnection!=NULL){
+    clientConnection->abort();
+    delete clientConnection;
+    clientConnection = NULL;
+}
+
     if(isDebugFlagOn_m){
         debugFile_m->close();
         delete debugFile_m;
@@ -168,18 +173,30 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
 
 }
 
-void LocalSocketIpcServer::readSocket() {
+void LocalSocketIpcServer::createNewSocketConnection(){
+    clientConnection = messageFromClienttPtr_m->nextPendingConnection();
+
+    connect(clientConnection, SIGNAL(disconnected()),
+            clientConnection, SLOT(deleteLater()));
+
+    connect(clientConnection, SIGNAL(readyRead()),
+            this, SLOT(readFromClient()));
+
+    connect(clientConnection, SIGNAL(error(QLocalSocket::LocalSocketError)),
+            this, SLOT(socketError(QLocalSocket::LocalSocketError)));
+
+    countNoOfRead_m++;
+}
+
+
+void LocalSocketIpcServer::readFromClient() {
+
     if(isDebugFlagOn_m){
         *debugOut_m<<"readSocket() START\n";
         debugOut_m->flush();
     }
 
-
     conditionToExitFunction_m = 0;
-
-    QLocalSocket *clientConnection = messageFromClienttPtr_m->nextPendingConnection();
-
-    countNoOfRead_m++;
 
     //Specifiy the amount of bytes to be read
     if(isDebugFlagOn_m){
@@ -200,14 +217,15 @@ void LocalSocketIpcServer::readSocket() {
         bytesNeeded= dataLength_m;
     }
 
-    while (clientConnection->bytesAvailable() < bytesNeeded){
+    if(clientConnection->bytesAvailable() < bytesNeeded){
         if(isDebugFlagOn_m){
             *debugOut_m<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable()<<"\n";
              debugOut_m->flush();
         }
-        clientConnection->waitForReadyRead();
 
-    }
+               clientConnection->waitForReadyRead();
+
+    }else{
 
     availableBytesFromSocket_m = clientConnection->bytesAvailable();
     messagePtr_m=new char[availableBytesFromSocket_m+1];
@@ -225,7 +243,6 @@ void LocalSocketIpcServer::readSocket() {
              debugOut_m->flush();
         }
         clientConnection->disconnectFromServer();
-        delete clientConnection;
         return;
     }
 
@@ -245,7 +262,6 @@ void LocalSocketIpcServer::readSocket() {
              debugOut_m->flush();
         }
         clientConnection->disconnectFromServer();
-        delete clientConnection;
         return;
     }
 
@@ -262,14 +278,13 @@ void LocalSocketIpcServer::readSocket() {
     }
 
     clientConnection->disconnectFromServer();
-    delete clientConnection;
     if(isDebugFlagOn_m){
         *debugOut_m<<"readSocket() DONE\n";
         debugOut_m->flush();
     }
 
 }
-
+}
 void LocalSocketIpcServer::executeTaskFromClient()
 {
     switch (command_m){
@@ -486,7 +501,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
 }
 
 
-void LocalSocketIpcServer::sendDataToBeast(){
+void LocalSocketIpcServer::sendDataToClient(){
 
     messageToClientPtr_->write(messageSendGraphParam_m,messageParamGraphLength_m);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
 
@@ -958,8 +973,8 @@ void LocalSocketIpcServer::sendParam(){
 
     int qtGraceDocStrNameLength = qtGraceDocStrName_m.length();
 
-    ConnectToBeast((const char *)(&qtGraceDocStrNameLength),sizeof(int));
-    ConnectToBeast(qtGraceDocStrName_m.data(),qtGraceDocStrNameLength);
+    ConnectToClient((const char *)(&qtGraceDocStrNameLength),sizeof(int));
+    ConnectToClient(qtGraceDocStrName_m.data(),qtGraceDocStrNameLength);
 
     //Send QtGrace graph parameters settings (PD file)
     int graphParamToSendLength = 1000000;
@@ -973,8 +988,8 @@ void LocalSocketIpcServer::sendParam(){
     putparmbeast(-1,pp,TRUE);
 
     int paramLength = strlen(pp);
-    ConnectToBeast((const char *)(&paramLength),sizeof(int));
-    ConnectToBeast(pp,paramLength);
+    ConnectToClient((const char *)(&paramLength),sizeof(int));
+    ConnectToClient(pp,paramLength);
     delete[] pp;
 }
 
