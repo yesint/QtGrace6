@@ -59,7 +59,7 @@ FILE *grace_openr(char *fn, int src);
 void grace_close(FILE *fp);
 
 int getparms(char *plfile);
-int getdata(int gno, char *fn, int src, int type, int autoscale);
+int getdata(int gno, char *fn, int src, int type);
 int readDataFromClient(char* dataIn, int load_type,char *label);
 int update_set_from_file(int gno, int setno, char *fn, int src);
 
@@ -85,9 +85,34 @@ int readnetcdf(int gno,
 int write_netcdf(char *fname);
 
 char *grace_fgets(char *s, int size, FILE *stream);
+int is_agr_file(char * file);
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+#include <QtCore>
+#include <QList>
+#include <QString>
+#include "defines.h"
+
+struct agr_file_info
+{
+char filename[GR_MAXPATHLEN];
+int nr_of_graphs,nr_of_sets,target_gno,headerlines;
+QList<int> g_ids,s_ids;//graph- and set-ids
+QStringList set_comments,set_legends,set_types;
+QString project_description;
+QList<int> import,color,lines,pattern,linet;
+QList<double> linew;
+};
+
+void init_agr_file_info(struct agr_file_info & afi);
+void read_header_from_agr(char * filename, struct agr_file_info & afi);
+void read_datasets_from_agr(struct agr_file_info afi);
+
 #endif
 
 #endif /* __FILES_H_ */

@@ -1,26 +1,26 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- *
+ * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- *
+ * 
  * Copyright (c) 1996-2003 Grace Development Team
- *
+ * 
  * Maintained by Evgeny Stambulchik
- *
- * Modified by Andreas Winter 2008-2012
- *
+ * 
+ * Modified by Andreas Winter 2008-2015
+ * 
  *                           All Rights Reserved
- *
+ * 
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- *
+ * 
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- *
+ * 
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -36,6 +36,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "globals.h"
 #include "defines.h"
 #include "utils.h"
 #include "cmath.h"
@@ -48,7 +49,6 @@
 #define MIF_MARGIN 15.0
 
 extern FILE *prstream;
-extern int RotationAngle;
 extern VPoint CenterOfMass(int n,VPoint *p);
 
 static Device_entry dev_mif = {DEVICE_FILE,
@@ -58,11 +58,7 @@ static Device_entry dev_mif = {DEVICE_FILE,
                                NULL,
                                "mif",
                                TRUE,
-                               #ifdef SKF_QtGrace
-                               TRUE,
-                               #else
                                FALSE,
-                               #endif
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL
                               };
@@ -73,74 +69,74 @@ static Device_entry dev_mif = {DEVICE_FILE,
  * document. */
 static int mif_fillpattern(int fillpattern)
 {
-    switch (fillpattern) {
-    case 0 :
-        return 15;
-    case 1 :
-        return 0;
-    case 2 :
-        return 1;
-    case 3 :
-        return 2;
-    case 4 :
-        return 3;
-    case 5 :
-        return 4;
-    case 6 :
-        return 5;
-    case 7 :
-        return 6;
-    case 8 :
-        return 7;
-    case 9 :
-        return 8;
-    case 10 :
-        return 9;
-    case 11 :
-        return 10;
-    case 12 :
-        return 11;
-    case 13 :
-        return 12;
-    case 14 :
-        return 13;
-    case 15 :
-        return 14;
-    case 16 :
-        return 10;
-    case 17 :
-        return 11;
-    case 18 :
-        return 12;
-    case 19 :
-        return 2;
-    case 20 :
-        return 3;
-    case 21 :
-        return 4;
-    case 22 :
-        return 5;
-    case 23 :
-        return 6;
-    case 24 :
-        return 7;
-    case 25 :
-        return 8;
-    case 26 :
-        return 9;
-    case 27 :
-        return 10;
-    case 28 :
-        return 11;
-    case 29 :
-        return 12;
-    case 30 :
-        return 13;
-    case 31 :
-        return 14;
-    default :
-        return 0;
-    }
+  switch (fillpattern) {
+  case 0 :
+    return 15;
+  case 1 :
+    return 0;
+  case 2 :
+    return 1;
+  case 3 :
+    return 2;
+  case 4 :
+    return 3;
+  case 5 :
+    return 4;
+  case 6 :
+    return 5;
+  case 7 :
+    return 6;
+  case 8 :
+    return 7;
+  case 9 :
+    return 8;
+  case 10 :
+    return 9;
+  case 11 :
+    return 10;
+  case 12 :
+    return 11;
+  case 13 :
+    return 12;
+  case 14 :
+    return 13;
+  case 15 :
+    return 14;
+  case 16 :
+    return 10;
+  case 17 :
+    return 11;
+  case 18 :
+    return 12;
+  case 19 :
+    return 2;
+  case 20 :
+    return 3;
+  case 21 :
+    return 4;
+  case 22 :
+    return 5;
+  case 23 :
+    return 6;
+  case 24 :
+    return 7;
+  case 25 :
+    return 8;
+  case 26 :
+    return 9;
+  case 27 :
+    return 10;
+  case 28 :
+    return 11;
+  case 29 :
+    return 12;
+  case 30 :
+    return 13;
+  case 31 :
+    return 14;
+  default :
+    return 0;
+  }
 }
 
 /*
@@ -187,7 +183,7 @@ static char *escape_specials(unsigned char *s, int len)
     elen = 0;
     for (i = 0; i < len; i++) {
         if (s[i] == '\t' || s[i] == '>' || s[i] == '`'
-                || s[i] == '\'' || s[i] == '\\') {
+            || s[i] == '\'' || s[i] == '\\') {
             elen++;
         } else if (s[i] > 0x7f) {
             elen += 4;
@@ -227,7 +223,7 @@ static char *escape_specials(unsigned char *s, int len)
             es[elen++] = (char) s[i];
         }
     }
-
+          
     es[elen] = '\0';
     
     return (es);
@@ -385,13 +381,13 @@ void mif_object_props (int draw, int fill)
         ls = getlinestyle();
 
         if (ls <= 1) {
-            fprintf(prstream, "    <DashedStyle Solid>\n");
+        fprintf(prstream, "    <DashedStyle Solid>\n");
         } else {
-            fprintf(prstream, "   <DashedStyle Dashed>\n");
-            for (i = 0; i < dash_array_length[ls]; i++) {
-                fprintf(prstream, "   <DashSegment %8.3f pt>\n",
-                        lw*dash_array[ls][i]);
-            }
+          fprintf(prstream, "   <DashedStyle Dashed>\n");
+          for (i = 0; i < dash_array_length[ls]; i++) {
+            fprintf(prstream, "   <DashSegment %8.3f pt>\n",
+                    lw*dash_array[ls][i]);
+          }
         }
         fprintf(prstream, "   > # end of DashedPattern\n");
     } else {
@@ -448,21 +444,21 @@ void mif_drawpolyline(VPoint *vps, int n, int mode)
     } else {
         switch (getlinecap()) {
         case LINECAP_BUTT :
-            fprintf(prstream, "   <HeadCap Butt>\n");
-            fprintf(prstream, "   <TailCap Butt>\n");
-            break;
+          fprintf(prstream, "   <HeadCap Butt>\n");
+          fprintf(prstream, "   <TailCap Butt>\n");
+          break;
         case LINECAP_ROUND :
-            fprintf(prstream, "   <HeadCap Round>\n");
-            fprintf(prstream, "   <TailCap Round>\n");
-            break;
+          fprintf(prstream, "   <HeadCap Round>\n");
+          fprintf(prstream, "   <TailCap Round>\n");
+          break;
         case LINECAP_PROJ :
-            fprintf(prstream, "   <HeadCap Square>\n");
-            fprintf(prstream, "   <TailCap Square>\n");
-            break;
+          fprintf(prstream, "   <HeadCap Square>\n");
+          fprintf(prstream, "   <TailCap Square>\n");
+          break;
         default :
-            fprintf(prstream, "   <HeadCap Butt>\n");
-            fprintf(prstream, "   <TailCap Butt>\n");
-            break;
+          fprintf(prstream, "   <HeadCap Butt>\n");
+          fprintf(prstream, "   <TailCap Butt>\n");
+          break;
         }
         fprintf(prstream, "  > # end of PolyLine\n");
     }
@@ -665,7 +661,7 @@ void mif_putpixmap(VPoint vp, int width, int height, char *databits,
 }
 
 void mif_puttext(VPoint vp, char *s, int len, int font,
-                 TextMatrix *tm, int underline, int overline, int kerning)
+     TextMatrix *tm, int underline, int overline, int kerning)
 {
     char *fontalias, *dash, *family, *fontfullname;
     double angle, side, size;
@@ -752,7 +748,7 @@ void mif_puttext(VPoint vp, char *s, int len, int font,
     }
 
     size = fabs((tm->cxx*tm->cyy - tm->cxy*tm->cyx)
-                / sqrt(tm->cxx*tm->cxx + tm->cyx*tm->cyx));
+             / sqrt(tm->cxx*tm->cxx + tm->cyx*tm->cyx));
     fprintf(prstream, "    <FSize %9.3f pt>\n", side*size);
 
     fprintf(prstream, "    <FPostScriptName `%s'>\n", fontalias);
@@ -797,6 +793,6 @@ void mif_leavegraphics(void)
     fprintf(prstream, "  > # end of ParaLine\n");
     fprintf(prstream, " > # end of Para\n");
     fprintf(prstream, "> # end of TextFlow\n");
-
+          
     fprintf(prstream, "# End of MIFFile\n");
 }

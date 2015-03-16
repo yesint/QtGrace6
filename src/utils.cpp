@@ -8,7 +8,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  *
  *                           All Rights Reserved
  *
@@ -32,24 +32,20 @@
  *
  */
 
-/*#include <config.h>*/
-
-#include <iostream> 
-// Must be before others
-
+#ifdef _MSC_VER
+#include <iostream>
+#endif
 
 #include <math.h>
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <ctype.h>
 #ifdef _MSC_VER
 #include <direct.h>
 #else
 #include <unistd.h>
 #endif
-
-#include <ctype.h>
 #include <string.h>
 
 #ifndef WINDOWS_SYSTEM
@@ -87,7 +83,7 @@
 #define MINOR_REV 1
 #define PATCHLEVEL 22
 #define RETSIGTYPE void
-#include <QtGui>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -109,13 +105,20 @@
 #include "MainWindow.h"
 #include "allWidgets.h"
 
+extern bool useQtFonts;
 extern MainWindow * mainWin;
+extern frmProgressWin * FormProgress;
+extern frmQuestionDialog * FormQuestion;
 extern frmConsole * FormConsole;
 extern int yesnowin(const char * msg,char * s1,char * s2,char * help_anchor);
+extern void CheckLaTeXLinesForAddress(char * o_adr,char * n_adr);
+extern void initNodes(void);
+extern void write_settings(void);
 
 static void rereadConfig(void);
 /*static RETSIGTYPE actOnSignal(int signo);*/
 static void bugwarn(char *signame);
+extern void replaceSuffix(QString & fpath,QString n_suffix);
 
 #ifndef WINDOWS_SYSTEM
 struct utsname u_info;
@@ -396,15 +399,26 @@ double mytrunc(double a)
  */
 int bailout(void)
 {
-
-#ifdef SKF_QtGrace
-    if (!is_dirtystate() || true) {
-#else
-    if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
-#endif
-
-        if (resfp) {
-            grace_close(resfp);
+bool ret=false;
+if (enableServerMode == TRUE || gracebat == TRUE || !is_dirtystate())//do not ask
+{
+ret=true;
+}
+else
+{
+//ret=yesno(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data(), NULL, NULL, NULL);
+/*ret=yesnosave(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data());*/
+FormQuestion->init(QObject::tr("Exit losing unsaved changes?"),QObject::tr("Exit QtGrace"));
+/*FormQuestion->show();
+FormQuestion->raise();
+FormQuestion->activateWindow();*/
+ret=FormQuestion->exec();
+}
+    if (!is_dirtystate() || ret)
+    {
+        if (resfp)
+        {
+        grace_close(resfp);
         }
         //qApp->quit();
         return 1;
@@ -423,6 +437,7 @@ static void rereadConfig(void)
 static void please_report_the_bug(void)
 {
     fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
+    fprintf(stderr, "Please report Bugs in QtGrace to andreas.f.winter@web.de\n");
 #ifdef HAVE_LESSTIF
     fprintf(stderr, "NB. This version of Grace was compiled with LessTif.\n");
     fprintf(stderr, "    Make sure to read the FAQ carefully prior to\n");
@@ -501,7 +516,12 @@ RETSIGTYPE actOnSignal(int signo)
 #ifdef SIGTERM
     case SIGTERM:
 #endif
-        bailout();
+        if (bailout()!=0)
+        {
+            write_settings();
+            initNodes();//to clear all Contents of the undo-list
+            qApp->exit(0);
+        }
         break;
 #ifdef SIGILL
     case SIGILL:
@@ -721,7 +741,10 @@ char *create_fstring(int form, int prec, double loc, int type)
             break;
         case -6: /* micro */
             if (type == LFORMAT_TYPE_EXTENDED) {
-                eng_prefix = "\\xm\\f{}";
+                if (useQtFonts==true)
+                    eng_prefix = "\\xl\\f{} ";
+                else
+                    eng_prefix = "\\xm\\f{}";
             } else {
                 eng_prefix = "mk";
             }
@@ -1069,29 +1092,45 @@ unsigned char reversebits(unsigned char inword)
 
 char *copy_string(char *dest, const char *src)
 {
-    if (src == dest) {
+    static char * old_dest;
+    old_dest=dest;
+    if (src == dest)
+    {
         ;
-    } else if (src == NULL) {
+    }
+    else if (src == NULL)
+    {
         xfree(dest);
         dest = NULL;
-    } else {
+    }
+    else
+    {
         dest = (char*)xrealloc(dest, (strlen(src) + 1)*sizeof(char));
         strcpy(dest, src);
     }
+    CheckLaTeXLinesForAddress(old_dest,dest);
     return(dest);
 }
 
 char *concat_strings(char *dest, const char *src)
 {
-    if (src != NULL) {
-        if (dest == NULL) {
+    static char * old_dest;
+    if (src != NULL)
+    {
+        old_dest=dest;
+        if (dest == NULL)
+        {
             dest = copy_string(NULL, src);
-        } else {
+        }
+        else
+        {
             dest = (char*)xrealloc(dest, (strlen(dest) + strlen(src) + 1)*sizeof(char));
-            if (dest != NULL) {
+            if (dest != NULL)
+            {
                 strcat(dest, src);
             }
         }
+        CheckLaTeXLinesForAddress(old_dest,dest);
     }
     return(dest);
 }
@@ -1160,30 +1199,78 @@ void set_help_viewer(const char *dir)
 
 /* project file name */
 static char docname[GR_MAXPATHLEN] = NONAME;	
+static char exportname[GR_MAXPATHLEN] = NONAME;
+
+char *get_exportname(void)
+{
+    return exportname;
+}
+
+char *get_exportbname(void)
+{
+static char buf[GR_MAXPATHLEN];
+char *bufp;
+    strcpy(buf, mybasename(exportname));
+    bufp = strrchr(buf, '.');
+    if (bufp)
+    {
+    *(bufp) = '\0';
+    }
+return buf;
+}
+
+char *get_exportfilename(void)
+{
+static char buf[GR_MAXPATHLEN];
+char *bufp;
+strcpy(buf, mybasename(exportname));
+return buf;
+}
+
+void set_exportname(const char *s)
+{
+    if (s != NULL) {
+        strncpy(exportname, s, GR_MAXPATHLEN - 1);
+    } else {
+        strcpy(exportname, NONAME);
+    }
+}
 
 char *get_docname(void)
 {
     return docname;
 }
 
+char *get_docfilename(void)
+{
+static char buf[GR_MAXPATHLEN];
+strcpy(buf, mybasename(docname));
+return buf;
+}
+
 char *get_docbname(void)
 {
-    static char buf[GR_MAXPATHLEN];
-    char *bufp;
-    
+static char buf[GR_MAXPATHLEN];
+char *bufp;
     strcpy(buf, mybasename(docname));
     bufp = strrchr(buf, '.');
-    if (bufp) {
-        *(bufp) = '\0';
+    if (bufp)
+    {
+    *(bufp) = '\0';
     }
-    
-    return buf;
+return buf;
 }
 
 void set_docname(const char *s)
 {
     if (s != NULL) {
         strncpy(docname, s, GR_MAXPATHLEN - 1);
+    QString pf1(s);
+    Device_entry dev = get_device_props(hdevice);
+    replaceSuffix(pf1,QString(dev.fext));
+
+    set_exportname(pf1.toLocal8Bit().constData());
+
     } else {
         strcpy(docname, NONAME);
     }
@@ -1191,11 +1278,13 @@ void set_docname(const char *s)
 
 void errmsg(const char *buf)
 {
-#ifdef NONE_GUI
+    if (!inwin)
+    {
     fprintf(stderr, "%s\n", buf);
-#else
-    fprintf(stderr, "%s\n", buf);
-    if (disableConsole) {
+    }
+#ifndef NONE_GUI
+    if (disableConsole)
+    {
         if (FormConsole==NULL)
         {
             FormConsole=new frmConsole(mainWin);
@@ -1203,15 +1292,41 @@ void errmsg(const char *buf)
         FormConsole->show();
         FormConsole->raise();
         FormConsole->errwin(buf);
-    } else {
-        //      fprintf(stderr, "%s\n", buf);
     }
+    /*else {
+        fprintf(stderr, "%s\n", buf);
+    }*/
 #endif
 }
 
 int yesnoterm(char *msg)
 {
     return 1;
+}
+
+int yesnosave(char * msg)//-1=Save
+{
+int ret=QMessageBox::question(0,QString("Error"),QString(msg),QMessageBox::Yes | QMessageBox::No | QMessageBox::Save,QMessageBox::No);
+if (ret==QMessageBox::Yes)
+    return 1;
+else if (ret==QMessageBox::No)
+    return 0;
+else
+{
+QString question;
+question=QObject::tr("Overwrite file ");
+question+=QString(get_docname());
+question+=QString("?");
+    if (yesno(question.toLocal8Bit().data(),NULL,NULL,NULL))
+    {
+    mainWin->Save();
+    return -1;
+    }
+    else
+    {
+    return 0;
+    }
+}
 }
 
 int yesno(char *msg, char *s1, char *s2, char *help_anchor)
@@ -1233,7 +1348,7 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 #endif*/
 }
 
-void stufftext(char *s)
+void stufftext(const char *s)
 {
     /*#ifdef NONE_GUI
     printf(s);
@@ -1260,12 +1375,21 @@ void stufftext(char *s)
 
 char *mybasename(const char *s)
 {
+QFileInfo fi(s);
+return fi.fileName().toLocal8Bit().data();
+//FUNCTION ENDS HERE
+
     int start, end;
     static char basename[GR_MAXPATHLEN];
-    char seperator='/';
+    char seperator=QDir::separator().toLatin1();
+
+    /*
+//TEST: seperator='/'; on every system!, do not use seperator='\\';
 #ifdef WINDOWS_SYSTEM
     seperator='\\';
 #endif
+*/
+
     /*s = path_translate(s);*/
     if (s == NULL) {
         errmsg("Could not translate basename:");
@@ -1275,8 +1399,8 @@ char *mybasename(const char *s)
     end = strlen(s) - 1;
     
     /* root is a special case */
-    if (end == 0 && *s == '/'){
-        basename[0] = '/';
+    if (end == 0 && *s == seperator){
+        basename[0] = seperator;
         return basename;
     }
 
@@ -1375,9 +1499,8 @@ void init_userhome(void)
 
 char *get_userhome(void)
 {
-    if(userhome==NULL)init_userhome();
+    if (userhome==NULL) init_userhome();
     // was missing. And if missing, it causes segm fault on win64
-
     return userhome;
 }
 
@@ -1432,11 +1555,12 @@ void echomsg(char *msg)
     }
 }
 
-static void update_timestamp(void)
+void update_timestamp(void)
 {
     struct tm tm;
     time_t time_value;
     char *str;
+    char dummy[512];
 
     (void) time(&time_value);
     tm = *localtime(&time_value);
@@ -1444,6 +1568,20 @@ static void update_timestamp(void)
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1]= '\0';
     }
+
+    if (timestamp.path==TRUE)
+    {
+        if (timestamp.active==FALSE)
+        {
+        sprintf(dummy,"%s",get_docname());
+        }
+        else if (timestamp.active==TRUE)
+        {
+        sprintf(dummy,"%s, %s",str,get_docname());
+        }
+    set_plotstr_string(&timestamp, dummy);
+    }
+    else
     set_plotstr_string(&timestamp, str);
 }
 
@@ -1458,12 +1596,13 @@ void update_app_title(void)
  * dirtystate routines
  */
 
-int dirtystate = 0;
+/*int dirtystate = 0;*/
 static int dirtystate_lock = FALSE;
 
 void set_dirtystate(void)
 {
-    if (dirtystate_lock == FALSE) {
+    if (dirtystate_lock == FALSE)
+    {
         dirtystate++;
         update_timestamp();
         update_app_title();
@@ -1519,7 +1658,8 @@ static char *system_locale_string, *posix_locale_string;
 int init_locale(void)
 {
     char *s;
-    s = setlocale(LC_NUMERIC, "");
+    //s = setlocale(LC_NUMERIC, "");
+    s = setlocale(LC_NUMERIC, "C");//we only use LC_NUMERIC=C (always) and replace the decimal separator according to the users wishes!
     if (s == NULL) {
         /* invalid/unsupported locale */
         return RETURN_FAILURE;
@@ -1599,12 +1739,12 @@ char *bi_gui(void)
     return BI_GUI;
 }
 
-#ifdef MOTIF_GUI
+/*#ifdef MOTIF_GUI
 char *bi_gui_xbae(void)
 {
     return BI_GUI_XBAE;
 }
-#endif
+#endif*/
 
 char *bi_t1lib(void)
 {

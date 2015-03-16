@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -145,8 +145,6 @@ void create_graphapp_frame_cb(void *data);
 void create_monitor_frame_cb(void *data);
 void stufftextwin(char *s);
 
-void HelpCB(void *data);
-
 void create_nonl_frame(void *data);
 void update_nonl_frame(void);
 void update_prune_frame(void);
@@ -175,7 +173,16 @@ void string_edit_popup(int no);
 
 void set_title(char *ts);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+void HelpCB(char *data);
 void set_pagelayout(int layout);
+void update_all(void);
+#ifdef __cplusplus
+}
+#endif
+
 int get_pagelayout(void);
 
 extern void errwin(const char *s);
@@ -191,11 +198,8 @@ void update_ss_editors(int gno);
 void do_ext_editor(int gno, int setno);
 
 void set_graph_selectors(int gno);
- #ifdef SKF_QtGrace
-void setResetExportDialogue(bool setValue);
-#endif
+
 void update_props_items(void);
-void update_all(void);
 void update_all_cb(void *data);
 
 void set_barebones(int onoff);

@@ -60,8 +60,7 @@ void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr);
 void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invflag, int type, int wind);
 void do_window(int setno, int type, int wind);
 void apply_window(double *xx, double *yy, int ilen, int type, int wind);
-int do_histo(int fromgraph, int fromset, int tograph, int toset,
-	      double *bins, int nbins, int cumulative, int normalize);
+int do_histo(int fromgraph, int fromset, int tograph, int toset,double *bins, int nbins, int cumulative, int normalize);
 int histogram(int ndata, double *data, int nbins, double *bins, int *hist);
 
 void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno);
@@ -110,8 +109,7 @@ int linear_regression(int n, double *x, double *y, double *fitted);
 
 void spline(int n, double *x, double *y, double *b, double *c, double *d);
 void aspline(int n, double *x, double *y, double *b, double *c, double *d);
-int seval(double *u, double *v, int ulen,
-    double *x, double *y, double *b, double *c, double *d, int n);
+int seval(double *u, double *v, int ulen,double *x, double *y, double *b, double *c, double *d, int n);
 
 void dft(double *jr, double *ji, int n, int iflag);
 void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv);
@@ -184,11 +182,24 @@ void do_clear_boxes(void);
 void do_clear_text(void);
 void do_clear_ellipses(void);
 
+void get_max_pos( double *a, double *b, int n, double max, double *d );
+int get_barycenter( int n, double *x, double *y, double *barycenter );
+int getmedian( int grno, int setno, int sorton, double *median );
+int dbl_comp( const void *a, const void *b );
+int get_half_max_width(int len, double *x, double *y, double *width);
+int get_fall_time( int setl, double *xv, double *yv, double min, double max,double *width );
+int get_rise_time( int setl, double *xv, double *yv, double min, double max,double *width );
+int mute_linear_regression(int n, double *x, double *y, double *slope, double *intercept);
 int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
 int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
+double linear_interp( double x1, double y1, double x2, double y2, double x );
+int get_value_crossing( int gno, int setno, double value, double *crossing );
+int get_value_crossing2( int gno, int setno, double value, double *crossing );
+int get_zero_crossing( int setl, double *xv, double *yv, double *crossing );
+int get_set_crossing(int gno1,int setno1,int gno2,int setno2,int restriction,int negate,double * cx,double * cy);
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
-int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
-              	   double *vmin, double *vmax);
+int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,double *vmin, double *vmax);
+
 double vmin(double *x, int n);
 double vmax(double *x, int n);
 int set_point(int gno, int setn, int seti, WPoint wp);
@@ -211,6 +222,7 @@ void droppoints(int gno, int setno, int startno, int endno);
 int join_sets(int gno, int *sets, int nsets);
 void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype);
 void reverse_set(int gno, int setno);
+void restrict_set_to_region(int gno, int setno, int region, int invert);
 
 void del_point(int gno, int setno, int pt);
 void add_point(int gno, int setno, double px, double py);
@@ -232,7 +244,7 @@ void do_drop_points(int gno, int setno, int startno, int endno);
 void do_kill(int gno, int setno, int soft);
 void do_sort(int setno, int sorton, int stype);
 void do_cancel_pickop(void);
-
+int extract_single_feature(int feature, int cgr,int cs,double * datum);
 
 void set_hotlink(int gno, int setno, int onoroff, char *fname, int src);
 int is_hotlinked(int gno, int setno);
@@ -243,10 +255,8 @@ int get_hotlink_src(int gno, int setno);
 void sortset(int gno, int setno, int sorton, int stype);
 void do_seasonal_diff(int setno, int period);
 int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps);
-int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
-    double *mesh, int meshlen, int method, int strict);
-int get_restriction_array(int gno, int setno,
-    int rtype, int negate, char **rarray);
+int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,double *mesh, int meshlen, int method, int strict);
+int get_restriction_array(int gno, int setno,int rtype, int negate, char **rarray);
 
 int monotonicity(double *array, int len, int strict);
 int find_span_index(double *array, int len, int m, double x);
@@ -293,15 +303,18 @@ int get_wrap_year(void);
 long cal_to_jul(int y, int m, int d);
 void jul_to_cal(long n, int *y, int *m, int *d);
 double jul_and_time_to_jul(long jul, int hour, int min, double sec);
-double cal_and_time_to_jul(int y, int m, int d,
-                           int hour, int min, double sec);
-void jul_to_cal_and_time(double jday, int rounding,
-                         int *y, int *m, int *d,
-                         int *hour, int *min, int *sec);
+double cal_and_time_to_jul(int y, int m, int d,int hour, int min, double sec);
+void jul_to_cal_and_time(double jday, int rounding,int *y, int *m, int *d,int *hour, int *min, int *sec);
 int parse_float(const char *s, double *value, const char **after);
-int parse_date(const char* s, Dates_format preferred, int absolute,
-               double *jul, Dates_format *recognized);
+int parse_date(const char* s, Dates_format preferred, int absolute,double *jul, Dates_format *recognized);
 int parse_date_or_number(const char* s, int absolute, double *value);
+
+int is_set_in_graph(int gno,int setno);
+int current_visible_sets(int gno,int ** list);
+
+void ShiftSetAxis(int gno,int sno,double value,int axis);
+void MultiplySetAxis(int gno,int sno,double value,int axis);
+void CopySetAxis(int f_gno,int f_sno,int f_axis,int t_gno,int t_sno,int t_axis);
 
 #ifdef __cplusplus
 }

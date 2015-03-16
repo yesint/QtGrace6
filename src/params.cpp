@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -47,7 +47,14 @@
 #include "device.h"
 #include "noxprotos.h"
 
-#include "rint.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern void prepare_strings_for_saving(void);
+extern void resume_strings_after_load_or_save(void);
+#ifdef __cplusplus
+}
+#endif
 
 static void put_regions(FILE * pp, int embed);
 static void put_objects(int gno, FILE * pp, int embed);
@@ -55,13 +62,7 @@ static void put_objects(int gno, FILE * pp, int embed);
 static void put_beast_regions(char *pp, int embed);
 static void put_beast_objects(int gno, char *pp, int embed);
 
-
-
 static char buf[256];
-
-
-
-
 
 void putparmbeast(int gno, char *pp, int embed)
 {
@@ -525,9 +526,6 @@ void putparmbeast(int gno, char *pp, int embed)
     }
 }
 
-
-
-
 static void put_beast_objects(int gno, char * pp, int embed)
 {
     int i;
@@ -712,40 +710,6 @@ void put_fitparmsbeast(char * pp, int embed)
         sprintf(pp+strlen(pp), "%sa%1dmax = %g\n", embedstr, i, nonl_parms[i].max);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void putparms(int gno, FILE *pp, int embed)
 {

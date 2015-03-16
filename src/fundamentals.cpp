@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Andreas Winter                             *
+ *   Copyright (C) 2008-2015 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -41,29 +41,42 @@ extern QPixmap * HiddenIcon;
 extern QIcon ** ColorIcons;
 extern QPixmap ** ColorPixmaps;
 extern QString ** ColorNames;
-extern QIcon * LineIcons[MAXLINESTYLES];
-extern QPixmap * LinePixmaps[MAXLINESTYLES];
+/*extern QIcon * LineIcons[MAXLINESTYLES];
+extern QPixmap * LinePixmaps[MAXLINESTYLES];*/
+extern int nr_of_current_linestyles;
+extern int * lenghts_of_linestyle_patterns;
+extern char ** current_linestyle_patterns;
+extern QIcon ** LineIcons;
+extern QPixmap ** LinePixmaps;
+extern QVector<qreal> ** PenDashPattern;
 extern QBitmap * patterns[MAXPATTERNS];
 extern QPixmap * PatternPixmaps[MAXPATTERNS];
 extern QPixmap * Qt_justifications[12];
 extern QPixmap * Qt_matrixOrder[8];
 
 extern bool useQtFonts;
-extern QFont stdFont;
 extern QList<QFont> stdFontList;
-extern QFontMetrics stdFontMetrics;
+extern QFontMetrics * stdFontMetrics;
 extern bool activateLaTeXsupport;
 extern QStringList ListOfChanges;
 extern QStringList ListOfOldStates;
+extern CMap_entry *cmap_table;
+extern int allocated_colors;
 
-
+extern char user_home_dir[1024];
+extern char qt_grace_exe_dir[1024];
+extern graph * g;
 extern int maxgraph;
 extern int new_set_no;
+extern int DefaultFont;
 
 extern void strToUpper(char * tar,char * ch);
 extern void add_ColorSelector(ColorSelector * colSel);
 extern void add_FontSelector(FontSelector * fontSel);
-extern void update_font_selectors(void);
+extern void add_LaTeX_Line(stdLineEdit * line);
+extern void add_Line_Style_Selector(LineStyleSelector * line);
+extern void update_font_selectors(bool appearance);
+extern void update_graph_selectors(void);
 extern void showSetInSpreadSheet(int gno,int setno);
 void close_ss_editor(int gno,int setno);
 extern frmLoadEval * FormLoadAndEvaluate;
@@ -73,9 +86,13 @@ extern void add_GraphSelector(uniList * grSel);
 extern void add_SetChoiceItem(uniList * setSel);
 extern void HelpCB(char *data);
 extern char dummy[];//universal dummy for general purposes
-char dummy2[2048];
+extern char dummy2[];
 QColor * stdTextColor=NULL;
-extern char SystemsDecimalPoint;
+
+extern char SystemsDecimalPoint;//the default decimal-separator
+extern char OldDecimalPoint;
+extern char DecimalPointToUse;//what the user wants to use as decimal separator
+
 extern QTextCodec * FileCodec;
 extern bool updateRunning;
 
@@ -89,9 +106,41 @@ QStringList LaTeXCommands;
 QStringList equivalentCommands;
 QList<char> equivalentFont;
 
-extern int recursive_replacer(char * text);
+extern int recursive_replacer(QString & text);
 extern void GeneralPaste(const QMimeData * mimeData);
 extern void complete_LaTeX_to_Grace_Translator(QString & text);
+extern QString generateDisplayStringFromGraceString(char * gracestring);
+extern void generate_string_Qt_aware(char * string,QString text);
+
+extern int find_QtFont_in_List(char * name,int whatlist);//you need a qt-font-name for this
+extern int find_QtFont_in_List(QString fontname,int whatlist);//finds a qt-font-name
+extern int find_default_id_of_Grace_Font(char * name);//you need a Grace-font-name for this
+extern int find_GraceFontID_of_QtFontName(QString fontname);//you need a qt-font-name for this
+extern QString getNameOfDefaultQtFont(int index);
+extern QString get_QtName_of_Default_Grace_Font(char * name);//compares a Grace-font-name with the default font names and returns the qt-font-name
+extern char * get_Grace_Font_Name_of_Default_Qt_Font(QString fontname);//returns the Grace-font-name of a Qt-Font-name
+extern char * getNameOfStdQtFont(int index);//returns the Qt-Name of the Font in the StdList
+extern char * getFamilyNameOfStdQtFont(int index);//returns the Qt-Name of the Font in the StdList
+//this is what you need
+//--> remember: whatlist=0-->default-list, whatlist=1-->std-list (i.e. the current list - you probably want to use this)
+//--> convert Grace-name into QtFontID
+extern int get_QtFontID_from_Grace_Name(char * name,int whatlist);//get the index of a QtFont in a list by its Grace-name
+//--> convert Grace-font-id into QtFontID
+extern int get_QtFontID_from_GraceID(int font_id,int whatlist);
+
+extern void copySet(int gno,int setno,plotarr * pa,int what);
+extern void reinstallSet(int gno,int setno,plotarr * pa,int what);
+extern void deleteSavedSet(plotarr * pa,int what);
+extern bool dont_delete_saved_set_memory;
+
+int nr_of_set_app_saved=0;
+int nr_of_set_app_allocated=0;
+plotarr * saved_set_app=NULL;
+
+extern int nr_of_single_f_tokens;
+extern class single_formula_token * formula_tokens;
+
+int slider_status=0;//0=slider inactive; 1=sliding started; 2=slider start accepted; 3=sliding finished
 
 using namespace std;
 
@@ -116,6 +165,71 @@ unsigned char fpdigit[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
+void getSetIDFromText(char * text,int & gno,int & sno,int & column)
+{
+//tries to read a set-id from the text, if incomplete id,
+//the gno/sno-values stay untouched (gno/sno should be initialized
+//with a suitable default before this function is called or a useless
+//value to detect unsuccessfull read-attempts)
+int a,b;
+char c_text[32];
+cout << "text=" << text << endl;
+if (sscanf(text,"G%d.S%d.%s",&a,&b,c_text)==3)
+{
+    if (c_text[0]=='X' || c_text[0]=='x')
+    {
+    column=DATA_X;
+    }
+    else if (c_text[0]=='y' || c_text[0]=='Y')
+    {
+    column=DATA_Y;
+        if (c_text[1]!='\0')
+        {
+        column+=atoi(c_text+1);
+        }
+    }
+cout << "0a: a=" << a << " b=" << b << " column=" << column << endl;
+gno=a;
+sno=b;
+}
+else if (sscanf(text,"S%d.%s",&b,c_text)==2)
+{
+    if (c_text[0]=='X' || c_text[0]=='x')
+    {
+    column=DATA_X;
+    }
+    else if (c_text[0]=='y' || c_text[0]=='Y')
+    {
+    column=DATA_Y;
+        if (c_text[1]!='\0')
+        {
+        column+=atoi(c_text+1);
+        }
+    }
+cout << "0b: b=" << b << " column=" << column << endl;
+sno=b;
+}
+else if (sscanf(text,"G%d.S%d",&a,&b)==2)
+{
+cout << "1: a=" << a << " b=" << b << endl;
+gno=a;
+sno=b;
+return;
+}
+else if (sscanf(text,"G%d",&a)==1)
+{
+cout << "2: a=" << a << endl;
+gno=a;
+return;
+}
+else if (sscanf(text,"S%d",&b)==1)
+{
+cout << "3: b=" << b << endl;
+sno=b;
+return;
+}
+}
+
 void sort(int number,int * items)//bubble-sort (I know that I am stupid - but it works)
 {
     int dummy;
@@ -138,6 +252,11 @@ int indexOfFontInDatabase(QFont & f)
     QString s1=f.toString();
     QString s2;
     int index=-1;
+    if (s1.compare(QString("Zapf,13,-1,5,50,0,0,0,0,0"))==0)//QString("Zapf Dingbats,10,-1,5,50,0,0,0,0,0")
+    {
+        //s1=QString("Zapf,13,-1,5,50,0,0,0,0,0");
+        s1=QString("Zapf Dingbats,10,-1,5,50,0,0,0,0,0");
+    }
     for (int i=0;i<stdFontList.length();i++)
     {
         s2=stdFontList.at(i).toString();
@@ -152,7 +271,17 @@ int indexOfFontInDatabase(QFont & f)
 
 QFont getFontFromDatabase(int i)
 {
-    if (i<0 || i>=stdFontList.length())
+    QFont fallback;
+    if (stdFontList.length()==0)
+    {
+        if (fallback.fromString(QString("Times,10,-1,5,50,0,0,0,0,0"))==false)
+        {
+            fallback=qApp->font();
+        }
+        return fallback;
+        //return QFont( QString("Times,10,-1,5,50,0,0,0,0,0"));//just for emergencies
+    }
+    else if (i<0 || i>=stdFontList.length())
         return stdFontList.at(0);
     else
         return stdFontList.at(i);
@@ -160,8 +289,18 @@ QFont getFontFromDatabase(int i)
 
 int addFontToDatabase(QFont & f)
 {
-    stdFontList << f;
-    return stdFontList.length()-1;//new font has last index
+    int font_index=indexOfFontInDatabase(f);
+    if (font_index!=-1)//font already exists --> do not add this font
+    {
+        //cout << "font " << f.toString().toLatin1().constData() << " already exists=" << font_index << endl;
+        return font_index;
+    }
+    else
+    {
+        //cout << "new font added=" << f.toString().toLatin1().constData() << endl;
+        stdFontList << f;
+        return stdFontList.length()-1;//new font has last index
+    }
 }
 
 void append_to_storage(int * l,int ** storage,int n,int * new_entries)
@@ -196,6 +335,96 @@ void append_to_storage(int * l,int ** storage,int n,int * new_entries)
     }//else: enough memory
     memcpy(*storage+*l,new_entries,sizeof(int)*n);
     *l+=n;
+}
+
+void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true)//we assume a string containing a number like "2.15" and we want to change it to a number with the user selected decimal separator like "2,15"
+{
+    if (DecimalPointToUse=='.') return;//Nothing to do here --> everything is as it should be
+    QString chain(str);
+    if (remove_space)
+        chain.remove(QString(" "));//remove any useless spaces
+    chain.replace(QString("."),QString(","));//replace the '.'s
+    strcpy(str,chain.toLatin1());
+}
+
+void ReplaceDecimalSeparator(char * str,bool remove_space=true)//replace current user specified decimal separator with the internally used '.'
+{
+    QString chain(str);
+    //cout << "to replace = " << str << endl;
+    if (remove_space)
+        chain.remove(QString(" "));//remove any useless spaces
+    if (DecimalPointToUse!='.')//the input contains ',' instead of '.' - but the system always expects '.'
+    {
+        chain.remove(QString("."));//at first: remove '.'
+        chain.replace(QString(","),QString("."));//replace the ',' with '.'
+    }
+    else//DecimalPoint is '.' - any ',' are not useful
+    {
+        chain.remove(QString(","));//just remove all ','
+    }
+    strcpy(str,chain.toLatin1().constData());
+    //cout << "result = " << str << endl;
+}
+
+void RedisplayString(char * str)//replaces the old decimal separator with the new one
+{
+    if (OldDecimalPoint==DecimalPointToUse) return;
+    QString chain(str);
+    chain.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    strcpy(str,chain.toLatin1().constData());
+}
+
+void PrepareFormula(char * str)//replaces the decimal separator in a formula with the '.' for internal calculations
+{
+    QString chain(str);
+    chain.toUpper();
+    if (DecimalPointToUse==',')//if '.' is set --> nothing to do
+    {//if ',' is used --> just replace ','-->'.'
+        chain.replace(QChar(','),QChar('.'));
+    }
+    strcpy(str,chain.toLatin1().constData());
+}
+
+void RedisplayFormula(char * str)//replaces the decimal separator except in the set-ids: e.g. G0.S4.Y
+{
+    QRegExp rex1("G\\d,S\\d,");
+    QRegExp rex2("S\\d,");
+    int pos,pos2;
+    QString chain(str);
+    chain.toUpper();
+    if (OldDecimalPoint==',' && DecimalPointToUse=='.')//the simple case
+    {
+        chain.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    }
+    else if (OldDecimalPoint=='.' && DecimalPointToUse==',')//the complicated case
+    {
+        chain.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));//this replaces the decimal separators as well as the set-id-separators: G0.S4.Y-->G0,S4,Y
+        while ((pos=rex1.indexIn(chain))>=0)
+        {
+            pos2=chain.indexOf(",",pos);
+            chain[pos2]='.';
+            pos2=chain.indexOf(",",pos);
+            chain[pos2]='.';
+        }
+        while ((pos=rex2.indexIn(chain))>=0)
+        {
+            pos2=chain.indexOf(",",pos);
+            chain[pos2]='.';
+        }
+    }
+    strcpy(str,chain.toLatin1().constData());
+}
+
+int GetIntValueFromString(char * str)
+{
+    ReplaceDecimalSeparator(str);
+    return atoi(str);
+}
+
+double GetDoubleValueFromString(char * str)
+{
+    ReplaceDecimalSeparator(str);
+    return atof(str);
 }
 
 struct komplex add_komplex(struct komplex a,struct komplex b)
@@ -242,22 +471,25 @@ else phase=1.5*pi;
 void SetLineEditToMemory(char * t1,char * t2,char * &c1,char * &c2,bool &displayStd,QLineEdit * lenText)
 {
     static QPalette pal;
-    c1=t1;
-    c2=t2;
+    c1=t1;//t1 and c1 are the grace-version of a string that is used internally!
+    c2=t2;//t2 and c2 are the originals -- internally the original is always stored in UTF8 (this only changes before saving and after loading in which case the selected codec for external usage is used)
     displayStd=true;
     pal=lenText->palette();
     if (stdTextColor==NULL)
         stdTextColor=new QColor(pal.text().color());
     pal.setColor(QPalette::Text,*stdTextColor);
-    if (t2!=NULL)
+    if (t2!=NULL)//we display t2(the original) as a standard
     {
-        if (useQtFonts==false)
-            lenText->setText(QString(t2));//t2 = original
-        else
-            lenText->setText(FileCodec->toUnicode(t2));//t2 = original
+        lenText->setText(QString::fromUtf8(t2));//t2 = original = UTF8-encoding
+        //if (useQtFonts==false)
+        //lenText->setText(FileCodec->toUnicode(t2));//t2 = original
+        //else
+        //lenText->setText(FileCodec->toUnicode(t2));//t2 = original
     }
     else
+    {
         lenText->setText("");
+    }
     lenText->setPalette(pal);
 }
 
@@ -267,20 +499,22 @@ void ClickedOnLabel(char * c1,char * c2,bool &displayStd,QLineEdit * lenText)
     if (c1==NULL || c2==NULL) return;
     displayStd=!displayStd;
     pal=lenText->palette();
-    if (displayStd)//Std is the original user input (probably in LaTeX-format)
+    if (displayStd)//Std is the original user input (probably in LaTeX-format - but always in UTF8-encoding)
     {
-        if (useQtFonts==false)
-            lenText->setText(QString(c2));
-        else
-            lenText->setText(FileCodec->toUnicode(c2));
+        lenText->setText(QString::fromUtf8(c2));
+        //if (useQtFonts==false)
+        //lenText->setText(QString(c2));
+        //else
+        //lenText->setText(FileCodec->toUnicode(c2));
         pal.setColor(QPalette::Text,*stdTextColor);
     }
     else
     {
-        if (useQtFonts==false)
-            lenText->setText(QString(c1));//converted input (Grace-format)
-        else
-            lenText->setText(FileCodec->toUnicode(c1));
+        lenText->setText(generateDisplayStringFromGraceString(c1));
+        //if (useQtFonts==false)
+        //lenText->setText(QString(c1));//converted input (Grace-format)
+        //else
+        //lenText->setText(FileCodec->toUnicode(c1));
         pal.setColor(QPalette::Text,Qt::red);
     }
     lenText->setPalette(pal);
@@ -289,20 +523,17 @@ void ClickedOnLabel(char * c1,char * c2,bool &displayStd,QLineEdit * lenText)
 void DynSetMemoryToLineEdit(char * &t1,char * &t2,char *&c1,char * &c2,bool & displayStd,bool acceptLaTex,QLineEdit * lenText)
 {
     static QPalette pal;
-    QString text(FileCodec->fromUnicode(lenText->text()));
-    if (useQtFonts==false) text=lenText->text();
+    static QString text;
+    text=lenText->text();
+    t2=copy_string(t2,lenText->text().toUtf8().constData());//t2 is always the original - always internally in UTF8
     pal=lenText->palette();
     displayStd=true;
-    char * te=new char[text.length()+8];
-    strcpy(te,text.toAscii().constData());
-    t2=copy_string(t2,te);//t2 is always the original
+    char * te=new char[MAX_STRING_LENGTH];//longer is not allowed! Do not write essays in Grace ;-) !
     if (acceptLaTex==true && activateLaTeXsupport==true)
     {
-        complete_LaTeX_to_Grace_Translator(text);
-        delete[] te;
-        te=new char[text.length()+8];
-        strcpy(te,text.toAscii().constData());
+        complete_LaTeX_to_Grace_Translator(text);//make the LaTeX-to-Grace-Translation
     }
+    generate_string_Qt_aware(te,text);
     t1=copy_string(t1,te);//t1 is the Grace-version of the text
     c1=t1;
     c2=t2;
@@ -630,6 +861,15 @@ void panelWindow::mouseMoveEvent(QMouseEvent * event)
     }
 }
 
+void panelWindow::keyPressEvent(QKeyEvent * event)
+{
+    if (event->key()==Qt::Key_Escape)
+    {
+    event->accept();
+    hide();
+    }
+}
+
 newCombo::newCombo(int rows,int cols,int last_col,QPixmap ** pix,QString ** titles,bool showTextOnly,QWidget * parent):QComboBox(parent)
 {
     text_only=showTextOnly;
@@ -667,7 +907,7 @@ void newCombo::reinitializePanels(int rows,int cols,int last_col,QPixmap ** pix,
 void newCombo::wrapperSetCurrentIndex(int index)
 {
     setCurrentIndex(index);
-    emit(currentIndexChanged(index));
+    emit(current_Index_Changed(index));
 }
 
 void newCombo::setCurrentIndex(int index)
@@ -742,6 +982,21 @@ fitLine::fitLine(QWidget * parent,int nr):QWidget(parent)
     setLayout(layout);
 }
 
+void fitLine::Redisplay(void)
+{
+    if (OldDecimalPoint==DecimalPointToUse) return;
+    QString te;
+    te=ledValue->text();
+    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    ledValue->setText(te);
+    te=ledLowerBound->text();
+    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    ledLowerBound->setText(te);
+    te=ledHighterBound->text();
+    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    ledHighterBound->setText(te);
+}
+
 void fitLine::constr_check(int t)
 {
     if (t==0)
@@ -760,10 +1015,10 @@ void fitLine::constr_check(int t)
 
 void fitLine::getValues(double & value,bool & active,double & lowerBound,double & upperBound)
 {
-    value=atof(ledValue->text().toAscii());
+    value=atof(ledValue->text().toLatin1());
     active=chkBonds->isChecked()==TRUE?true:false;
-    lowerBound=atof(ledLowerBound->text().toAscii());
-    upperBound=atof(ledHighterBound->text().toAscii());
+    lowerBound=atof(ledLowerBound->text().toLatin1());
+    upperBound=atof(ledHighterBound->text().toLatin1());
 }
 
 axisLine::axisLine(QWidget * parent,int nr):QWidget(parent)
@@ -791,21 +1046,23 @@ QString axisLine::LabelText(void)
     result=str=ledLabel->text();
     if (activateLaTeXsupport==true)
     {//Latex-Commands-replacements
-        pos=0;
-        result=str;
-        while ((pos=str.indexOf(ref,pos))>=0)
-        {
-            pos+=2;//beginning of commands after '$$'
-            pos2=str.indexOf(ref,pos);
-            str2=str.mid(pos,pos2-pos);
-            intermediate=ref+str2+ref;
-            pos=pos2+2;//beginning of text after closing '$$'
-            strcpy(dummy,str2.toAscii());
-            ret=recursive_replacer(dummy);
-            result.replace(intermediate,QString(dummy));
-        }
-        //cout << "end =#" << str.toAscii().constData() << "#" << endl;
-        //cout << "result =#" << result.toAscii().constData() << "#" << endl;
+        complete_LaTeX_to_Grace_Translator(result);
+        /*
+pos=0;
+result=str;
+while ((pos=str.indexOf(ref,pos))>=0)
+{
+pos+=2;//beginning of commands after '$$'
+pos2=str.indexOf(ref,pos);
+str2=str.mid(pos,pos2-pos);
+intermediate=ref+str2+ref;
+pos=pos2+2;//beginning of text after closing '$$'
+strcpy(dummy,str2.toLatin1());
+ret=recursive_replacer(dummy);
+result.replace(intermediate,QString(dummy));
+}*/
+        //cout << "end =#" << str.toLatin1().constData() << "#" << endl;
+        //cout << "result =#" << result.toLatin1().constData() << "#" << endl;
     }
     return result;
 }
@@ -1024,8 +1281,8 @@ void spreadSheet::generate_layout(void)
     }*/
         break;
     case 1:
-        fitlines=new fitLine*[11];
-        for (int i=0;i<11;i++)
+        fitlines=new fitLine*[MAXPARM+1];
+        for (int i=0;i<=MAXPARM;i++)
         {
             fitlines[i]=new fitLine(this,i);
             if (i<rows)
@@ -1195,26 +1452,39 @@ generate_layout();
 
 stdSlider::stdSlider(QWidget * parent,QString label,int min,int max,double factor,int type):QWidget(parent)
 {
-    QRect rec=stdFontMetrics.boundingRect(QString("100"));
+    QRect rec=stdFontMetrics->boundingRect(QString("100"));
+    ret_time=new QTime();
+    ret_time->start();
     textHeight=rec.height();
     slideType=type;
     ScalingFactor=factor;
     if (textHeight<16) textHeight=16;
     setMinimumSize(QSize(180,textHeight*3));
-    Indicator=new QLabel("0",this);
-    Indicator->setGeometry(0,0,32,textHeight);//20
+    //Indicator=new QLabel("0",this);
+    Indicator=new QLineEdit("0",this);
+    Indicator->setGeometry(0,0,38,textHeight);//0,0,32,20
     sldSlider=new QSlider(Qt::Horizontal,this);
     sldSlider->setRange(min,max);
     sldSlider->setGeometry(Indicator->x(),Indicator->y()+Indicator->height(),200,textHeight);//20
-    connect(sldSlider,SIGNAL(valueChanged(int)),SLOT(changed(int)));
-    connect(sldSlider,SIGNAL(sliderMoved(int)),SLOT(SliderMoved(int)));
-    connect(sldSlider,SIGNAL(sliderReleased()),SLOT(SliderReleased()));
     connect(sldSlider,SIGNAL(sliderPressed()),SLOT(SliderPressed()));
+    connect(sldSlider,SIGNAL(sliderReleased()),SLOT(SliderReleased()));
+    connect(sldSlider,SIGNAL(sliderMoved(int)),SLOT(SliderMoved(int)));
+    connect(sldSlider,SIGNAL(valueChanged(int)),SLOT(changed(int)));
+
     lblText=new QLabel(label,this);
     lblText->move(Indicator->x(),sldSlider->y()+sldSlider->height());//,150,20);
     lblText->setGeometry(Indicator->x(),sldSlider->y()+sldSlider->height(),sldSlider->width(),textHeight);//20
     setMinimumSize(60,3*textHeight);
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::MinimumExpanding);
+    /// BEGIN LineEdit decorations
+    Indicator->setFrame(false);
+    Indicator->setValidator(new QDoubleValidator(Indicator));
+    QPalette pal1=lblText->palette();
+    pal1.setBrush(QPalette::Base,Qt::NoBrush);
+    Indicator->setPalette(pal1);
+    /// END LineEdit decorations
+    connect(Indicator,SIGNAL(returnPressed()),SLOT(Indicator_Enter_Pressed()));
+    connect(Indicator,SIGNAL(editingFinished()),SLOT(Indicator_Finished()));
 }
 
 QSize stdSlider::sizeHint(void)
@@ -1269,15 +1539,23 @@ void stdSlider::changed(int i)
 
 void stdSlider::SliderMoved(int i)
 {
+    //cout << "moved " << i << " old=" << old_value << endl;
 }
 
 void stdSlider::SliderReleased(void)
 {
+    slider_status=3;
+    changed(value());
+    //cout << "released old=" << old_value << " new=" << value() << endl;
+    old_value=value();
 }
 
 void stdSlider::SliderPressed(void)
 {
+    //cout << "Pressed old=" << old_value << endl;
+    slider_status=1;
     sldSlider->setFocus();
+    changed(value());
 }
 
 int stdSlider::value(void)
@@ -1287,8 +1565,14 @@ int stdSlider::value(void)
 
 void stdSlider::setValue(int i)
 {
+    old_value=i;
     sldSlider->setValue(i);
     changed(i);
+}
+
+void stdSlider::redisplay(void)
+{
+    setValue(value());
 }
 
 QString stdSlider::indicatorText(void)
@@ -1307,6 +1591,7 @@ QString stdSlider::indicatorText(void)
     {
         sprintf(dummy,"%.2f",pow(10.0,i*ScalingFactor));
     }
+    SetDecimalSeparatorToUserValue(dummy);
     return QString(dummy);
 }
 
@@ -1317,34 +1602,79 @@ void stdSlider::slideIndicator(void)
     Indicator->move(pos,Indicator->y());
 }
 
+void stdSlider::Indicator_Enter_Pressed(void)
+{
+    ret_time->restart();
+}
+
+void stdSlider::Indicator_Finished(void)
+{
+    int time_since_enter=ret_time->restart();
+    double val=Indicator->text().toDouble();
+//cout << "manual change: old_value=" << old_value << endl;
+    if (time_since_enter<100)//less then 100ms since last Return pressed
+    {
+        //cout << "Return Pressed (" << val << ")" << endl;
+        if (slideType==SLIDE_LINEAR)
+        {
+            setValue((int)val);
+        }
+        else
+        {
+            setValue((int)(log10(val)/ScalingFactor));
+        }
+    }
+    else
+    {
+        //cout << "Indicator Finished without Return (" << val << ")" << endl;
+        Indicator->setText(indicatorText());
+    }
+//cout << "manual change: cur_val=" << value() << endl;
+}
+
 FontSelector::FontSelector(QWidget * parent):QWidget(parent)
 {
     font=qApp->font();
     cmdSelFont=NULL;
     lblText=NULL;
-    if (useQtFonts==false)
-        lblText=new QLabel(tr("Font:"));
-    else
-    {
-        cmdSelFont=new QPushButton(tr("Font:"),this);
-        connect(cmdSelFont,SIGNAL(clicked()),SLOT(selectNewFont()));
-        displayFont();
-    }
+    //if (useQtFonts==false)
+    lblText=new QLabel(tr("Font:"));
+    //else
+    //{
+    cmdSelFont=new QPushButton(tr("Font:"),this);
+    connect(cmdSelFont,SIGNAL(clicked()),SLOT(selectNewFont()));
+    displayFont();
+    //}
     cmbFontSelect=new QComboBox();
     for (int i=0;i<number_of_fonts();i++)
         cmbFontSelect->addItem(get_fontalias(i));
     connect(cmbFontSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(changed(int)));
+    cmbFontSelect->setCurrentIndex(DefaultFont);
     layout=new QHBoxLayout;
     layout->setMargin(2);
-    if (useQtFonts==false)
-        layout->addWidget(lblText);
-    else
-        layout->addWidget(cmdSelFont);
+    //if (useQtFonts==false)
+    layout->addWidget(lblText);
+    //else
+    layout->addWidget(cmdSelFont);
     layout->addWidget(cmbFontSelect);
     setLayout(layout);
     add_FontSelector(this);
     updateFonts(false);
+    updateAppearance(useQtFonts);
+}
 
+void FontSelector::updateAppearance(bool QtIsNew)
+{
+    if (QtIsNew==true)//Qt-font-selector-button
+    {
+        lblText->setVisible(false);
+        cmdSelFont->setVisible(true);
+    }
+    else//we switch back to Grace-standard
+    {
+        cmdSelFont->setVisible(false);
+        lblText->setVisible(true);
+    }
 }
 
 void FontSelector::setLabelText(QString s)
@@ -1381,12 +1711,7 @@ void FontSelector::updateFonts(bool preserve)
     if (preserve==true)
         cmbFontSelect->setCurrentIndex(old_index);
     else
-
-#ifdef SKF_QtGrace
-        cmbFontSelect->setCurrentIndex(4); //Set Helvetica as default font
-#else
-        cmbFontSelect->setCurrentIndex(0);
-#endif
+        cmbFontSelect->setCurrentIndex(DefaultFont);
 
     font=getFontFromDatabase(cmbFontSelect->currentIndex());
 
@@ -1404,9 +1729,7 @@ void FontSelector::selectNewFont(void)
         if (index<0)//no --> new font in database
         {
             index=addFontToDatabase(font);
-
-            update_font_selectors();//update all Font selectors
-
+            update_font_selectors(false);//update all Font selectors (just fonts, not apperance)
             changed(index);
         }
         cmbFontSelect->setCurrentIndex(index);
@@ -1420,11 +1743,14 @@ void FontSelector::displayFont(void)
     if (cmdSelFont!=NULL)
     {
         dFont=font;
-        dFont.setPixelSize(stdFont.pixelSize());
+        if (qApp->font().pixelSize()<2)
+            dFont.setPixelSize(10);
+        else
+            dFont.setPixelSize(qApp->font().pixelSize());
         cmdSelFont->setFont(dFont);
         cmdSelFont->setText(cmdSelFont->text());
         //cmdSelFont->setText(font.family());
-        //cout << "font=#" << font.toString().toAscii().constData() << "#" << endl;
+        //cout << "font=#" << font.toString().toLatin1().constData() << "#" << endl;
     }
 }
 
@@ -1606,7 +1932,7 @@ cmbColorSelect->setIconSize(QSize(82,16));
         }
     }
     cmbColorSelect=new newCombo(rows,cols,last_col,ColorPixmaps,ColorNames,true,this);
-    connect(cmbColorSelect,SIGNAL(currentIndexChanged(int)),SLOT(panelIndexChanged(int)));
+    connect(cmbColorSelect,SIGNAL(current_Index_Changed(int)),SLOT(panelIndexChanged(int)));
     delete[] real_colors;
     layout=new QHBoxLayout;
     layout->setMargin(STD_MARGIN);
@@ -1669,6 +1995,20 @@ StdSelector::StdSelector(QWidget * parent,QString label,int number,QString * ent
 {
     lblText=new QLabel(label);
     cmbSelect=new QComboBox();
+if (number<1 || entr==NULL)
+{
+    number_of_entries=2;
+    entries=new QString[number_of_entries];
+    entryValues=new int[number_of_entries];
+    for (int i=0;i<number_of_entries;i++)
+    {
+        entries[i]=QString("");
+        entryValues[i]=i;
+        cmbSelect->addItem(entries[i]);
+    }
+}
+else
+{
     number_of_entries=number;
     entries=new QString[number];
     entryValues=new int[number];
@@ -1678,6 +2018,7 @@ StdSelector::StdSelector(QWidget * parent,QString label,int number,QString * ent
         entryValues[i]=i;
         cmbSelect->addItem(entr[i]);
     }
+}
     connect(cmbSelect,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
     layout=new QHBoxLayout;
     layout->setMargin(2);
@@ -1765,20 +2106,22 @@ void StdSelector::setCurrentValue(int i)
 
 LineStyleSelector::LineStyleSelector(QWidget * parent):QWidget(parent)
 {
+    add_Line_Style_Selector(this);
     lblText=new QLabel(tr("Line style:"));
     /*cmbStyleSelect=new QComboBox();
 for (int i=0;i<MAXLINESTYLES;i++)
 cmbStyleSelect->addItem(*LineIcons[i],"");
 cmbStyleSelect->setIconSize(QSize(82,22));*/
-    LineNames=new QString*[MAXLINESTYLES];
+
+    LineNames=new QString*[nr_of_current_linestyles];
     char dummy[48];
-    for (int i=0;i<MAXLINESTYLES;i++)
+    for (int i=0;i<nr_of_current_linestyles;i++)
     {
         sprintf(dummy,"%d",i);
         LineNames[i]=new QString(dummy);
     }
-    cmbStyleSelect=new newCombo(MAXLINESTYLES,1,MAXLINESTYLES,LinePixmaps,LineNames,false,this);
-    connect(cmbStyleSelect,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
+    cmbStyleSelect=new newCombo(nr_of_current_linestyles,1,nr_of_current_linestyles,LinePixmaps,LineNames,false,this);
+    connect(cmbStyleSelect,SIGNAL(current_Index_Changed(int)),SLOT(changed(int)));
     layout=new QHBoxLayout;
     layout->setMargin(2);
     layout->addWidget(lblText);
@@ -1820,7 +2163,7 @@ cmbFillPattern->addItem(QIcon(patterns[i]->copy(patterns[i]->rect())),"");
         PatternNames[i]=new QString(dummy);
     }
     cmbFillPattern=new newCombo(8,4,8,PatternPixmaps,PatternNames,false,this);
-    connect(cmbFillPattern,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
+    connect(cmbFillPattern,SIGNAL(current_Index_Changed(int)),SLOT(changed(int)));
     layout=new QHBoxLayout;
     layout->setMargin(2);
     layout->addWidget(lblText);
@@ -1856,7 +2199,7 @@ OrderSelector::OrderSelector(QWidget * parent):QWidget(parent)
     OrderNames[7]=new QString("vh_rl");
     lblText=new QLabel(tr("Order:"),this);
     cmbOrderPattern=new newCombo(4,2,4,Qt_matrixOrder,OrderNames,false,this);
-    connect(cmbOrderPattern,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
+    connect(cmbOrderPattern,SIGNAL(current_Index_Changed(int)),SLOT(changed(int)));
     layout=new QHBoxLayout;
     layout->setMargin(2);
     layout->addWidget(lblText);
@@ -1954,6 +2297,8 @@ stdLineEdit::stdLineEdit(QWidget * parent,QString label,bool accLaTex):QWidget(p
     QPalette pal=lenText->palette();
     if (stdTextColor==NULL)
         stdTextColor=new QColor(pal.text().color());
+    if (acceptLaTex==true)
+        add_LaTeX_Line(this);
 }
 
 void stdLineEdit::ContentChanged(void)
@@ -1985,12 +2330,12 @@ result=str=lenText->text();
         str2=str.mid(pos,pos2-pos);
         intermediate=ref+str2+ref;
         pos=pos2+2;//beginning of text after closing '$$'
-        strcpy(dummy,str2.toAscii());
+        strcpy(dummy,str2.toLatin1());
         ret=recursive_replacer(dummy);
         result.replace(intermediate,QString(dummy));
         }
-    //cout << "end =#" << str.toAscii().constData() << "#" << endl;
-    //cout << "result =#" << result.toAscii().constData() << "#" << endl;
+    //cout << "end =#" << str.toLatin1().constData() << "#" << endl;
+    //cout << "result =#" << result.toLatin1().constData() << "#" << endl;
     }
 return result;
 */
@@ -2001,9 +2346,17 @@ void stdLineEdit::setText(QString text)
     displayStd=true;
     c1=c2=NULL;
     if (useQtFonts)
-        lenText->setText(FileCodec->toUnicode(text.toAscii().constData()));
+    {
+        if (FileCodec==NULL) FileCodec=QTextCodec::codecForLocale();
+        lenText->setText(FileCodec->toUnicode(text.toLatin1().constData()));
+    }
     else
-        lenText->setText(text);
+    {
+        //lenText->setText(text);
+        if (FileCodec==NULL) FileCodec=QTextCodec::codecForLocale();
+        lenText->setText(FileCodec->toUnicode(text.toLatin1().constData()));
+    }
+
 }
 
 void stdLineEdit::mouseReleaseEvent(QMouseEvent * e)
@@ -2050,16 +2403,39 @@ lenText->setText("");
 lenText->setPalette(pal);*/
 }
 
+void appendTextToLegendString(int gno,int sno,QString text)
+{
+    if (is_set_active(gno,sno)==false) return;
+    QString old_text;
+    plotarr * p=g[gno].p+sno;
+    old_text=QString::fromUtf8(p->orig_lstr);//original is in UTF8
+    old_text+=text;//append text
+    strcpy(p->orig_lstr,old_text.toUtf8().constData());
+    if (activateLaTeXsupport==true)
+        complete_LaTeX_to_Grace_Translator(old_text);
+    generate_string_Qt_aware(p->lstr,old_text);//t1 is the Grace-version of the text
+}
+
+void replace_directory_separators(char * filename)
+{
+    char sep=QDir::separator().toLatin1();
+    int len=strlen(filename);
+    for (int i=0;i<len;i++)
+    {
+        if (filename[i]=='/' || filename[i]=='\\')
+            filename[i]=sep;
+    }
+}
+
 void stdLineEdit::SetMemoryToText(char * t1,char * t2)
 {
     static QPalette pal;
-    QString text(FileCodec->fromUnicode(lenText->text()));
-    if (useQtFonts==false) text=lenText->text();
+    QString text=lenText->text();
     displayStd=true;
-    strcpy(t2,text.toAscii().constData());//t2 is always the original
+    strcpy(t2,text.toUtf8().constData());//t2 is always the original - internally always in UTF8
     if (acceptLaTex==true && activateLaTeXsupport==true)
         complete_LaTeX_to_Grace_Translator(text);
-    strcpy(t1,text.toAscii().constData());//t1 is the Grace-version of the text
+    generate_string_Qt_aware(t1,text);//t1 is the Grace-version of the text
     c1=t1;
     c2=t2;
     pal=lenText->palette();
@@ -2076,20 +2452,125 @@ void stdLineEdit::DynSetMemoryToText(char * &t1,char * &t2)
 QString text(lenText->text());
 displayStd=true;
 char * te=new char[text.length()+8];
-strcpy(te,text.toAscii().constData());
+strcpy(te,text.toLatin1().constData());
 t2=copy_string(t2,te);//t2 is always the original
     if (acceptLaTex==true && activateLaTeXsupport==true)
     {
     complete_LaTeX_to_Grace_Translator(text);
     delete[] te;
     te=new char[text.length()+8];
-    strcpy(te,text.toAscii().constData());
+    strcpy(te,text.toLatin1().constData());
     }
 t1=copy_string(t1,te);//t1 is the Grace-version of the text
 c1=t1;
 c2=t2;
 delete[] te;
 */
+}
+
+void stdLineEdit::ReplaceNumberContents(void)
+{
+    if (OldDecimalPoint==DecimalPointToUse) return;//nothing to change!
+    QString te=lenText->text();
+    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    lenText->setText(te);
+}
+
+void stdLineEdit::RedisplayContents(void)
+{
+    if (c1==NULL || c2==NULL)//NULL-addresses are critical --> close a text-editor in this case
+    {
+        emit(NoMoreValidAdr());
+    }
+    else
+    {
+        SetLineEditToMemory(c1,c2,c1,c2,displayStd,lenText);
+    }
+}
+
+void stdLineEdit::setDoubleValue(const char * form,double val)
+{
+    static char buf[128];
+    sprintf(buf, form, val);
+    SetDecimalSeparatorToUserValue(buf);
+    lenText->setText(QString(buf));
+}
+
+double stdLineEdit::getDoubleValue(void)
+{
+    //static int strlen;
+    //static char * str;
+    static double d;
+    //strlen=4*lenText->text().length();
+    //str=new char[strlen];
+    //strcpy(str,lenText->text().toLatin1().constData());
+    //d=GetDoubleValueFromString(str);
+    //delete[] str;
+    xv_evalexpr(lenText,&d);
+    return d;
+}
+
+int stdLineEdit::getIntValue(void)
+{
+    static int strlen;
+    static char * str;
+    static int d;
+    strlen=4*lenText->text().length();
+    str=new char[strlen];
+    strcpy(str,lenText->text().toLatin1().constData());
+    d=GetIntValueFromString(str);
+    delete[] str;
+    return d;
+}
+
+double stdLineEdit::guessDoubleValue(void)
+{
+    static char buf[64];
+    char f,l;
+    int len;
+    QString help;
+    strncpy(buf,lenText->text().toLatin1().constData(),63);
+    buf[63]='\0';
+    len=strlen(buf);
+    f=l='\0';
+    for (int i=0;i<len;i++)
+    {
+        if (buf[i]=='.' || buf[i]==',')
+        {
+            if (f=='\0')
+            {
+                f=buf[i];
+            }
+            else
+            {
+                l=buf[i];
+            }
+        }
+    }
+    if ( !( (f==l && f=='\0') || (f=='.' && l=='\0') ) )//either no decimal separator found or only a '.' --> all right --> do not(!) go into this "if"
+    {
+        help=QString::fromLatin1(buf);
+        if (l=='\0')//--> we only found a single ',' --> we guess that this should be the decimal separator and replace it by '.'
+        {
+            help.replace(QString(","),QString("."));
+        }
+        else if (l=='.' && f==',')//we found a string with (possibly) ',' as thousand-separator and '.' as decimal separator --> remove ','
+        {
+            help.remove(QString(","));
+        }
+        else if (l==',' && f=='.')//we found a string with (possibly) '.' as thousand-separator and ',' as decimal separator --> remove '.' and replace ',' by '.'
+        {
+            help.remove(QString("."));
+            help.replace(QString(","),QString("."));
+        }
+        else if (f==l)// we found multiple '.' or ',' or a constallation like 1.345,678.9 which does not make sense! --> remove ALL '.' and ','
+        {
+            help.remove(QString("."));
+            help.remove(QString(","));
+        }
+        strcpy(buf,help.toLatin1().constData());
+    }
+    return atof(buf);
 }
 
 dirList::dirList(QWidget * parent,int type):QTreeView(parent)
@@ -2109,8 +2590,8 @@ dirList::dirList(QWidget * parent,int type):QTreeView(parent)
 
 FileSelector::FileSelector(QWidget * parent):QWidget(parent)
 {
-    int number=3;
-    QString entr[3];
+    int number=4;
+    QString entr[4];
     entr[0]=tr("Cwd");
     entr[1]=tr("Home");
 #ifdef MAC_SYSTEM
@@ -2123,9 +2604,11 @@ FileSelector::FileSelector(QWidget * parent):QWidget(parent)
     entr[2]=tr("C:\\");
     onHighestLevel=false;
 #endif
+    entr[3]=tr("QtGrace-dir");
     grpChDir=new QGroupBox(QString(""),this);
     selChdir=new StdSelector(grpChDir,tr("Chdir to:"),number,entr);
     cmdSetCwd=new QPushButton(tr("Set as cwd"),grpChDir);
+    //cmdGetCwd=new QPushButton(tr("Get cwd"),grpChDir);
     chkShowHiddenFiles=new QCheckBox(tr("Show hidden files"),this);
 
     lblFilter=new QLabel(tr("Filter:"),this);
@@ -2153,7 +2636,8 @@ FileSelector::FileSelector(QWidget * parent):QWidget(parent)
     connect(cmdGoUp,SIGNAL(clicked()),SLOT(doGoUp()));
     connect(cmdStdDialog,SIGNAL(clicked()),SLOT(doStdDialog()));
 
-    connect(selChdir->cmbSelect,SIGNAL(currentIndexChanged(int)),SLOT(currentDirChanged(int)));
+    //connect(selChdir->cmbSelect,SIGNAL(currentIndexChanged(int)),SLOT(currentDirChanged(int)));
+    connect(selChdir->cmbSelect,SIGNAL(highlighted(int)),SLOT(currentDirChanged(int)));
     connect(FileList,SIGNAL(clicked(const QModelIndex &)),SLOT(FileSelected(const QModelIndex &)));
     connect(FileList,SIGNAL(doubleClicked(const QModelIndex &)),SLOT(FileDoubleClicked(const QModelIndex &)));
     connect(DirList,SIGNAL(clicked(const QModelIndex &)),SLOT(DirSelected(const QModelIndex &)));
@@ -2161,11 +2645,13 @@ FileSelector::FileSelector(QWidget * parent):QWidget(parent)
     connect(ledFilter,SIGNAL(returnPressed()),SLOT(newFilterEntered()));
     connect(chkShowHiddenFiles,SIGNAL(stateChanged(int)),SLOT(toggleHiddenFile(int)));
     connect(cmdSetCwd,SIGNAL(clicked()),SLOT(doSetCWD()));
+    //connect(cmdGetCwd,SIGNAL(clicked()),SLOT(doGetCWD()));
 
     layout0=new QHBoxLayout;
     layout0->setMargin(2);
     layout0->addWidget(selChdir);
     layout0->addWidget(cmdSetCwd);
+    //layout0->addWidget(cmdGetCwd);
     grpChDir->setLayout(layout0);
 
     layout=new QGridLayout();
@@ -2232,7 +2718,7 @@ void FileSelector::DirDoubleClicked( const QModelIndex & index )
 {
     doubleclickdir=true;
     selectedDir=index.data().toString();
-    if(selectedDir==".") return; //Nimalendiran Kailasanathan 2013-10-09 - added in order to avoid qtgrace to crash
+    if(selectedDir.compare(".")==0) return;//no directory change
     currentDir=currentDir+separator+selectedDir;//set a new directory
     QString newFilter,newDir;
     GeneratePathWithExtension(currentDir,newFilter,newDir);
@@ -2265,6 +2751,11 @@ void FileSelector::newFilterEntered(void)
 {
     ///test for "exists"???
     QString entered=ledFilter->text();
+    if (entered.isEmpty())
+    {
+    ledFilter->setText(QDir::toNativeSeparators(QString(user_home_dir)+QDir::separator()+QString("*")));
+    entered=ledFilter->text();
+    }
     QDir d1(entered);
     QChar last_char=entered.at(entered.length()-1);
 #ifdef WINDOWS_SYSTEM
@@ -2301,10 +2792,20 @@ void FileSelector::setFilterFromExtern(QString & directory,QString & extension)
 
 void FileSelector::doSetCWD(void)
 {
-    char *dummy=new char [currentDir.length()]; // Windows port
-    strcpy(dummy,currentDir.toAscii());
+    char * dummy=new char[currentDir.length()+1];
+    strcpy(dummy,currentDir.toLatin1());
     set_workingdir(dummy);
+    delete[] dummy;
 }
+
+/*void FileSelector::doGetCWD(void)
+{
+    currentDir=QString(get_workingdir());
+    currentDir.chop(1);
+    filter=currentDir+separator+filterExtension;
+    ledFilter->setText(QDir::toNativeSeparators(filter));
+    showFilesLikeFilter();
+}*/
 
 void FileSelector::toggleHiddenFile(int i)
 {
@@ -2343,6 +2844,9 @@ void FileSelector::currentDirChanged(int i)
         currentDir=QString("");
 #endif
         break;
+    case 3:
+        currentDir=QString(qt_grace_exe_dir);
+        break;
     }
     filter=currentDir+separator+filterExtension;
     ledFilter->setText(QDir::toNativeSeparators(filter));
@@ -2351,7 +2855,7 @@ void FileSelector::currentDirChanged(int i)
 
 void FileSelector::GeneratePathWithExtension(QDir dir,QString & PathAndExtension,QString & DirectoryOnly)
 {
-    QString str=dir.cleanPath(dir.absolutePath()).toAscii();
+    QString str=dir.cleanPath(dir.absolutePath()).toLatin1();
     QString current;
     if (str.startsWith("/.."))
     {
@@ -2391,13 +2895,13 @@ void FileSelector::doGoUp(void)
     QDir tdir(cdir);
     /*QString str2=currentDir;
 char strbuf[512];
-strcpy(strbuf,str2.toAscii());
+strcpy(strbuf,str2.toLatin1());
 if (strncmp(strbuf,"/..",3)==0)
 {
 char buf2[512];
 strcpy(buf2,strbuf+3);
 cout << "oh oh" << endl;
-strcpy(strbuf,cdir.cleanPath(tdir.absolutePath()).toAscii());
+strcpy(strbuf,cdir.cleanPath(tdir.absolutePath()).toLatin1());
 cout << "buf=" << strbuf << endl;
 tdir=QDir(buf2);
 }
@@ -2405,11 +2909,11 @@ cout << "currentdir=#" << strbuf << "#" << endl;
 QString toEmit;
 str2.chop(1+cdir.dirName().length());
 //currentDir=str2;
-strcpy(strbuf,str2.toAscii());
+strcpy(strbuf,str2.toLatin1());
 cout << "updir1=#" << strbuf << "#" << endl;
 */
     bool up_possible=tdir.cdUp();
-    /*strcpy(strbuf,tdir.path().toAscii());
+    /*strcpy(strbuf,tdir.path().toLatin1());
 cout << "updir2=#" << strbuf << "# possible=" << up_possible << endl;*/
 #ifdef WINDOWS_SYSTEM
     if (up_possible==false || onHighestLevel==true)
@@ -2492,11 +2996,22 @@ stdStartStop::stdStartStop(QWidget * parent):QWidget(parent)
     setLayout(layout);
 }
 
+void stdStartStop::Redisplay(void)
+{
+    QString te;
+    if (OldDecimalPoint==DecimalPointToUse) return;
+    te=ledStart->text();
+    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    ledStart->setText(te);
+    te=ledStop->text();
+    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    ledStop->setText(te);
+}
+
 double stdStartStop::start(void)
 {
     double val;
-    error=false;
-    xv_evalexpr(ledStart, &val);
+    error=xv_evalexpr(ledStart, &val)==RETURN_SUCCESS?false:true;
     /*int len=ledStart->text().length();
 if (len<=0)
 {
@@ -2504,7 +3019,7 @@ error=true;
 return 0.0;
 }
 char dummy[ledStart->text().length()];
-strcpy(dummy,ledStart->text().toAscii());
+strcpy(dummy,ledStart->text().toLatin1());
 return atof(dummy);*/
     return val;
 }
@@ -2512,8 +3027,7 @@ return atof(dummy);*/
 double stdStartStop::stop(void)
 {
     double val;
-    error=false;
-    xv_evalexpr(ledStop, &val);
+    error=xv_evalexpr(ledStop, &val)==RETURN_SUCCESS?false:true;
     /*int len=ledStop->text().length();
 if (len<=0)
 {
@@ -2521,7 +3035,7 @@ error=true;
 return 0.0;
 }
 char dummy[ledStop->text().length()];
-strcpy(dummy,ledStop->text().toAscii());
+strcpy(dummy,ledStop->text().toLatin1());
 return atof(dummy);*/
     return val;
 }
@@ -2529,8 +3043,7 @@ return atof(dummy);*/
 int stdStartStop::length(void)
 {
     int val;
-    error=false;
-    xv_evalexpri(ledLength,&val);
+    error=xv_evalexpri(ledLength,&val)==RETURN_SUCCESS?false:true;
     /*int len=ledLength->text().length();
 if (len<=0)
 {
@@ -2538,7 +3051,7 @@ error=true;
 return 0.0;
 }
 char dummy[ledLength->text().length()];
-strcpy(dummy,ledLength->text().toAscii());
+strcpy(dummy,ledLength->text().toLatin1());
 return atoi(dummy);*/
     return val;
 }
@@ -2612,12 +3125,14 @@ bool SetTableView::edit(const QModelIndex &index, EditTrigger trigger, QEvent *e
 {
     int row=index.row();
     int col=index.column();
+    //cout << "edit:" << row << "|" << col << endl;
     bool ret=QTableView::edit(index,trigger,event);
     return ret;
 }
 
 void SetTableView::dataChanged(const QModelIndex &topLeft,const QModelIndex &bottomRight)
 {
+    //cout << "data changed" << endl;
     QTableView::dataChanged(topLeft, bottomRight);
 }
 
@@ -2655,24 +3170,24 @@ int SetTableModel::columnCount(const QModelIndex & parent) const
 
 QVariant SetTableModel::data(const QModelIndex & index,int role) const
 {
-    /// static char setPrec[8];
-    /// static char out_format[16];
     static char dummy[128];
-    /// static char * pt_dummy;
     static int row,col;
     static QVariant dat;
     dat=QVariant(QVariant::Invalid);
     if (!is_valid_setno(graphnr,setnr)) return dat;
     row=index.row();
     col=index.column();
+    //cout << "Data" << endl;
     if (role==Qt::DisplayRole || role==Qt::EditRole)
     {
+        //cout << "Data=VALID" << endl;
         if (row>=getsetlength(graphnr,setnr)) return QVariant(QString(""));
         construct_string_from_data(g[graphnr].p[setnr].data.ex[col][row],dummy,col_precision[col],col_format[col]);
         return QVariant(QString(dummy));
     }
     else
     {
+        //cout << "Data=invalid" << endl;
         return QVariant::Invalid;
     }
 }
@@ -2682,6 +3197,7 @@ void construct_string_from_data(double value,char * target,int col_precision,int
     static char setPrec[8];
     static char out_format[16];
     static char dummy[128];
+    //cout << "construct: value=" << value << endl;
     sprintf(setPrec,"%%.%d",col_precision);
     switch (col_format)
     {
@@ -2699,6 +3215,10 @@ void construct_string_from_data(double value,char * target,int col_precision,int
         break;
     }
     sprintf(dummy,out_format,value);
+    if (col_format!=3)//no changes if it is in date/time-format, otherwise-->correct the decimal separator
+    {
+        SetDecimalSeparatorToUserValue(dummy);
+    }
     strcpy(target,dummy);
 }
 
@@ -2706,30 +3226,44 @@ bool SetTableModel::setData(const QModelIndex & index, const QVariant & value, i
 {
     static int row,col;
     static double val;
-    static bool ok,realy_new_value,set_is_new;
+    static bool ok,really_new_value,set_is_new;
+    static QVariant n_val;
     char * oldval,*newval;
+    ok=true;
+    //cout << "SetData" << endl;
     if (!is_valid_setno(graphnr,setnr)) return false;//invalid set
-    realy_new_value=false;
+    really_new_value=false;
     val=value.toDouble(&ok);
     if (role==Qt::DisplayRole || !is_valid_setno(graphnr,setnr) || ok==false) return false;
     row=index.row();
     col=index.column();
     oldval=new char[256];
     newval=new char[256];
-    strcpy(newval,value.toString().toAscii().constData());
+    strcpy(newval,value.toString().toLatin1().constData());
+    //cout << "newValue=" << newval << endl;
     if (row<getsetlength(graphnr,setnr))//data already exists --> do we need to override it?
     {
         construct_string_from_data(g[graphnr].p[setnr].data.ex[col][row],oldval,col_precision[col],col_format[col]);
         if (!strcmp(newval,oldval))
-            realy_new_value=false;
+            really_new_value=false;
         else
-            realy_new_value=true;
+            really_new_value=true;
     }
     else
-        realy_new_value=true;
+        really_new_value=true;
+    ReplaceDecimalSeparator(newval);
+    //cout << "a) value=" << value.toString().toLatin1().constData() << endl;
+    n_val=QVariant(QString(newval));
+    //cout << "b) value=" << n_val.toString().toLatin1().constData() << endl;
     delete[] oldval;
     delete[] newval;
-    if (realy_new_value==false) return true;//nothing has actually to be changed
+    if (really_new_value==false) return true;//nothing has actually to be changed
+    val=n_val.toDouble(&ok);
+    if (ok==false)
+    {
+        cerr << "Invalid double-conversion from #" << n_val.toString().toLatin1().constData() << "#" << endl;
+        return false;//invalid conversion
+    }
     if (row<getsetlength(graphnr,setnr))//change an existing data point
     {
         int len=1,ncols;
@@ -2783,7 +3317,7 @@ bool SetTableModel::setData(const QModelIndex & index, const QVariant & value, i
         }
     }
     ok=true;
-    emit(item_entry_changed(row,col,realy_new_value));
+    emit(item_entry_changed(row,col,really_new_value));
     return ok;
 }
 
@@ -2821,7 +3355,6 @@ QVariant SetTableModel::headerData(int section, Qt::Orientation orientation, int
 bool SetTableModel::insertRows(int row, int count, const QModelIndex & parent)
 {
     beginInsertRows(parent,row,row+count-1);
-
     endInsertRows();
     return true;
 }
@@ -2829,7 +3362,6 @@ bool SetTableModel::insertRows(int row, int count, const QModelIndex & parent)
 bool SetTableModel::removeRows(int row, int count, const QModelIndex & parent)
 {
     beginRemoveRows(parent,row,row+count-1);
-
     endRemoveRows();
     return true;
 }
@@ -2856,7 +3388,6 @@ void SetTableModel::major_changes(void)
 {
     emit(layoutChanged());
 }
-
 
 /* Wrappers */
 int GetSpinChoice(stdIntSelector * s)
@@ -2936,15 +3467,21 @@ double GetAngleChoice(stdSlider * sel)
 
 char * GetTextString(stdLineEdit * led)
 {
-    static char dummy[256];
-    //strcpy(dummy,led->lenText->text().toAscii());
-    strcpy(dummy,led->text().toAscii());
+    static char dummy[MAX_STRING_LENGTH];
+    //strcpy(dummy,led->lenText->text().toLatin1());
+    //strcpy(dummy,led->text().toLatin1());
+    strcpy(dummy,led->text().toUtf8().constData());
     return dummy;
 }
 
 void SetToggleButtonState(QCheckBox * cb, int v)
 {
     cb->setChecked(bool(v));
+}
+
+void SetToggleButtonState(QAction * c, int v)
+{
+    c->setChecked(bool(v));
 }
 
 bool GetToggleButtonState(QAction * c)
@@ -3069,18 +3606,18 @@ int GetScaleValue(stdSlider * sel)
 
 char * xv_getstr(stdLineEdit * led)
 {
-    ///WARNING POSSIBLY UNSAVE PROCEDURE!!!
+    /// WARNING POSSIBLY UNSAVE PROCEDURE!!!
     static char value[1024];
-    strncpy(value,led->lenText->text().toAscii(),1023);
+    strncpy(value,led->lenText->text().toLatin1(),1023);
     value[1023]='\0';
     return value;
 }
 
 char * xv_getstr(QLineEdit * led)
 {
-    ///WARNING POSSIBLY UNSAVE PROCEDURE!!!
+    /// WARNING POSSIBLY UNSAVE PROCEDURE!!!
     static char value[1024];
-    strncpy(value,led->text().toAscii(),1023);
+    strncpy(value,led->text().toLatin1(),1023);
     value[1023]='\0';
     return value;
 }
@@ -3096,23 +3633,32 @@ int xv_evalexpri(stdLineEdit * w,int * answer)
 }
 
 /*
- * xv_evalexpr - take a text field and pass it to the parser if it needs to
+ * xv_evalexpr - take a text field and pass it to the parser if it needs to be
  * evaluated, else use atof().
  * place the double result in answer
  * if an error, return False, else True
  */
 int xv_evalexpr(QLineEdit * w,double * answer)
 {
-    static char *buf = NULL;
-    int i, len, ier = 0;
-    double result;
-    QString st=w->text();
-    buf=new char[st.length()+1];
-    strcpy(buf,st.toAscii());
+static char *buf = NULL;
+int ret=RETURN_FAILURE;
+QString st=w->text();
+buf=new char[st.length()+1];
+strcpy(buf,st.toLatin1());//we assume, that all fields that have numbers in it for use as numbers can safely be interpreted in the iso-latin1-codec
+ret=std_evalexpr(buf,answer);
+delete[] buf;
+return ret;
+}
+
+int std_evalexpr(char * buf,double * answer)
+{
+int i, len, ier = 0;
+double result;
+
+    ReplaceDecimalSeparator(buf);
 
     if (!(len = strlen( buf ) )) { /* check for zero length */
         *answer = 0;
-        delete[] buf;
         return RETURN_FAILURE;
     }
     /* first character may be a sign */
@@ -3130,17 +3676,14 @@ int xv_evalexpr(QLineEdit * w,double * answer)
 
     if (i == len) {         /* only floating point digits */
         *answer = atof( buf );
-        delete[] buf;
         return RETURN_SUCCESS;
     } else {                /* must evaluate an expression */
         ier = s_scanner(buf, &result);
         if( !ier ) {
             *answer = result;
-            delete[] buf;
             return RETURN_SUCCESS;
         } else {
             *answer = 0;
-            delete[] buf;
             return RETURN_FAILURE;
         }
     }
@@ -3159,7 +3702,8 @@ int xv_evalexpri(QLineEdit * w,int * answer)
     double result;
     QString st=w->text();
     buf=new char[st.length()+1];
-    strcpy(buf,st.toAscii());
+    strcpy(buf,st.toLatin1());
+    ReplaceDecimalSeparator(buf);
 
     if (!(len = strlen( buf ) )) { /* check for zero length */
         *answer = 0;
@@ -3342,7 +3886,7 @@ void GraphPopup::doShow(void)
     ListOfOldStates.clear();
     for (int i = 0; i < number_of_selected_graphs; i++)
         set_graph_hidden(selected_graphs[i], FALSE);
-    update();
+    mainWin->mainArea->completeRedraw();
 }
 
 void GraphPopup::doHide(void)
@@ -3364,7 +3908,7 @@ void GraphPopup::doHide(void)
     ListOfOldStates.clear();
     for (int i = 0; i < number_of_selected_graphs; i++)
         set_graph_hidden(selected_graphs[i], TRUE);
-    update();
+    mainWin->mainArea->completeRedraw();
 }
 
 void GraphPopup::doDuplicate(void)
@@ -3380,7 +3924,7 @@ void GraphPopup::doDuplicate(void)
     }
     GraphsCreated(index,gnos,UNDO_COMPLETE);
     delete[] gnos;
-    update();
+    mainWin->mainArea->completeRedraw();
 }
 
 void GraphPopup::doKill(void)
@@ -3403,13 +3947,14 @@ void GraphPopup::doKill(void)
         }
         ListOfChanges.clear();
     }
-    update();
+    mainWin->mainArea->completeRedraw();
 }
 
 void GraphPopup::doSwap(void)
 {
     UndoSwapGraphs(selected_graphs[0], selected_graphs[1]);
     swap_graph(selected_graphs[0], selected_graphs[1]);
+    update_graph_selectors();
 }
 
 void GraphPopup::doCreateNew(void)
@@ -3419,7 +3964,7 @@ void GraphPopup::doCreateNew(void)
     set_graph_active(number_of_graphs());
     GraphsCreated(1,gnos,UNDO_COMPLETE);
     delete[] gnos;
-    update();
+    mainWin->mainArea->completeRedraw();
 }
 
 void GraphPopup::update(void)
@@ -3441,7 +3986,7 @@ void GraphPopup::doMove12(void)
             selected_graphs[0]=selected_graphs[1];
             GraphsModified(1,selected_graphs,UNDO_COMPLETE);
         }
-        update();
+        mainWin->mainArea->completeRedraw();
     }
 }
 
@@ -3457,7 +4002,7 @@ void GraphPopup::doMove21(void)
             move_graph(selected_graphs[1], selected_graphs[0]);
             GraphsModified(1,selected_graphs,UNDO_COMPLETE);
         }
-        update();
+        mainWin->mainArea->completeRedraw();
     }
 }
 
@@ -3473,7 +4018,7 @@ void GraphPopup::doCopy12(void)
             copy_graph(selected_graphs[0], selected_graphs[1]);
             GraphsModified(number_of_selected_graphs,selected_graphs,UNDO_COMPLETE);
         }
-        update();
+        mainWin->mainArea->completeRedraw();
     }
 }
 
@@ -3489,7 +4034,7 @@ void GraphPopup::doCopy21(void)
             copy_graph(selected_graphs[1], selected_graphs[0]);
             GraphsModified(number_of_selected_graphs,selected_graphs,UNDO_COMPLETE);
         }
-        update();
+        mainWin->mainArea->completeRedraw();
     }
 }
 
@@ -3594,6 +4139,9 @@ SetPopup::SetPopup(uniList *parent):QMenu(parent)
     addSeparator();
     addAction(actPackAllSets);
     addSeparator();
+    addAction(actStoreAppearance);
+    addAction(actApplyStoredAppearance);
+    addSeparator();
     mnuSelectorOperations=new QMenu(tr("Select&or operations"),this);
     mnuSelectorOperations->setTearOffEnabled(FALSE);
     mnuSelectorOperations->addAction(actViewSetComments);
@@ -3611,6 +4159,9 @@ SetPopup::SetPopup(uniList *parent):QMenu(parent)
     mnuSelectorOperations->addAction(actInvertSelection);
     mnuSelectorOperations->addAction(actSelectEven);
     mnuSelectorOperations->addAction(actSelectOdd);
+    mnuSelectorOperations->addAction(actSelectNth);
+    mnuSelectorOperations->addAction(actSelectVisible);
+    mnuSelectorOperations->addAction(actSelectInvisible);
     mnuSelectorOperations->addSeparator();
     mnuSelectorOperations->addAction(actUpdate);
     addMenu(mnuSelectorOperations);
@@ -3682,12 +4233,22 @@ void SetPopup::CreateActions(void)
     connect(actSelectEven,SIGNAL(triggered()), this,SLOT(doSelectEven()));
     actSelectOdd=new QAction(tr("Select odd"),this);
     connect(actSelectOdd,SIGNAL(triggered()), this,SLOT(doSelectOdd()));
+    actSelectVisible=new QAction(tr("Select visible"),this);
+    connect(actSelectVisible,SIGNAL(triggered()), this,SLOT(doSelectVisible()));
+    actSelectInvisible=new QAction(tr("Select invisible"),this);
+    connect(actSelectInvisible,SIGNAL(triggered()), this,SLOT(doSelectInVisible()));
+    actSelectNth=new QAction(tr("Select n-th (from n0)"),this);
+    connect(actSelectNth,SIGNAL(triggered()), this,SLOT(doSelectNth()));
     actUpdate=new QAction(tr("Update"),this);
     connect(actUpdate,SIGNAL(triggered()), this,SLOT(doUpdate()));
     actCopyClipBoard=new QAction(tr("Copy"),this);
     connect(actCopyClipBoard,SIGNAL(triggered()),SLOT(doCopyClipBoard()));
     actPasteClipBoard=new QAction(tr("Paste"),this);
     connect(actPasteClipBoard,SIGNAL(triggered()),SLOT(doPasteClipBoard()));
+    actStoreAppearance=new QAction(tr("Store appearrance(s)"),this);
+    connect(actStoreAppearance,SIGNAL(triggered()),SLOT(doStoreAppearance()));
+    actApplyStoredAppearance=new QAction(tr("Apply stored appearance(s)"),this);
+    connect(actApplyStoredAppearance,SIGNAL(triggered()),SLOT(doApplyStoredAppearance()));
 }
 
 void SetPopup::prepareForAction(void)
@@ -4022,17 +4583,17 @@ void SetPopup::doSelectEven(void)
     int counter=0;
     for (int i=0;i<par->count();i++)
     {
-        if (i%2==0)//index is even
+        if (par->entries[i]%2==0)//index is even
         {
-            ne_sel[counter++]=i;
+            ne_sel[counter++]=par->entries[i];
         }
         else//odd index will be inserted if it has already been selected
         {
             for (int j=0;j<nr;j++)
             {
-                if (sel[j]==i)
+                if (sel[j]==par->entries[i])
                 {
-                    ne_sel[counter++]=i;
+                    ne_sel[counter++]=par->entries[i];
                     break;
                 }
             }
@@ -4051,17 +4612,116 @@ void SetPopup::doSelectOdd(void)
     int counter=0;
     for (int i=0;i<par->count();i++)
     {
-        if (i%2!=0)//index is odd
+        if (par->entries[i]%2!=0)//index is odd
         {
-            ne_sel[counter++]=i;
+            ne_sel[counter++]=par->entries[i];
         }
         else//even index will be inserted if it has already been selected
         {
             for (int j=0;j<nr;j++)
             {
-                if (sel[j]==i)
+                if (sel[j]==par->entries[i])
                 {
-                    ne_sel[counter++]=i;
+                    ne_sel[counter++]=par->entries[i];
+                    break;
+                }
+            }
+        }
+    }
+    par->set_new_selection(counter,ne_sel);
+    delete[] sel;
+    delete[] ne_sel;
+}
+
+void SetPopup::doSelectVisible(void)
+{
+    int nr,*sel=new int[2];
+    par->get_selection(&nr,&sel);
+    int * ne_sel=new int[par->count()+2];
+    int counter=0;
+    for (int i=0;i<par->count();i++)
+    {
+
+        if (is_set_hidden(par->gr_no,par->entries[i])==FALSE)//set is visible
+        {
+            ne_sel[counter++]=par->entries[i];
+        }
+        else//other index will be inserted if it has already been selected
+        {
+            for (int j=0;j<nr;j++)
+            {
+                if (sel[j]==par->entries[i])
+                {
+                    ne_sel[counter++]=par->entries[i];
+                    break;
+                }
+            }
+        }
+    }
+    par->set_new_selection(counter,ne_sel);
+    delete[] sel;
+    delete[] ne_sel;
+}
+
+void SetPopup::doSelectInVisible(void)
+{
+    int nr,*sel=new int[2];
+    par->get_selection(&nr,&sel);
+    int * ne_sel=new int[par->count()+2];
+    int counter=0;
+    for (int i=0;i<par->count();i++)
+    {
+
+        if (is_set_hidden(par->gr_no,par->entries[i])==TRUE)//set is visible
+        {
+            ne_sel[counter++]=par->entries[i];
+        }
+        else//other index will be inserted if it has already been selected
+        {
+            for (int j=0;j<nr;j++)
+            {
+                if (sel[j]==par->entries[i])
+                {
+                    ne_sel[counter++]=par->entries[i];
+                    break;
+                }
+            }
+        }
+    }
+    par->set_new_selection(counter,ne_sel);
+    delete[] sel;
+    delete[] ne_sel;
+}
+
+void SetPopup::doSelectNth(void)
+{
+bool ok;
+int	n=QInputDialog::getInt(this,tr("Index"),tr("n="),2,0,par->number_of_entries,1,&ok,0);
+if (ok==false) return;
+int offset=QInputDialog::getInt(this,tr("Offset"),tr("Start index n0="),0,0,par->number_of_entries,1,&ok,0);
+if (ok==false) return;
+if (n==0 || n==1)
+{
+doSelectAll();
+return;
+}
+    int nr,*sel=new int[2];
+    par->get_selection(&nr,&sel);
+    int * ne_sel=new int[par->count()+2];
+    int counter=0;
+    for (int i=0;i<par->count();i++)
+    {
+        if ((par->entries[i]+n-1-offset)%n==n-1)
+        {
+            ne_sel[counter++]=par->entries[i];
+        }
+        else//unsuitable indices are selected if they are already selected
+        {
+            for (int j=0;j<nr;j++)
+            {
+                if (sel[j]==par->entries[i])
+                {
+                    ne_sel[counter++]=par->entries[i];
                     break;
                 }
             }
@@ -4087,14 +4747,14 @@ void SetPopup::doInvertSelection(void)
     {
         in_list=false;
         for (int j=0;j<number_of_selected_sets;j++)
-            if (selected_sets[j]==i)
+            if (selected_sets[j]==par->entries[i])
             {
                 in_list=true;
                 break;
             }
         if (in_list==false)
         {
-            n_selected_sets[index]=i;
+            n_selected_sets[index]=par->entries[i];
             index++;
         }
     }
@@ -4225,15 +4885,10 @@ void SetPopup::doCopyClipBoard(void)
         {
             for (int j=0;j<col;j++)
             {
-
-#ifdef SKF_QtGrace
-                sprintf(dummy,"%.18g\t",g[gno].p[sno].data.ex[j][k]);
-#else
-                sprintf(dummy,"%.8g\t",g[gno].p[sno].data.ex[j][k]);
-#endif
-
-
-                text+=QString(dummy);
+                //sprintf(dummy,"%.8g\t",g[gno].p[sno].data.ex[j][k]);
+                //text+=QString(dummy);
+                sprintf(dummy,sformat,g[gno].p[sno].data.ex[j][k]);
+                text+=QString(dummy)+QString("\t");
             }
             text+=QString("\n");
         }
@@ -4246,6 +4901,92 @@ void SetPopup::doCopyClipBoard(void)
 void SetPopup::doPasteClipBoard(void)
 {
     GeneralPaste(QApplication::clipboard()->mimeData());
+}
+
+void SetPopup::doStoreAppearance(void)
+{
+//at first: deleted already saved appearances
+    bool ddssm=dont_delete_saved_set_memory;
+    dont_delete_saved_set_memory=true;
+    for (int i=0;i<nr_of_set_app_saved;i++)
+    deleteSavedSet(saved_set_app+i,UNDO_APPEARANCE);
+    dont_delete_saved_set_memory=ddssm;
+//find out how many set hace been selected
+prepareForAction();
+//prepare space for storage
+    if (number_of_selected_sets>nr_of_set_app_allocated)
+    {
+        if (saved_set_app!=NULL) delete[] saved_set_app;
+        saved_set_app=new plotarr[number_of_selected_sets];
+        nr_of_set_app_allocated=number_of_selected_sets;
+    }
+//store the appearance
+    for (int i=0;i<number_of_selected_sets;i++)
+    {
+    copySet(selected_graph,selected_sets[i],saved_set_app+i,UNDO_APPEARANCE);
+    }
+    nr_of_set_app_saved=number_of_selected_sets;
+}
+
+void reset_set_appearance_only(int gno, int sno, plotarr * pn)
+{
+if (is_valid_setno(gno,sno)==FALSE) return;
+plotarr * po=g[gno].p+sno;
+po->sym=pn->sym;
+po->symsize=pn->symsize;
+po->symlines=pn->symlines;
+po->symlinew=pn->symlinew;
+po->symskip=pn->symskip;
+po->symchar=pn->symchar;
+po->charfont=pn->charfont;
+po->linet=pn->linet;
+po->lines=pn->lines;
+po->linew=pn->linew;
+po->baseline_type=pn->baseline_type;
+po->baseline=pn->baseline;
+po->dropline=pn->dropline;
+po->filltype=pn->filltype;
+po->polygone_base_set=pn->polygone_base_set;
+po->fillrule=pn->fillrule;
+po->sympen=pn->sympen;
+po->symfillpen=pn->symfillpen;
+po->linepen=pn->linepen;
+po->setfillpen=pn->setfillpen;
+memcpy(&(po->avalue),&(pn->avalue),sizeof(AValue));
+memcpy(&(po->errbar),&(pn->errbar),sizeof(Errbar));
+}
+
+void SetPopup::doApplyStoredAppearance(void)
+{
+    prepareForAction();
+if (nr_of_set_app_saved<=0 || number_of_selected_sets<=0) return;
+
+int * selected_graphs=new int[number_of_selected_sets+1];
+for (int i=0;i<number_of_selected_sets;i++) selected_graphs[i]=selected_graph;
+SaveSetStatesPrevious(number_of_selected_sets,selected_graphs,selected_sets,UNDO_APPEARANCE);
+    /*if (nr_of_set_app_saved==1)//one appearance save, many sets selected
+    {
+        for (int i=0;i<number_of_selected_sets;i++)
+        {
+        reset_set_appearance_only(selected_graph,selected_sets[i],saved_set_app[0]);
+        }
+    }
+    else
+    {*/
+int counter=0;
+for (int i=0;i<number_of_selected_sets;i++)
+{
+reset_set_appearance_only(selected_graph,selected_sets[i],saved_set_app+counter);
+counter++;
+if (counter>=nr_of_set_app_saved) counter=0;
+}
+    //}
+ListOfChanges.clear();
+ListOfOldStates.clear();
+SetsModified(number_of_selected_sets,selected_graphs,selected_sets,UNDO_APPEARANCE);
+delete[] selected_graphs;
+mainWin->mainArea->completeRedraw();
+
 }
 
 void SetPopup::update_menu_content(void)
@@ -4285,6 +5026,8 @@ void SetPopup::update_menu_content(void)
     actions()[11]->setEnabled(FALSE);
     mnuEdit->actions()[0]->setEnabled(FALSE);
     mnuEdit->actions()[1]->setEnabled(FALSE);*/
+        actStoreAppearance->setEnabled(false);
+        actApplyStoredAppearance->setEnabled(false);
     }
     else
     {
@@ -4310,7 +5053,11 @@ void SetPopup::update_menu_content(void)
     actions()[11]->setEnabled(TRUE);
     mnuEdit->actions()[0]->setEnabled(TRUE);
     mnuEdit->actions()[1]->setEnabled(TRUE);*/
-
+        actStoreAppearance->setEnabled(true);
+            if (nr_of_set_app_saved>0)
+            actApplyStoredAppearance->setEnabled(true);
+            else
+            actApplyStoredAppearance->setEnabled(false);
         sprintf(dummy,"S");
         for (int i=0;i<number_of_selected_sets;i++)
         {
@@ -4425,13 +5172,7 @@ uniList::uniList(int type,QWidget *parent):QListWidget(parent)
     text_entries=new QString[2];
     show_hidden=true;
     show_data_less=false;
-
-#ifdef SKF_QtGrace
-    show_comments=true; //Show comments as default - Nimalendiran Kailasanathan 2013-10-09
-#else
-    show_comments=false;
-#endif
-
+    show_comments=false; //not changed in v0.2.5
 
     if (type==GRAPHLIST)//register this List so that it may be updated later (live)
     {
@@ -4622,7 +5363,8 @@ void uniList::get_selection(int * number,int ** selection)
     QModelIndexList list=selectedIndexes();
     *number=list.size();
     if (*number<=0) return;//return without deleting anything
-    delete[] *selection;
+        if (*selection!=NULL)
+        delete[] *selection;
     if (entries[list.at(0).row()]<0)
     {
         *number=number_of_entries-1;
@@ -5349,7 +6091,7 @@ void treeView::RecreateCompleteTree(void)
 
 void treeView::getItemData(QTreeWidgetItem * item,char & type,int & gno,int & sno)
 {
-    type=item->data(0,TREE_ROLE_TYPE).toChar().toAscii();
+    type=item->data(0,TREE_ROLE_TYPE).toChar().toLatin1();
     gno=item->data(0,TREE_ROLE_GRAPH).toInt();
     sno=item->data(0,TREE_ROLE_SET).toInt();
 }
@@ -5625,14 +6367,524 @@ void GenerateLaTeXCommands(void)
     equivalentFont.clear();
 }
 
-void store_plot_string(plotstr * p,stdLineEdit * led)
+/*void store_plot_string(plotstr * p,stdLineEdit * led)
 {
-    QString text=led->text();
-    char * te=new char[text.length()+2];
-    strcpy(te,text.toAscii().constData());
-    p->s_plotstring = copy_string(p->s_plotstring, te);
-    p->alt_plotstring = copy_string(p->alt_plotstring, te);
-    //ENTER LATEX-CONVERSION HERE
-    delete[] te;
+QString text=led->text();
+char * te=new char[text.length()+2];
+strcpy(te,text.toLatin1().constData());
+p->s = copy_string(p->s, te);
+p->alt = copy_string(p->alt, te);
+//ENTER LATEX-CONVERSION HERE
+delete[] te;
+}*/
+
+QString CreateRichTextColorTable(void)
+{
+    char dummy[32];
+    QString table=QString("{\\colortbl;");
+    for (int i=0;i<allocated_colors;i++)
+    {
+        sprintf(dummy,"\\red%d\\green%d\\blue%d;",cmap_table[i].rgb.red,cmap_table[i].rgb.green,cmap_table[i].rgb.blue);
+        table+=QString(dummy);
+    }
+    table+=QString("}");
+    return table;
+}
+
+//void find_set_ids(char * str,int * nr,int ** startpos,int ** len,int ** gnos,int ** snos)
+void find_set_ids(char * str,int * nr,struct FoundSetID ** foundIds)
+{
+    int strlength=strlen(str);
+    int maxnr=strlength/5+8;
+    struct FoundSetID * found=new struct FoundSetID[maxnr];
+    int index=0,offset=0,a,b;
+    char * tmpstr=NULL;
+    char next_char;
+    QStringList list;
+    QString original(str);
+    original=original.toUpper();
+    //cout << "String=#" << original.toLatin1().constData() << "#" << endl;
+    QRegExp regex1("G\\d*\\.S\\d*");//what we search for as a regular expression --> we only search for complete set-ids
+    while (offset<strlength)
+    {
+        found[index].pos=regex1.indexIn(original,offset);//find next set-id
+        if (found[index].pos==-1)//nothing found
+        {
+            offset=strlength;
+            break;
+        }
+        list=regex1.capturedTexts();//get the found text
+        found[index].len=regex1.matchedLength();//get the length of the found text
+        found[index].characteristic=0;//we assume a basic set-id at first
+        tmpstr=new char[found[index].len+4];
+        strcpy(tmpstr,list.at(0).toLatin1().constData());//copy found text for analysis
+        sscanf(tmpstr,"G%d.S%d",&(found[index].gno),&(found[index].sno));
+
+        offset=found[index].pos+found[index].len;
+        //cout << "tmpstr=#" << tmpstr <<  "# offset="<< offset << " len=" << strlength << " pos=" << found[index].pos << " einzellaenge=" << found[index].len << endl;
+        if (offset<strlength && offset>=0)
+        {
+            //next_char=tmpstr[strlen(tmpstr)-1];
+            next_char=original.at(offset).toLatin1();
+            if (next_char=='#')
+            {
+                found[index].characteristic=2;
+                offset++;
+                found[index].len++;
+            }
+            else if (next_char=='$')
+            {
+                found[index].characteristic=1;
+                offset++;
+                found[index].len++;
+            }
+            //cout << "next_char=#" << next_char << "# characteristic=" << found[index].characteristic << endl;
+        }
+
+        delete[] tmpstr;
+        index++;
+    }//end while-loop
+
+    /*for (int i=0;i<index;i++)
+{
+cout << i << ": pos=" << found[i].pos << " len=" << found[i].len << " G" << found[i].gno << " S" << found[i].sno << endl;
+}*/
+
+    *nr=index;
+    if (index>0)
+    {
+        if ((*foundIds)!=NULL)
+            delete[] *foundIds;
+        *foundIds=new struct FoundSetID[index+1];
+        memcpy(*foundIds,found,sizeof(struct FoundSetID)*index);
+    }
+    delete[] found;
+}
+
+void find_graph_ids(char * str,int * nr,struct FoundSetID ** foundIds)
+{
+    int strlength=strlen(str);
+    int maxnr=strlength/5+8;
+    struct FoundSetID * found=new struct FoundSetID[maxnr];
+    int index=0,offset=0,a,b;
+    char * tmpstr=NULL,du;
+    char next_char;
+    QStringList list;
+    QString original(str);
+    original=original.toUpper();
+    QRegExp regex1("\\sG\\d+(?!:\\.|\\S)");//what we search for as a regular expression
+
+    //cout << "String=#" << original.toLatin1().constData() << "# (start=47)" << endl;
+
+    while (offset<strlength)
+    {
+        found[index].pos=regex1.indexIn(original,offset)+1;//find next set-id
+        if (found[index].pos<=0)//nothing found
+        {
+            offset=strlength;
+            break;
+        }
+        list=regex1.capturedTexts();//get the found text
+        found[index].len=regex1.matchedLength()-1;//get the length of the found text
+        found[index].characteristic=0;
+        tmpstr=new char[found[index].len+4];
+        strcpy(tmpstr,list.at(0).toLatin1().constData());//copy found text for analysis
+        //cout << "#" << tmpstr << "#" << endl;
+        sscanf(tmpstr,"%cG%d",&du,&(found[index].gno));
+        found[index].sno=-1;
+        delete[] tmpstr;
+        offset+=found[index].pos+found[index].len;
+        if (offset<strlength && offset>=0)
+        {
+            next_char=original.at(offset).toLatin1();
+            cout << "next_char=#" << next_char << "#" << endl;
+            if (next_char=='#')
+            {
+                found[index].characteristic=2;
+                offset++;
+                found[index].len++;
+            }
+            else if (next_char=='$')
+            {
+                found[index].characteristic=1;
+                offset++;
+                found[index].len++;
+            }
+        }
+        index++;
+    }//end while-loop
+
+    /*for (int i=0;i<index;i++)
+{
+cout << i << ": pos=" << found[i].pos << " len=" << found[i].len << " G" << found[i].gno << " S" << found[i].sno << endl;
+}*/
+
+    *nr=index;
+    if (index>0)
+    {
+        delete[] *foundIds;
+        *foundIds=new struct FoundSetID[index+1];
+        memcpy(*foundIds,found,sizeof(struct FoundSetID)*index);
+    }
+    delete[] found;
+}
+
+//void postprocess_found_set_ids(int nr,int * gnos,int * snos,int * nr_unique_ids,int * id_color,int * unique_id)
+void postprocess_found_set_ids(int nr,struct FoundSetID ** foundIds,int * nr_unique_ids,int ** unique_id)
+{
+    int cur_col;
+    int * uni_ids=new int[nr+2];
+    *nr_unique_ids=0;
+    for (int i=0;i<nr;i++)
+    {
+        (*foundIds)[i].color=-1;//no valid color
+        uni_ids[i]=-1;//no valid number
+    }
+    for (int i=0;i<nr;i++)//look through every set-id
+    {
+        if ((*foundIds)[i].color>-1) continue;//we are done with this id already
+        if (is_set_active((*foundIds)[i].gno,(*foundIds)[i].sno)==TRUE)//the set already exists-->we take the color from this set
+        {
+            cur_col=g[(*foundIds)[i].gno].p[(*foundIds)[i].sno].linepen.color;
+        }
+        else
+        {
+            cur_col = (i+2) % number_of_colors();
+        }
+        (*foundIds)[i].color=cur_col;
+        uni_ids[(*nr_unique_ids)++]=i;
+        for (int j=i+1;j<nr;j++)//compare with every other set-id
+        {
+            if ((*foundIds)[i].gno==(*foundIds)[j].gno && (*foundIds)[i].sno==(*foundIds)[j].sno)
+            {
+                (*foundIds)[j].color==cur_col;
+            }
+        }
+    }
+    delete[] *unique_id;
+    (*unique_id)=new int[*nr_unique_ids+2];
+    memcpy(*unique_id,uni_ids,sizeof(int)*(*nr_unique_ids));
+    delete[] uni_ids;
+}
+
+QString ColorToHtml(int nr)
+{
+    static char dummy[16];
+    sprintf(dummy,"%02x%02x%02x",cmap_table[nr].rgb.red,cmap_table[nr].rgb.green,cmap_table[nr].rgb.blue);
+    return QString("<span style=\"color:#") + QString(dummy) + QString("\">");
+}
+
+QString ColorHtmlEnd(void)
+{
+    return QString("<\\span>");
+}
+
+QString PaintSetIds(char * str,int nr,struct FoundSetID * setIds)
+{
+    /*QString tmp=QString("{\\f1 \n")+RTColorTable+QString("\n\\cf2 ");
+tmp+=QString("Dies \\cf3 ist \\cf4 ein \\cf5 Test\\cf2 !");
+return tmp+QString("}\n");*/
+    QString tmp;
+    QString original(str);
+    char dummy[32];
+    int pos=0;
+    tmp+=ColorToHtml(1);
+    for (int i=0;i<nr;i++)
+    {
+        tmp+=original.mid(pos,setIds[i].pos-pos);
+        tmp+=ColorHtmlEnd();
+        tmp+=ColorToHtml(setIds[i].color);
+        sprintf(dummy,"G%d.S%d",setIds[i].gno,setIds[i].sno);
+        tmp+=QString(dummy);
+        tmp+=ColorHtmlEnd();
+        tmp+=ColorToHtml(1);
+        pos=setIds[i].pos+setIds[i].len;
+    }
+    tmp+=original.mid(pos,strlen(str));
+    tmp+=ColorHtmlEnd();
+    return tmp;
+}
+
+QString ReplaceSetIds(char * str,int nr,struct FoundSetID * setIds)
+{
+    if (nr<1) return QString(str);//no ids found, no ids to replace --> replace original
+    QString original=QString(str);
+    QString result;
+    char new_set_id[32];
+    int pos=0;
+    result.clear();
+    for (int i=0;i<nr;i++)//replace every set-id
+    {
+        if (setIds[i].sno<0) continue;//no real set-id
+        sprintf(new_set_id,"G%d.S%d",setIds[i].repl_gno,setIds[i].repl_sno);
+        result+=original.mid(pos,setIds[i].pos-pos);
+        result+=QString(new_set_id);
+        pos=setIds[i].pos+setIds[i].len;
+    }
+    result+=original.mid(pos);
+    return result;
+}
+
+QString ReplaceGraphIds(char * str,int nr,struct FoundSetID * setIds)
+{
+    if (nr<1) return QString(str);
+    QString original=QString(str);
+    QString result;
+    char new_set_id[32];
+    int pos=0;
+    result.clear();
+    for (int i=0;i<nr;i++)//replace every Graph-id
+    {
+        if (setIds[i].sno>=0) continue;//no graph id, but real set id
+        sprintf(new_set_id,"G%d",setIds[i].repl_gno);
+        result+=original.mid(pos,setIds[i].pos-pos);
+        result+=QString(new_set_id);
+        pos=setIds[i].pos+setIds[i].len;
+    }
+    result+=original.mid(pos);
+    return result;
+}
+
+void replace_single_formula_tokens(QString old_formula,QString & new_formula)
+{
+QString n_value;
+new_formula=old_formula;
+cout << "tokens=" << nr_of_single_f_tokens << endl;
+    for (int i=0;i<nr_of_single_f_tokens;i++)
+    {
+        switch (formula_tokens[i].type)
+        {
+        case 0://integer-counter
+        n_value=QString::number(formula_tokens[i].get_counter_value());
+            break;
+        case 1://double-value
+        n_value=QString::number(formula_tokens[i].get_d_value());
+            break;
+        default:
+        n_value=QString("0");
+            break;
+        }
+    n_value=QString("(")+n_value+QString(")");
+    cout << formula_tokens[i].representation << " type=" << (formula_tokens[i].type==0?"COUNTER":"VALUE") << " --> n_value=" << n_value.toLatin1().constData() << endl;
+    new_formula.replace(formula_tokens[i].representation,n_value);
+    cout << "replaced" << endl;
+    }
+}
+
+int find_single_formula_token_in_list(int anz,class single_formula_token * tokenlist,char * token)
+{
+int ret=-1;
+for (int i=0;i<anz;i++)
+{
+    if (strcmp(tokenlist[i].representation,token)==0)
+    {
+    ret=i;
+    break;
+    }
+}
+return ret;
+}
+
+int find_next_single_formula_token(char * formula,class single_formula_token * n_token)//finds the first token in a formula, returns the token and its position in the formula
+{
+static QRegExp exp1("N{1}\\d+[#,$]");
+int ret=exp1.indexIn(QString(formula));
+    if (ret!=-1)
+    {
+    QStringList list=exp1.capturedTexts();
+    QString st=list.at(0);
+    n_token->reset_token(st.toLatin1().data());
+    }
+return ret;
+}
+
+int find_all_single_formula_tokens(char * formula,class single_formula_token ** n_token)
+{
+int anz=0;
+int anz_loc=10;
+int len=strlen(formula),pos,ret;
+if ((*n_token)!=NULL) delete[] (*n_token);
+(*n_token)=new class single_formula_token[anz_loc];
+pos=0;
+ret=1;
+while (ret>=0)
+{
+ret=find_next_single_formula_token(formula+pos,(*n_token)+anz);
+    if (ret>=0)//new token found
+    {
+    anz++;
+    pos+=ret+1;
+    ret=find_single_formula_token_in_list(anz,*n_token,(*n_token)[anz-1].representation);
+    if (ret==-1)
+    {
+    cout << "Error! Single token not found in list." << endl;
+    }
+    else if (ret!=anz-1)//does already exist
+    {
+    anz--;
+    }
+        if (anz==anz_loc)
+        {
+        class single_formula_token * tm=new class single_formula_token[anz_loc+10];
+            for (int j=0;j<anz;j++)
+            {
+            tm[j]=(*n_token)[j];
+            }
+        delete[] (*n_token);
+        *n_token=tm;
+        anz_loc+=10;
+        }
+    }
+}
+return anz;
+}
+
+int find_single_formula_tokens_in_list(QStringList list,int & nr_of_tokens_found,class single_formula_token ** n_token)
+{
+nr_of_tokens_found=0;
+class single_formula_token * f_token=new class single_formula_token[4];
+char * cur_command=NULL;
+int single_found=0,pos;
+    if ((*n_token)!=NULL) delete[] (*n_token);
+for (int i=0;i<list.length();i++)
+{
+cur_command=new char[list.at(i).length()+2];
+strcpy(cur_command,list.at(i).toLatin1().constData());
+single_found=find_all_single_formula_tokens(cur_command,&f_token);//find all tokens in a single command
+    for (int j=0;j<single_found;j++)//look up all found tokens
+    {
+    pos=find_single_formula_token_in_list(nr_of_tokens_found,(*n_token),f_token[j].representation);//find the found tokens in the previously found list
+        if (pos>=0)//this tokens has previously been found --> shorten the list
+        {
+            for (int k=j+1;k<single_found;k++)
+            f_token[k-1]=f_token[k];
+        single_found--;
+        }
+    }
+    if (single_found>0)//add the new found tokens to the list
+    {
+    class single_formula_token * f_token2=new class single_formula_token[single_found+nr_of_tokens_found+2];
+        for (int k=0;k<nr_of_tokens_found;k++)//copy old ones
+        f_token2[k]=(*n_token)[k];
+        for (int k=0;k<single_found;k++)//add new found ones
+        f_token2[nr_of_tokens_found+k]=f_token[k];
+    delete[] (*n_token);
+        (*n_token)=f_token2;
+    nr_of_tokens_found+=single_found;
+    }
+delete[] cur_command;
+}
+
+return nr_of_tokens_found;
+}
+
+single_formula_token::single_formula_token(char * token)
+{
+type=2;
+representation=NULL;
+    if (token!=NULL)
+    reset_token(token);
+i_counter=0;
+d_value=0.0;
+}
+
+single_formula_token::~single_formula_token()
+{
+    if (representation!=NULL)
+    delete[] representation;
+}
+
+void single_formula_token::initialize(void * value,int n_type)
+{
+    if (n_type==-1)//no change in type
+    {
+        if (type==0)//counter
+        {
+        i_counter=*((int*)value);
+        }
+        else if (type==1)//double value
+        {
+        d_value=*((double*)value);
+        cout << "d_val=" << d_value << endl;
+        }
+    }
+    else if (n_type==0)
+    {
+        type=n_type;
+        i_counter=*((int*)value);
+    }
+    else if (n_type==1)
+    {
+        type=n_type;
+        d_value=*((double*)value);
+    }
+    else//make it invalid
+    {
+        type=n_type;
+    }
+}
+
+void single_formula_token::changeCounter(int delta)
+{
+i_counter+=delta;
+}
+
+void single_formula_token::setValueToFormula(char * formula)
+{
+double r_d_value;
+int ret=std_evalexpr(formula,&r_d_value);
+    if (ret==RETURN_SUCCESS)
+    d_value=r_d_value;
+}
+
+int single_formula_token::get_counter_value(void)
+{
+return i_counter;
+}
+
+void single_formula_token::raise_counter(void)
+{
+i_counter++;
+}
+
+void single_formula_token::lower_counter(void)
+{
+i_counter--;
+}
+
+double single_formula_token::get_d_value(void)
+{
+return d_value;
+}
+
+void single_formula_token::reset_token(char * token)
+{
+if (representation!=NULL) delete[] representation;
+    if (token!=NULL)
+    {
+    representation=new char[strlen(token)+2];
+    strcpy(representation,token);
+       if (representation[strlen(representation)-1]=='#')//counter
+       type=0;
+       else if (representation[strlen(representation)-1]=='$')//a double value
+       type=1;
+    cout << (type==0?"COUNTER":"VALUE") << " reseting token to " << representation << endl;
+    }
+    else
+    {
+    representation=NULL;
+    type=2;
+    }
+}
+
+class single_formula_token & single_formula_token::operator=(class single_formula_token & a)
+{
+type=a.type;
+if (representation!=NULL) delete[] representation;
+representation=new char[strlen(a.representation)+1];
+strcpy(representation,a.representation);
+i_counter=a.i_counter;
+d_value=a.d_value;
+return *this;
 }
 

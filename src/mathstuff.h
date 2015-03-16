@@ -56,9 +56,8 @@ extern "C" {
   double sqr_wrap(double x);
   double yv_wrap(double v, double x);
   double sign_wrap(double x);
-
-  double ceil_wrap(double x); 
-  double floor_wrap(double x); 
+  double ceil_wrap(double x);
+  double floor_wrap(double x);
 
 double voigt(double gamma, double sigma, double x);
 

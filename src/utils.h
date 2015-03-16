@@ -100,14 +100,21 @@ char *get_editor(void);
 void set_editor(const char *cmd);
 
 void set_docname(const char *s);
+char *get_docfilename(void);
 char *get_docname(void);
 char *get_docbname(void);
 
+char *get_exportname(void);
+char *get_exportfilename(void);
+char *get_exportbname(void);
+void set_exportname(const char *s);
+
 void errmsg(const char *msg);
 void echomsg(char *msg);
-void stufftext(char *msg);
+void stufftext(const char *msg);
 
 int yesnoterm(char *msg);
+int yesnosave(char * msg);
 int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 
 char *mybasename(const char *s);
@@ -140,9 +147,9 @@ char *bi_version_string(void);
 char *bi_system(void);
 char *bi_date(void);
 char *bi_gui(void);
-#ifdef MOTIF_GUI
+/*#ifdef MOTIF_GUI
 char *bi_gui_xbae(void);
-#endif
+#endif*/
 char *bi_ccompiler(void);
 char *bi_t1lib(void);
 #ifdef HAVE_LIBPNG

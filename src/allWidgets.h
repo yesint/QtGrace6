@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Andreas Winter                             *
+ *   Copyright (C) 2008-2015 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,19 +21,11 @@
 #ifndef ALLWIDGETS_H
 #define ALLWIDGETS_H
 
-
 #include <QtGui>
 #include <fstream>
 #include <cstring>
 #include <cstdio>
-
-#ifdef SKF_QtGrace
-#include <QDoubleSpinBox>
-#include <QList>
-#endif
-#include <QLabel>
-#include <QGroupBox>
-
+#include <cfloat>
 #include "draw.h"
 #include "graphs.h"
 #include "x11drv.h"
@@ -63,18 +55,6 @@
 
 #define SAMPLING_MESH   0
 #define SAMPLING_SET    1
-
-#ifndef SKF_QtGrace
-#define DEVICE_PS 2
-#define DEVICE_EPS 3
-#define DEVICE_MIF 4
-#define DEVICE_SVG 5
-#define DEVICE_PNM 6
-#define DEVICE_JPEG 7
-#define DEVICE_PNG 8
-#define DEVICE_BMP 9
-#define DEVICE_METAFILE 10
-#endif
 
 #define READ_SET_FORM 0
 #define READ_NETCDF_FORM 1
@@ -113,6 +93,18 @@
 #define PRUNEWINDOW 0
 #define SAMPLEPOINTSWINDOW 1
 #define GEOMETRICWINDOW 2
+
+#define SPECIAL_NONE 0
+#define SPECIAL_FILTER 1
+#define SPECIAL_REGRESSION 2
+#define SPECIAL_REMEMBER 3
+#define SPECIAL_ADD 4
+#define SPECIAL_MINUS 5
+#define SPECIAL_DIVIDE 6
+#define SPECIAL_MULTIPLY 7
+#define SPECIAL_USE 8
+#define SPECIAL_EXTRACT 9
+#define SPECIAL_FORMULA 10
 
 using namespace std;
 
@@ -341,15 +333,11 @@ class frmPointExplorer:public QDialog
     Q_OBJECT
 public:
     frmPointExplorer(QWidget * parent=0);
-
+    int gno,sno,loc_pos;
     QLabel * lblInstructions;
     QLabel * lblRestrToSet;
     uniList * list;
     stdLineEdit * ledPointLocation;
-
-#ifdef SKF_QtGrace
-    QLabel * ledPointLocationBeauty;
-#endif
     stdLineEdit * ledPointData;
 
     QGroupBox * grpButtons;
@@ -479,7 +467,7 @@ class frmEllipse_Props:public QWidget
 public:
     int obj_id;
     bool editWindow;
-    bool ellipse;//true --> it is realy an ellipse
+    bool ellipse;//true --> it is really an ellipse
     //false --> it is a box
     frmEllipse_Props(QWidget * parent=0,bool edit=false,bool ellip=false);
 
@@ -581,6 +569,7 @@ public:
     ColorSelector * timestamp_color_item;
     QCheckBox * bg_fill_item;
     QCheckBox * timestamp_active_item;
+    QCheckBox * chkPathStamp;
     stdLineEdit * ledStampCoords[2];
     stdSlider * timestamp_rotate_item;
     stdSlider * timestamp_size_item;
@@ -695,6 +684,9 @@ public:
     StdSelector * selOperation;
     StdSelector * selSortOn;
     StdSelector * selSortOrder;
+    StdSelector * selRegion;
+    QCheckBox * chkInvert;
+    QCheckBox * chkCreateNew;
 
     stdLineEdit * ledLength;
     stdLineEdit * ledStart;
@@ -715,23 +707,28 @@ public slots:
     void doHelpOnSetOp(void);
 };
 
-
-
 class frmCommands:public QDialog
 {
     Q_OBJECT
 public:
     frmCommands(QWidget * parent=0);
 
+    grpSelect * grpSource;
+    grpSelect * grpDestination;
+    QPushButton * cmdReplayWithReplace;
     QLabel * lblCommand;
     QLineEdit * lenCommand;
-    //QTextEdit * txtCommands;
     QListWidget * list;
-
-    QGroupBox * grp1_x;
-	QGroupBox * grp2_x;
+    QGroupBox * grpBox1, * grpBox2, * grpBox3;
     QHBoxLayout * layout1,*layout2;
     QVBoxLayout * layout;
+    QGridLayout *layout3;
+    QGroupBox * grpSpecial;
+    QHBoxLayout * layout4;
+    QLabel * lblSpecial;
+    QComboBox * cmbSpecial;
+    QComboBox * cmbSpecial2;
+    QPushButton * cmdSpecial;
 
     QPushButton * cmdAdd;
     QPushButton * cmdDelete;
@@ -758,11 +755,17 @@ public slots:
     void doSave(void);
     void doClear(void);
     void doReplay(void);
+    int special_Scanner(char * command,bool replace);
+    void doReplayWithReplace(void);
+    void doInsertSpecial(void);
+    void Special1Changed(int nr);
+    void Special2Changed(int nr);
     void doClose(void);
     void doHelp(void);
     void doDoubleClick(QListWidgetItem* index);
     void getListSelection(int * number,int ** selection);
     void IOrequested(int type,QString file,bool exists,bool writeable,bool readable);
+    int next_unused_new_set(void);
 };
 
 class frmDeviceOptions:public QDialog
@@ -811,40 +814,15 @@ public:
     QVBoxLayout * layout6;
 
     QGroupBox * grpPNGoptions;
-
-#ifdef SKF_QtGrace
-    QLabel    * description;
-    stdIntSelector * chkResolution;
-#else
     QCheckBox * chkInterlaced;
     QCheckBox * chkTransparent;
     stdIntSelector * selCompression;
-#endif
-
     QVBoxLayout * layout7;
 
     QGroupBox * grpBMPoptions;
     stdSlider * sldQuality;
     QCheckBox * chkGrayscale;
     QVBoxLayout * layout8;
-
-#ifdef SKF_QtGrace
-    QGroupBox * grpPage;
-    QGroupBox * grpOptions;
-    QGroupBox * grpFonts;
-    QVBoxLayout * layout9;
-    QGridLayout * layout10;
-    QGridLayout * layout11;
-    stdLineEdit * printfile_item;
-    StdSelector * page_orient_item;
-    StdSelector * page_format_item;
-    stdLineEdit * page_x_item;
-    stdLineEdit * page_y_item;
-    stdLineEdit * dev_res_item;
-    QComboBox * page_size_unit_item;
-    QCheckBox * chkDontChangeSize;
-#endif
-
 
     stdButtonGroup * buttonGroup;
 
@@ -854,29 +832,20 @@ public slots:
     void doApply(void);
     void doAccept(void);
     void doClose(void);
-
-
-
-
 };
 
 class frmDeviceSetup:public QDialog
 {
     Q_OBJECT
 public:
-    frmDeviceSetup(int windowTitle, QWidget * parent=0);
     frmDeviceSetup(QWidget * parent=0);
+
     QPushButton * device_opts_item;
     QPushButton * wbut;
     QGroupBox * grpDevSetup;
     QGroupBox * grpOutput;
     QGroupBox * grpPage;
     QGroupBox * grpFonts;
-#ifdef SKF_QtGrace
-    bool startQtgrace;
-    QGroupBox * grpOptions;
-#endif
-
     QMenu * mnuFile;
     QMenu * mnuOptions;
     QMenu * mnuHelp;
@@ -885,9 +854,7 @@ public:
     StdSelector * devices_item;
     StdSelector * page_orient_item;
     StdSelector * page_format_item;
-#ifndef SKF_QtGrace
     stdLineEdit * print_string_item;
-#endif
     stdLineEdit * printfile_item;
     stdLineEdit * page_x_item;
     stdLineEdit * page_y_item;
@@ -897,46 +864,25 @@ public:
     QPushButton * cmdNativePrinterDialog;
     QPushButton * cmdDoPrint;
 
-#ifdef SKF_QtGrace
-    QPushButton * closeDoPrint;
-    QProgressBar * progBar;
-
-#endif
-
     QCheckBox * printto_item;
     QCheckBox * fontaa_item;
     QCheckBox * devfont_item;
-#ifdef SKF_QtGrace
-    QCheckBox * scale_item;
-    QCheckBox * high_res_item;
-    QCheckBox * sync_item;
 
-    frmDeviceOptions * DevOptions[8];
-#else
     frmDeviceOptions * DevOptions[6];
-#endif
-
     int cur_dev;
+    int parent_of_print_dialog;//0=this,1=MainWindow
+    char * out_format;
+    char out_format_int[5];
+    char out_format_float[5];
+    QAction * actPrintToFile,*actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
 
-#ifdef SKF_QtGrace
-    QAction *actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
-#else
-    QAction * actPrint,*actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
-
-#endif
     stdButtonGroup * buttonGroup;
 
     QHBoxLayout * layout0;
     QGridLayout * layout1;
     QGridLayout * layout2;
     QVBoxLayout * layout3;
-#ifdef SKF_QtGrace
-    QVBoxLayout * layout4;
-    void setStartQtgrace(bool value);
-    QString newOutputFileName;
-#endif
     QVBoxLayout * layout;
-
 public slots:
     void init(int dev);
     void CreateActions(void);
@@ -945,25 +891,104 @@ public slots:
     void SizeChanged(int i);
     void OrientationChanged(int i);
     void DimChanged(int i);
+    void changeDeviceList(int version);
+    void DpisChanged(void);
     void doApply(void);
     void doAccept(void);
     void doClose(void);
-    void doPrint(void);
-    void doPrint2(void);
-    void doPrint3(void);
+    void doPrintToPrinter(void);
+    void doPrintToFile(void);
     void doSyncPage(void);
     void doRescalePlot(void);
     void doHelpOnContext(void);
     void doHelpOnDevSetup(void);
     void doBrowse(void);
     void doDevOpt(void);
+    void dpiInputChanged(QString text);
+    void tryPrintingOnPrinter(QPrinter * printer);
     void doNativePrinterDialog(void);
+    void replaceFileNameOnly(QString nname);//this assumes that nname is only the name without a path and without a suffix
     void IOrequested(int type,QString file,bool exists,bool writeable,bool readable);
-
-
+    virtual void closeEvent(QCloseEvent * e);
 };
 
-class frmPreferences:public QDialog
+class tabLinestyles:public QWidget
+{
+    Q_OBJECT
+public:
+    tabLinestyles(QWidget * parent=0);
+
+    StdSelector * selShowLinestyles;
+    LineStyleSelector * selStyles;
+    QWidget * empty;
+    QHBoxLayout * hbox;
+    int nr_of_panels;
+    Panel ** panels;
+    QPixmap *whitepanel,*blackpanel,*pmExample;
+    QLabel * lblExample;
+    stdIntSelector * selLen;
+    stdIntSelector * selPos;
+    QGridLayout * layout;
+
+    QPushButton * cmdEdit;
+    QPushButton * cmdAppend;
+    QPushButton * cmdInsert;
+    QPushButton * cmdDelete;
+    QPushButton * cmdUp;
+    QPushButton * cmdDown;
+
+    QPushButton * cmdUseAsCurrent;
+    QPushButton * cmdUseForIni;
+
+    stdButtonGroup * buttons;
+    QSignalMapper * mapper;
+
+int cur_list_len;
+int * cur_list_entries_length;
+char ** cur_list_patterns;
+QIcon ** cur_list_LineIcons;
+QPixmap ** cur_list_LinePixmaps;
+QVector<qreal> ** cur_list_PenDashPattern;
+
+    int cur_line_len;
+    char * cur_line_pattern;
+    QPixmap * cur_line_pm;
+    QIcon * cur_line_ic;
+    QVector<qreal> * cur_line_pendash;
+
+public slots:
+    void init(void);
+    void doApply(void);
+    void doAccept(void);
+    void doClose(void);
+
+    void doAppend(void);
+    void doSingularAppend(void);
+    void doInsert(void);
+    void doEdit(void);
+    void doDelete(void);
+    void doUseAsCurrent(void);//Use the settings currently shown as the Currrent LineStyles
+    void doUseForIni(void);//Use the settings currently shown for the Ini-File
+    void doSwap(int a,int b);
+    void doUp(void);
+    void doDown(void);
+    void setCurrentListForAll(void);
+
+    void show_style_changed(int nr);
+    void currentStyleChanged(int nr);
+    void setPanelsToOnePattern(int len,char * pat,int pan_count);
+    void currentLengthChanged(int nr);
+    void panel_clicked(int nr);
+    void refillLineStyleSelector(void);//resets the LinesStyleSelectors Panels to the current line-style-settings in this dialog
+
+    void generate_Pattern(void);
+    void plotExamples(void);
+virtual void resizeEvent ( QResizeEvent * event );
+signals:
+    void close_wish(void);
+};
+
+class frmPreferences:public QWidget
 {
     Q_OBJECT
 public:
@@ -1007,9 +1032,11 @@ public slots:
     void doExtraPreferences(void);
     void props_define_notify_proc(void);
     void update_props_items(void);
+signals:
+    void close_wish(void);
 };
 
-class frmExtraPreferences:public QDialog
+class frmExtraPreferences:public QWidget
 {
     Q_OBJECT
 public:
@@ -1017,29 +1044,211 @@ public:
 
     QMenu * mnuFile;
     QMenuBar * menuBar;
-
     QAction * actClose,*actLoad,*actSave;
 
-    stdLineEdit * lenHome;
-    stdLineEdit * lenHelpViewer;
-    StdSelector * selLanguage;
+    //General Behavior of QtGrace
+    QGroupBox * grp_Behavior;
+    QGridLayout * layout0;
     StdSelector * selCodec;
-    QCheckBox * chkShowHideException;
-    QCheckBox * chkExternalHelpViewer;
     QCheckBox * chkActivateLaTeXSupport;
+    QCheckBox * chkQtFonts;
+    QCheckBox * chkSymbolSpecial;
+    StdSelector * selDecSep;
+
+    QCheckBox * chkUsePrintCommand;
+    stdLineEdit * lenPrintCommand;
+    QCheckBox * chkAutoSetAgr;
+    QCheckBox * chkAutoSetExport;
+    QCheckBox * chkAutoSetCWD;
+    QCheckBox * chkWarnOnEncodingChange;
+    QCheckBox * chkHDPrinterOutput;
+    //FontSelector * defaultFont;
+    //stdLineEdit * lenHome;//-->deleted
+
+    //Settings for the QtGrace-Gui
+    QGroupBox * grp_Gui;
+    QVBoxLayout * layout1;
+    QCheckBox * chkExternalHelpViewer;
+    stdLineEdit * lenHelpViewer;
+    QCheckBox * chkShowHideException;
     QCheckBox * chkImmediateUpdate;
-    StdSelector * selDefaultPrintDevice;
+    QCheckBox * chkNewIcons;
+    //QCheckBox * chkNewPrintDialog;
     stdIntSelector * histSize;
+    LineWidthSelector * selFontSize;//actually just a double-value-selector to change the general font size
+    QLabel * lblGuiFont;
+    QPushButton * cmdSelGuiFont;
+    QPushButton * cmdResetGuiFont;
+    QLabel * lblBackground_Color_Text;
+    QPushButton * cmdSelGUIBGColor;
+    QPushButton * cmdSetGUIBGColor_to_PageBG;
+    QPushButton * cmdSetGUIBGColor_to_Std;
 
     QVBoxLayout * layout;
     stdButtonGroup * buttonGroup;
+
 public slots:
     void init(void);
     void toggleHTMLviewer(int entry);
+    void toggleQtFonts(bool check);
     void doLoad(void);
     void doSave(void);
     void doApply(void);
     void doAccept(void);
+    void doClose(void);
+
+    void toggleNewIcons(bool val);
+    void changeGUIFont(void);
+    void resetGUIFont(void);
+    void select_BG_Color(void);
+    void set_BG_Color_to_Std(void);
+    void set_BG_Color_to_Page_BG(void);
+signals:
+    void close_wish(void);
+};
+
+class frmQtGracePrefs2:public QWidget
+{
+Q_OBJECT
+public:
+frmQtGracePrefs2(QWidget * parent=0);
+
+//QLabel * lblExtLibs;
+QGroupBox * grp_libFFTW3;
+QCheckBox * chkUseFFTW3;
+QLabel * lblFFTW3_found;
+QLabel * lblfftw3_static;
+stdLineEdit * ledFFTW3_dll;
+QPushButton * cmdBrowseFFTW3;
+QGridLayout * layout0;
+
+QGroupBox * grp_libHaru;
+QCheckBox * chkUselibHaru;
+QLabel * lblHaru_found;
+QLabel * lblHaru_static;
+stdLineEdit * ledHaru_dll;
+QPushButton * cmdBrowseHaru;
+QGridLayout * layout1;
+
+QGroupBox * grp_tool_bar;
+QLabel * lblToolBar;
+QCheckBox * chkShowNavi;
+QCheckBox * chkShowGraph;
+QCheckBox * chkShowSpecZoom;
+QCheckBox * chkShowViewp;
+QCheckBox * chkShowPageZoom;
+QCheckBox * chkShowPrintB;
+QCheckBox * chkShowExportP;
+QLabel * lblStatusBar;
+QCheckBox * chkShowHostName;
+QCheckBox * chkShowDisplay;
+StdSelector * selFileDisplay1;
+StdSelector * selFileDisplay2;
+QPushButton * cmdGraceDefaults;
+QPushButton * cmdQtGraceDefaults;
+QGridLayout * layout2;
+
+//Startup-Settings
+QGroupBox * grp_Startup;
+QVBoxLayout * layout3;
+QLabel * lblSelStartup;
+QLabel * lblStartupWarning;
+StdSelector * selLanguage;
+stdIntSelector * selStdDpi;
+stdIntSelector * selStartupX;
+stdIntSelector * selStartupY;
+stdIntSelector * selStartupWidth;
+stdIntSelector * selStartupHeight;
+stdLineEdit * lenDefaultFile;
+StdSelector * selDefaultPrintDevice;
+QPushButton * cmdBrowseForDefault;
+QPushButton * cmdStartupCurrent;
+
+QVBoxLayout * layout;
+stdButtonGroup * buttonGroup;
+public slots:
+    void doBrowseFFTW3_dll(void);
+    void doBrowseHaru_dll(void);
+    void init(void);
+    void read_settings(void);
+    void doGraceDefaults(void);
+    void doQtGraceDefaults(void);
+    void doApply(void);
+    void doAccept(void);
+    void doClose(void);
+    void doBrowse(void);
+    void doCurrentAsStartup(void);
+signals:
+    void close_wish(void);
+};
+
+class frmDefaults:public QWidget
+{
+Q_OBJECT
+public:
+frmDefaults(QWidget * parent=0);
+
+//Grace-Defaults
+QGroupBox * grp_defaults;
+QGridLayout * layout0;
+ColorSelector * selStdColor;
+ColorSelector * selBGColor;
+FillPatternSelector * selStdPattern;
+LineStyleSelector * selLineStyle;
+LineWidthSelector * selLineWidth;
+stdSlider * sldStdCharSize;
+FontSelector * selStdFont;
+stdSlider * sldStdSymSize;
+stdLineEdit * lenDefaultFormat;
+QPushButton * cmdUseThisForCurrent;
+QPushButton * cmdUseThisForProjectFile;
+QVBoxLayout * layout;
+QLabel * lblviewp;
+stdLineEdit * selviewp[4];
+
+StdSelector * selShowDefaults;
+defaults show_defaults;
+view show_view;
+char show_sformat[32];
+
+stdButtonGroup * buttonGroup;
+
+public slots:
+    void init(void);
+    void readDefaultSettings(void);
+    void doSetCurrent(void);
+    void doSetFile(void);
+    void doApply(void);
+    void doAccept(void);
+    void doClose(void);
+
+    void show_current_defaults(void);
+    void currentShowDefaultsChanged(int index);
+signals:
+    void close_wish(void);
+};
+
+class frmColorManagement;
+
+class frm_Preferences:public QDialog
+{
+    Q_OBJECT
+public:
+    frm_Preferences(QWidget * parent=0);
+
+    QTabWidget * tabs;
+
+    frmPreferences * tab_prefs;
+    frmExtraPreferences * tab_extra;
+    frmQtGracePrefs2 * tab_qtgrace_prefs2;
+    tabLinestyles * tab_linestyles;
+    frmColorManagement * tab_colors;
+    frmDefaults * tab_defaults;
+    QVBoxLayout * vbox;
+public slots:
+    void init(void);
+    void tab_changed(int nr);
+    void redisplayContents(void);
     void doClose(void);
 };
 
@@ -1135,7 +1344,7 @@ class frmDataSetProperties:public QDialog
     Q_OBJECT
 public:
     frmDataSetProperties(QWidget * parent=0);
-
+    int gno,sno;
     QMenuBar * menuBar;
     QMenu * mnuFile;
     QMenu * mnuEdit;
@@ -1218,7 +1427,7 @@ public:
     QGroupBox * grpBuildInfo;
     QGroupBox * grpHomePage;
 
-    QLabel * lblInfo[25];
+    QLabel * lblInfo[32];
     QPushButton * cmdIAdr;
     QPushButton * cmdIAdr2;
     QPushButton * cmdIAdr3;
@@ -1243,6 +1452,8 @@ class frmFeatureExtract:public QDialog
 public:
     frmFeatureExtract(QWidget * parent=0);
 
+    QLabel * lblSourceGraph;
+    uniList * listSourceGraph;
     QLabel * lblResultGraph;
     uniList * listResultGraph;
     QLabel * lblAbscissaGraph;
@@ -1253,22 +1464,74 @@ public:
     stdButtonGroup * buttonGroup;
     StdSelector * selFeature;
     StdSelector * selXValue;
+    stdLineEdit * ledValue;
     QVBoxLayout * layout;
 public slots:
     void init(void);
+    void FeatureChanged(int i);
     void XValueChanged(int i);
     void doClose(void);
     void doAccept(void);
-    void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph );
-    int mute_linear_regression(int n, double *x, double *y, double *slope, double *intercept);
+    void fext_routine(int gfrom, int gto, int feature, int abs_src, int abs_set, int abs_graph );
+    /*int mute_linear_regression(int n, double *x, double *y, double *slope, double *intercept);
     int get_rise_time( int setl, double *xv, double *yv, double min, double max,double *width );
     int get_fall_time( int setl, double *xv, double *yv, double min, double max,double *width );
     int get_zero_crossing( int setl, double *xv, double *yv, double *crossing );
     int get_half_max_width(int len, double *x, double *y, double *width);
-    double linear_interp( double x1, double y1, double x2, double y2, double x );
     int getmedian( int grno, int setno, int sorton, double *median );
     int get_barycenter( int n, double *x, double *y, double *barycenter );
-    void get_max_pos( double *a, double *b, int n, double max, double *d );
+    void get_max_pos( double *a, double *b, int n, double max, double *d );*/
+};
+
+class frmAgrInfos:public QDialog
+{
+    Q_OBJECT
+public:
+    frmAgrInfos(QWidget * parent=0);
+
+    QLabel * lblFilename;
+    QLabel * lblFilenText;
+    QLabel * lblDescription;
+    QLabel * lblDescrText;
+
+    StdSelector * selSelection;
+    StdSelector * selTargetGno;
+
+    QWidget * empty;
+    QScrollArea * scroll;
+
+    int allocated_controls;
+    QCheckBox ** chkImport;
+    QLabel ** lblID;
+    QLabel ** lblLegend;
+    QLabel ** lblComment;
+    QLabel ** lblType;
+    QLabel ** lblTitle;
+
+    QPushButton * cmdImport;
+    QPushButton * cmdShowAgrInfo;
+
+    struct agr_file_info info;
+    bool shButtons,shFilename;
+
+    QGridLayout * layout0;
+    QGridLayout * layout1;
+
+    stdButtonGroup * buttons;
+
+public slots:
+    void setVisibleItems(bool showButtons,bool showFilename);
+    void init(char * filen);//initialize the display (not the target graph)
+    void readSettings(void);
+    void changeSelection(int index);
+    void doImport(void);
+    void setInfoVisible(bool v);
+    void toggleShowAgrInfo(void);
+    void doCancel(void);
+    void doOpenAgr(void);
+    void doImportAgr(void);
+signals:
+
 };
 
 class frmIOForm:public QDialog
@@ -1289,6 +1552,7 @@ public:
     QLabel * lblDataSource;
 
     QTextEdit * txtDescription;
+    QLabel * lblProjectContent;
 
     stdLineEdit * ledFormat;
     stdLineEdit * ledFormat2;
@@ -1342,6 +1606,8 @@ public:
     stdIntSelector * selMaxImportData;
 
     QGridLayout * layout;
+//frmAgrInfos * agrInfo;
+    QPushButton * cmdOpenSetImport;
 
     QString selectedFile;
     bool FileExists;
@@ -1356,7 +1622,7 @@ public slots:
     void doFilter(void);
     void doCancel(void);
     void doHelp(void);
-
+    void doOpenSetImport(void);
     void headerChecked(int c);
     void readUntilEOFChecked(int c);
     void setTypeChanged(int c);
@@ -1394,13 +1660,15 @@ public:
     FontSelector * selFont;
     GlyphPanel * panel[16*338];
     stdLineEdit * ledString;
+    stdLineEdit * ledAscii,*ledUnicode;
     QWidget * background;
     QScrollArea * scroll;
     QString textString;
     QGridLayout * layout0;
-    QVBoxLayout * layout;
+    QGridLayout * layout;
     stdButtonGroup * buttonGroup;
     int marked,tileCount;
+    unsigned short last_character;
 public slots:
     void characterInserted(QString text);
     void insertAtCursor(QString c);
@@ -1422,6 +1690,7 @@ public:
 
     stdButtonGroup * buttonGroup;
     StdSelector * selectors[5];
+    QCheckBox * chk_scale;
     QVBoxLayout * layout;
 public slots:
     void init(void);
@@ -1444,6 +1713,10 @@ public slots:
 
 #define PROCESSING_INTERPOLATION 0
 #define PROCESSING_ZERO_PADDING 1
+#define PROCESSING_FIRST_LAST_PADDING 2
+
+int create_padded_set(int n_gno,int & n_sno,int o_gno,int o_sno,int new_length,int padding_type);
+int do_filter_on_one_set(int n_gno,int n_sno,int o_gno,int o_sno,int type,int realization,int resid,int res_negate,int abs,int debug,char * formula,int point_extension,int oversampling,double ripple,int order1,int order2,double f1,double f2);
 
 class frmFourier2:public QDialog
 {
@@ -1518,6 +1791,40 @@ public slots:
     void newLinkFileSelected(int type,QString file,bool exists,bool writeable,bool readable);
 };
 
+class frmMasterRegionOperator:public QDialog
+{
+    Q_OBJECT
+public:
+    frmMasterRegionOperator(QWidget * parent=0);
+    QLabel * lblTitles[5];
+    QLabel * lblRegions[7];
+    QComboBox * cmbType[7];
+    QPushButton * cmdActive[7];
+    QPushButton * cmdDefine[7];
+    QPushButton * cmdReportSet[7];
+    QPushButton * cmdReportPoints[7];
+
+    QPushButton * cmdClearARegion;
+    QPushButton * cmdClearAllRegions;
+    QPushButton * cmdClose;
+    QGridLayout * layout;
+
+    QSignalMapper * mapActive,*mapType,*mapDefine,*mapReportSet,*mapReportPoints;
+
+    QString regtypes[10];
+    int reg_order[10];
+public slots:
+    void init(void);
+    void doClearARegion(void);
+    void doClearAllRegions(void);
+    void doClose(void);
+    void clickActive(int regno);
+    void changeType(int regno);
+    void clickDefine(int regno);
+    void clickReportSets(int regno);
+    void clickReportPoints(int regno);
+};
+
 class frmRegionStatus:public QDialog
 {
     Q_OBJECT
@@ -1550,13 +1857,14 @@ public:
     StdSelector * selector0;
     StdSelector * selector1;
     stdButtonGroup * buttonGroup;
+    int reg_order[10];
     QVBoxLayout * layout;
 public slots:
     void init(void);
     void doAccept(void);
     void doDefine(void);
     void doClose(void);
-    void define_region(int nr, int rtype);
+    //void define_region(int nr, int rtype);
 };
 
 class frmEditBlockData:public QDialog
@@ -1602,6 +1910,7 @@ public:
     stdButtonGroup * buttonGroup;
     QGridLayout * layout;
 public slots:
+    void Redisplay(void);
     void typeChanged(int i);
     void doAccept(void);
     void doApply(void);
@@ -1681,6 +1990,7 @@ public:
     stdLineEdit * ledStartLoadAt;
     stdLineEdit * ledStopLoadAt;
     stdLineEdit * ledNumberOfPoints;
+    stdLineEdit * ledXFunction;
     QGridLayout * layout2;
 
     QVBoxLayout * layout;
@@ -1722,6 +2032,7 @@ public:
 
 public slots:
     void init(void);
+    bool read_fit_options(void);
     void update_nonl_frame(void);
     void CreateActions(void);
     void doApply(void);
@@ -1749,6 +2060,7 @@ public:
     grpSelect * grpDestination;
     uniList * sampSet;
     QCheckBox * chkStrict;
+    QCheckBox * chkNextPowerOfTwo;
     QCheckBox * chkCumulHist;
     QCheckBox * chkNormalize;
     StdSelector * selMethod;
@@ -1767,6 +2079,7 @@ public slots:
     void init(void);
     void selSamplingChanged(int i);
     void selSamplGraphChanged(int i);
+    void toggleNextPowerOfTwo(bool i);
     void doAccept(void);
     void doApply(void);
     void doClose(void);
@@ -1787,7 +2100,7 @@ public:
     QCheckBox * chkInvert;
     stdStartStop * StartStop;
     stdButtonGroup * buttonGroup;
-    QVBoxLayout * layout;
+    QGridLayout * layout;
 public slots:
     void init(void);
     void loadChanged(int i);
@@ -2042,6 +2355,7 @@ public slots:
     void SyncColors(int val);
     void SyncColors2(int val);
     void setapp_data_proc(int dat);
+    void redisplayContents(void);
 };
 
 class frmSetAppearance:public QDialog
@@ -2158,6 +2472,13 @@ public:
     ColorSelector * selFrameFillColor;
     FillPatternSelector * selFrameFillPattern;
 
+    StdSelector * selLegBoxAttachement;
+    QPushButton * cmdAttachLeft;
+    QPushButton * cmdAttachTop;
+    QPushButton * cmdAttachRight;
+    QPushButton * cmdAttachBottom;
+    QPushButton * cmdMoveLegend;
+
     QWidget * emptyArea;
 
     QVBoxLayout * layout;
@@ -2165,6 +2486,15 @@ public:
     QGridLayout * layout2;
     QHBoxLayout * layout3;
 public slots:
+    void viewCoordsChanged(int index);
+    void autoAttachChanged(int index);
+    void doAttachLeft(void);
+    void doAttachTop(void);
+    void doAttachBottom(void);
+    void doAttachRight(void);
+    void doMoveLegend(void);
+signals:
+    void doApply(void);
 };
 
 class GrTabLegends:public QWidget
@@ -2261,6 +2591,7 @@ public slots:
     int graphapp_aac_cb(void);
     void show_graph_data_external(int n_gno);
     void newSelection(int i);
+    void redisplayContents(void);//to switch between different decimal separators
     void update_graphapp_items(int n, int *values);
     void update_view(int gno);
     void updatelegends(int gno);
@@ -2483,6 +2814,7 @@ public slots:
     void set_axis_proc(int value);
     void update_ticks(int gno);
     void create_axes_dialog(int axisno);
+    void redisplayContents(void);//to switch between different decimal separators
     //immediateUpdates
     void update0(void);
     void update1(int v);
@@ -2558,29 +2890,96 @@ public slots:
     int getSize(void);
     int getType(void);
     int getTarget(void);
+    void setSize(int s);
+    void setType(int t);
+    void setTarget(int t);
     void formatChanged(int i);
 };
+
+#define HEADER_FORMAT_MANUAL 0
+#define HEADER_FORMAT_DATA_FILE 1
+#define HEADER_FORMAT_BIN_FILE 2
+#define HEADER_FORMAT_INI_FILE 3
+#define HEADER_FORMAT_ASCII_FILE 4
 
 class frmBinaryFormatInput;
 
 struct importSettings
 {
+    QString filename,name;//used to associate this with a file name
+//all settings needed to import from a binary file - some are set directely, some are read from a header, not all are used every time (depends on the settings)
+    int valid_status;//-1=invalid (uninitialized), 0=initialized as a scheme, 1=header read, 2=ready for loading bin-data (everything set)
+/// general file-informations (set without having to read a header)
+    QString HeaderFile,DataFile;
+    QString DataSuffix,HeaderSuffix;//if no header is present or the header is part of the datafile itself HeaderSuffix==""
+    bool header_present;
+    int header_format;//0=manual,1=header in data file itself,2=header in separate binary-data-file,3=header in separate ini-file, 4=header in separate ascii-file
     char string_end_char;
-    char * title;
-    char * subtitle;
-    bool x0set,deltaxset,fset,read_to_eof;
-    double x0,deltax,f;
+    bool read_to_eof,keep_trigger,multiple_header_files,determine_string_size;
+    int setorder,autoscale;
+    int target_gno,set_type;//target set is always the next set-id available
+    int headersize,first_suggestion;
+
+    //the following values may or may not be present in the header; they can be set ab initio or can be read from the header
     double triggervalue;
-    int bytesize,bitsize;
-    int whole_size,single_size;
-    int channels,points,setorder;
-    double factors[7];//x,y,y1,y2,y3,y4,trigger
-    char * x_title,*y_title,*set_title;
-    int target_gno,set_type;
-    double ** first_data;
+    int trigger_type;//-1=no trigger, 0=rising edge, 1=falling edge, 2=either edge
+    int channels,points;
+
+    //the actual import format for all channels
     int * channel_format;
     int * channel_size;
     int * channel_target;
+
+/// informations (usually) read from a header
+    //necessary to read the data
+    int bytesize,bitsize;
+    int whole_size,single_size;
+    double factors[7];//scaling factors for x,y,y1,y2,y3,y4,trigger
+    double channel_factors[MAX_BIN_IMPORT_CHANNELS];//scaling factors for every channel; we use only 16 channels here -- should be enough
+    double channel_offsets[MAX_BIN_IMPORT_CHANNELS];//offset value for every channel
+    //ini-header-files
+    int nr_of_import_tokens;//how many relevant tokens are present in an ini-file
+    int * token_target;//where to import header-data into
+    QStringList vals,keys;//header-informations form an ini-file
+    QList<int> import_channel_dest;//what channel the data is to import to (-1 = general information, not specific to a channel)
+    QList<int> import_dest;//where to import the data read from the header
+    //binary-header-files
+    int nr_of_header_values;
+    int * header_value_format,* header_value_size,* header_value_import;
+
+    //control values set after a header has been read
+    bool x0set,deltaxset,fset,contains_trigger;
+
+    //auxiliary data read from the header
+    char * title;
+    char * subtitle;
+    char * x_title,*y_title,*set_title;
+
+    double x0,deltax,f;//f=sampling rate-->deltax=1/f; x=x0+deltax*i
+
+/// first data read after header (just to check the import settings)
+    double ** first_data;
+    int points_read,columns_read;
+};
+
+/*ini-file format input*/
+class inputIniData:public QWidget
+{
+    Q_OBJECT
+public:
+    inputIniData(QWidget * parent=0);
+    QGridLayout * layout;
+    QLabel ** titles;
+    QLabel ** lbl_imp_key;
+    QLabel ** lbl_imp_value;
+    QComboBox ** cmbChannel;
+    QComboBox ** cmbImportTo;
+    int lines;
+    QList<int> datas;
+public slots:
+    void clearData(void);
+    void initData(struct importSettings imp_set);
+    void setData(struct importSettings & imp_set);
 };
 
 class pageHeaderInfo:public QWidget
@@ -2605,14 +3004,17 @@ public:
     QLabel * lblEndChar;
     QLineEdit * lenEndChar;
     QPushButton * cmdTestLoad;
-    int nr_of_sels;
-    StdSelector ** sels;
-    QString * readValues;
+    //int nr_of_sels;
+    //StdSelector ** sels;
+    inputIniData * iniDataGroup;
+    //QString * readValues;
     QPushButton * cmdReadIni;
     int nr_of_entries;
     QString entries[NUMBER_OF_IMPORT_DESTINATIONS];
     int entry_values[NUMBER_OF_IMPORT_DESTINATIONS];
     frmBinaryFormatInput * par_wid;
+    inputIniData * inpIniData;
+    QStringList keys;//the ini-imput-keys
 signals:
     void readHeader(void);
 public slots:
@@ -2623,6 +3025,8 @@ public slots:
     void doDelete(int i);//remove a line
     void offsetChanged(int i);
     void doTestLoad(void);
+    void read_header_settings(struct importSettings & imp_set);//transfer import settings from gui to imp_set
+    void write_header_settings(struct importSettings & imp_set);//tranfer import settings to gui
 };
 
 class pageDataInfo:public QWidget
@@ -2644,12 +3048,15 @@ public:
     int number_of_lines;
     inputLine ** inFormats;
     StdSelector * selOrder;
+    LineWidthSelector * selTriggerValue;
+    StdSelector * selTriggerType;
 signals:
     void newChannelCount(int i);
 public slots:
     void channelCountChanged(int i);
     void eofToggled(bool i);
     void readDataSettings(importSettings & imp_set);
+    void writeDataSettings(importSettings & imp_set);
 };
 
 class pageFileInfo:public QWidget
@@ -2684,7 +3091,14 @@ public:
 
 public slots:
     void newChannelCount(int i);
+    void read_settings(struct importSettings & imp_set);//transfers settings from gui to imp_set
+    void write_settings(struct importSettings & imp_set);//transfers settings from imp_set to gui
 };
+
+void LoadFileFormat(char * fname, struct importSettings & imp_set);
+void SaveFileFormat(char * fname, struct importSettings & imp_set);
+void matchSchemeToHeader(char * fname,struct importSettings & imp_set,struct importSettings & imp_scheme);
+void readBinFileHeader(char * fname,struct importSettings & imp_set);
 
 class frmBinaryFormatInput:public QDialog
 {
@@ -2694,7 +3108,10 @@ public:
     QGridLayout * grid;
     QPushButton * cmdSave;
     QPushButton * cmdLoad;
+    QPushButton * cmdStdSave;
+    QPushButton * cmdStdLoad;
     QCheckBox * chkHeader;
+    QCheckBox * chkMultiHeaders;
     QLabel * lblFormatSource;
     QComboBox * cmbFormatSource;
     QLabel * lblDataFile;
@@ -2707,18 +3124,29 @@ public:
     stdButtonGroup * aac;
     QPushButton * cmdSelectDataFile;
     QPushButton * cmdSelectHeaderFile;
+
     pageHeaderInfo * tabHeader;
     pageDataInfo * tabDataInfo;
     pageFileInfo * tabFileInfo;
     pageImportInfo * tabImportInfo;
+
     char datFileName[512];
     QStringList datFileNames;
     char headerFileName[512];
-    importSettings imp_set;
+    QStringList headerFileNames;
+
+    importSettings imp_set;//the current import-settings to be used
+    importSettings imp_scheme;//the current sheme for the import-settings
+
     QString settingString;
     int first_suggestion;
     bool auto_transfer_from_header,determine_string_size;
     int headersize;
+    QString LoadFormatPath,SaveFormatPath,LoadIniPath,LoadDataPath;
+    QString HeaderSuffix,Data_Suffix;
+    QString HeaderPath,Data_Path;
+    /*QFileDialog * dlgLoadFormat,* dlgSaveFormat;
+    QFileDialog * dlgLoadIniFile,* dlgLoadDataFile;*/
 public slots:
     void init(void);
     void getDatFilesFromString(QString * origin,QStringList * lst);
@@ -2726,20 +3154,27 @@ public slots:
     void headerToggled(bool t);
     void doSaveFileFormat(void);
     void doLoadFileFormat(void);
+    void doSaveStdFormat(void);
+    void doLoadStdFormat(void);
     void SelectDataFile(void);
     void SelectHeaderFile(void);
+    int detectStdBinFormat(char * filen);
     void formatSourceChanged(int i);
+    void displaySettings(struct importSettings & imp_set);
+    void readSettings(struct importSettings & imp_set);
     void HeaderFormatChanged(int i);
     void doOK(void);
     void doClose(void);
     void doAccept(void);
     void transmitInfos(void);
-    void initSettings(struct importSettings & i);
     void convertSettingsToString(void);
-    void doReadDataFromHeader(ifstream & ifi);
+    void updateSuffixes(void);
+    void CheckHeadersAndDatFiles(void);//to complete filenames and check completeness on informations
 };
 
-void readBinaryFromFile(ifstream & ifi,importSettings imp_set,double *** data,int * columns_read,int * points_read);
+void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set);
+void readBinaryFromFile(ifstream & ifi,struct importSettings & imp_set,double *** data);
+void get_all_settings_from_ini_file(char * ini_file,QStringList & keys,QStringList & vals);
 
 class frmSetEditor:public QDialog
 {
@@ -2760,6 +3195,7 @@ public slots:
     void init(int g_no,int set_no);
     void doUpdate(void);
     void doClose(void);
+    void convertText(char oldDecSep,char newDecSep);//changes the Decimal separator in the text (except in lines containing commands)
 };
 
 class frmUndoList:public QDialog
@@ -2780,47 +3216,6 @@ public slots:
     void doClose(void);
     void doToggleActive(int state);
 };
-
-
-class frmFontSettings:public QDialog
-{
-    Q_OBJECT
-public:
-    frmFontSettings(QWidget * parent=0);
-    QGridLayout * layout;
-    QLabel * lblFont;
-	QLabel * lblMinMaxFont;
-    QSpinBox * spinFontSize;
-    frmText_Props * TextProperties;
-    frmAxis_Prop * AxisProperties;
-    frmGraph_App * GraphProperties;
-    frmPlot_Appearance * PlotAppearance;
-    stdButtonGroup * aac;
-	void saveDefaultFont();
-
-public slots:
-    void updateFont(int v);
-    void doAccept(void);
-    void doClose(void);
-    void doReset(void); 
-
-private: 
-	double defaultTimestampFontSize;
-	bool startUpdate;
-	void closeEvent(QCloseEvent *);
-	
-	QList<double> defaultTitleFontSize;
-	QList<double> defaultSubTitleFontSize;
-	QList<double> defaultLegendFontSize;
-	QList<double> defaultXLabelsBarsFontSize;
-	QList<double> defaultYLabelsBarsFontSize;
-	QList<double> defaultXTickLabelsFontSize;
-	QList<double> defaultYTickLabelsFontSize;
-	QList<double> defaultStringsFontSize;
-
-	       
-};
-
 
 class frmExplorer:public QDialog
 {
@@ -2858,7 +3253,7 @@ public slots:
 #define COLD_HOT_SPECTRUM 2
 #define CUSTOM_SPECTRUM 3
 
-class frmColorManagement:public QDialog
+class frmColorManagement:public QWidget
 {
     Q_OBJECT
 public:
@@ -2939,6 +3334,8 @@ public slots:
     void CurrentPathPointChanged(int nr);
     void CurrentPathColorChanged(int nr);
     CMap_entry constructColor(void);
+signals:
+    void close_wish(void);
 };
 
 class frmRealTimeInputManager:public QDialog
@@ -3012,6 +3409,8 @@ public:
     StdSelector ** selTargetColumn;
 
     struct cvs_import_infos import_info;
+    bool exists,readable,writable;
+    long size_kB;
 public slots:
     void read_inputs(void);
     void read_import_settings(void);
@@ -3026,5 +3425,66 @@ public slots:
     void doAccept(void);
     void doClose(void);
 };
+
+class frmProgressWin:public QDialog
+{
+    Q_OBJECT
+public:
+    frmProgressWin(QWidget * parent=0);
+    QLabel * lblText;
+    QProgressBar * progress;
+    QVBoxLayout * layout;
+public slots:
+    void init(QString text,int max);
+    void increase(void);
+    void setVal(int val);
+};
+
+class frmQuestionDialog:public QDialog
+{
+    Q_OBJECT
+public:
+    frmQuestionDialog(QWidget * parent=0);
+    QGridLayout * layout;
+    QPushButton * cmdYes;
+    QPushButton * cmdNo;
+    QPushButton * cmdSave;
+    QPushButton * cmdSaveAs;
+    QLabel * lblText;
+    //QLabel * lblIcon;
+public slots:
+    void init(QString text,QString title_text,bool show_Save=true,bool show_SaveAs=true,bool show_Yes=true, bool show_No=true);
+    void doYes(void);
+    void doNo(void);
+    void doSave(void);
+    void doSaveAs(void);
+};
+
+class frmSimpleListSelectionDialog:public QDialog
+{
+    Q_OBJECT
+public:
+    frmSimpleListSelectionDialog(QWidget * parent=0);
+    QGridLayout * layout;
+    StdSelector * selNames;
+    stdLineEdit * ledNewName;
+    QPushButton * cmdSelect;
+    QPushButton * cmdNew;
+    QPushButton * cmdCancel;
+    QString return_name;
+    int return_nr;
+public slots:
+    void init(QString * name_list,int nr, bool read);
+    void doCancel(void);
+    void doSelect(void);
+    void doNew(void);
+};
+
+int generate_x_mesh_from_formula(int gno,int sno,double start,double stop,int npts,char * formula,int type);
+void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,int & n_sets,int ** gnos,int ** snos,int & type,int & realization,double * limits,int * orders,char * x_formula,double & ripple,int & absolute,int & debug,int & point_extension,int & oversampling,int & rno,int & invr);
+void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_sets,int ** n_gnos,int ** n_snos,int & ideg,int & iresid,int & rno,int & invr,double & start,double & stop,int & points,int & rx,char * formula);
+int containsSpecialCommand(char * com,char ** parameters);
+int ParseExtractCommand(char * com,char * arg);
+int ParseSpecialFormula(char * com,char * arg);
 
 #endif

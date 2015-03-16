@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- *
+ * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- *
+ * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2000 Grace Development Team
- *
+ * 
  * Maintained by Evgeny Stambulchik
- *
- * Modified by Andreas Winter 2008-2012
- *
+ * 
+ * Modified by Andreas Winter 2008-2015
+ * 
  *                           All Rights Reserved
- *
+ * 
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- *
+ * 
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- *
+ * 
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -38,26 +38,34 @@
 #include "graphutils.h"
 #include "utils.h"
 #include "device.h"
-#include "rint.h"
+
 using namespace std;
 
+extern double rint_v2(double x);
 extern double GeneralPageZoomFactor;
+//extern long orig_page_w,orig_page_h;
 unsigned int ndevices = 0;
-
-#ifdef SKF_QtGrace
 int curdevice = DEVICE_SCREEN;
-#else
-int curdevice = 0;
-#endif
-
 Device_entry *device_table = NULL;
+
+Device_entry dev_null = {DEVICE_NULL,
+          "NULL",
+          NULL,
+          NULL,
+          NULL,
+          "",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          NULL
+         };
 
 int is_valid_page_geometry(Page_geometry pg)
 {
     if (pg.width  > 0 &&
-            pg.height > 0 &&
-            pg.dpi > 0.0) {
-        return TRUE;
+	pg.height > 0 &&
+        pg.dpi > 0.0) {
+	return TRUE;
     } else {
         return FALSE;
     }
@@ -67,7 +75,7 @@ int set_page_geometry(Page_geometry pg)
 {
     if (is_valid_page_geometry(pg) == TRUE) {
         device_table[curdevice].pg = pg;
-        return RETURN_SUCCESS;
+	return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
@@ -75,22 +83,25 @@ int set_page_geometry(Page_geometry pg)
 
 Page_geometry get_page_geometry(void)
 {
-    static Page_geometry pg2;
-    pg2=device_table[curdevice].pg;
-    /*pg2.height=(unsigned long)(pg2.height*GeneralPageZoomFactor);
-pg2.width=(unsigned long)(pg2.width*GeneralPageZoomFactor);*/
-    return pg2;
-    //return (device_table[curdevice].pg);
+/*static Page_geometry pg2;
+pg2=device_table[curdevice].pg;
+pg2.height=(unsigned long)(pg2.height*GeneralPageZoomFactor);
+pg2.width=(unsigned long)(pg2.width*GeneralPageZoomFactor);
+return pg2;*/
+return (device_table[curdevice].pg);
 }
 
 int set_page_dimensions(int wpp, int hpp, int rescale)
 {
     int i;
-    
-    if (wpp <= 0 || hpp <= 0) {
+    if (wpp <= 0 || hpp <= 0)
+    {
         return RETURN_FAILURE;
-    } else {
-        if (rescale) {
+    }
+    else
+    {
+        if (rescale)
+        {
             int wpp_old, hpp_old;
             
             get_device_page_dimensions(curdevice, &wpp_old, &hpp_old);
@@ -116,12 +127,20 @@ int set_page_dimensions(int wpp, int hpp, int rescale)
                 }
 
                 rescale_viewport(ext_x, ext_y);
-            }
+            } 
         }
-        for (i = 0; i < ndevices; i++) {
+        for (i = 0; i < ndevices; i++)
+        {
             Page_geometry *pg = &device_table[i].pg;
-            pg->width  = (unsigned long) rint((double) wpp*(pg->dpi/72));
-            pg->height = (unsigned long) rint((double) hpp*(pg->dpi/72));
+            pg->width  = (unsigned long) rint_v2((double) wpp*(pg->dpi/72));
+            pg->height = (unsigned long) rint_v2((double) hpp*(pg->dpi/72));
+            /*if (i==DEVICE_SCREEN)
+            {
+            orig_page_w=pg->width;
+            orig_page_h=pg->height;
+            device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;
+            device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
+            }*/
         }
         return RETURN_SUCCESS;
     }
@@ -133,8 +152,8 @@ int get_device_page_dimensions(int dindex, int *wpp, int *hpp)
         return RETURN_FAILURE;
     } else {
         Page_geometry *pg = &device_table[dindex].pg;
-        *wpp = (int) rint((double) pg->width*72/pg->dpi);
-        *hpp = (int) rint((double) pg->height*72/pg->dpi);
+        *wpp = (int) rint_v2((double) pg->width*72/pg->dpi);
+        *hpp = (int) rint_v2((double) pg->height*72/pg->dpi);
         return RETURN_SUCCESS;
     }
 }
@@ -161,7 +180,7 @@ int select_device(int dindex)
     } else {
         //cout << "select: " << dindex << " ndevices=" << ndevices << endl;
         curdevice = dindex;
-        return RETURN_SUCCESS;
+	return RETURN_SUCCESS;
     }
 }
 
@@ -171,14 +190,14 @@ int select_device(int dindex)
 int set_printer(int device)
 {
     if (device >= ndevices || device < 0 ||
-            device_table[device].type == DEVICE_TERM) {
+        device_table[device].type == DEVICE_TERM) {
         return RETURN_FAILURE;
     } else {
         hdevice = device;
         if (device_table[device].type != DEVICE_PRINT) {
             set_ptofile(TRUE);
         }
-        return RETURN_SUCCESS;
+	return RETURN_SUCCESS;
     }
 }
 
@@ -206,12 +225,13 @@ int get_device_by_name(char *dname)
     if (i >= ndevices) {
         return -1;
     } else {
-        return i;
+	return i;
     }
 }
 
 int initgraphics(void)
 {
+//cout << "init graphics" << endl;
     return ((*device_table[curdevice].init)());
 }
 
@@ -243,12 +263,12 @@ void set_curdevice_data(void *data)
 int set_device_props(int deviceid, Device_entry device)
 {
     if (deviceid >= ndevices || deviceid < 0 ||
-            is_valid_page_geometry(device.pg) != TRUE) {
+        is_valid_page_geometry(device.pg) != TRUE) {
         return RETURN_FAILURE;
     }
     
     device_table[deviceid].type = device.type;
-    /*
+/*
  *     device_table[deviceid].init = device.init;
  *     device_table[deviceid].parser = device.parser;
  *     device_table[deviceid].setup = device.setup;
@@ -261,6 +281,41 @@ int set_device_props(int deviceid, Device_entry device)
     return RETURN_SUCCESS;
 }
 
+void copy_device_props(Device_entry * target_device,Device_entry * source_device,int settings_only)
+{
+if (settings_only==0)
+{
+    target_device->type=source_device->type;
+    if (source_device->name!=NULL && target_device->name!=NULL)
+    {
+    delete[] target_device->name;
+    target_device->name=NULL;
+    }
+    if (source_device->name!=NULL)
+    {
+    target_device->name=new char[1+strlen(source_device->name)];
+    strcpy(target_device->name,source_device->name);
+    }
+target_device->init=source_device->init;
+target_device->parser=source_device->parser;
+target_device->setup=source_device->setup;
+target_device->data=source_device->data;//we do not actually copy "data"
+    if (source_device->fext!=NULL && target_device->fext!=NULL)
+    {
+    delete[] target_device->fext;
+    target_device->fext=NULL;
+    }
+    if (source_device->fext!=NULL)
+    {
+    target_device->fext=new char[1+strlen(source_device->fext)];
+    strcpy(target_device->fext,source_device->fext);
+    }
+}
+target_device->devfonts=source_device->devfonts;
+target_device->fontaa=source_device->fontaa;
+target_device->pg=source_device->pg;
+}
+
 void set_curdevice_props(Device_entry device)
 {
     set_device_props(curdevice, device);
@@ -270,14 +325,14 @@ int parse_device_options(int dindex, char *options)
 {
     char *p, *oldp, opstring[64];
     int n;
-
-    if (dindex >= ndevices || dindex < 0 ||
+        
+    if (dindex >= ndevices || dindex < 0 || 
             device_table[dindex].parser == NULL) {
         return RETURN_FAILURE;
     } else {
         oldp = options;
         while ((p = strchr(oldp, ',')) != NULL) {
-            n = MIN2((p - oldp), 64 - 1);
+	    n = MIN2((p - oldp), 64 - 1);
             strncpy(opstring, oldp, n);
             opstring[n] = '\0';
             if (device_table[dindex].parser(opstring) != RETURN_SUCCESS) {
@@ -298,7 +353,6 @@ void get_page_viewport(double *vx, double *vy)
 {
     *vx = device_table[curdevice].pg.width/device_table[curdevice].pg.dpi;
     *vy = device_table[curdevice].pg.height/device_table[curdevice].pg.dpi;
-
     if (*vx < *vy) {
         *vy /= *vx;
         *vx = 1.0;
@@ -317,17 +371,93 @@ int terminal_device(void)
     }
 }
 
+void return_Page_Dimensions_cm(int format,int orientation,float * x,float * y)
+{
+switch (format)
+{
+case PAGE_FORMAT_CUSTOM:
+return;//do nothing
+break;
+case PAGE_FORMAT_USLETTER:
+*x=8.5*CM_PER_INCH;
+*y=11.0*CM_PER_INCH;
+break;
+case PAGE_FORMAT_USLEGAL:
+*x=8.5*CM_PER_INCH;
+*y=14.0*CM_PER_INCH;
+break;
+case PAGE_FORMAT_USTABLOID:
+*x=11.0*CM_PER_INCH;
+*y=17.0*CM_PER_INCH;
+break;
+case PAGE_FORMAT_A4:
+*x=84.1/4.0;
+*y=118.9/4.0;
+break;
+case PAGE_FORMAT_A3:
+*x=118.9/4.0;
+*y=84.1/2.0;
+break;
+case PAGE_FORMAT_A2:
+*x=84.1/2.0;
+*y=118.9/2.0;
+break;
+case PAGE_FORMAT_A1:
+*x=118.9/2.0;
+*y=84.1;
+break;
+case PAGE_FORMAT_A0:
+*x=84.1;
+*y=118.9;
+break;
+case PAGE_FORMAT_B4:
+*x=25.0;
+*y=35.3;
+break;
+case PAGE_FORMAT_B5:
+*x=17.6;
+*y=25.0;
+break;
+case PAGE_FORMAT_B6:
+*x=12.5;
+*y=17.6;
+break;
+}
+    if (orientation==PAGE_ORIENT_LANDSCAPE)
+    {
+    float tmp;
+    tmp=*x;
+    *x=*y;
+    *y=tmp;
+    }
+}
+
+void return_Page_Dimensions_in(int format,int orientation,float * x,float * y)
+{
+return_Page_Dimensions_cm(format,orientation,x,y);
+*x/=CM_PER_INCH;
+*y/=CM_PER_INCH;
+}
+
+void return_Page_Dimensions_pix(int format,int orientation,float dpi,int * x,int * y)
+{
+float a,b;
+return_Page_Dimensions_in(format,orientation,&a,&b);
+*x=(int)(a*dpi);
+*y=(int)(b*dpi);
+}
+
 PageFormat get_page_format(int device)
 {
     Page_geometry pg;
     int width_pp, height_pp;
     
     pg = device_table[device].pg;
-    width_pp  = (int) rint((double) 72*pg.width/pg.dpi);
-    height_pp = (int) rint((double) 72*pg.height/pg.dpi);
+    width_pp  = (int) rint_v2((double) 72*pg.width/pg.dpi);
+    height_pp = (int) rint_v2((double) 72*pg.height/pg.dpi);
     
     if ((width_pp == 612 && height_pp == 792) ||
-            (height_pp == 612 && width_pp == 792)) {
+        (height_pp == 612 && width_pp == 792)) {
         return PAGE_FORMAT_USLETTER;
     } else if ((width_pp == 595 && height_pp == 842) ||
                (height_pp == 595 && width_pp == 842)) {
@@ -343,7 +473,7 @@ PageFormat get_page_format(int device)
  */
 
 static int ptofile = FALSE;
-
+                           
 void set_ptofile(int flag)
 {
     ptofile = flag;

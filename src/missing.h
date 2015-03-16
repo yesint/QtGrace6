@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -32,7 +32,7 @@
 #ifndef __MISSING_H_
 #define __MISSING_H_
 
-///#include <config.h>
+#include "config.h"
 
 #include <stdio.h>
 
@@ -65,15 +65,15 @@ struct passwd *getpwnam(char *name);
 #endif /* __VMS */
 
 #ifndef HAVE_MEMMOVE
-#  define memmove(a, b, c) bcopy((b), (a), (c))
+#define memmove(a, b, c) bcopy((b), (a), (c))
 #endif
 
 #ifndef HAVE_MEMCPY
-#  define memcpy(a, b, c) bcopy ((b), (a), (c))
+#define memcpy(a, b, c) bcopy((b), (a), (c))
 #endif
 
 #ifndef HAVE_GETHOSTNAME
-#  define gethostname(a, n) (strncpy((a), "localhost", n)?0:1)
+#define gethostname(a, n) (strncpy((a), "localhost", n)?0:1)
 #endif
 
 #ifndef HAVE_DRAND48

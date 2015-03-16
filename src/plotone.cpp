@@ -8,7 +8,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  *
  *                           All Rights Reserved
  *
@@ -52,40 +52,580 @@
 #include <QPixmap>
 #include <QtGui>
 #include <QPainter>
+#include <QSvgRenderer>
+#include <QSvgGenerator>
 #include <iostream>
 #include "MainWindow.h"
-#include "rint.h"
+#include "allWidgets.h"
 
-#ifdef SKF_QtGrace
-#include <QSvgRenderer>
-#endif
+using namespace std;
 
-FILE *prstream;
+FILE *prstream=NULL;
+QTemporaryFile * temp_file=NULL;
+Device_entry x11_settings_saved,target_dev_settings_saved;
+char cur_print_fname[GR_MAXPATHLEN];
+//extern char desired_hardcopy_filename[GR_MAXPATHLEN];
+bool print_error=false;
+bool use_temp_file=false,export_from_mainpixmap=false,x11ok=true;
+int target_device=DEVICE_X11;
 
 extern MainWindow * mainWin;
+extern frmProgressWin * FormProgress;
+extern frmQuestionDialog * FormQuestion;
 extern QPainter * GeneralPainter;
-extern double GeneralPageZoomFactor;
+extern QSvgGenerator * stdGenerator;
+extern int print_target;
 extern bool printing_in_file;
 extern int region_def_under_way;
 extern int curdevice;
+extern bool use_print_command;
 extern QImage * MainPixmap;
 extern int outputQuality;
-extern bool startupphase;
+extern bool outputGrayscale;
 extern bool useQtFonts;
 extern QList<QFont> stdFontList;
-int RotationAngle;
-#ifdef SKF_QtGrace
-int png_setup_res = 100;
-#endif
+extern char DecimalPointToUse;
+extern char dummy[];
+extern unsigned int win_h, win_w;
+extern Device_entry dev_null;
+extern Device_entry *device_table;
+
 extern void WriteQtString(VPoint vp,int rot,int just,char * s);
 extern void WriteQtString(VPoint vp,int rot,int just,char * s,double charSize,int font,int color);
 extern QString get_filename_with_extension(int device);
+extern void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true);
 
-using namespace std;
+//char print_file[GR_MAXPATHLEN] = "";
 
 void doPlotFit(void)
 {
     mainWin->doFitPage();
+}
+
+QString InternalTargetName(int targ)
+{
+QString ret;
+switch (targ)
+{
+case PRINT_TARGET_SCREEN:
+ret=QString("SCREEN");
+break;
+case PRINT_TARGET_SVG_FILE:
+ret=QString("SVG_FILE");
+break;
+case PRINT_TARGET_PRINTER:
+ret=QString("PRINTER");
+break;
+}
+return ret;
+}
+
+QString InternalDeviceName(int devnr)
+{
+QString ret;
+switch (devnr)
+{
+case DEVICE_NULL:
+ret=QString("DEVICE_NULL");
+break;
+case DEVICE_SCREEN:
+ret=QString("DEVICE_SCREEN");
+break;
+case DEVICE_PDF:
+ret=QString("DEVICE_PDF");
+break;
+case DEVICE_SVG:
+ret=QString("DEVICE_SVG");
+break;
+case DEVICE_JPEG:
+ret=QString("DEVICE_JPEG");
+break;
+case DEVICE_PNG:
+ret=QString("DEVICE_PNG");
+break;
+case DEVICE_HD_PNG:
+ret=QString("DEVICE_HD_PNG");
+break;
+case DEVICE_BMP:
+ret=QString("DEVICE_BMP");
+break;
+case DEVICE_PS:
+ret=QString("DEVICE_PS");
+break;
+case DEVICE_EPS:
+ret=QString("DEVICE_EPS");
+break;
+case DEVICE_MIF:
+ret=QString("DEVICE_MIF");
+break;
+case DEVICE_PNM:
+ret=QString("DEVICE_PNM");
+break;
+case DEVICE_METAFILE:
+ret=QString("DEVICE_METAFILE");
+break;
+case DEVICE_PDF_HARU:
+ret=QString("DEVICE_PDF_HARU");
+break;
+}
+return ret;
+}
+
+//this function is central to the plotting- / printing- process (here the decision is made what settings are to be used for the x11-driver)
+//if 'false' is returned, the x11-drv is not to be used --> no special settings needed
+//if 'true' is returned, the x11drv is to be used
+bool determine_what_to_paint_on(int p_device,bool p_to_file)
+{
+char * s=get_print_cmd();
+target_device=p_device;//what driver actually to use
+print_target=PRINT_TARGET_SCREEN;//how to initialize the x11drv
+use_temp_file=export_from_mainpixmap=false;
+if (p_to_file==false && use_print_command==false)//use a real physical printer
+{
+print_target=PRINT_TARGET_PRINTER;
+return true;
+}
+
+if (!get_ptofile() && use_print_command==true && (s == NULL || s[0] == '\0'))
+{//direct printing to printer selected (no file output) and print-command is to be used, but no usable print-command specified
+    errmsg(QObject::tr("No print command defined, output aborted").toLocal8Bit().constData());
+    print_error=true;
+    return false;
+}
+//do not print to a file, but use the printer-command (like 'lpr') to send a file directely to the printer --> we use a temporary file here
+if (!get_ptofile() && use_print_command==true)
+{
+use_temp_file=true;
+printing_in_file=true;
+}
+//cout << "p_device=" << p_device << endl;
+    switch (p_device)
+    {
+    case DEVICE_PS:
+    case DEVICE_EPS:
+    case DEVICE_MIF:
+    case DEVICE_PNM:
+    case DEVICE_METAFILE:
+    case DEVICE_PDF_HARU:
+        return false;//nothing to set here-just use the std-driver
+    break;
+    case DEVICE_SCREEN:
+        return true;//just use the x11-drv normally
+    break;
+    //case DEVICE_HD_PNG:
+    case DEVICE_PDF:
+        //we generate a temporary svg-file here and convert it with the svg-renderer afterwards
+        print_target=PRINT_TARGET_SVG_FILE;
+        use_temp_file=true;//the temporary file is a svg-file
+            /*if (useQtFonts==true)
+            {*/
+            target_device=DEVICE_X11;
+            return true;
+            /*}// we can not use the default Grace-SVG-driver because it does not generate nodern svg-files!
+            else//no Qt-fonts-->use the standard-svg-driver
+            {
+            target_device=DEVICE_SVG;//remember: here we have to do something afterwards!
+            return false;
+            }*/
+    break;
+    case DEVICE_SVG:
+        if (useQtFonts==true)
+        {
+        print_target=PRINT_TARGET_SVG_FILE;//generate an svg-file with the Qt-x11drv
+        target_device=DEVICE_X11;
+        return true;
+        }
+        else//no QtFonts-->use the std-SVG-driver
+        {
+        return false;
+        }
+    break;
+    case DEVICE_HD_PNG:/// changed to here -> use std-output-driver
+    case DEVICE_JPEG://for these file-types we use Qt's export functions
+    case DEVICE_PNG:
+    case DEVICE_BMP:
+        export_from_mainpixmap=true;
+        target_device=DEVICE_X11;
+        return true;
+    break;
+    }
+return false;
+}
+
+//the following two functions are especially for hardcopy export or printing
+bool prepare_x11drv(int c_dev,bool p_to_file)//p_to_file should be the result of get_ptofile(); --> i.e. the ultimate target
+{
+/*
+cout << "BEFORE PREPARE:" << endl;
+cout << "device width= " << device_table[DEVICE_X11].pg.width << " height=" << device_table[DEVICE_X11].pg.height << endl;
+*/
+prstream = NULL;
+print_error=false;
+printing_in_file=p_to_file;//printing in file is useful for intermediate works (e.g. printing using a print-command means no output-file, but intermediate printing in a file and sending this file to the printer via the command)
+
+if (use_print_command==true) printing_in_file=true;//we send a temporary file directely to the printer via a terminal-command (if we actualy want a file export this is ok either)
+
+x11ok=determine_what_to_paint_on(c_dev,p_to_file);
+
+//save old settings (warning, the functions are not changed, only the dimensions and so on)
+x11_settings_saved=dev_null;//just to initialize every with NULL
+target_dev_settings_saved=dev_null;
+copy_device_props(&target_dev_settings_saved,device_table+target_device,1);//save target-device_settings
+copy_device_props(&x11_settings_saved,device_table+DEVICE_X11,1);//save screen settings - just for savety
+
+if (print_error==true) return false;//some error occured
+
+Device_entry dev = get_device_props(c_dev);//we have to use the currently set hard-copy-device because we want to make sure to have the right output settings
+QString temptemplate;
+
+if (target_device!=c_dev)
+copy_device_props(device_table+target_device,device_table+c_dev,1);//copy the settings from the hard-copy-device to the x11-driver
+if (target_device==DEVICE_X11 && useQtFonts==false && get_device_props(target_device).devfonts==true)
+{//devfonts in x11/screen only possible if QtFonts are to be used
+device_table[DEVICE_X11].devfonts=false;
+}
+if (c_dev==DEVICE_HD_PNG)
+{
+device_table[DEVICE_X11].pg.width*=300/device_table[DEVICE_X11].pg.dpi;
+device_table[DEVICE_X11].pg.height*=300/device_table[DEVICE_X11].pg.dpi;
+}
+if (use_temp_file==true)//generate a temporary file
+{
+    if (temp_file!=NULL) delete temp_file;
+    temp_file=new QTemporaryFile();
+
+    temptemplate=QDir::tempPath()+QDir::separator()+QString("XXXXXX.");
+    if (print_target==PRINT_TARGET_SVG_FILE)
+    temptemplate += QString("svg");
+    else//otherwise we use the generic file type (like .ps)
+    temptemplate += QString(dev.fext);
+
+    temp_file->setFileTemplate(temptemplate);
+    temp_file->open();
+    strcpy(cur_print_fname, temp_file->fileName().toUtf8().data());
+    temp_file->close();
+//cout << "Template=#" << temptemplate.toLocal8Bit().constData() << "#" << endl;
+//cout << "Temporary file=#" << cur_print_fname << "#" << endl;
+    temp_file->remove();//temporary file is now gone, but we can now use the filename
+    if (print_target!=PRINT_TARGET_SVG_FILE)//we do not need the prstream for the Qt-svg-export
+    {
+    prstream = grace_openw(cur_print_fname);
+//cout << "File Opened" << endl;
+        if (prstream == NULL)
+        {
+            /// errwin(QObject::tr("Unable to open print-device!").toLocal8Bit().constData());
+            print_error=true;
+            return false;
+        }
+    }
+}//ende use_temp_file
+else if (print_target==PRINT_TARGET_SVG_FILE && use_temp_file==false)
+{
+    QFileInfo filinfo=QFileInfo(print_file);
+    bool overwrite=true;
+    char buf[2048];
+        if (filinfo.exists()==true)//because we did not use prstream here we have to ask ourselves
+        {
+        sprintf(buf, "%s %s?",QObject::tr("Overwrite").toLocal8Bit().constData(), print_file);
+        overwrite=(bool)yesno(buf, NULL, NULL, NULL);
+        }
+    if (overwrite==false) return false;//some error occured (overwrite not possible)
+strcpy(cur_print_fname,print_file);
+}
+else
+{
+strcpy(cur_print_fname,print_file);
+}
+
+if (print_target==PRINT_TARGET_SVG_FILE)
+{
+    if (prstream != NULL)
+    {
+    grace_close(prstream);//we do not use the Grace-File-Output-Routines here
+    prstream=NULL;
+    }
+    if (stdGenerator==NULL)
+    {
+    stdGenerator=new QSvgGenerator();
+    }
+    stdGenerator->setFileName(cur_print_fname);
+    stdGenerator->setSize(QSize(dev.pg.width,dev.pg.height));
+    stdGenerator->setViewBox(QRect(0, 0, dev.pg.width, dev.pg.height));
+    stdGenerator->setTitle(QString("QtGrace: ")+QString(get_docname()));
+    stdGenerator->setDescription(QString(get_project_description()));
+
+}
+else if (target_device==DEVICE_PDF_HARU)
+{
+//cout << "USING HARU" << endl;
+    if (prstream != NULL)
+    {
+    //cout << "prstream not NULL in USING HARU" << endl;
+    grace_close(prstream);//we do not use the Grace-File-Output-Routines here
+    prstream=NULL;
+    }
+    if (print_file[0] == '\0')
+    {
+        QString fwe=get_filename_with_extension(hdevice);
+        strcpy(print_file,fwe.toLocal8Bit().constData());
+    }
+    strcpy(cur_print_fname, print_file);
+}
+else if (x11ok==false && print_target!=PRINT_TARGET_PRINTER && use_temp_file==false)//if we use a printer, we print directly to it; if we do not use a printer and no temporary file, we use the output-file directely
+{
+    if (print_file[0] == '\0')
+    {
+        QString fwe=get_filename_with_extension(hdevice);
+        strcpy(print_file,fwe.toLocal8Bit().constData());
+    }
+    strcpy(cur_print_fname, print_file);
+    //cout << "opening file for writing=#" << cur_print_fname << "#" << endl;
+    prstream = grace_openw(cur_print_fname);
+    //cout << "File Opened" << endl;
+    if (prstream == NULL)
+    {
+        /// errwin(QObject::tr("Unable to open print-device!").toLocal8Bit().constData());
+        print_error=true;
+        return false;
+    }
+}
+select_device(target_device);
+
+/*
+QString prepare_result("AfterPrepare\n");
+prepare_result+=QString("cur_print_fname= ")+QString(cur_print_fname)+QString("\n");
+prepare_result+=QString("Print_File= ")+QString(print_file)+QString("\n");
+prepare_result+=QString("Print_Error= ")+QString((print_error==true?"FEHLER":"Alles_OK"))+QString("\n");
+prepare_result+=QString("Use_Temp-File= ")+QString((use_temp_file==true?"TempFile!":"Kein_Temp_File"))+QString("\n");
+prepare_result+=QString("Export_from_MainPixmap= ")+QString((export_from_mainpixmap==true?"Export":"Anders"))+QString("\n");
+prepare_result+=QString("x11_ok= ")+QString((x11ok==true?"X11":"kein_X11"))+QString("\n");
+prepare_result+=QString("Target_Device= ")+InternalDeviceName(target_device)+QString("\n");
+prepare_result+=QString("Print_Target= ")+InternalTargetName(print_target)+QString("\n");
+prepare_result+=QString("hdevice= ")+InternalDeviceName(hdevice);
+QMessageBox::information(0,QString("After Prepare x11drv"),prepare_result);
+*/
+
+/*cout << "After Prepare:" << endl;
+cout << "File=" << cur_print_fname << endl;
+cout << "Print File=" << print_file << endl;
+cout << "Print Error=" << print_error << endl;
+cout << "Use Temp-File=" << use_temp_file << endl;
+cout << "Export from MainPixmap=" << export_from_mainpixmap << endl;
+cout << "x11_ok=" << x11ok << endl;
+cout << "Target Device=" << target_device << endl;
+cout << "Print Target=" << print_target << endl;*/
+
+return true;
+}
+
+void postprocess_x11drv(int c_dev,bool p_to_file)//only needed if we abused the x11-screen-driver for file-output-printing
+{
+Device_entry dev = get_device_props(c_dev);
+QPixmap pm;
+QSvgRenderer renderer;
+QImage image;
+QPainter painter;
+QPrinter printer(QPrinter::HighResolution);
+QFileInfo filinfo;
+view v;
+double vx, vy;
+int truncated_out;
+double oputputdpi=300.0;
+QSize paperSi;
+bool ret,overwrite;
+print_error=false;
+char buf[GR_MAXPATHLEN + 50];
+char * printcommand=get_print_cmd();
+
+//QMessageBox::information(0,QString("After_draw"),QString("postprocess_x11_dpi=")+QString::number(dev.pg.dpi));
+
+if (dev.pg.dpi>0.0)
+{
+paperSi.setWidth(dev.pg.width*oputputdpi/dev.pg.dpi);
+paperSi.setHeight(dev.pg.height*oputputdpi/dev.pg.dpi);
+}
+else
+{
+    dev.pg.dpi=72.0;
+    set_device_props(c_dev,dev);
+paperSi.setWidth(dev.pg.width*oputputdpi/72.0);
+paperSi.setHeight(dev.pg.height*oputputdpi/72.0);
+}
+
+//postprocessing
+if (prstream!=NULL)//close output stream
+{
+grace_close(prstream);
+prstream=NULL;
+}
+
+v = get_bbox(BBOX_TYPE_GLOB);
+get_page_viewport(&vx, &vy);
+if (v.xv1 < 0.0 || v.xv2 > vx || v.yv1 < 0.0 || v.yv2 > vy)
+{
+truncated_out = TRUE;
+    if (print_target!=PRINT_TARGET_PRINTER && !(use_print_command==true && !p_to_file))
+    errmsg(QObject::tr("Output is truncated - tune device dimensions").toLocal8Bit().constData());
+}
+else
+{
+truncated_out = FALSE;
+}
+//QMessageBox::information(0,QString("before ending"),QString("before_real_export"));
+    if (print_target==PRINT_TARGET_PRINTER)//use a real printer
+    {
+        if (GeneralPainter->isActive()==true)
+        GeneralPainter->end();
+    }
+    else if (print_target==PRINT_TARGET_SVG_FILE && use_temp_file==false)
+    {
+        GeneralPainter->end();
+        if (stdGenerator!=NULL)
+        {
+        delete stdGenerator;
+        stdGenerator=NULL;
+        }
+    }
+    else if (export_from_mainpixmap==true)
+    {
+       filinfo=QFileInfo(print_file);
+       overwrite=true;
+       if (filinfo.exists()==true)//because we did not use prstream here we have to ask ourselves
+       {
+       sprintf(buf, "%s %s?",QObject::tr("Overwrite").toLocal8Bit().constData(), print_file);
+       overwrite=(bool)yesno(buf, NULL, NULL, NULL);
+       }
+
+       if (filinfo.exists()==false || (filinfo.exists()==true && overwrite==true))
+       {
+       if (GeneralPainter->isActive()==true)
+       GeneralPainter->end();
+       cout << "monoMode=" << monomode << " OutputGrayScale=" << outputGrayscale << " Quality=" << outputQuality << endl;
+            if (monomode == FALSE && outputGrayscale==false)
+            {
+            pm=QPixmap::fromImage(*MainPixmap,Qt::AutoColor | Qt::DiffuseAlphaDither);
+            cout << "Color" << endl;
+            }
+            else
+            {
+            QImage con_img=MainPixmap->convertToFormat(QImage::Format_Mono,Qt::MonoOnly);
+            //pm=QPixmap::fromImage(*MainPixmap,Qt::MonoOnly);
+            pm=QPixmap::fromImage(con_img,Qt::MonoOnly);
+            cout << "MonoOnly" << endl;
+            }
+            ret=false;
+                switch (c_dev)
+                {
+                case DEVICE_PNG:
+                case DEVICE_HD_PNG:
+                    ret=pm.save(QString(print_file),"PNG",outputQuality);
+                break;
+                case DEVICE_BMP:
+                    ret=pm.save(QString(print_file),"BMP",outputQuality);
+                break;
+                case DEVICE_JPEG:
+                    ret=pm.save(QString(print_file),"JPG",outputQuality);
+                break;
+                default:
+                    stufftext(QObject::tr("Error: export from main pixmap, unsuitable export device").toLocal8Bit().constData());
+                    //cout << "unsuitable export device=" << c_dev << endl;
+                break;
+                }
+       }
+       else
+       {
+       ret=true;
+       }
+            if (ret==false)
+            {
+            errwin(QObject::tr("Unable to export to image file.").toLocal8Bit().constData());
+            print_error=true;
+            }
+    }
+    else if (use_temp_file==true)
+    {
+        if (use_print_command==true && !p_to_file)//we want to print on a printer using a unix-terminal-command
+        {
+            sprintf(dummy,"%s %s",printcommand,cur_print_fname);
+            if (truncated_out == FALSE || yesno(QObject::tr("Printout is truncated. Continue?").toLocal8Bit().data(), NULL, NULL, NULL))
+            {
+            system_wrap(dummy);
+            }
+        }
+        else//we convert the file format now
+        {
+            switch (c_dev)
+            {
+            case DEVICE_HD_PNG://currently not in use, because HD-PNG is done via std-png-output
+                    GeneralPainter->end();//needed to end/complete the svg-export!
+                    delete stdGenerator;
+                    stdGenerator=NULL;
+                //Read svg file and convert to png
+                renderer.load(QString(cur_print_fname));
+                // Prepare a QImage with desired characteritisc
+                image=QImage(renderer.defaultSize(), QImage::Format_RGB32);
+                // Get QPainter that paints to the image
+                painter.begin(&image);
+                renderer.render(&painter);
+                painter.end();
+                // Save, image format based on file extension
+                image.save(print_file);/// ,"PNG",outputQuality);
+            break;
+            case DEVICE_PDF:
+                /*cout << "device.dpi=" << device_table[c_dev].pg.dpi << " x11.dpi=" << device_table[DEVICE_X11].pg.dpi << endl;
+                cout << "device width= " << device_table[c_dev].pg.width << " height=" << device_table[c_dev].pg.height << endl;
+                cout << "device width= " << device_table[DEVICE_X11].pg.width << " height=" << device_table[DEVICE_X11].pg.height << endl;
+            cout << "Reading from #" << cur_print_fname << "#" << endl;
+            cout << "Printing to #" << print_file << "#" << endl;*/
+                GeneralPainter->end();//needed to end/complete the svg-export!
+                delete stdGenerator;
+                stdGenerator=NULL;
+            filinfo=QFileInfo(cur_print_fname);
+            //befehl=QString("cp ")+QString(cur_print_fname)+QString(" /Users/andreaswinter/test_svg1.svg");
+            //cout << "copy-befehl=#" << befehl.toLocal8Bit().constData() << "#" << endl;
+            //system(befehl.toLocal8Bit().constData());
+                //Read svg file and convert to pdf
+                ret=renderer.load(QString(cur_print_fname));
+                printer.setOutputFormat(QPrinter::PdfFormat);
+                printer.setOutputFileName(print_file);
+            /*cout << "ret=" << ret << " exists=" << filinfo.exists() << endl;
+            cout << "defaultSize=" << renderer.defaultSize().width() << " x " << renderer.defaultSize().height() << endl;
+            cout << "paperSi=" << paperSi.width() << " x " << paperSi.height() << endl;*/
+                printer.setPageMargins(0.0,0.0,0.0,0.0,QPrinter::DevicePixel);
+                printer.setResolution(int(oputputdpi));
+                printer.setPaperSize(paperSi,QPrinter::DevicePixel);
+                painter.begin(&printer);
+                renderer.render(&painter);
+                painter.end();
+            //cout << "finished exporting from svg to pdf" << endl;
+            break;
+            default:
+                stufftext(QObject::tr("Error: conversion of temporary file not successful.").toLocal8Bit().constData());
+                //cout << "unsuitable export device=" << c_dev << endl;
+            break;
+            }
+        }
+        temp_file->remove();
+        delete temp_file;
+        temp_file=NULL;
+    }
+//QMessageBox::information(0,QString("Restore old settings"),QString("Restore old settings\ntarget_device=")+InternalDeviceName(target_device));
+set_exportname(print_file);
+
+//restore old settings
+copy_device_props(device_table+target_device,&target_dev_settings_saved,1);
+copy_device_props(device_table+DEVICE_X11,&x11_settings_saved,1);
+
+//QMessageBox::information(0,QString("Begin Screen Repaint"),QString("Begin Screen Repaint\ndrawgraph()"));
+//repaint for the screen
+set_ptofile(false);
+printing_in_file=false;
+print_target=PRINT_TARGET_SCREEN;
+select_device(DEVICE_X11);//this sets the output to the screen again (as usual)
+drawgraph();
+/*cout << "AFTER POSTPROCESS:" << endl;
+cout << "device width= " << device_table[DEVICE_X11].pg.width << " height=" << device_table[DEVICE_X11].pg.height << endl;
+cout << "x11_saved: width=" << x11_settings_saved.pg.width << " height=" << x11_settings_saved.pg.height << endl;*/
 }
 
 /*
@@ -93,6 +633,18 @@ void doPlotFit(void)
  */
 void drawgraph(void)
 {
+static int save_w,save_h;
+if (stop_repaint==TRUE) return;//no repaint
+if (simple_draw_setting==SIMPLE_DRAW_NONE)
+{
+        if (print_target==PRINT_TARGET_SCREEN)//if we are about to draw on the screen we have to change the device-table-entry
+        {
+        save_w=device_table[DEVICE_SCREEN].pg.width;
+        save_h=device_table[DEVICE_SCREEN].pg.height;
+        device_table[DEVICE_SCREEN].pg.width*=GeneralPageZoomFactor;
+        device_table[DEVICE_SCREEN].pg.height*=GeneralPageZoomFactor;
+        }
+//cout << "DecimalPointToUse=" << DecimalPointToUse << endl;
     int i;
     VPoint vp1, vp2;
     Pen pen;
@@ -101,7 +653,12 @@ void drawgraph(void)
     saveg = get_cg();
     if (initgraphics() == RETURN_FAILURE)
     {
-        errmsg("Device wasn't properly initialized  (probably too many or too few pixels)");
+        errmsg(QObject::tr("Device wasn't properly initialized (probably too many or too few pixels)").toLocal8Bit().constData());
+        if (print_target==PRINT_TARGET_SCREEN)
+        {
+        device_table[DEVICE_SCREEN].pg.width=save_w;
+        device_table[DEVICE_SCREEN].pg.height=save_h;
+        }
         return;
     }
     setclipping(FALSE);
@@ -118,28 +675,41 @@ void drawgraph(void)
     reset_bboxes();
     activate_bbox(BBOX_TYPE_GLOB, TRUE);
     activate_bbox(BBOX_TYPE_TEMP, FALSE);
-    for (i = 0; i < number_of_graphs(); i++)
-    {
+        for (i = 0; i < number_of_graphs(); i++)
+        {
         plotone(i);
-    }
+        }
     /* draw objects NOT clipped to a particular graph */
     draw_objects(-1);
     draw_timestamp();
-    if (get_cg() != saveg)
-    {
+        if (get_cg() != saveg)
+        {
         select_graph(saveg);
-    }
+        }
     leavegraphics();
-
+        if (print_target==PRINT_TARGET_SCREEN)//if we printed on the screen, we may have altered the dimensions - we have to set them back
+        {
+        device_table[DEVICE_SCREEN].pg.width=save_w;
+        device_table[DEVICE_SCREEN].pg.height=save_h;
+        }
     mainWin->mainArea->contentChanged=true;
-
-    if (!startupphase)
+}//End simple-draw
+    if (startupphase==0 && printing_in_file==false)
     {
-        mainWin->mainArea->repaint();
-
-        qApp->processEvents();
-
+    mainWin->mainArea->repaint();//do the actual repaintiing on the screen
+    qApp->processEvents();
     }
+}
+
+void debug_device_settings(Device_entry dev)
+{
+cout << "---- DEVICE FOR PRINTING ----" << endl;
+cout << "Device Name=#" << dev.name << "#" << endl;
+cout << "Dev-Fonts=" << dev.devfonts << endl;
+cout << "Font-AntiAliasing=" << dev.fontaa << endl;
+cout << "DPI=" << dev.pg.dpi << endl;
+cout << "Size= " << dev.pg.width << " x " << dev.pg.height << endl;
+cout << "---- END DEVICE SETTINGS ----" << endl;
 }
 
 /*
@@ -147,111 +717,206 @@ void drawgraph(void)
  */
 void do_hardcopy(void)
 {
-    char tbuf[128], *s;
-    char fname[GR_MAXPATHLEN];
+char tbuf[256], *s=get_print_cmd();
+    //char fname[GR_MAXPATHLEN];
+    //view v;
+    //double vx, vy;
+    //int truncated_out;
+    int dirty=is_dirtystate();
+    /*QTemporaryFile file;
+    QString fileN;
+    QByteArray byteArray;
+    char *cTempFileName;*/
+    int sav_simpl_draw=simple_draw_setting;
+    Device_entry dev,displ_dev,orig_displ_settings;
+    dev = get_device_props(hdevice);//hdevice is the output-device for the hardcopy - usually a file
 
-    view v;
-    double vx, vy;
-    int truncated_out;
+if (auto_set_export_extensions==TRUE)
+{
+QFileInfo fi3(print_file);
+QString suf=fi3.suffix();
+suf=suf.toLower();
+QString suf2=QString(dev.fext).toLower();
+    if (suf!=suf2)
+    {
+        if (print_file[strlen(print_file)-1]=='.')
+        {
+        print_file[strlen(print_file)-1]='\0';
+        }
+        strcat(print_file,".");
+        strcat(print_file,dev.fext);
+    }
+}
 
-    if (get_ptofile())
+        if (dev.pg.dpi<=0.0)
+        {
+        dev.pg.dpi=72.0;
+        set_device_props(hdevice,dev);
+        }
+    displ_dev=get_device_props(DEVICE_SCREEN);//get screen settings -- this is for modifying
+        if (displ_dev.pg.dpi<=0.0)
+        {
+        displ_dev.pg.dpi=72.0;
+        set_device_props(DEVICE_SCREEN,displ_dev);
+        }
+    orig_displ_settings=get_device_props(DEVICE_SCREEN);//get screen settings again to have them for backup -- this is for setting everything back at the end
+    prstream=NULL;
+    simple_draw_setting=SIMPLE_DRAW_NONE;
+
+/// copy_Grace_to_LaTeX();//for safety -- should not be needed
+
+    if (!get_ptofile() && use_print_command==true && (s == NULL || s[0] == '\0'))
+    {//direct printing to printer selected and print-command is to be used, but no usable print-command specified
+        errmsg(QObject::tr("No print command defined, output aborted").toLocal8Bit().constData());
+        simple_draw_setting=sav_simpl_draw;
+        return;
+    }
+
+bool use_x11drv=prepare_x11drv(hdevice,get_ptofile());
+FormProgress->increase();
+if (print_error==true)
+{
+    //restore old settings
+    copy_device_props(device_table+target_device,&target_dev_settings_saved,1);
+    copy_device_props(device_table+DEVICE_X11,&x11_settings_saved,1);
+    //repaint for the screen
+    set_ptofile(false);
+    printing_in_file=false;
+    print_target=PRINT_TARGET_SCREEN;
+    select_device(DEVICE_X11);//this sets the output to the screen again (as usual)
+    drawgraph();
+    simple_draw_setting=sav_simpl_draw;
+return;
+}
+    if (target_device==DEVICE_PDF_HARU || hdevice==DEVICE_PDF)//we do not use grace_openw --> look for existing file with same name (|| hdevice==DEVICE_HD_PNG --> changed)
+    {
+        char buf[GR_MAXPATHLEN + 50];
+        QFileInfo fi(print_file);
+        if (fi.exists()==true)
+        {
+            sprintf(buf, "%s %s?",QObject::tr("Overwrite").toLocal8Bit().constData(), print_file);
+            if (!yesno(buf, NULL, NULL, NULL))
+            {
+                set_ptofile(false);
+                printing_in_file=false;
+                print_target=PRINT_TARGET_SCREEN;
+                select_device(DEVICE_X11);//this sets the output to the screen again (as usual)
+                drawgraph();
+                simple_draw_setting=sav_simpl_draw;
+            return;
+            }
+        }
+    }
+
+/*QString st1=(printing_in_file==true?QString("Printing_in_File=TRUE"):QString("Printing_in_File=FALSE"));
+QString st2=(get_ptofile()==TRUE?QString("Print_to_File=TRUE"):QString("Print_to_File=FALSE"));
+QMessageBox::information(0,QString("vor drawgraph"),st1+QString("\n")+st2);*/
+
+/// do the actual drawing
+drawgraph();
+FormProgress->increase();
+postprocess_x11drv(hdevice,get_ptofile());
+FormProgress->increase();
+    if (dirty==FALSE)
+    clear_dirtystate();
+    else
+    set_dirtystate();
+simple_draw_setting=sav_simpl_draw;
+/// FUNCTION ENDS HERE
+return;
+
+/*
+QString temptemplate=QDir::tempPath()+QString("XXXXXX.")+QString(dev.fext);
+//cout << "template=#" << temptemplate.toLatin1().constData() << "#" << endl;
+    if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"HD-PNG") || (!get_ptofile() && use_print_command==true))
+    {//we need a temporary-file to export data as SVG or to send a file to the printer (i.e. generate a temporary file and send it to the printer)
+        temptemplate=QDir::tempPath()+QString("XXXXXX.");
+        if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"HD-PNG"))//for these file-types we use an intermediate svg-file
+        temptemplate += QString("svg");
+        else//otherwise we use the generic file type (like .ps)
+        temptemplate += QString(dev.fext);
+    file.setFileTemplate(temptemplate);
+    file.open();
+    fileN = file.fileName();
+    file.close();
+    byteArray = fileN.toUtf8();
+    cTempFileName = byteArray.data();
+//cout << "Temporary file=#" << cTempFileName << "#" << endl;
+    file.remove();//to make sure the temporary file does not exist
+    prstream = grace_openw(cTempFileName);
+//cout << "File Opened" << endl;
+    strcpy(fname, cTempFileName);
+        if (prstream == NULL)
+        {
+            errwin(QObject::tr("Unable to open print-device!").toLocal8Bit().data());
+            return;
+        }
+    }
+    else if (get_ptofile() || use_print_command==true)//we want to Print in a file (or send a file to a printer)
     {
         if (print_file[0] == '\0')
         {
             QString fwe=get_filename_with_extension(hdevice);
             //Device_entry dev = get_device_props(hdevice);
             //sprintf(print_file, "%s.%s", get_docbname(), dev.fext);
-            strcpy(print_file,fwe.toAscii().constData());
+            strcpy(print_file,fwe.toLocal8Bit().constData());
         }
         strcpy(fname, print_file);
-    }
-    else
-    {
-        s = get_print_cmd();
-        if (s == NULL || s[0] == '\0')
+//cout << "opening file for writing=#" << fname << "#" << endl;
+    prstream = grace_openw(fname);
+        if (prstream == NULL)
         {
-            errmsg("No print command defined, output aborted");
+            errwin(QObject::tr("Unable to open print-device!").toLocal8Bit().data());
             return;
         }
-#ifdef WINDOWS_SYSTEM
-        tmpnam(fname);
-#else
-        strcat(fname,"XXXXXX");
-        mkstemp(fname);
-#endif
-        /* VMS doesn't like extensionless files */
-        strcat(fname, ".prn");
-    }
-
-
-#ifdef SKF_QtGrace
-
-    QTemporaryFile file;
-    file.open();
-    QString fileN;
-    fileN = file.fileName()+".svg";
-    file.close();
-    QByteArray byteArray = fileN.toUtf8();
-    char *cTempFileName = byteArray.data();
-
-    Device_entry dev;
-    dev = get_device_props(hdevice);
-    if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"PNG"))
-    {
-        prstream = grace_openw(fname);
-
-        if(!prstream==NULL){
-            fclose(prstream);
-            prstream = grace_openw(cTempFileName);
-        }
-
-    }else{
-
-
-        prstream = grace_openw(fname);
-    }
-#else
-    prstream = grace_openw(fname);
-#endif
-
-    if (prstream == NULL)
-    {
-#ifdef SKF_QtGrace
-        //Export has been canceled by the user
-        cancelExport = TRUE;
-#endif
-
-        return;
-    }
-    
-    /*Checks for Qt-stuff*/
-#ifndef SKF_QtGrace
-    Device_entry dev;
-    dev = get_device_props(hdevice);
-#endif
-
-    int save_focus_flag=draw_focus_flag;
-    int old_dev=curdevice;
-    //cout << "dev.name=" << dev.name << " vergl=" << !strcmp(dev.name,"JPEG") << endl;
-#ifdef SKF_QtGrace
-    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP"))
-#else
-    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))
-#endif
-    {
-        select_device(0);
-        /*plot on display and copy to file later*/
-        //cout << "draw_focus_flag=FALSE;" << endl;
-        draw_focus_flag=FALSE;
     }
     else
+    {
+    errwin(QObject::tr("Internal error: No File needed for hardcopy!?").toLocal8Bit().data());
+    //cout << "Wir brauchen kein File in do_hardcopy()!?" << endl;
+    }
+
+    //Checks for Qt-stuff
+
+/// debug_device_settings(dev);/// just for debugging/testing reasons
+
+    int save_focus_flag=draw_focus_flag;//for hardcopies: we deactivate the focus-flag
+    int old_dev=curdevice;
+
+    //int saved_dpi=displ_dev.pg.dpi;
+    //int saved_width=win_w,saved_height=win_h;
+    //cout << "dev.name=" << dev.name << " vergl=" << !strcmp(dev.name,"JPEG") << endl;
+    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))//these files are to be drawn using Standard-QPainter or QPrinter
+    {
+        select_device(DEVICE_SCREEN);//use the Qt-driver for the Screen - we pretend to print to the screen as usual, but export the image later
+        if (displ_dev.pg.dpi!=dev.pg.dpi)//we have to change the page-size
+        {
+            //win_w*=dev.pg.dpi*1.0/displ_dev.pg.dpi;
+            //win_h*=dev.pg.dpi*1.0/displ_dev.pg.dpi;
+            displ_dev.pg.width*=dev.pg.dpi*1.0/displ_dev.pg.dpi;//we set the display-dpis to the same as the hardcopy-dpis --> we change the dimension of the page to prepresent this
+            displ_dev.pg.height*=dev.pg.dpi*1.0/displ_dev.pg.dpi;
+            displ_dev.pg.dpi=dev.pg.dpi;
+            set_device_props(DEVICE_SCREEN,displ_dev);//we have to change the settings here (but have to set them back later) -- althoug we do file-output we operate on the displaydevice and with the display driver here
+            //cout << "dpi_s do not match" << endl;
+        }
+        //plot on display and copy to file later
+        //cout << "draw_focus_flag=FALSE;" << endl;
+        draw_focus_flag=FALSE;//do not draw the focus-squares when exporting to file
+    }
+    else//if the QPainter is not to be used, select the apropriate device here
     {
         select_device(hdevice);
     }
-    drawgraph();
+
+/// do the actual drawing
+drawgraph();
     
+    //if (get_ptofile() || use_print_command==true)
+    if (prstream!=NULL)
+    {
     grace_close(prstream);
-    
+    prstream=NULL;
+    }
     v = get_bbox(BBOX_TYPE_GLOB);
     get_page_viewport(&vx, &vy);
     if (v.xv1 < 0.0 || v.xv2 > vx || v.yv1 < 0.0 || v.yv2 > vy) {
@@ -260,20 +925,12 @@ void do_hardcopy(void)
         truncated_out = FALSE;
     }
     
-    if (get_ptofile() == FALSE) {
-#ifdef SKF_QtGrace
-        if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"PNG"))
-        {
-            sprintf(tbuf, "%s %s", get_print_cmd(), cTempFileName);
-        }else{sprintf(tbuf, "%s %s", get_print_cmd(), fname);
-
-        }
-#else
+    if (get_ptofile() == FALSE && use_print_command==true)//send file to printer
+    {
         sprintf(tbuf, "%s %s", get_print_cmd(), fname);
-#endif
-
+//cout << "Print Command=#" << tbuf << "#" << endl;
         if (truncated_out == FALSE ||
-                yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
+                yesno(QObject::tr("Printout is truncated. Continue?").toLocal8Bit().data(), NULL, NULL, NULL)) {
             system_wrap(tbuf);
         }
 #ifndef PRINT_CMD_UNLINKS
@@ -281,94 +938,97 @@ void do_hardcopy(void)
 #endif
     } else {
         if (truncated_out == TRUE) {
-            errmsg("Graph exceeds selected format size. Probably, some digits do not fit the page area."
-                   " Please resize graph or select a new format size. "
-                   "If you just want to scale the graph to fit the page, then go to options and enable:"
-                   " \"Rescale plot on page size change\"");
+            errmsg(QObject::tr("Output is truncated - tune device dimensions").toLocal8Bit().constData());
         }
     }
     
-    /*QList<QByteArray> ba=QImageWriter::supportedImageFormats();
-    for (int i=0;i<ba.length();i++)
-    {
-        cout << ba.at(i).constData() << endl;
-    }*/
+    //QList<QByteArray> ba=QImageWriter::supportedImageFormats();
+    //for (int i=0;i<ba.length();i++)
+    //{
+    //cout << ba.at(i).constData() << endl;
+    //}
 
-#ifdef SKF_QtGrace
-    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP"))
-#else
+//Postprocessing needed for some file-types
     if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))
-#endif
-    {
-        /*cout << "Qt plotting routine 2nd half" << endl;
-    plot on display and copy to file later*/
+    {//Qt-generated Image is to be saved
+        //cout << "Qt plotting routine 2nd half" << endl;
+        //plot on display and copy to file later
         QPixmap pm;
         if (monomode == FALSE)
             pm=QPixmap::fromImage(*MainPixmap,Qt::AutoColor | Qt::DiffuseAlphaDither);
         else
             pm=QPixmap::fromImage(*MainPixmap,Qt::MonoOnly | Qt::DiffuseAlphaDither);
+
         //cout << "dev.name=" << dev.name << " printfile=" << print_file  << " quality=" << dev.pg.dpi << " outQ=" << outputQuality << endl;
         //cout << (*MainPixmap).width() << " " << (*MainPixmap).height() << " " << pm.width() << " " << pm.height() << endl;
-        /// bool ret=pm.save(QString(print_file),dev.name,outputQuality);
-        bool ret=MainPixmap->save(QString(print_file),dev.name,outputQuality);
+        bool ret=pm.save(QString(print_file),dev.name,outputQuality);//the outputQuality is set in the devicesetup-dialog
         //cout << "ret=" << ret << endl;
+        //ret=MainPixmap->save(QString(print_file),dev.name,outputQuality);
+
+        set_device_props(DEVICE_SCREEN,orig_displ_settings);//restore original display settings
         select_device(old_dev);
+        //displ_dev.pg.dpi=saved_dpi;
         draw_focus_flag=save_focus_flag;
         printing_in_file=false;
-        drawgraph();
+        drawgraph();//we have to redraw here because the page dimensions may have changed
     }
-    else
-        select_device(tdevice);
-#ifdef SKF_QtGrace
-
-    QString sFname(fname);
-
-    if(!strcmp(dev.name,"PDF"))
+    else if (!strcmp(dev.name,"PDF"))//we printed to a svg-file --> render it into a pdf-file (a not searchable one - in fact only a picture - sorry)
     {
-
-        QString fileName = QString(cTempFileName);
-        //Read svg file and convert to pdf
-        QSvgRenderer renderer(fileName);
-
-        QPrinter printer;
-        printer.setOutputFormat(QPrinter::PdfFormat);
-        printer.setOutputFileName(fname);
-
-        printer.setPaperSize(renderer.defaultSize(),QPrinter::DevicePixel);
-        printer.setPageMargins(0.0,0.0,0.0,0.0,QPrinter::DevicePixel);
-        printer.setResolution(300);
-
-        QPainter painter(&printer);
-
-        renderer.render(&painter);
-        painter.end();
-        QFile::remove(cTempFileName);
-
+    QString fileName = QString(cTempFileName);//QString("/Users/andwin/au.svg");//
+//cout << "Reading from #" << fileName.toLatin1().constData() << "#" << endl;
+//cout << "Printing to #" << print_file << "#" << endl;
+    //Read svg file and convert to pdf
+    QSvgRenderer renderer(fileName);
+    QPrinter printer(QPrinter::HighResolution);
+               printer.setOutputFormat(QPrinter::PdfFormat);
+               printer.setOutputFileName(print_file);
+//cout << "defaultSize=" << renderer.defaultSize().width() << " x " << renderer.defaultSize().height() << endl;
+//cout << "boundingbox=" << renderer.viewBox().width() << " x " << renderer.viewBox().height() << endl;
+               QSize paperSi(dev.pg.width*300.0/dev.pg.dpi,dev.pg.height*300.0/dev.pg.dpi);
+//cout << "paperSi=" << paperSi.width() << " x " << paperSi.height() << endl;
+               //printer.setPaperSize(paperSi,QPrinter::DevicePixel);
+               //printer.setPaperSize(renderer.defaultSize(),QPrinter::DevicePixel);
+//#if QT_VERSION >= 0x050000
+//               if (dev.pg.width>dev.pg.height)
+//               printer.setPageOrientation(QPageLayout::Landscape);
+//               else
+//               printer.setPageOrientation(QPageLayout::Portrait);
+//#else
+//               if (dev.pg.width>dev.pg.height)
+//               printer.setOrientation(QPrinter::Landscape);
+//               else
+//               printer.setOrientation(QPrinter::Portrait);
+//#endif
+               //printer.setPaperSize(renderer.viewBoxF().size().toSize(),QPrinter::DevicePixel);
+               printer.setPageMargins(0.0,0.0,0.0,0.0,QPrinter::DevicePixel);
+               printer.setResolution(300);
+               printer.setPaperSize(paperSi,QPrinter::DevicePixel);
+//cout << "printer: " << printer.width() << " x " << printer.height() << endl;
+    QPainter painter(&printer);
+               renderer.render(&painter);
+    painter.end();
+    file.remove();
     }
-
-
-    if(!strcmp(dev.name,"PNG"))
+    else if (!strcmp(dev.name,"HD-PNG"))
     {
-
-        QString fileName = QString(cTempFileName);
-        //Read svg file and convert to png
-        QSvgRenderer renderer(fileName);
-
-        // Prepare a QImage with desired characteritisc
-        QImage image(renderer.defaultSize()*png_setup_res/100, QImage::Format_RGB32);
-        // Get QPainter that paints to the image
-        QPainter painter(&image);
-        renderer.render(&painter);
-
-        // Save, image format based on file extension
-        image.save(fname);
-        painter.end();
-        QFile::remove(cTempFileName);
+    QString fileName = QString(cTempFileName);
+    //Read svg file and convert to png
+    QSvgRenderer renderer(fileName);
+    // Prepare a QImage with desired characteritisc
+    QImage image(renderer.defaultSize(), QImage::Format_RGB32);
+    // Get QPainter that paints to the image
+    QPainter painter(&image);
+    renderer.render(&painter);
+    painter.end();
+//cout << print_file << " fext=" << dev.fext << " quality=" << outputQuality << endl;
+    // Save, image format based on file extension
+    image.save(print_file,dev.fext,outputQuality);
+    file.remove();
     }
-
-#endif
-
-
+    //else
+    select_device(tdevice);//select the screen-display-device again
+//cout << "vorher dirty=" << dirty << "; nachher dirty=" << is_dirtystate() << endl;
+    */
 }
 
 void plotone(int gno)
@@ -380,21 +1040,23 @@ void plotone(int gno)
     }
     setclipping(TRUE);
     set_draw_mode(TRUE);
-    if (select_graph(gno) != RETURN_SUCCESS) {
+    if (select_graph(gno) != RETURN_SUCCESS)
+    {
         return;
     }
     /* fill frame */
     fillframe(gno);
-
     gtype = (GraphType)get_graph_type(gno);
-    if (gtype != GRAPH_PIE) {
+    if (gtype != GRAPH_PIE)
+    {
         /* calculate tick mark positions for all axes */
         calculate_tickgrid(gno);
         /* draw grid lines */
         drawgrid(gno);
     }
     /* plot type specific routines */
-    switch(gtype) {
+    switch(gtype)
+    {
     case GRAPH_POLAR:
         draw_polar_graph(gno);
         break;
@@ -408,7 +1070,8 @@ void plotone(int gno)
         xyplot(gno);
         break;
     }
-    if (gtype != GRAPH_PIE) {
+    if (gtype != GRAPH_PIE)
+    {
         /* plot axes and tickmarks */
         drawaxes(gno);
     }
@@ -416,14 +1079,16 @@ void plotone(int gno)
     drawframe(gno);
     /* plot objects */
     draw_objects(gno);
-    if (gtype != GRAPH_PIE) {
+    if (gtype != GRAPH_PIE)
+    {
         /* plot legends */
         dolegend(gno);
     }
     /* draw title and subtitle */
     draw_titles(gno);
     /* draw regions and mark the reference points only if in interactive mode */
-    if (terminal_device() == TRUE) {
+    if (terminal_device() == TRUE)
+    {
         draw_regions(gno);
         draw_ref_point(gno);
     }
@@ -455,15 +1120,19 @@ void draw_pie_chart(int gno)
     get_graph_world(gno, &w);
     sgn = is_graph_xinvert(gno) ? -1:1;
     
-    for (setno = 0; setno < number_of_sets(gno); setno++) {
-        if (is_set_drawable(gno, setno)) {
+    for (setno = 0; setno < number_of_sets(gno); setno++)
+    {
+        if (is_set_drawable(gno, setno))
+        {
             nsets++;
-            if (nsets > 1) {
-                errmsg("Only one set per pie chart can be drawn");
+            if (nsets > 1)
+            {
+                errmsg(QObject::tr("Only one set per pie chart can be drawn").toLocal8Bit().constData());
                 return;
             }
             
-            switch (dataset_type(gno, setno)) {
+            switch (dataset_type(gno, setno))
+            {
             case SET_XY:
             case SET_XYCOLOR:
             case SET_XYCOLPAT:
@@ -479,27 +1148,32 @@ void draw_pie_chart(int gno)
                 
                 /* get max explode factor */
                 e_max = 0.0;
-                for (i = 0; i < p.data.len; i++) {
+                for (i = 0; i < p.data.len; i++)
+                {
                     e_max = MAX2(e_max, e[i]);
                 }
                 
                 r = 0.8/(1.0 + e_max)*MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2;
 
                 norm = 0.0;
-                for (i = 0; i < p.data.len; i++) {
-                    if (x[i] < 0.0) {
-                        errmsg("No negative values in pie charts allowed");
+                for (i = 0; i < p.data.len; i++)
+                {
+                    if (x[i] < 0.0)
+                    {
+                        errmsg(QObject::tr("No negative values in pie charts allowed").toLocal8Bit().constData());
                         return;
                     }
-                    if (e[i] < 0.0) {
-                        errmsg("No negative offsets in pie charts allowed");
+                    if (e[i] < 0.0)
+                    {
+                        errmsg(QObject::tr("No negative offsets in pie charts allowed").toLocal8Bit().constData());
                         return;
                     }
                     norm += x[i];
                 }
                 
                 stop_angle = w.xg1;
-                for (i = 0; i < p.data.len; i++) {
+                for (i = 0; i < p.data.len; i++)
+                {
                     Pen pen;
                     
                     start_angle = stop_angle;
@@ -517,14 +1191,20 @@ void draw_pie_chart(int gno)
                     vp2.x = vpc.x + r + offset.x;
                     vp2.y = vpc.y + r + offset.y;
                     
-                    if (c != NULL) {
+                    if (c != NULL)
+                    {
                         pen.color   = (int) rint(c[i]);
-                    } else {
+                    }
+                    else
+                    {
                         pen.color = p.symfillpen.color;
                     }
-                    if (pt != NULL) {
+                    if (pt != NULL)
+                    {
                         pen.pattern   = (int) rint(pt[i]);
-                    } else {
+                    }
+                    else
+                    {
                         pen.pattern = p.symfillpen.pattern;
                     }
                     setpen(pen);
@@ -543,7 +1223,8 @@ void draw_pie_chart(int gno)
 
                     avalue = p.avalue;
 
-                    if (avalue.active == TRUE) {
+                    if (avalue.active == TRUE)
+                    {
 
                         vpa.x = vpc.x + ((1 + e[i])*r + avalue.offset.y)*
                                 cos((start_angle + stop_angle)/2.0);
@@ -551,33 +1232,33 @@ void draw_pie_chart(int gno)
                                 sin((start_angle + stop_angle)/2.0);
 
                         strcpy(str, avalue.prestr);
-
-                        switch(avalue.type) {
+                        dummy[0]='\0';
+                        switch(avalue.type)
+                        {
                         case AVALUE_TYPE_X:
-                            strcat(str, create_fstring(avalue.format, avalue.prec, x[i],
-                                                       LFORMAT_TYPE_EXTENDED));
+                            strcpy(dummy, create_fstring(avalue.format, avalue.prec, x[i], LFORMAT_TYPE_EXTENDED));
                             break;
                         case AVALUE_TYPE_STRING:
-                            if (p.data.s != NULL && p.data.s[i] != NULL) {
-                                strcat(str, p.data.s[i]);
+                            if (p.data.s != NULL && p.data.s[i] != NULL)
+                            {
+                                strcpy(dummy, p.data.s[i]);
                             }
                             break;
                         default:
                             continue;
                         }
-
+                        SetDecimalSeparatorToUserValue(dummy,false);
+                        strcat(str, dummy);
                         strcat(str, avalue.appstr);
-
                         setcharsize(avalue.size);
                         setfont(avalue.font);
                         setcolor(avalue.color);
-
                         WriteString(vpa, avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
                     }
                 }
                 break;
             default:
-                errmsg("Unsupported in pie chart set type");
+                errmsg(QObject::tr("Unsupported in pie chart set type").toLocal8Bit().constData());
                 break;
             }
         }
@@ -602,7 +1283,7 @@ void draw_polar_graph(int gno)
                 drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                 break;
             default:
-                errmsg("Unsupported in polar graph set type");
+                errmsg(QObject::tr("Unsupported in polar graph set type").toLocal8Bit().constData());
                 break;
             }
         }
@@ -626,15 +1307,19 @@ void xyplot(int gno)
     refy = NULL;
 
     /* draw sets */
-    switch (get_graph_type(gno)) {
+    switch (get_graph_type(gno))
+    {
     case GRAPH_XY:
-        for (i = 0; i < number_of_sets(gno); i++) {
+        for (i = 0; i < number_of_sets(gno); i++)
+        {
             colorNumber=getpen().color;
             rgbColor=get_rgb(colorNumber);
             linePen=QPen(QColor(rgbColor->red,rgbColor->blue,rgbColor->green));
-            if (is_set_drawable(gno, i)) {
+            if (is_set_drawable(gno, i))
+            {
                 get_graph_plotarr(gno, i, &p);
-                switch (dataset_type(gno, i)) {
+                switch (dataset_type(gno, i))
+                {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
@@ -682,75 +1367,93 @@ void xyplot(int gno)
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 default:
-                    errmsg("Unsupported in XY graph set type");
+                    errmsg(QObject::tr("Unsupported in XY graph set type").toLocal8Bit().constData());
                     break;
                 }
             }
         }
         break;
     case GRAPH_CHART:
-        for (i = 0; i < number_of_sets(gno); i++) {
+        for (i = 0; i < number_of_sets(gno); i++)
+        {
             get_graph_plotarr(gno, i, &p);
-            if (is_set_drawable(gno, i)) {
-                if (p.data.len > refn) {
+            if (is_set_drawable(gno, i))
+            {
+                if (p.data.len > refn)
+                {
                     refn = p.data.len;
                     refx = p.data.ex[0];
                 }
-                if (is_graph_stacked(gno) != TRUE) {
+                if (is_graph_stacked(gno) != TRUE)
+                {
                     offset -= 0.5*0.02*p.symsize;
                 }
             }
         }
         offset -= 0.5*(nactive(gno) - 1)*get_graph_bargap(gno);
         
-        if (is_graph_stacked(gno) == TRUE) {
+        if (is_graph_stacked(gno) == TRUE)
+        {
             refy = (double*)xcalloc(refn, sizeof(double));///SIZEOF_DOUBLE);
-            if (refy == NULL) {
+            if (refy == NULL)
+            {
                 return;
             }
         }
         
-        if (refx) {
+        if (refx)
+        {
             double xmin, xmax;
             int imin, imax;
             minmax(refx, refn, &xmin, &xmax, &imin, &imax);
             epsilon = 1.0e-3*(xmax - xmin)/refn;
-        } else {
+        }
+        else
+        {
             epsilon = 0.0;
         }
 
-        for (i = 0; i < number_of_sets(gno); i++) {
+        for (i = 0; i < number_of_sets(gno); i++)
+        {
             int x_ok;
             double *x;
             
             get_graph_plotarr(gno, i, &p);
-            if (is_set_drawable(gno, i)) {
+            if (is_set_drawable(gno, i))
+            {
                 /* check that abscissas are identical with refx */
                 x = getcol(gno, i, DATA_X);
                 x_ok = TRUE;
-                for (j = 0; j < getsetlength(gno, i); j++) {
-                    if (fabs(x[j] - refx[j]) > epsilon) {
+                for (j = 0; j < getsetlength(gno, i); j++)
+                {
+                    if (fabs(x[j] - refx[j]) > epsilon)
+                    {
                         x_ok = FALSE;
                         break;
                     }
                 }
-                if (x_ok != TRUE) {
+                if (x_ok != TRUE)
+                {
                     char buf[128];
-                    sprintf(buf, "Set G%d.S%d has different abscissas, "
-                            "skipped from the chart.", gno, i);
-                    errmsg(buf);
+                    QString buf_str;
+                    sprintf(buf, "G%d.S%d", gno, i);
+                    buf_str=QObject::tr("Set ")+QString(buf)+QObject::tr(" has different abscissas, skipped from the chart.");
+                    errmsg(buf_str.toLocal8Bit().constData());
                     continue;
                 }
                 
-                if (is_graph_stacked(gno) != TRUE) {
+                if (is_graph_stacked(gno) != TRUE)
+                {
                     offset += 0.5*0.02*p.symsize;
                 }
-                switch (dataset_type(gno, i)) {
+                switch (dataset_type(gno, i))
+                {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
-                    if (is_graph_stacked(gno) != TRUE) {
+                    if (is_graph_stacked(gno) != TRUE)
+                    {
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
@@ -758,7 +1461,8 @@ void xyplot(int gno)
                 case SET_BAR:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
                     drawsetbars(gno, i, &p, refn, refx, refy, offset);
-                    if (is_graph_stacked(gno) != TRUE) {
+                    if (is_graph_stacked(gno) != TRUE)
+                    {
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
                     break;
@@ -766,7 +1470,8 @@ void xyplot(int gno)
                 case SET_BARDYDY:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
                     drawsetbars(gno, i, &p, refn, refx, refy, offset);
-                    if (is_graph_stacked(gno) != TRUE) {
+                    if (is_graph_stacked(gno) != TRUE)
+                    {
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
@@ -774,37 +1479,47 @@ void xyplot(int gno)
                 case SET_XYDY:
                 case SET_XYDYDY:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
-                    if (is_graph_stacked(gno) != TRUE) {
+                    if (is_graph_stacked(gno) != TRUE)
+                    {
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
                     break;
                 default:
-                    errmsg("Unsupported in XY chart set type");
+                    errmsg(QObject::tr("Unsupported in XY chart set type").toLocal8Bit().constData());
                     break;
                 }
-                if (is_graph_stacked(gno) != TRUE) {
+                if (is_graph_stacked(gno) != TRUE)
+                {
                     offset += 0.5*0.02*p.symsize + get_graph_bargap(gno);
-                } else {
-                    for (j = 0; j < p.data.len; j++) {
+                }
+                else
+                {
+                    for (j = 0; j < p.data.len; j++)
+                    {
                         refy[j] += p.data.ex[1][j];
                     }
                 }
             }
         }
         
-        if (is_graph_stacked(gno) == TRUE) {
+        if (is_graph_stacked(gno) == TRUE)
+        {
             /* Second pass for stacked charts: symbols and avalues */
             offset = 0.0;
-            for (j = 0; j < refn; j++) {
+            for (j = 0; j < refn; j++)
+            {
                 refy[j] = 0.0;
             }
             
-            for (i = 0; i < number_of_sets(gno); i++) {
+            for (i = 0; i < number_of_sets(gno); i++)
+            {
                 get_graph_plotarr(gno, i, &p);
-                if (is_set_drawable(gno, i)) {
-                    switch (dataset_type(gno, i)) {
+                if (is_set_drawable(gno, i))
+                {
+                    switch (dataset_type(gno, i))
+                    {
                     case SET_XY:
                     case SET_XYSIZE:
                     case SET_XYCOLOR:
@@ -827,22 +1542,27 @@ void xyplot(int gno)
                         break;
                     }
                     
-                    for (j = 0; j < p.data.len; j++) {
+                    for (j = 0; j < p.data.len; j++)
+                    {
                         refy[j] += p.data.ex[1][j];
                     }
                 }
             }
         }
 
-        if (refy != NULL) {
+        if (refy != NULL)
+        {
             xfree(refy);
         }
         break;
     case GRAPH_FIXED:
-        for (i = 0; i < number_of_sets(gno); i++) {
-            if (is_set_drawable(gno, i)) {
+        for (i = 0; i < number_of_sets(gno); i++)
+        {
+            if (is_set_drawable(gno, i))
+            {
                 get_graph_plotarr(gno, i, &p);
-                switch (dataset_type(gno, i)) {
+                switch (dataset_type(gno, i))
+                {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
@@ -874,7 +1594,7 @@ void xyplot(int gno)
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 default:
-                    errmsg("Unsupported in XY graph set type");
+                    errmsg(QObject::tr("Unsupported in XY graph set type").toLocal8Bit().constData());
                     break;
                 }
             }
@@ -887,12 +1607,14 @@ void xyplot(int gno)
 void draw_regions(int gno)
 {
     int i;
-
     setclipping(TRUE);
-    
     /* draw any defined regions for this graph */
-    for (i = 0; i <= MAXREGION; i++) {
-        if ((rg[i].active || region_def_under_way==i) && rg[i].linkto == gno) {
+    for (i = 0; i <= MAXREGION; i++)
+    {
+        //cout << "region " << i << " : active=" << rg[i].active << " region_def_under_way=" << region_def_under_way << endl;
+        if ((rg[i].active || region_def_under_way==i) && rg[i].linkto == gno)
+        {
+            if (i==MAXREGION && region_def_under_way==-1) continue;
             setcolor(rg[i].color);
             setpattern(1);
             setlinewidth(rg[i].linew);
@@ -908,7 +1630,8 @@ void draw_ref_point(int gno)
     WPoint wp;
     VPoint vp;
     
-    if (is_refpoint_active(gno)) {
+    if (is_refpoint_active(gno))
+    {
         get_graph_locator(gno, &locator);
         wp.x = locator.dsx;
         wp.y = locator.dsy;
@@ -936,14 +1659,16 @@ void draw_titles(int gno)
     vp1.x = (v.xv2 + v.xv1) / 2;
     vp1.y = (v.yv2 < v.yv1)? v.yv1 : v.yv2;
     vp2 = vp1;
-    if (lab.title.s_plotstring && lab.title.s_plotstring[0]) {
+    if (lab.title.s_plotstring && lab.title.s_plotstring[0])
+    {
         setcolor(lab.title.color);
         setcharsize(lab.title.charsize);
         setfont(lab.title.font);
         vp1.y += 0.06;
         WriteString(vp1, 0, JUST_CENTER|JUST_BOTTOM, lab.title.s_plotstring);
     }
-    if (lab.stitle.s_plotstring && lab.stitle.s_plotstring[0]) {
+    if (lab.stitle.s_plotstring && lab.stitle.s_plotstring[0])
+    {
         setcolor(lab.stitle.color);
         setcharsize(lab.stitle.charsize);
         setfont(lab.stitle.font);
@@ -1069,22 +1794,29 @@ void drawsetfill(int gno, int setno, plotarr *p,
     double xmin, xmax, ymin, ymax;
     int stacked_chart;
     
-    if (p->filltype == SETFILL_NONE) {
+    if (p->filltype == SETFILL_NONE)
+    {
         return;
     }
     
-    if (get_graph_type(gno) == GRAPH_CHART) {
+    if (get_graph_type(gno) == GRAPH_CHART)
+    {
         x = refx;
         setlen = MIN2(p->data.len, refn);
-    } else {
+    }
+    else
+    {
         x = p->data.ex[0];
         setlen = p->data.len;
     }
     y = p->data.ex[1];
     
-    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
+    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE)
+    {
         stacked_chart = TRUE;
-    } else {
+    }
+    else
+    {
         stacked_chart = FALSE;
     }
     
@@ -1092,32 +1824,41 @@ void drawsetfill(int gno, int setno, plotarr *p,
     
     get_graph_world(gno, &w);
 
-    switch (line_type) {
+    switch (line_type)
+    {
     case LINE_TYPE_STRAIGHT:
     case LINE_TYPE_SEGMENT2:
     case LINE_TYPE_SEGMENT3:
-        if (stacked_chart == TRUE && p->filltype == SETFILL_BASELINE) {
+        if (stacked_chart == TRUE && p->filltype == SETFILL_BASELINE)
+        {
             len = 2*setlen;
-        } else {
+        }
+        else
+        {
             len = setlen;
         }
         vps = (VPoint *) xmalloc((len + 2) * sizeof(VPoint));
-        if (vps == NULL) {
-            errmsg("Can't xmalloc in drawsetfill");
+        if (vps == NULL)
+        {
+            errmsg(QObject::tr("Can't xmalloc in drawsetfill").toLocal8Bit().constData());
             return;
         }
 
-        for (i = 0; i < setlen; i++) {
+        for (i = 0; i < setlen; i++)
+        {
             wptmp.x = x[i];
             wptmp.y = y[i];
-            if (stacked_chart == TRUE) {
+            if (stacked_chart == TRUE)
+            {
                 wptmp.y += refy[i];
             }
             vps[i] = Wpoint2Vpoint(wptmp);
             vps[i].x += offset;
         }
-        if (stacked_chart == TRUE && p->filltype == SETFILL_BASELINE) {
-            for (i = 0; i < setlen; i++) {
+        if (stacked_chart == TRUE && p->filltype == SETFILL_BASELINE)
+        {
+            for (i = 0; i < setlen; i++)
+            {
                 wptmp.x = x[setlen - i - 1];
                 wptmp.y = refy[setlen - i - 1];
                 vps[setlen + i] = Wpoint2Vpoint(wptmp);
@@ -1129,25 +1870,32 @@ void drawsetfill(int gno, int setno, plotarr *p,
     case LINE_TYPE_RIGHTSTAIR:
         len = 2*setlen - 1;
         vps = (VPoint *) xmalloc((len + 2) * sizeof(VPoint));
-        if (vps == NULL) {
-            errmsg("Can't xmalloc in drawsetfill");
+        if (vps == NULL)
+        {
+            errmsg(QObject::tr("Can't xmalloc in drawsetfill").toLocal8Bit().constData());
             return;
         }
 
-        for (i = 0; i < setlen; i++) {
+        for (i = 0; i < setlen; i++)
+        {
             wptmp.x = x[i];
             wptmp.y = y[i];
-            if (stacked_chart == TRUE) {
+            if (stacked_chart == TRUE)
+            {
                 wptmp.y += refy[i];
             }
             vps[2*i] = Wpoint2Vpoint(wptmp);
             vps[2*i].x += offset;
         }
-        for (i = 1; i < len; i += 2) {
-            if (line_type == LINE_TYPE_LEFTSTAIR) {
+        for (i = 1; i < len; i += 2)
+        {
+            if (line_type == LINE_TYPE_LEFTSTAIR)
+            {
                 vps[i].x = vps[i - 1].x;
                 vps[i].y = vps[i + 1].y;
-            } else {
+            }
+            else
+            {
                 vps[i].x = vps[i + 1].x;
                 vps[i].y = vps[i - 1].y;
             }
@@ -1157,14 +1905,18 @@ void drawsetfill(int gno, int setno, plotarr *p,
         return;
     }
     ///I added something here to be able to fill the area between two sets!
-    switch (p->filltype) {
+    switch (p->filltype)
+    {
     case SETFILL_POLYGON:
         polylen = len;
         break;
     case SETFILL_BASELINE:
-        if (stacked_chart == TRUE) {
+        if (stacked_chart == TRUE)
+        {
             polylen = len;
-        } else {
+        }
+        else
+        {
             getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
             ybase = setybase(gno, setno);
             polylen = len + 2;
@@ -1205,7 +1957,6 @@ void drawsetfill(int gno, int setno, plotarr *p,
         polylen+=len_poly_base-2;
     }
     DrawPolygon(vps, polylen);
-    
     xfree(vps);
 }
 
@@ -1260,25 +2011,6 @@ void drawsetline(int gno, int setno, plotarr *p,
     } else {
         lw = 0.0;
     }
-    bool qt45fix=false;
-#if QT_VERSION < 0x040800
-    if( ly > 1) qt45fix=false;  // Deactivated fix since it messed up most plots. 2013-11-25 DF.
-    // The polylines with many points which
-    // are not solid (ly>1), are rendered incorrectly
-    // in Qt 4.5. They are correct in 4.7.
-    // BZ2033 contains an example that requires this fix.
-    // The QPen::setStyle(Qt::SolidLine) are always displayed
-    // correctly.
-    // The QPen::setStyle(Qt::anything else) do not.
-    // No Qt clipping is active.
-    // The coordinates that then sent to QPainter::drawPolyline(p,xn);
-    // are always the same.
-    // Exporting, printing has no evidence of this bug.
-    // This HAS not been fixed yet for STAIRS case.
-    // The fix is not very efficient because requires more computations
-    // in clipping
-#endif    
-    
     
     /* draw the line */
     if (ly != 0 && p->linepen.pattern != 0) {
@@ -1289,10 +2021,9 @@ void drawsetline(int gno, int setno, plotarr *p,
         case LINE_TYPE_STRAIGHT:
             vpstmp = (VPoint *) xmalloc(setlen*sizeof(VPoint));
             if (vpstmp == NULL) {
-                errmsg("xmalloc failed in drawsetline()");
+                errmsg(QObject::tr("xmalloc failed in drawsetline()").toLocal8Bit().constData());
                 break;
             }
-            
             for (i = 0; i < setlen; i++) {
                 wp.x = x[i];
                 wp.y = y[i];
@@ -1303,14 +2034,8 @@ void drawsetline(int gno, int setno, plotarr *p,
                 vpstmp[i].x += offset;
                 
                 vpstmp[i].y -= lw/2.0;
-                
-                if(qt45fix){
-                    if(i>0) DrawLine( vpstmp[i-1],  vpstmp[i]);
-                }
             }
-            if(!qt45fix){
-                DrawPolyline(vpstmp, setlen, POLYLINE_OPEN);
-            }
+            DrawPolyline(vpstmp, setlen, POLYLINE_OPEN);
             xfree(vpstmp);
             break;
         case LINE_TYPE_SEGMENT2:
@@ -1392,7 +2117,7 @@ void drawsetline(int gno, int setno, plotarr *p,
             len = 2*setlen - 1;
             vpstmp = (VPoint *) xmalloc(len*sizeof(VPoint));
             if (vpstmp == NULL) {
-                errmsg("xmalloc failed in drawsetline()");
+                errmsg(QObject::tr("xmalloc failed in drawsetline()").toLocal8Bit().constData());
                 break;
             }
             for (i = 0; i < setlen; i++) {
@@ -1417,7 +2142,7 @@ void drawsetline(int gno, int setno, plotarr *p,
             xfree(vpstmp);
             break;
         default:
-            errmsg("Invalid line type");
+            errmsg(QObject::tr("Invalid line type").toLocal8Bit().constData());
             break;
         }
     }
@@ -1551,10 +2276,8 @@ void drawsetsyms(int gno, int setno, plotarr *p,
     }
 }
 
-
 /* draw the annotative values */
-void drawsetavalues(int gno, int setno, plotarr *p,
-                    int refn, double *refx, double *refy, double offset)
+void drawsetavalues(int gno, int setno, plotarr *p, int refn, double *refx, double *refy, double offset)
 {
     int i;
     int setlen;
@@ -1586,9 +2309,12 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         z = NULL;
     }
     
-    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
+    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE)
+    {
         stacked_chart = TRUE;
-    } else {
+    }
+    else
+    {
         stacked_chart = FALSE;
     }
     
@@ -1612,44 +2338,46 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         vp.y += avalue.offset.y;
         vp.x += offset;
         
-        strcpy(str, avalue.prestr);
-        
-        switch(avalue.type) {
+        strcpy(str, avalue.prestr);//use prepend-string
+        dummy[0]='\0';//clear value-string
+        switch(avalue.type)
+        {
         case AVALUE_TYPE_NONE:
             break;
         case AVALUE_TYPE_X:
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.x,
-                                       LFORMAT_TYPE_EXTENDED));
+            strcpy(dummy, create_fstring(avalue.format, avalue.prec, wp.x,LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_Y:
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.y,
-                                       LFORMAT_TYPE_EXTENDED));
+            strcpy(dummy, create_fstring(avalue.format, avalue.prec, wp.y,LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_XY:
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.x,
-                                       LFORMAT_TYPE_EXTENDED));
-            strcat(str, ", ");
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.y,
-                                       LFORMAT_TYPE_EXTENDED));
+            strcpy(dummy, create_fstring(avalue.format, avalue.prec, wp.x,LFORMAT_TYPE_EXTENDED));
+            if (DecimalPointToUse=='.')
+                strcat(dummy, ", ");
+            else
+                strcat(dummy, " | ");
+            strcat(dummy, create_fstring(avalue.format, avalue.prec, wp.y,LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_STRING:
-            if (p->data.s != NULL && p->data.s[i] != NULL) {
-                strcat(str, p->data.s[i]);
+            if (p->data.s != NULL && p->data.s[i] != NULL)
+            {
+                strcpy(dummy, p->data.s[i]);
             }
             break;
         case AVALUE_TYPE_Z:
-            if (z != NULL) {
-                strcat(str, create_fstring(avalue.format, avalue.prec, z[i],
-                                           LFORMAT_TYPE_EXTENDED));
+            if (z != NULL)
+            {
+                strcpy(dummy, create_fstring(avalue.format, avalue.prec, z[i],LFORMAT_TYPE_EXTENDED));
             }
             break;
         default:
-            errmsg("Invalid type of ann. value");
+            errmsg(QObject::tr("Invalid type of ann. value").toLocal8Bit().constData());
             return;
-        }
-        
-        strcat(str, avalue.appstr);
-        
+        }//value-string generated
+//cout << "Annotate Values: DecimalPointToUse=" << DecimalPointToUse << endl;
+    SetDecimalSeparatorToUserValue(dummy,false);//replace Decimal separator if necessary
+        strcat(str,dummy);//add value-string to annotation
+        strcat(str, avalue.appstr);//add append-string
         setcolor(avalue.color);
         WriteString(vp, avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
     }
@@ -2199,7 +2927,7 @@ int drawxysym(VPoint vp, double size, int symtype,
         WriteString(vp, 0, JUST_CENTER|JUST_MIDDLE, buf);
         break;
     default:
-        errmsg("Invalid symbol type");
+        errmsg(QObject::tr("Invalid symbol type").toLocal8Bit().constData());
         return RETURN_FAILURE;
     }
     return RETURN_SUCCESS;
@@ -2344,7 +3072,6 @@ void draw_string(int gno, int i)
         setcharsize(pstr.charsize);
         setfont(pstr.font);
 
-
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
@@ -2357,7 +3084,7 @@ vp.x-=0.2;
 else
 {
 WriteString(vp, pstr.rot, pstr.just, pstr.s);
-} */
+}*/
 
         WriteString(vp, pstr.rot, pstr.just, pstr.s_plotstring);
 
@@ -2404,7 +3131,7 @@ void draw_box(int gno, int i)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
         
-        RotationAngle=b.rot;
+        RotationAngle=-b.rot;//changed to '-' starting with 0.2.4
 
         setcolor(b.fillcolor);
         setpattern(b.fillpattern);
@@ -2461,7 +3188,7 @@ void draw_ellipse(int gno, int i)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
         
-        RotationAngle=b.rot;
+        RotationAngle=-b.rot;//changed to '-' starting with 0.2.4
 
         setcolor(b.fillcolor);
         setpattern(b.fillpattern);
@@ -2604,7 +3331,7 @@ void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp)
         DrawPolyline(vps, 4, POLYLINE_CLOSED);
         break;
     default:
-        errmsg("Internal error in draw_arrowhead()");
+        errmsg(QObject::tr("Internal error in draw_arrowhead()").toLocal8Bit().constData());
         break;
     }
 
@@ -2640,7 +3367,7 @@ void draw_region(int r)
         if (this_one->x != NULL && this_one->y != NULL && this_one->n >= 2) {
             vpstmp = (VPoint*)xmalloc (this_one->n*sizeof(VPoint));
             if (vpstmp == NULL) {
-                errmsg("xmalloc error in draw_region()");
+                errmsg(QObject::tr("xmalloc error in draw_region()").toLocal8Bit().constData());
                 return;
             } else {
                 for (i = 0; i < this_one->n; i++) {
@@ -2694,7 +3421,7 @@ void draw_region(int r)
         rgndouble=1;
         break;
     default:
-        errmsg("Internal error in draw_region");
+        errmsg(QObject::tr("Internal error in draw_region").toLocal8Bit().constData());
         return;
     }
     
@@ -2742,6 +3469,7 @@ void dolegend(int gno)
     int draw_flag;
     double maxsymsize;
     double ldist, sdist, yskip;
+    double old_vp_x,old_vp_y;
     
     WPoint wptmp;
     VPoint vp, vp2;
@@ -2783,10 +3511,14 @@ void dolegend(int gno)
     if (l.loctype == COORD_WORLD) {
         wptmp.x = l.legx;
         wptmp.y = l.legy;
+        old_vp_x=wptmp.x;
+        old_vp_y=wptmp.y;
         vp = Wpoint2Vpoint(wptmp);
     } else {
         vp.x = l.legx;
         vp.y = l.legy;
+        old_vp_x=vp.x;
+        old_vp_y=vp.y;
     }
     
     ldist = 0.01*l.len;
@@ -2797,7 +3529,7 @@ void dolegend(int gno)
     activate_bbox(BBOX_TYPE_TEMP, TRUE);
     reset_bbox(BBOX_TYPE_TEMP);
     update_bbox(BBOX_TYPE_TEMP, vp);
-    
+
     set_draw_mode(FALSE);
     putlegends(gno, vp, ldist, sdist, yskip);
     v = get_bbox(BBOX_TYPE_TEMP);
@@ -2809,6 +3541,42 @@ void dolegend(int gno)
     l.bb.yv1 = vp2.y;
     l.bb.xv2 = vp2.x;
     l.bb.yv2 = vp.y;
+
+    if (l.autoattach!=G_LB_ATTACH_NONE)
+    {
+    double dx,dy;
+    view tov;
+    dx=0;
+    dy=0;
+    get_graph_viewport(l.autoattachG,&tov);
+        //horizontal
+        if (l.autoattach & G_LB_ATTACH_LEFT)
+        {
+        dx=tov.xv1-l.bb.xv1;
+        }
+        else if (l.autoattach & G_LB_ATTACH_RIGHT)
+        {
+        dx=tov.xv2-fabs(l.bb.xv2-l.bb.xv1)-l.bb.xv1;
+        }
+        //vertical
+        if (l.autoattach & G_LB_ATTACH_TOP)
+        {
+        dy=tov.yv2-l.bb.yv2;
+        }
+        else if (l.autoattach & G_LB_ATTACH_BOTTOM)
+        {
+        dy=tov.yv1+fabs(l.bb.yv2-l.bb.yv1)-l.bb.yv2;
+        }
+    vp.x+=dx;
+    vp.y+=dy;
+    vp2.x+=dx;
+    vp2.y+=dy;
+    v.xv1+=dx;
+    v.yv2+=dy;
+    l.xshift=dx;
+    l.yshift=dy;
+    }
+
     /* The bb update shouldn't change the dirtystate flag */
     lock_dirtystate(TRUE);
     set_graph_legend(gno, &l);
@@ -2834,6 +3602,11 @@ void dolegend(int gno)
     update_bbox(BBOX_TYPE_TEMP, vp);
 
     putlegends(gno, vp, ldist, sdist, yskip);
+    l.legx=old_vp_x;
+    l.legy=old_vp_y;
+    lock_dirtystate(TRUE);
+    set_graph_legend(gno, &l);
+    lock_dirtystate(FALSE);
 }
 
 void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
@@ -2910,7 +3683,7 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
 /* plot time stamp */
 void draw_timestamp(void)
 {
-    if (timestamp.active) {
+    if (timestamp.active || timestamp.path) {
         VPoint vp;
         setfont(timestamp.font);
         setcharsize(timestamp.charsize);

@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -42,6 +42,8 @@ extern "C" double MAXNUM;
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cmath.h>
+#include "cmath.h"
 
 #include "globals.h"
 #include "utils.h"
@@ -51,9 +53,8 @@ extern "C" double MAXNUM;
 #include "parser.h"
 #include "noxprotos.h"
 #include <iostream>
-
-#include "cmath.h"
-// M_PI
+#include <QObject>
+#include <QString>
 
 using namespace std;
 
@@ -64,6 +65,9 @@ int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *c
 
 static char buf[256];
 extern int new_set_no;
+extern void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true);
+extern void remove_whitespaces(char * tar,char * ch);
+extern char last_formula[];
 
 void do_fourier_command(int gno, int setno, int ftype, int ltype)
 {
@@ -97,9 +101,9 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
 	filter_set(graphto, loadto, rarray);
         set_parser_setno(graphto, loadto);
         if (scanner(fstr) != RETURN_SUCCESS) {
-	    if (graphto != gno || loadto != setno) {
-		killset(graphto, loadto);
-	    }
+            if (graphto != gno || loadto != setno) {
+            killset(graphto, loadto);
+            }
 	    return RETURN_FAILURE;
 	} else {
 	    set_dirtystate();
@@ -442,9 +446,9 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
 	/* 
 	 * gno, setno  - set to perform fit on
 	 * ideg   - degree of fit
-	 * irisid - 0 -> whole set, 1-> subset of setno
+     * iresid - 0 -> whole set, 1 -> subset of setno, 2 -> none at all
 	 * rno    - region number of subset
-	 * invr   - 1->invert region, 0 -> do nothing
+     * invr   - 1 -> invert region, 0 -> do nothing
 	 * fitset - set to which fitted function will be loaded
 	 * 			Y values are computed at the x values in the set
 	 *          if -1 is specified, a set with the same x values as the
@@ -488,7 +492,7 @@ new_set_no=-1;
 		return;
     }
 	/* determine is set provided or use abscissa from fitted set */
-    if( fitset == -1 ) {		        /* create set */
+    if( fitset == -1 && iresid != 2) {		        /* create set */
     	if( (fitset = nextset(gno)) != -1 ) {
 			activateset(gno, fitset);
 			setlength(gno, fitset, len);
@@ -499,6 +503,15 @@ new_set_no=-1;
 			}	
 			yr = gety(gno, fitset);
 		}
+    } else if (iresid == 2) {//do not create a set
+        fitlen = len;
+        xr=new double[len+1];
+        yr=new double[len+1];
+            for (int i=0;i<len;i++)
+            {
+            xr[i]=x[i];
+            yr[i]=y[i];
+            }
     } else {									/* set has been provided */
 		fitlen = getsetlength( gno, fitset );
 		xr = getx(gno, fitset);
@@ -506,7 +519,7 @@ new_set_no=-1;
     }
 new_set_no=fitset;
 	/* transform data so that system has the form y' = A + B * x' */
-    if (fitset != -1) {
+    if (fitset != -1 || iresid == 2) {
 	if (ideg == 12) {	/* y=A*x^B -> ln(y) = ln(A) + B * ln(x) */
 	    ideg = 1;
 	    for (i = 0; i < len; i++) {
@@ -530,7 +543,7 @@ new_set_no=fitset;
 			} 
 		for( i=0; i<fitlen; i++ )
 			xr[i] = log( xr[i] );
-	} else if (ideg == 13) {   /*y=Aexp(B*x) -> ln(y) = ln(A) + B * x */
+    } else if (ideg == 13) {   /*y=A*exp(B*x) -> ln(y) = ln(A) + B * x */
 	    ideg = 1;
 	    for (i = 0; i < len; i++) {
 			if (yt[i] <= 0.0) {
@@ -573,28 +586,32 @@ new_set_no=fitset;
 	    }
 	}
 
-	if (fitcurve(xt, yt, len, ideg, c)) {
+    if (fitcurve(xt, yt, len, ideg, c))
+    {
 	    killset(gno, fitset);
 	    goto bustout;
-	}
+    }
 
-	/* compute function at requested x ordinates */
-	for( i=0; i<fitlen; i++ )
+    /* compute function at requested x coordinates */
+        if (iresid != 2)
+        {
+        for( i=0; i<fitlen; i++ )
 		yr[i] = leasev( c, ideg, xr[i] );
+        }
 
 	sprintf(buf, "\nN.B. Statistics refer to the transformed model\n");
 	/* apply inverse transform, output fitted function in human readable form */
-	if( sdeg<11 ) {
+    if( sdeg<11 )
+    {
 		sprintf(buf, "\ny = %.5g %c %.5g * x", c[0], c[1]>=0?'+':'-', fabs(c[1]));
-		for( i=2; i<=ideg; i++ )
-			sprintf( buf+strlen(buf), " %c %.5g * x^%d", c[i]>=0?'+':'-', 
-															fabs(c[i]), i );
+            for( i=2; i<=ideg; i++ )
+            sprintf( buf+strlen(buf), " %c %.5g * x^%d", c[i]>=0?'+':'-',fabs(c[i]), i );
 		strcat( buf, "\n" );
 	} else if (sdeg == 12) {	/* ln(y) = ln(A) + b * ln(x) */
 		sprintf( buf, "\ny = %.5g * x^%.5g\n", exp(c[0]), c[1] );
 	    for (i = 0; i < len; i++) {
 			xt[i] = exp(xt[i]);
-			yt[i] = exp(yt[i]);
+            yt[i] = exp(yt[i]);
 	    }
 	    for (i = 0; i < fitlen; i++){
 			yr[i] = exp(yr[i]);
@@ -608,24 +625,36 @@ new_set_no=fitset;
 	    for (i = 0; i < fitlen; i++)
 			yr[i] = exp(yr[i]);
 	} else if (sdeg == 14) {	/* y = A + B * ln(x) */
-		sprintf(buf, "\ny = %.5g %c %.5g * ln(x)\n", c[0], c[1]>=0?'+':'-',
-											fabs(c[1]) );
+        sprintf(buf, "\ny = %.5g %c %.5g * ln(x)\n", c[0], c[1]>=0?'+':'-',fabs(c[1]) );
 	    for (i = 0; i < len; i++) {
 			xt[i] = exp(xt[i]);
 	    }
 	    for (i = 0; i < fitlen; i++)
 			xr[i] = exp(xr[i]);
 	} else if (sdeg == 15) {	/* y = 1/( A + B*x ) */
-		sprintf( buf, "\ny = 1/(%.5g %c %.5g * x)\n", c[0], c[1]>=0?'+':'-',
-													fabs(c[1]) );
+        sprintf( buf, "\ny = 1/(%.5g %c %.5g * x)\n", c[0], c[1]>=0?'+':'-',fabs(c[1]) );
 	    for (i = 0; i < len; i++) {
 			yt[i] = 1.0 / yt[i];
 	    }
 	    for (i = 0; i < fitlen; i++)
 			yr[i] = 1.0 / yr[i];
 	}
-	stufftext(buf);
-	sprintf(buf, "\nRegression of set %d results to set %d\n", setno, fitset);
+
+    remove_whitespaces(last_formula,buf);//save the formula used for the regression
+
+cout << "Regression: last Formula=#" << last_formula << "#" << endl;
+
+    SetDecimalSeparatorToUserValue(buf,false);
+
+    stufftext(buf);
+    if (fitset!=-1)
+    {
+    sprintf(buf, "\nRegression of set %d results to set %d\n", setno, fitset);
+    }
+    else//no new set
+    {
+    sprintf(buf, "\nRegression of set %d only, no new set.\n", setno);
+    }
 	stufftext(buf);
 	
 	switch (iresid) {
@@ -645,6 +674,11 @@ new_set_no=fitset;
     if (rno >= 0 && cnt != 0) {	/* had a region and allocated memory there */
 	xfree(xt);
 	xfree(yt);
+    }
+    if (iresid == 2)
+    {
+    delete[] xr;
+    delete[] yr;
     }
 }
 
@@ -733,34 +767,41 @@ void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invfla
     int i, ilen;
     double *x, *y, *xx, *yy, delt, T;
     int i2 = 0, specset;
+    QString e_txt;
+    e_txt=QString("G")+QString::number(gno)+QString(".S")+QString::number(setno)+QString(": ");
 
-    if (!is_set_active(get_cg(), setno)) {
-	errmsg("Set not active");
+    if (!is_set_active(gno, setno))
+    {
+    e_txt=e_txt+QObject::tr("Set not active");
+    errmsg(e_txt.toLocal8Bit().constData());
 	return;
     }
-    ilen = getsetlength(get_cg(), setno);
-    if (ilen < 2) {
-	errmsg("Set length < 2");
+    ilen = getsetlength(gno, setno);
+    if (ilen < 2)
+    {
+    e_txt=e_txt+QObject::tr("Set length < 2");
+    errmsg(e_txt.toLocal8Bit().constData());
 	return;
     }
-#ifndef HAVE_FFTW
-    if (fftflag) {
-	if ((i2 = ilog2(ilen)) <= 0) {
-	    errmsg("Set length not a power of 2");
+    if (fftflag && !(use_fftw3==TRUE && have_fftw3==TRUE))
+    {
+        if ((i2 = ilog2(ilen)) <= 0)
+        {
+        e_txt=e_txt+QObject::tr("Set length not a power of 2");
+        errmsg(e_txt.toLocal8Bit().constData());
 	    return;
-	}
+        }
     }
-#endif
-    new_set_no=specset = nextset(get_cg());
+    new_set_no = specset = nextset(gno);
     if (specset != -1) {
-	activateset(get_cg(), specset);
-	setlength(get_cg(), specset, ilen);
-	xx = getx(get_cg(), specset);
-	yy = gety(get_cg(), specset);
-	x = getx(get_cg(), setno);
-	y = gety(get_cg(), setno);
-	copyx(get_cg(), setno, specset);
-	copyy(get_cg(), setno, specset);
+    activateset(gno, specset);
+    setlength(gno, specset, ilen);
+    xx = getx(gno, specset);
+    yy = gety(gno, specset);
+    x = getx(gno, setno);
+    y = gety(gno, setno);
+    copyx(gno, setno, specset);
+    copyy(gno, setno, specset);
 	if (wind != 0) {	/* apply data window if needed */
 	    apply_window(xx, yy, ilen, type, wind);
 	}
@@ -779,8 +820,8 @@ void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invfla
 	case 0:
 	    delt = (x[ilen-1] - x[0])/(ilen -1.0);
 	    T = (x[ilen - 1] - x[0]);
-	    xx = getx(get_cg(), specset);
-	    yy = gety(get_cg(), specset);
+        xx = getx(gno, specset);
+        yy = gety(gno, specset);
 	    for (i = 0; i < ilen / 2; i++) {
 	      /* carefully get amplitude of complex xform: 
 		 use abs(a[i]) + abs(a[-i]) except for zero term */
@@ -804,14 +845,14 @@ void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invfla
 		    break;
 		}
 	    }
-	    setlength(get_cg(), specset, ilen / 2);
+        setlength(gno, specset, ilen / 2);
 	    break;
 	case 1:
 	    delt = (x[ilen-1] - x[0])/(ilen -1.0);
 	    T = (x[ilen - 1] - x[0]);
-	    setlength(get_cg(), specset, ilen / 2);
-	    xx = getx(get_cg(), specset);
-	    yy = gety(get_cg(), specset);
+        setlength(gno, specset, ilen / 2);
+        xx = getx(gno, specset);
+        yy = gety(gno, specset);
 	    for (i = 0; i < ilen / 2; i++) {
 		yy[i] = -atan2(yy[i], xx[i]);
 		switch (loadx) {
@@ -839,7 +880,7 @@ void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invfla
 	} else {
 	    sprintf(buf, "DFT of set %d", setno);
 	}
-	setcomment(get_cg(), specset, buf);
+    setcomment(gno, specset, buf);
     }
 }
 

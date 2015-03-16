@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- *
+ * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- *
+ * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2000 Grace Development Team
- *
+ * 
  * Maintained by Evgeny Stambulchik
- *
- * Modified by Andreas Winter 2008-2012
- *
+ * 
+ * Modified by Andreas Winter 2008-2015
+ * 
  *                           All Rights Reserved
- *
+ * 
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- *
+ * 
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- *
+ * 
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -45,16 +45,12 @@
 #include "defines.h"
 #include "globals.h"
 #include "graphs.h"
+#include "graphutils.h"
 #include "utils.h"
 #include "noxprotos.h"
 
-static defaults d_d =
-        #ifdef SKF_QtGrace
-{1, 0, 1, 1, 1, 1.0, 4, 1.0};
-#else
+defaults d_d =
 {1, 0, 1, 1, 1, 1.0, 0, 1.0};
-#endif
-
 
 /* defaults:
     int color;
@@ -66,23 +62,32 @@ static defaults d_d =
     int font;
     double symsize;
 */
+/* d_d = std-Grace-defaults*/
+/* file_defaults = defaults stored in the project file */
+/* grdefaults = defaults currently in use */
+/* ini_defaults = the defaults loaded from the ini-file*/
+
+defaults file_defaults;//The defaults stored in the current project (agr) file
+defaults ini_defaults;//Used to load and store data (ini-file)
+defaults tmp_defaults;//only for temporary storage (save and restore)
 
 static world d_w =
 {0.0, 1.0, 0.0, 1.0};
 
-static view d_v =
-        #ifdef SKF_QtGrace
-{0.21, 1.21, 0.15, 0.85};
-#else
+view d_v =
 {0.15, 0.85, 0.15, 0.85};
-#endif
+
+view file_view;
+view ini_view;
+view tmp_view;
 
 void set_program_defaults(void)
 {
     int i;
     
     grdefaults = d_d;
-
+    grview=d_v;
+        
     for (i = 0; i <= MAXREGION; i++) {
         set_region_defaults(i);
     }
@@ -106,7 +111,6 @@ void set_region_defaults(int rno)
     rg[rno].n = 0;
     rg[rno].x = rg[rno].y = NULL;
     rg[rno].x1 = rg[rno].y1 = rg[rno].x2 = rg[rno].y2 = 0.0;
-
     rg[rno].linkto = 0;
 }
 
@@ -128,12 +132,13 @@ void set_default_world(world * w)
 
 void set_default_view(view * v)
 {
-    memcpy(v, &d_v, sizeof(view));
+    memcpy(v, &grview, sizeof(view));
 }
 
 void set_default_string(plotstr * s)
 {
     s->active = FALSE;
+    s->path = FALSE;
     s->loctype = COORD_VIEW;
     s->gno = -1;
     s->x = s->y = 0.0;
@@ -215,6 +220,9 @@ void set_default_legend(int gno, legend * l)
     l->boxlinew = grdefaults.linew;
     l->boxlines = grdefaults.lines;
     l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
+    l->autoattach = G_LB_ATTACH_NONE;/*no auto-attachment*/
+    l->autoattachG = gno;
+    l->xshift=l->yshift=0.0;
 }
 
 void set_default_plotarr(plotarr * p)

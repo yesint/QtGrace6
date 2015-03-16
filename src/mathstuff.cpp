@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -245,11 +245,12 @@ double voigt(double gamma, double sigma, double x)
     return v;
 }
 
-
-// These are needed for Visual C++ compilation
-double ceil_wrap(double x){
+double ceil_wrap(double x)
+{
     return ceil(x);
-}; 
-double floor_wrap(double x){
+}
+
+double floor_wrap(double x)
+{
     return floor(x);
-}; 
+}

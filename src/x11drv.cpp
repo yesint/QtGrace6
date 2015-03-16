@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -30,7 +30,7 @@
 /* 
  *
  * driver for X11 for Grace
- * modified for Qt-Library by Andreas Winter 2008-2012
+ * modified for Qt-Library by Andreas Winter 2008-2015
  *
  */
 
@@ -42,6 +42,7 @@
 
 ///#include <X11/Xlib.h>
 #include <QtGui>
+#include <QSvgGenerator>
 
 #include "globals.h"
 #include "utils.h"
@@ -50,28 +51,30 @@
 #include "draw.h"
 #include "graphs.h"
 #include "patterns.h"
-#include "cmath.h"
+
 #include "x11drv.h"
+#include "cmath.h"
 
 #include "noxprotos.h"
 #include "MainWindow.h"
 
-
-#include "rint.h"
 extern bool useQPrinter;
+extern bool symbol_font_is_special;
 extern double GeneralPageZoomFactor;
+extern unsigned int unicode_greek_shift;
 extern bool printing_in_file;
+extern QSvgGenerator * stdGenerator;
 extern QPrinter * stdPrinter;
 extern QImage * MainPixmap;
 extern QPainter * GeneralPainter;
 extern MainWindow * mainWin;
-extern QVector<qreal> * PenDashPattern[MAXLINESTYLES];
+extern QVector<qreal> ** PenDashPattern;
 extern QBitmap * patterns[MAXPATTERNS];
 extern QTextCodec * FileCodec;
-
+extern int print_target;
 extern DrawProps draw_props;
-extern int RotationAngle;
-
+extern unsigned int qtCharShift;
+extern QMap<unsigned char,ushort> key_for_greek;
 /*extern Display *disp;
 extern Window xwin;*/
 
@@ -90,8 +93,10 @@ static int private_cmap = FALSE;
 unsigned long xvlibcolors[MAXCOLORS];
 ///Colormap cmap;
 
+/*
 static QPixmap * curtile;
 static QPixmap * displaybuff;// = (Pixmap) NULL;
+*/
 
 static int xlibcolor;
 static int xlibbgcolor;
@@ -105,8 +110,10 @@ static int xliblinejoin;
 
 void qtPutText(VPoint vp, char *s, int len, int font,TextMatrix *tm, int underline, int overline, int kerning);
 extern void generate_Pixmap_from_Bits(unsigned char * bits,int length,int rows,int cols,QPixmap * target);
+extern void generate_Pixmap_from_Bits(unsigned char * bits,int length,int rows,int cols,QPixmap * target,int color);
+extern int get_QtFontID_from_Grace_Name(char * name,int whatlist);
 
-unsigned int win_h = 0, win_w = 0;
+int current_dpi=72;
 bool tmp_underline,tmp_overline,tmp_kerning;
 TextMatrix *tmp_tm;
 #define win_scale ((win_h < win_w) ? win_h:win_w)
@@ -165,10 +172,32 @@ int register_x11_drv(void)
     dev_x11.pg.dpi = rint(MM_PER_INCH*DisplayWidth(disp, screennumber)/
         DisplayWidthMM(disp, screennumber));
     */
+//qDebug() << "LogicalDpiX=" << QApplication::desktop()->logicalDpiX() << " PhysicalDpiX=" << QApplication::desktop()->physicalDpiX();
+//qDebug() << "LogicalDpiY=" << QApplication::desktop()->logicalDpiY() << " PhysicalDpiY=" << QApplication::desktop()->physicalDpiY();
+
+/*#ifdef WINDOWS_SYSTEM
 dev_x11.pg.dpi=QApplication::desktop()->logicalDpiX();
+#else*/
+dev_x11.pg.dpi=QApplication::desktop()->physicalDpiX();
+/*#endif*/
+
+/*
+cout << "INIT X11: Logical DpiX=" << QApplication::desktop()->logicalDpiX() << " DpiY=" << QApplication::desktop()->logicalDpiY() << endl;
+cout << "INIT X11: Physical DpiX=" << QApplication::desktop()->physicalDpiX() << " DpiY=" << QApplication::desktop()->physicalDpiY() << endl;
+cout << "ScreenGeometry Width=" << QApplication::desktop()->screenGeometry().width() << " Height=" << QApplication::desktop()->screenGeometry().height() << endl;
+cout << "MM Width=" << QApplication::desktop()->widthMM() << " Height=" << QApplication::desktop()->heightMM() << endl;
+cout << "berechnete dpi=" << QApplication::desktop()->screenGeometry().width()/(QApplication::desktop()->widthMM()/25.4) << endl;
+cout << "qApp:" << endl;
+cout << "INIT X11: Logical DpiX=" << qApp->desktop()->logicalDpiX() << " DpiY=" << qApp->desktop()->logicalDpiY() << endl;
+cout << "INIT X11: Physical DpiX=" << qApp->desktop()->physicalDpiX() << " DpiY=" << qApp->desktop()->physicalDpiY() << endl;
+cout << "ScreenGeometry Width=" << qApp->desktop()->screenGeometry().width() << " Height=" << qApp->desktop()->screenGeometry().height() << endl;
+cout << "MM Width=" << qApp->desktop()->widthMM() << " Height=" << qApp->desktop()->heightMM() << endl;
+cout << "berechnete dpi=" << qApp->desktop()->screenGeometry().width()/(qApp->desktop()->widthMM()/25.4) << endl;
+*/
+
 pixel_size=1;
-curtile=new QPixmap(10,10);
-displaybuff=new QPixmap(10,10);
+/*curtile=new QPixmap(10,10);
+displaybuff=new QPixmap(10,10);*/
     return register_device(dev_x11);
 }
 
@@ -204,36 +233,22 @@ QPoint VPoint2XPoint(VPoint vp)
  * viewport coordinates
  */
 VPoint xlibdev2VPoint(int x, int y)
-
 {
-
 VPoint vp;
-
     if (win_scale == 0) {
-
         vp.x = (double) 0.0;
-
         vp.y = (double) 0.0;
-
     } else {
-
         vp.x = ((double) x) / win_scale;
-
         vp.y = (double) ((double)win_h - (double)y) / win_scale;
-
         if (vp.x<0.0) vp.x = 0.0;
-
         else if (vp.x>win_w) vp.x = ((double)win_w-1) / win_scale;
-
         if (vp.y<0.0) vp.y = 0.0;
-
         else if (vp.y>win_h) vp.y = ((double)win_h-1) / win_scale;
-
     }
-
 return (vp);
-
 }
+
 void xlibupdatecmap(void)
 {
     /* TODO: replace!!! */
@@ -299,6 +314,8 @@ int xlibinitgraphics(void)
         return RETURN_FAILURE;
     }*/
 
+//cout << "xlib_init_graphics" << endl;
+
     xlibcolor = BAD_COLOR;
     xlibbgcolor = BAD_COLOR;
     xlibpatno = -1;
@@ -311,22 +328,23 @@ int xlibinitgraphics(void)
     
     /* device-dependent routines */    
     devupdatecmap = xlibupdatecmap;
-    
     devdrawpixel = xlibdrawpixel;
     devdrawpolyline = xlibdrawpolyline;
     devfillpolygon = xlibfillpolygon;
     devdrawarc = xlibdrawarc;
     devfillarc = xlibfillarc;
     devputpixmap = xlibputpixmap;
-    
     devleavegraphics = xlibleavegraphics;
-devputtext = qtPutText;
+    devputtext = qtPutText;
+
     /* init settings specific to X11 driver */    
-    
-    if (get_pagelayout() == PAGE_FIXED) {
-        sync_canvas_size(&win_w, &win_h, FALSE);
-    } else {
-        sync_canvas_size(&win_w, &win_h, TRUE);
+    if (get_pagelayout() == PAGE_FIXED)
+    {
+    sync_canvas_size(&win_w, &win_h, FALSE);
+    }
+    else
+    {
+    sync_canvas_size(&win_w, &win_h, TRUE);
     }
     ///*displaybuff = resize_bufpixmap(win_w, win_h);
     
@@ -336,27 +354,49 @@ devputtext = qtPutText;
     XSetFillStyle(disp, gc, FillSolid);
     XFillRectangle(disp, displaybuff, gc, 0, 0, win_w, win_h);
     XSetForeground(disp, gc, xvlibcolors[1]);*/
-    
-/*Qt-plotting stuff*/
-GeneralPainter->end();
+
+Page_geometry pg = get_page_geometry();//this depends on the current device
+current_dpi=pg.dpi;//needed for the line-width-setting
+
+    /*Qt-plotting stuff*/
+    if (GeneralPainter->isActive()==true)
+    GeneralPainter->end();
 //Setting new target for GeneralPainter
-if (useQPrinter==false || stdPrinter==NULL)
+if (print_target==PRINT_TARGET_SVG_FILE)//use the svg-Generator
 {
-*MainPixmap=QImage(win_w,win_h,QImage::Format_ARGB32_Premultiplied);
-   if(MainPixmap->isNull()){
-       QString p=QString("Invalid QImage size w=%1 h=%2 , cannot paint there").arg(win_w).arg(win_h);
-       qDebug(p.toAscii());
-       return RETURN_FAILURE;
-   }
-GeneralPainter->begin(MainPixmap);
+GeneralPainter->begin(stdGenerator);
 }
-else
+else if (print_target==PRINT_TARGET_PRINTER)//use a real printer
 {
 GeneralPainter->begin(stdPrinter);
 }
+else//if (print_target== useQPrinter==false || stdPrinter==NULL)
+{//export using the MainPixmap
+    if (MainPixmap!=NULL) delete MainPixmap;
+    /*if (print_target==PRINT_TARGET_SCREEN)
+    *MainPixmap=QImage(win_w*GeneralPageZoomFactor,win_h*GeneralPageZoomFactor,QImage::Format_ARGB32_Premultiplied);
+    else*/
+    MainPixmap=new QImage(win_w,win_h,QImage::Format_ARGB32_Premultiplied);
+/*qDebug() << "setting picture Size to " << win_w << "x" << win_h;
+int a,b;
+return_Page_Dimensions_pix(PAGE_FORMAT_A4,PAGE_ORIENT_LANDSCAPE,72,&a,&b);
+qDebug() << "Definitionsgroesse DIN A4 (Landscape): " << a << "x" << b;*/
+    if(MainPixmap->isNull())
+    {
+    QString p=QObject::tr("Invalid QImage size w=");
+        p+=QString::number(win_w);
+        p+=QObject::tr(" h=");
+        p+=QString::number(win_h);
+        p+=QObject::tr(", cannot paint there.");
+    qDebug(p.toLatin1());
+    return RETURN_FAILURE;
+    }
+GeneralPainter->begin(MainPixmap);
+}
+
 ///GeneralPainter->setRenderHint(QPainter::Antialiasing);
 
-if (printing_in_file==true && getbgfill()==FALSE)
+if (printing_in_file==true || getbgfill()==FALSE && !(printing_in_file==true && getbgfill()==TRUE))//I changed the first to || instead of && and added !(...)
 {
 MainPixmap->fill(Qt::transparent);
 GeneralPainter->setPen(Qt::transparent);
@@ -383,7 +423,7 @@ if (printing_in_file==false)
             xp.setX(rint(i*step));
             xp.setY(win_h - rint(j*step));
             ///XDrawPoint(disp, displaybuff, gc, xp.x, xp.y);
-	    GeneralPainter->drawPoint(xp.x(),xp.y());
+            GeneralPainter->drawPoint(xp.x(),xp.y());//drawing a point-grid to indicate transparency
         }
     }
    ///XSetLineAttributes(disp, gc, 1, LineSolid, CapButt, JoinMiter);
@@ -406,14 +446,13 @@ QPen pen(GeneralPainter->pen());
     bg = getbgcolor();
     p = getpattern();
 
-
 xlibcolor=fg;
 xlibbgcolor=bg;
 xlibpatno=p;
 set_Pen_only();
 set_Brush_only(fg,bg,p);
 return;
-//FUNCTION ENDS HERE!!!
+/// FUNCTION ENDS HERE!!!
     if ((fg == xlibcolor) && (bg == xlibbgcolor) && (p == xlibpatno)) {
         return;
     }
@@ -612,15 +651,6 @@ set_Rotation_Matrix(po.x(),po.y(),RotationAngle);
     for (i=0;i<xn;i++)
     p[i]-=po;
 GeneralPainter->drawPolyline(p,xn);
-
-if(false){
-    cerr << "PT "<<po.x()<<" " << po.y()<< " ";
-    for(int kk=0;kk<xn;kk++){ 
-        cerr << " PTS= " << kk << "=" << p[kk].x() << "," << p[kk].y();
-    }
-    cerr << endl;
-}
-
     ///XDrawLines(disp, displaybuff, gc, p, xn, CoordModeOrigin);
 reset_Transformation_Matrix();
     ///xfree(p);
@@ -757,7 +787,7 @@ GeneralPainter->drawChord(-abs(x2 - x1)*0.5,-abs(y2 - y1)*0.5,abs(x2 - x1), abs(
     }
 }
 
-void xlibputpixmap(VPoint vp, int width, int height, 
+/*void xlibputpixmap(VPoint vp, int width, int height,
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     int j, k, l;
@@ -769,6 +799,19 @@ clipmask.fill();
 QPainter clp_painter(&clipmask);
 int x1,y1;//real_world_coordinates
 xlibVPoint2dev(vp, &x1, &y1);
+
+//TEST BEGIN
+//cout << "X11-PutPixmap:" << endl;
+//for (int i=0;i<height;i++)
+//{
+//    for (j=0;j<width;j++)
+//    {
+//    cout << (unsigned int)((unsigned char)(databits[i*width+j])) << "\t";
+//    }
+//    cout << endl;
+//}
+//TEST END
+
     char *pixmap_ptr;
     char *clipmask_ptr = NULL;
     
@@ -777,12 +820,12 @@ xlibVPoint2dev(vp, &x1, &y1);
     int cindex, fg, bg;
     
     xp = VPoint2XPoint(vp);
-      
+//cout << "pixmap_bpp=" << pixmap_bpp << endl;
     if (pixmap_bpp != 1)
     {
         if (monomode == TRUE)
         {
-            /* TODO: dither pixmaps on mono displays */
+            // TODO: dither pixmaps on mono displays
             return;
         }
         pixmap_ptr = (char *)xcalloc(PAD(width, 8) * height, pixel_size);
@@ -791,8 +834,7 @@ xlibVPoint2dev(vp, &x1, &y1);
             errmsg("xmalloc failed in xlibputpixmap()");
             return;
         }
- 
-        /* re-index pixmap */
+        // re-index pixmap
         for (k = 0; k < height; k++)
         {
             for (j = 0; j < width; j++)
@@ -805,21 +847,20 @@ xlibVPoint2dev(vp, &x1, &y1);
                 }
             }
         }
-/*cout << "pixel_size=" << pixel_size << endl;
-		for (int i=0;i<height;i++)
-		{
-			for (int j=0;j<width;j++)
-			{
-				if (pixmap_ptr[i*width+j])
-				clp_painter.drawPoint(j,i);
-			}
-		}
-
-cout << "pixmap_bpp="<< pixmap_bpp << endl;*/
+//cout << "pixel_size=" << pixel_size << endl;
+        //for (int i=0;i<height;i++)
+        //{
+        //	for (int j=0;j<width;j++)
+        //	{
+        //		if (pixmap_ptr[i*width+j])
+        //		clp_painter.drawPoint(j,i);
+        //	}
+        //}
+//cout << "pixmap_bpp="<< pixmap_bpp << endl;
         ///ximage=XCreateImage(disp, visual,
         ///                   depth, ZPixmap, 0, pixmap_ptr, width, height,
-        ///                   bitmap_pad,  /* lines padded to bytes */
-        ///                   0 /* number of bytes per line */
+        ///                   bitmap_pad,  // lines padded to bytes
+        ///                   0 // number of bytes per line
         ///                   );
 
         if (pixmap_type == PIXMAP_TRANSPARENT) {
@@ -828,7 +869,7 @@ cout << "pixmap_bpp="<< pixmap_bpp << endl;*/
                 errmsg("xmalloc failed in xlibputpixmap()");
                 return;
             } else {
-                /* Note: We pad the clipmask always to byte boundary */
+                // Note: We pad the clipmask always to byte boundary
                 bg = getbgcolor();
                 for (k = 0; k < height; k++) {
                     line_off = k*(PAD(width, 8) >> 3);
@@ -845,12 +886,11 @@ cout << "pixmap_bpp="<< pixmap_bpp << endl;*/
                         }
                     }
                 }
-        
                 ///clipmask=XCreateBitmapFromData(disp, root, clipmask_ptr, width, height);
                 xfree(clipmask_ptr);
             }
         }
-    } else {
+    } else {///pixmap_bpp == 1
         pixmap_ptr = (char*)xcalloc((PAD(width, bitmap_pad)>>3) * height,sizeof(char));
         if (pixmap_ptr == NULL) {
             errmsg("xmalloc failed in xlibputpixmap()");
@@ -863,10 +903,47 @@ cout << "pixmap_bpp="<< pixmap_bpp << endl;*/
             ///XSetForeground(disp, gc, xvlibcolors[fg]);
             xlibcolor = fg;
         }
+
+        bg = getbgcolor();
+        rgbColor=get_rgb((int)fg);
+        linePen=QPen(QColor(rgbColor->red,rgbColor->green,rgbColor->blue));
+        GeneralPainter->setPen(linePen);
+
+        char one_byte,probe_byte;
+        int b_index,n_index=ceil(width/8.0)*8;
+
+//cout << "width=" << width << " n_index=" << n_index << " bitmap_pad=" << bitmap_pad << endl;
+
+        for (k = 0; k < height; k++)
+        {
+        //line_off = k*(PAD(width, 8) >> 3);
+            for (j = 0; j < width; j++)
+            {
+                b_index=(n_index*k+j)/bitmap_pad;
+                probe_byte=-b_index*bitmap_pad+(n_index*k+j);
+//cout << "k=" << k << " j=" << j << " b_index=" << b_index << " probe=" << (int)probe_byte << endl;
+                one_byte=1<<probe_byte;
+                probe_byte=((unsigned char) (databits)[b_index])&one_byte;
+                //one_byte=probe_byte?1:0;
+                //cindex = (unsigned char) (databits)[k*width+j];
+                //if ((unsigned char) (databits)[k*width+j]) cindex=fg;
+                //else cindex=bg;
+                //if (cindex != bg) {
+                if (probe_byte)
+                {
+        //cout << "cindex=" << (int)cindex << endl;
+
+        clp_painter.drawPoint(j,k);
+GeneralPainter->drawPoint(j+x1,k+y1);
+                    //clipmask_ptr[line_off+(j>>3)] |= (0x01 << (j%8));
+                }
+            }
+        }
+
         ///ximage=XCreateImage(disp, visual,
         ///                    1, XYBitmap, 0, pixmap_ptr, width, height,
-        ///                    bitmap_pad, /* lines padded to bytes */
-        ///                    0 /* number of bytes per line */
+        ///                    bitmap_pad, // lines padded to bytes
+        ///                    0 // number of bytes per line
         ///                    );
         if (pixmap_type == PIXMAP_TRANSPARENT) {
             ///clipmask=XCreateBitmapFromData(disp, root, pixmap_ptr, PAD(width, bitmap_pad), height);
@@ -879,7 +956,7 @@ cout << "pixmap_bpp="<< pixmap_bpp << endl;*/
     }
         
         
-    /* Force bit and byte order */
+    // Force bit and byte order
     ///ximage->bitmap_bit_order=LSBFirst;
     ///ximage->byte_order=LSBFirst;
     
@@ -895,6 +972,100 @@ clp_painter.end();
         ///XSetClipMask(disp, gc, None);
         ///XSetClipOrigin(disp, gc, 0, 0);
     }    
+}*/
+
+//simplified version of xlibputpixmap
+void xlibputpixmap(VPoint vp, int width, int height,
+     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
+{
+int j, k, l;
+QPoint xp;
+QPen linePen;
+RGB * rgbColor;
+int x1,y1;//real_world_coordinates
+xlibVPoint2dev(vp, &x1, &y1);
+
+//TEST BEGIN
+//cout << "X11-PutPixmap:" << endl;
+//for (int i=0;i<height;i++)
+//{
+//    for (j=0;j<width;j++)
+//    {
+//    cout << (unsigned int)((unsigned char)(databits[i*width+j])) << "\t";
+//    }
+//    cout << endl;
+//}
+//TEST END
+    //int line_off;
+
+    int cindex, fg, bg;
+
+    xp = VPoint2XPoint(vp);
+//cout << "pixmap_bpp=" << pixmap_bpp << endl;
+    if (pixmap_bpp != 1)
+    {
+        if (monomode == TRUE)//monomode=black/white - no gray and no colors
+        {
+            // TODO: dither pixmaps on mono displays
+            return;
+        }
+
+        if (pixmap_type == PIXMAP_TRANSPARENT)
+        {
+        bg = getbgcolor();
+                for (k = 0; k < height; k++)
+                {
+                //line_off = k*(PAD(width, 8) >> 3);
+                    for (j = 0; j < width; j++)
+                    {
+                        cindex = (unsigned char) (databits)[k*width+j];
+                        if (cindex != bg)
+                        {
+                //cout << "cindex=" << (int)cindex << endl;
+    rgbColor=get_rgb((int)cindex);
+    linePen=QPen(QColor(rgbColor->red,rgbColor->green,rgbColor->blue));
+    GeneralPainter->setPen(linePen);
+                        GeneralPainter->drawPoint(j+x1,k+y1);
+                        }
+                    }
+                }
+
+        }
+    }
+    else
+    {///pixmap_bpp == 1
+        fg = getcolor();
+        if (fg != xlibcolor)
+        {
+            xlibcolor = fg;
+        }
+
+        bg = getbgcolor();
+        rgbColor=get_rgb((int)fg);
+        linePen=QPen(QColor(rgbColor->red,rgbColor->green,rgbColor->blue));
+        GeneralPainter->setPen(linePen);
+
+        char one_byte,probe_byte;
+        int b_index,n_index=ceil(width/8.0)*8;
+
+//cout << "width=" << width << " n_index=" << n_index << " bitmap_pad=" << bitmap_pad << endl;
+
+        for (k = 0; k < height; k++)
+        {
+            for (j = 0; j < width; j++)
+            {
+                b_index=(n_index*k+j)/bitmap_pad;
+                probe_byte=-b_index*bitmap_pad+(n_index*k+j);
+//cout << "k=" << k << " j=" << j << " b_index=" << b_index << " probe=" << (int)probe_byte << endl;
+                one_byte=1<<probe_byte;
+                probe_byte=((unsigned char) (databits)[b_index])&one_byte;
+                if (probe_byte)
+                {
+                GeneralPainter->drawPoint(j+x1,k+y1);
+                }
+            }
+        }
+    }
 }
 
 void xlibleavegraphics(void)
@@ -952,9 +1123,13 @@ return;
 void set_Pen_only(void)
 {
 QPen tmpPen(GeneralPainter->pen());
-QColor penColor=get_Color(draw_props.pen.color);
-tmpPen.setColor(penColor);
+tmpPen.setColor(get_Color(draw_props.pen.color));
+
+if (current_dpi!=72)// && printing_in_file==true)/// removed the second condition
+tmpPen.setWidthF(qreal(draw_props.linew*current_dpi/72.0));
+else
 tmpPen.setWidthF(qreal(draw_props.linew));
+
 switch (xliblinecap)
 {
 case LINECAP_BUTT:
@@ -979,18 +1154,15 @@ case LINEJOIN_BEVEL:
 tmpPen.setJoinStyle(Qt::BevelJoin);
 break;
 }
-
-
 if (xliblinestyle==0)
 tmpPen.setStyle(Qt::NoPen);
 else if (draw_props.lines==1)
 tmpPen.setStyle(Qt::SolidLine);
 else
 {
-
 tmpPen.setStyle(Qt::CustomDashLine);
 tmpPen.setDashPattern(*PenDashPattern[draw_props.lines]);
-// Triggers bug in Qt4.5: BZ2033
+GeneralPainter->setBackground(Qt::transparent);/// Testen ob das funktioniert...
 }
 
 if (draw_props.pen.pattern>1)//0=none, 1=solid, >1 special filling pattern
@@ -1009,10 +1181,13 @@ paintr.end();
 tmpBrush.setTexture(pic);
 tmpPen.setBrush(tmpBrush);
 */
-tmpPen.setBrush(QBitmap(*(patterns[draw_props.pen.pattern])));
+QPixmap pixm;
+generate_Pixmap_from_Bits(pat_bits[draw_props.pen.pattern],32,16,16,&pixm,draw_props.pen.color);
+tmpPen.setBrush(pixm);
+//tmpPen.setBrush(QPixmap(QBitmap(*(patterns[draw_props.pen.pattern]))));
 }
 //Make graphs visible, when they are over each other)
-GeneralPainter->setBackgroundMode(Qt::TransparentMode);
+//GeneralPainter->setBackgroundMode(Qt::TransparentMode);
 GeneralPainter->setPen(tmpPen);
 }
 
@@ -1038,6 +1213,53 @@ trans.rotate(rot*1.0);
 GeneralPainter->setTransform(trans);
 }
 
+void ShiftQtChar(QChar & c)//shifts according to the qtCharShift
+{
+if (qtCharShift==CHAR_SHIFT_NONE) return;//nothing to do
+ushort ascii=c.unicode();
+//cout << "ascii=" << ascii << endl;
+ushort new_ascii;
+if (!((ascii>=('!') && ascii<=('~')) || (ascii-128>=('!'-1) && ascii-128<=('~')))) return;//we do not shift in this range
+//cout << "ShiftQtChar=" << c.toLatin1() << " Shift=" << qtCharShift << endl;
+if (qtCharShift==CHAR_SHIFT_TO_SYMBOL)//only shift to symbol
+{
+    new_ascii=key_for_greek.value(ascii,ascii);
+    //if (ascii==1) new_ascii=ascii;
+}
+else if (qtCharShift==CHAR_SHIFT_TO_UPPERSET)//only shift to upper char-set
+{
+    new_ascii=key_for_greek.value(ascii+128,ascii+128);
+    //if (ascii==1) new_ascii=ascii+128;
+}
+else if (qtCharShift==(CHAR_SHIFT_TO_SYMBOL|CHAR_SHIFT_TO_UPPERSET))//shift to symbol and to the upper set
+{
+    new_ascii=key_for_greek.value(ascii+128,ascii+128);
+    //if (ascii==1) new_ascii=ascii+128;
+}
+else
+{
+new_ascii=ascii;
+}
+c=QChar(new_ascii);
+}
+
+void ShiftQtString(QString & string,unsigned int shift)
+{
+QString empty;
+QChar tmp;
+ushort unicode;
+empty.clear();
+    for (int i=0;i<string.length();i++)
+    {
+    tmp=string.at(i);
+    /*unicode=tmp.unicode()+shift;
+    empty.append(QChar(unicode));*/
+    ShiftQtChar(tmp);
+    empty.append(tmp);
+    }
+string=empty;
+}
+
 void WriteQtString(VPoint vp,int rot,int just,char * s,double charSize,int font,int color)
 {
 static QFont dFont;
@@ -1051,21 +1273,51 @@ static VPoint vp1,vp2,vp3,vp4,bbox_ll,bbox_ur;
 static double ca,sa;
 ca=cos(rot/180.0*3.1415927);
 sa=sin(rot/180.0*3.1415927);
-    /// cout << "#" << s << "#" << endl;
+
 TextToPrint=FileCodec->toUnicode(s);
+
+/*if (strlen(s)!=TextToPrint.length())
+{
+cout << "alte und neue Laengen stimmen nicht: " << strlen(s) << "<-->" << TextToPrint.length() << endl;
+cout << s << endl;
+qDebug(TextToPrint.toLocal8Bit().constData());
+}*/
+
+//cout << "Original=#" << s << "# printing=#" << TextToPrint.toLocal8Bit().constData() << "#" << endl;
+
+if (font==get_QtFontID_from_Grace_Name("Symbol",0) && symbol_font_is_special==true)
+{
+//cout << "Font ist Symbol --> shifting" << endl;
+if (qtCharShift==CHAR_SHIFT_NONE) qtCharShift|=CHAR_SHIFT_TO_SYMBOL;
+if (qtCharShift==128)
+ShiftQtString(TextToPrint,unicode_greek_shift+128);
+else
+ShiftQtString(TextToPrint,unicode_greek_shift);
+//cout << "shifted=#" << TextToPrint.toLocal8Bit().constData() << "#" << endl;
+}
+
+/*
+if (qtCharShift!=0)
+{
+ShiftQtString(TextToPrint,qtCharShift);
+}
+*/
+
 shift_x=shift_y=0.0;
 xlibVPoint2dev(vp,&cx,&cy);
 
 cur_pg=get_page_geometry();
 smaller=cur_pg.height<cur_pg.width?cur_pg.height:cur_pg.width;
 dFont=getFontFromDatabase(font);
+//cout << "gefundener Font=" << dFont.toString().toLatin1().constData() << endl;
+
 dFont.setPixelSize(charSize*smaller*MAGIC_FONT_SCALE);
 dFont.setOverline(tmp_overline);
 dFont.setUnderline(tmp_underline);
 dFont.setKerning(tmp_kerning);
 
-    GeneralPainter->setBrush(Qt::NoBrush);
-    GeneralPainter->setBackground(Qt::NoBrush);
+    GeneralPainter->setBrush(Qt::transparent);/// NoBrush
+    GeneralPainter->setBackground(Qt::transparent);/// NoBrush
     GeneralPainter->setPen(get_Color(color));
     GeneralPainter->setFont(dFont);
 
@@ -1112,7 +1364,7 @@ cy+=shift_y;*/
     QRect fm_rect=fm.boundingRect(TextToPrint);
     vp1=xlibdev2VPoint(cx,cy);
 
-/// Perform rotation --> Beachte Shift der Baseline!!! Beachte shift_x und shift_y
+/// Perform rotation --> Mind Baseline-shift!!! Mind shift_x and shift_y
 
     bbox_ll.x=fm_rect.width()*ca-fm_rect.height()*sa;
     bbox_ll.y=fm_rect.width()*sa+fm_rect.height()*ca;
@@ -1171,10 +1423,16 @@ reset_Transformation_Matrix();
 
 void qtPutText(VPoint vp, char *s, int len, int font,TextMatrix *tm, int underline, int overline, int kerning)
 {
+    if (s==NULL)
+    {
+    //cout << get_docname() << " Warning: s=NULL" << endl;
+    return;
+    }
 int rot=180.0/3.1415927*atan(tm->cyx/tm->cyy);
 if (tm->cxx<0.0) rot+=180;
 double size=sqrt(tm->cxx*tm->cxx+tm->cyx*tm->cyx)/MAGIC_FONT_SCALE;
-s[len]='\0';
+/// s[len]='\0'; /// HIER IST DAS PROBLEM!!
+/// cout << "s=#" << s << "# len=" << len << endl;
 tmp_underline=bool(underline);
 tmp_overline=bool(overline);
 tmp_kerning=bool(kerning);
@@ -1205,17 +1463,32 @@ double rot=atan(cs->tm.cyx/cs->tm.cyy);// *180.0/3.1415927
 if (cs->tm.cxx<0.0) rot+=M_PI;
 double ca=cos(rot),sa=sin(rot);
 double size=sqrt(cs->tm.cxx*cs->tm.cxx+cs->tm.cyx*cs->tm.cyx);///MAGIC_FONT_SCALE;
-char *dummy=new char[cs->len+8]; // Windows port
-cs->s[cs->len]='\0';
-strcpy(dummy,cs->s);
-
+char * dummy=new char[cs->len+8];
+/*cout << "first values=";
+    for (int i=0;i<8;i++)
+    cout << (unsigned int)(cs->s[i]) << " ";
+cout << endl;*/
+//cs->s[cs->len]='\0';
+strncpy(dummy,cs->s,cs->len);
+dummy[cs->len]='\0';
+    /*for (int i=0;i<cs->len;i++)
+    {
+        //if (cs->s[i]>255) cout << "Fehler!" << endl;
+        cout << (int)((unsigned char)(cs->s[i])) << " ";
+    }
+    cout << endl;*/
+//cout << "dummy, len=" << cs->len << endl << " cs.s=#" << cs->s << "# dummy=#" << dummy << "#" << endl;
 Page_geometry cur_pg=get_page_geometry();
 QString TextToPrint=FileCodec->toUnicode(dummy);
+    if (TextToPrint.isEmpty() || TextToPrint.length()<1)// cout << "Fehler kommt sicher!" << endl;
+    return (&string_glyph);
+//cout << "GetQtGlyph of =" << TextToPrint.toAscii().constData() << endl;
 int smaller=cur_pg.height<cur_pg.width?cur_pg.height:cur_pg.width;
 QFont dFont=getFontFromDatabase(cs->font);
 dFont.setKerning(bool(cs->kerning));
 dFont.setUnderline(bool(cs->underline));
 dFont.setOverline(bool(cs->overline));
+cout << "QtGlyph: fontaa=" << fontaa << endl;
     if (fontaa==false)
     dFont.setStyleStrategy(QFont::NoAntialias);
     else
@@ -1261,5 +1534,3 @@ matrix_mult(ca,sa,-lb,as,tmp_x,tmp_y);
 
 return (&string_glyph);
 }
-
-

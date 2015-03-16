@@ -7,7 +7,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  *
  *                           All Rights Reserved
  *
@@ -30,13 +30,12 @@
  * Driver for the Scalable Vector Graphics Format from W3C
  */
 
-///#include <config.h>
-#include <locale>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "defines.h"
+#include "globals.h"
 #include "utils.h"
 #include "cmath.h"
 #include "draw.h"
@@ -46,28 +45,22 @@
 #include "patterns.h"
 #include "svgdrv.h"
 
-
-#ifdef SKF_QtGrace
-
 #include <QTextStream>
 #include <QFile>
 #include <QTextCodec>
 #include <QMultiMap>
-#else
+#include <iostream>
 
-#endif
+using namespace std;
 
 extern FILE *prstream;
-extern int RotationAngle;
 extern VPoint CenterOfMass(int n,VPoint *p);
+extern struct LatexCommands allCommands[];
+extern bool useQtFonts;
 
-#ifdef SKF_QtGrace
-extern QMultiMap<unsigned char, int> utfSym;
-extern bool initUTFSym = true;
-#else
-#endif
+int cur_font=0;
 
-
+QMultiMap<unsigned char, int> utfSym;
 
 static Device_entry dev_svg = {
     DEVICE_FILE,
@@ -77,11 +70,7 @@ static Device_entry dev_svg = {
     NULL,
     "svg",
     TRUE,
-    #ifdef SKF_QtGrace
     TRUE,
-    #else
-    FALSE,
-    #endif
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
     NULL
 };
@@ -102,6 +91,295 @@ typedef struct {
     int    draw;
     int    fill;
 } Svg_data;
+
+void init_char_map(void)
+{
+    utfSym.clear();
+    //UTF-8 symbols
+
+           // pm
+           utfSym.insert((unsigned char)177,177);
+           utfSym.insert((unsigned char)177,194);
+           // hbar
+           //utfSym.insert((unsigned char)104,167);
+           //utfSym.insert((unsigned char)104,196);
+           // Upsilon
+           //utfSym.insert((unsigned char)105,146);
+           //utfSym.insert((unsigned char)105,207);
+           // bullet
+           utfSym.insert((unsigned char)183,162);
+           utfSym.insert((unsigned char)183,128);
+           utfSym.insert((unsigned char)183,226);
+           // Im
+           utfSym.insert((unsigned char)193,145);
+           utfSym.insert((unsigned char)193,132);
+           utfSym.insert((unsigned char)193,226);
+           // Re
+           utfSym.insert((unsigned char)194,156);
+           utfSym.insert((unsigned char)194,132);
+           utfSym.insert((unsigned char)194,226);
+           // AA
+           /* utfSym.insert((unsigned char)143,171);
+           utfSym.insert((unsigned char)143,132);
+           utfSym.insert((unsigned char)143,226);
+           */// leftarrow
+           utfSym.insert((unsigned char)172,144);
+           utfSym.insert((unsigned char)172,134);
+           utfSym.insert((unsigned char)172,226);
+           // rightarrow
+           utfSym.insert((unsigned char)174,146);
+           utfSym.insert((unsigned char)174,134);
+           utfSym.insert((unsigned char)174,226);
+           // leftrightarrow
+           utfSym.insert((unsigned char)171,148);
+           utfSym.insert((unsigned char)171,134);
+           utfSym.insert((unsigned char)171,226);
+           // Leftarrow
+           utfSym.insert((unsigned char)220,144);
+           utfSym.insert((unsigned char)220,135);
+           utfSym.insert((unsigned char)220,226);
+           // Rightarrow
+           utfSym.insert((unsigned char)222,146);
+           utfSym.insert((unsigned char)222,135);
+           utfSym.insert((unsigned char)222,226);
+           // Leftrightarrow
+           utfSym.insert((unsigned char)219,148);
+           utfSym.insert((unsigned char)219,135);
+           utfSym.insert((unsigned char)219,226);
+           // forall
+           utfSym.insert((unsigned char)34,128);
+           utfSym.insert((unsigned char)34,136);
+           utfSym.insert((unsigned char)34,226);
+           // partial
+           utfSym.insert((unsigned char)182,130);
+           utfSym.insert((unsigned char)182,136);
+           utfSym.insert((unsigned char)182,226);
+           // nabla
+           utfSym.insert((unsigned char)209,135);
+           utfSym.insert((unsigned char)209,136);
+           utfSym.insert((unsigned char)209,226);
+           // in
+           // utfSym.insert((unsigned char)206,136);
+           // utfSym.insert((unsigned char)206,136);
+           // utfSym.insert((unsigned char)206,226);
+           // prod
+           utfSym.insert((unsigned char)213,143);
+           utfSym.insert((unsigned char)213,136);
+           utfSym.insert((unsigned char)213,226);
+           // sum
+           utfSym.insert((unsigned char)229,145);
+           utfSym.insert((unsigned char)229,136);
+           utfSym.insert((unsigned char)229,226);
+           // ast
+           utfSym.insert((unsigned char)42,151);
+           utfSym.insert((unsigned char)42,136);
+           utfSym.insert((unsigned char)42,226);
+           // surd
+           utfSym.insert((unsigned char)214,154);
+           utfSym.insert((unsigned char)214,136);
+           utfSym.insert((unsigned char)214,226);
+           // propto
+           utfSym.insert((unsigned char)181,157);
+           utfSym.insert((unsigned char)181,136);
+           utfSym.insert((unsigned char)181,226);
+           // infty
+           utfSym.insert((unsigned char)165,158);
+           utfSym.insert((unsigned char)165,136);
+           utfSym.insert((unsigned char)165,226);
+           // angle
+           utfSym.insert((unsigned char)208,160);
+           utfSym.insert((unsigned char)208,136);
+           utfSym.insert((unsigned char)208,226);
+           // int
+           utfSym.insert((unsigned char)242,171);
+           utfSym.insert((unsigned char)242,136);
+           utfSym.insert((unsigned char)242,226);
+           // oint
+           utfSym.insert((unsigned char)149,174);
+           utfSym.insert((unsigned char)149,136);
+           utfSym.insert((unsigned char)149,226);
+           // sim
+           utfSym.insert((unsigned char)126,188);
+           utfSym.insert((unsigned char)126,136);
+           utfSym.insert((unsigned char)126,226);
+           // approx
+           utfSym.insert((unsigned char)187,136);
+           utfSym.insert((unsigned char)187,137);
+           utfSym.insert((unsigned char)187,226);
+           // neq
+           utfSym.insert((unsigned char)185,160);
+           utfSym.insert((unsigned char)185,137);
+           utfSym.insert((unsigned char)185,226);
+           // leq
+           utfSym.insert((unsigned char)163,164);
+           utfSym.insert((unsigned char)163,137);
+           utfSym.insert((unsigned char)163,226);
+           // geq
+           utfSym.insert((unsigned char)179,165);
+           utfSym.insert((unsigned char)179,137);
+           utfSym.insert((unsigned char)179,226);
+           // odot
+           //utfSym.insert((unsigned char)215,153);
+           // utfSym.insert((unsigned char)215,138);
+           // utfSym.insert((unsigned char)215,226);
+           // bot
+           utfSym.insert((unsigned char)94,165);
+           utfSym.insert((unsigned char)94,138);
+           utfSym.insert((unsigned char)94,226);
+           // cdot
+           utfSym.insert((unsigned char)215,133);
+           utfSym.insert((unsigned char)215,139);
+           utfSym.insert((unsigned char)215,226);
+           // circ
+           utfSym.insert((unsigned char)111,139);
+           utfSym.insert((unsigned char)111,151);
+           utfSym.insert((unsigned char)111,226);
+           // spadesuit
+           utfSym.insert((unsigned char)170,160);
+           utfSym.insert((unsigned char)170,153);
+           utfSym.insert((unsigned char)170,226);
+           // clubsuit
+           utfSym.insert((unsigned char)167,163);
+           utfSym.insert((unsigned char)167,153);
+           utfSym.insert((unsigned char)167,226);
+           // heartsuit
+           utfSym.insert((unsigned char)169,165);
+           utfSym.insert((unsigned char)169,153);
+           utfSym.insert((unsigned char)169,226);
+           // diamondsuit
+           utfSym.insert((unsigned char)168,166);
+           utfSym.insert((unsigned char)168,153);
+           utfSym.insert((unsigned char)168,226);
+           // times
+           utfSym.insert((unsigned char)180,175);
+           utfSym.insert((unsigned char)180,168);
+           utfSym.insert((unsigned char)180,226);
+           // epsilon
+           utfSym.insert((unsigned char)206,181);
+           utfSym.insert((unsigned char)206,206);
+           // Omega
+           utfSym.insert((unsigned char)87,169);
+           utfSym.insert((unsigned char)87,206);
+           // zeta
+           utfSym.insert((unsigned char)122,182);
+           utfSym.insert((unsigned char)122,206);
+           // Phi
+           utfSym.insert((unsigned char)70,166);
+           utfSym.insert((unsigned char)70,206);
+           // Xi
+           utfSym.insert((unsigned char)88,158);
+           utfSym.insert((unsigned char)88,206);
+           // xi
+           utfSym.insert((unsigned char)120,190);
+           utfSym.insert((unsigned char)120,206);
+           // Theta
+           utfSym.insert((unsigned char)81,152);
+           utfSym.insert((unsigned char)81,206);
+           // theta
+           utfSym.insert((unsigned char)113,184);
+           utfSym.insert((unsigned char)113,206);
+           // gamma
+           utfSym.insert((unsigned char)103,179);
+           utfSym.insert((unsigned char)103,206);
+           // Lambda
+           utfSym.insert((unsigned char)76,155);
+           utfSym.insert((unsigned char)76,206);
+           // Psi
+           utfSym.insert((unsigned char)89,168);
+           utfSym.insert((unsigned char)89,206);
+           // eta
+           utfSym.insert((unsigned char)104,183);
+           utfSym.insert((unsigned char)104,206);
+           // kappa
+           utfSym.insert((unsigned char)107,186);
+           utfSym.insert((unsigned char)107,206);
+           // mu
+           utfSym.insert((unsigned char)109,188);
+           utfSym.insert((unsigned char)109,206);
+           // nu
+           utfSym.insert((unsigned char)110,189);
+           utfSym.insert((unsigned char)110,206);
+           // rho
+           utfSym.insert((unsigned char)114,129);
+           utfSym.insert((unsigned char)114,207);
+           // psi
+           utfSym.insert((unsigned char)121,136);
+           utfSym.insert((unsigned char)121,207);
+           // Delta
+           utfSym.insert((unsigned char)68,148);
+           utfSym.insert((unsigned char)68,206);
+           // Pi
+           utfSym.insert((unsigned char)80,160);
+           utfSym.insert((unsigned char)80,206);
+           // Sigma
+           utfSym.insert((unsigned char)83,163);
+           utfSym.insert((unsigned char)83,206);
+           // alpha
+           utfSym.insert((unsigned char)97,177);
+           utfSym.insert((unsigned char)97,206);
+           // beta
+           utfSym.insert((unsigned char)98,178);
+           utfSym.insert((unsigned char)98,206);
+           // delta
+           utfSym.insert((unsigned char)100,180);
+           utfSym.insert((unsigned char)100,206);
+           // varepsilon
+           utfSym.insert((unsigned char)101,181);
+           utfSym.insert((unsigned char)101,206);
+           // iota
+           utfSym.insert((unsigned char)105,185);
+           utfSym.insert((unsigned char)105,206);
+           // pi
+           utfSym.insert((unsigned char)112,128);
+           utfSym.insert((unsigned char)112,207);
+           // sigma
+           utfSym.insert((unsigned char)115,131);
+           utfSym.insert((unsigned char)115,207);
+           // tau
+           utfSym.insert((unsigned char)116,132);
+           utfSym.insert((unsigned char)116,207);
+           // upsilon
+           utfSym.insert((unsigned char)117,133);
+           utfSym.insert((unsigned char)117,207);
+           // omega
+           utfSym.insert((unsigned char)119,137);
+           utfSym.insert((unsigned char)119,207);
+           // div
+           utfSym.insert((unsigned char)184,183);
+           utfSym.insert((unsigned char)184,195);
+           // Gamma
+           utfSym.insert((unsigned char)71,147);
+           utfSym.insert((unsigned char)71,206);
+           // varphi
+           utfSym.insert((unsigned char)106,134);
+           utfSym.insert((unsigned char)106,207);
+           // exists
+           utfSym.insert((unsigned char)36,131);
+           utfSym.insert((unsigned char)36,136);
+           utfSym.insert((unsigned char)36,226);
+           // varpi
+           utfSym.insert((unsigned char)118,150);
+           utfSym.insert((unsigned char)118,207);
+           // chi
+           utfSym.insert((unsigned char)99,135);
+           utfSym.insert((unsigned char)99,207);
+           // varsigma
+           utfSym.insert((unsigned char)86,130);
+           utfSym.insert((unsigned char)86,207);
+           // phi
+           utfSym.insert((unsigned char)102,166);
+           utfSym.insert((unsigned char)102,206);
+           // lambda
+           utfSym.insert((unsigned char)108,187);
+           utfSym.insert((unsigned char)108,206);
+           // varrho
+           // utfSym.insert((unsigned char)114,241);
+           // utfSym.insert((unsigned char)114,206);
+           // vartheta
+           utfSym.insert((unsigned char)74,145);
+           utfSym.insert((unsigned char)74,207);
+
+}
 
 static int init_svg_data(void)
 {
@@ -137,7 +415,7 @@ static int init_svg_data(void)
         data->pattern_empty[i]   = FALSE;
         data->pattern_full[i]    = FALSE;
     }
-
+    
     svg_updatecmap();
 
     data->group_is_open = FALSE;
@@ -179,7 +457,7 @@ void svg_updatecmap(void)
 {
     int i;
     Svg_data *data;
-
+    
     data = (Svg_data *) get_curdevice_data();
     if (data == NULL) {
         return;
@@ -274,30 +552,9 @@ static void define_pattern(int i, int c, Svg_data *data)
 /*
  * escape special characters
  */
-static char *escape_specials(unsigned char *s, int len,char *fontalias)
+static char *escape_specials(unsigned char *s, int len)
 {
-    //Check for non-ASCII characters and replace with question marks.
-    static char *esn = NULL;
-
-    if(strcmp(fontalias,"Symbol")){
-        esn = (char*)xrealloc(esn, (1)*sizeof(char));
-
-        for (int i = 0; i < len; i++) {
-            if (!isprint(s[i]))
-            {
-                esn[0] = '?';
-                esn[1] = '\0';
-
-                QString nonAsciiWarning = "The symbol: "+ QString(s[i]) +" can't be printed and the whole label containing the symbol will be replaced by a question mark (?)";
-                errmsg(nonAsciiWarning.toLatin1().constData());
-
-                return (esn);
-            }
-        }
-    }
-
     static char *es = NULL;
-
     int i, elen = 0;
 
     elen = 0;
@@ -331,315 +588,24 @@ static char *escape_specials(unsigned char *s, int len,char *fontalias)
             es[elen++] = 't';
             es[elen++] = ';';
         } else {
+            /*if (useQtFonts==false && cur_font==12)
+            es[elen++] = (char) s[i]+('µ'-'m');
+            else*/
             es[elen++] = (char) s[i];
         }
     }
     es[elen] = '\0';
-
+    //cout << "es=#" << es << "#" << (unsigned int)(es[0]) << "#mu=" << (unsigned int)'µ' << endl;
     return (es);
 }
 
-#ifdef SKF_QtGrace
-
-QMultiMap<unsigned char, int> utfSym;
-
-int svginitgraphics(void)
-{   if(initUTFSym){
-        //UTF-8 symbols
-
-        // pm
-        utfSym.insert((unsigned char)177,177);
-        utfSym.insert((unsigned char)177,194);
-        // hbar
-        //utfSym.insert((unsigned char)104,167);
-        //utfSym.insert((unsigned char)104,196);
-        // Upsilon
-        //utfSym.insert((unsigned char)105,146);
-        //utfSym.insert((unsigned char)105,207);
-        // bullet
-        utfSym.insert((unsigned char)183,162);
-        utfSym.insert((unsigned char)183,128);
-        utfSym.insert((unsigned char)183,226);
-        // Im
-        utfSym.insert((unsigned char)193,145);
-        utfSym.insert((unsigned char)193,132);
-        utfSym.insert((unsigned char)193,226);
-        // Re
-        utfSym.insert((unsigned char)194,156);
-        utfSym.insert((unsigned char)194,132);
-        utfSym.insert((unsigned char)194,226);
-        // AA
-        /* utfSym.insert((unsigned char)143,171);
-        utfSym.insert((unsigned char)143,132);
-        utfSym.insert((unsigned char)143,226);
-        */// leftarrow
-        utfSym.insert((unsigned char)172,144);
-        utfSym.insert((unsigned char)172,134);
-        utfSym.insert((unsigned char)172,226);
-        // rightarrow
-        utfSym.insert((unsigned char)174,146);
-        utfSym.insert((unsigned char)174,134);
-        utfSym.insert((unsigned char)174,226);
-        // leftrightarrow
-        utfSym.insert((unsigned char)171,148);
-        utfSym.insert((unsigned char)171,134);
-        utfSym.insert((unsigned char)171,226);
-        // Leftarrow
-        utfSym.insert((unsigned char)220,144);
-        utfSym.insert((unsigned char)220,135);
-        utfSym.insert((unsigned char)220,226);
-        // Rightarrow
-        utfSym.insert((unsigned char)222,146);
-        utfSym.insert((unsigned char)222,135);
-        utfSym.insert((unsigned char)222,226);
-        // Leftrightarrow
-        utfSym.insert((unsigned char)219,148);
-        utfSym.insert((unsigned char)219,135);
-        utfSym.insert((unsigned char)219,226);
-        // forall
-        utfSym.insert((unsigned char)34,128);
-        utfSym.insert((unsigned char)34,136);
-        utfSym.insert((unsigned char)34,226);
-        // partial
-        utfSym.insert((unsigned char)182,130);
-        utfSym.insert((unsigned char)182,136);
-        utfSym.insert((unsigned char)182,226);
-        // nabla
-        utfSym.insert((unsigned char)209,135);
-        utfSym.insert((unsigned char)209,136);
-        utfSym.insert((unsigned char)209,226);
-        // in
-        // utfSym.insert((unsigned char)206,136);
-        // utfSym.insert((unsigned char)206,136);
-        // utfSym.insert((unsigned char)206,226);
-        // prod
-        utfSym.insert((unsigned char)213,143);
-        utfSym.insert((unsigned char)213,136);
-        utfSym.insert((unsigned char)213,226);
-        // sum
-        utfSym.insert((unsigned char)229,145);
-        utfSym.insert((unsigned char)229,136);
-        utfSym.insert((unsigned char)229,226);
-        // ast
-        utfSym.insert((unsigned char)42,151);
-        utfSym.insert((unsigned char)42,136);
-        utfSym.insert((unsigned char)42,226);
-        // surd
-        utfSym.insert((unsigned char)214,154);
-        utfSym.insert((unsigned char)214,136);
-        utfSym.insert((unsigned char)214,226);
-        // propto
-        utfSym.insert((unsigned char)181,157);
-        utfSym.insert((unsigned char)181,136);
-        utfSym.insert((unsigned char)181,226);
-        // infty
-        utfSym.insert((unsigned char)165,158);
-        utfSym.insert((unsigned char)165,136);
-        utfSym.insert((unsigned char)165,226);
-        // angle
-        utfSym.insert((unsigned char)208,160);
-        utfSym.insert((unsigned char)208,136);
-        utfSym.insert((unsigned char)208,226);
-        // int
-        utfSym.insert((unsigned char)242,171);
-        utfSym.insert((unsigned char)242,136);
-        utfSym.insert((unsigned char)242,226);
-        // oint
-        utfSym.insert((unsigned char)149,174);
-        utfSym.insert((unsigned char)149,136);
-        utfSym.insert((unsigned char)149,226);
-        // sim
-        utfSym.insert((unsigned char)126,188);
-        utfSym.insert((unsigned char)126,136);
-        utfSym.insert((unsigned char)126,226);
-        // approx
-        utfSym.insert((unsigned char)187,136);
-        utfSym.insert((unsigned char)187,137);
-        utfSym.insert((unsigned char)187,226);
-        // neq
-        utfSym.insert((unsigned char)185,160);
-        utfSym.insert((unsigned char)185,137);
-        utfSym.insert((unsigned char)185,226);
-        // leq
-        utfSym.insert((unsigned char)163,164);
-        utfSym.insert((unsigned char)163,137);
-        utfSym.insert((unsigned char)163,226);
-        // geq
-        utfSym.insert((unsigned char)179,165);
-        utfSym.insert((unsigned char)179,137);
-        utfSym.insert((unsigned char)179,226);
-        // odot
-        //utfSym.insert((unsigned char)215,153);
-        // utfSym.insert((unsigned char)215,138);
-        // utfSym.insert((unsigned char)215,226);
-        // bot
-        utfSym.insert((unsigned char)94,165);
-        utfSym.insert((unsigned char)94,138);
-        utfSym.insert((unsigned char)94,226);
-        // cdot
-        utfSym.insert((unsigned char)215,133);
-        utfSym.insert((unsigned char)215,139);
-        utfSym.insert((unsigned char)215,226);
-        // circ
-        utfSym.insert((unsigned char)111,139);
-        utfSym.insert((unsigned char)111,151);
-        utfSym.insert((unsigned char)111,226);
-        // spadesuit
-        utfSym.insert((unsigned char)170,160);
-        utfSym.insert((unsigned char)170,153);
-        utfSym.insert((unsigned char)170,226);
-        // clubsuit
-        utfSym.insert((unsigned char)167,163);
-        utfSym.insert((unsigned char)167,153);
-        utfSym.insert((unsigned char)167,226);
-        // heartsuit
-        utfSym.insert((unsigned char)169,165);
-        utfSym.insert((unsigned char)169,153);
-        utfSym.insert((unsigned char)169,226);
-        // diamondsuit
-        utfSym.insert((unsigned char)168,166);
-        utfSym.insert((unsigned char)168,153);
-        utfSym.insert((unsigned char)168,226);
-        // times
-        utfSym.insert((unsigned char)180,175);
-        utfSym.insert((unsigned char)180,168);
-        utfSym.insert((unsigned char)180,226);
-        // epsilon
-        utfSym.insert((unsigned char)206,181);
-        utfSym.insert((unsigned char)206,206);
-        // Omega
-        utfSym.insert((unsigned char)87,169);
-        utfSym.insert((unsigned char)87,206);
-        // zeta
-        utfSym.insert((unsigned char)122,182);
-        utfSym.insert((unsigned char)122,206);
-        // Phi
-        utfSym.insert((unsigned char)70,166);
-        utfSym.insert((unsigned char)70,206);
-        // Xi
-        utfSym.insert((unsigned char)88,158);
-        utfSym.insert((unsigned char)88,206);
-        // xi
-        utfSym.insert((unsigned char)120,190);
-        utfSym.insert((unsigned char)120,206);
-        // Theta
-        utfSym.insert((unsigned char)81,152);
-        utfSym.insert((unsigned char)81,206);
-        // theta
-        utfSym.insert((unsigned char)113,184);
-        utfSym.insert((unsigned char)113,206);
-        // gamma
-        utfSym.insert((unsigned char)103,179);
-        utfSym.insert((unsigned char)103,206);
-        // Lambda
-        utfSym.insert((unsigned char)76,155);
-        utfSym.insert((unsigned char)76,206);
-        // Psi
-        utfSym.insert((unsigned char)89,168);
-        utfSym.insert((unsigned char)89,206);
-        // eta
-        utfSym.insert((unsigned char)104,183);
-        utfSym.insert((unsigned char)104,206);
-        // kappa
-        utfSym.insert((unsigned char)107,186);
-        utfSym.insert((unsigned char)107,206);
-        // mu
-        utfSym.insert((unsigned char)109,188);
-        utfSym.insert((unsigned char)109,206);
-        // nu
-        utfSym.insert((unsigned char)110,189);
-        utfSym.insert((unsigned char)110,206);
-        // rho
-        utfSym.insert((unsigned char)114,129);
-        utfSym.insert((unsigned char)114,207);
-        // psi
-        utfSym.insert((unsigned char)121,136);
-        utfSym.insert((unsigned char)121,207);
-        // Delta
-        utfSym.insert((unsigned char)68,148);
-        utfSym.insert((unsigned char)68,206);
-        // Pi
-        utfSym.insert((unsigned char)80,160);
-        utfSym.insert((unsigned char)80,206);
-        // Sigma
-        utfSym.insert((unsigned char)83,163);
-        utfSym.insert((unsigned char)83,206);
-        // alpha
-        utfSym.insert((unsigned char)97,177);
-        utfSym.insert((unsigned char)97,206);
-        // beta
-        utfSym.insert((unsigned char)98,178);
-        utfSym.insert((unsigned char)98,206);
-        // delta
-        utfSym.insert((unsigned char)100,180);
-        utfSym.insert((unsigned char)100,206);
-        // varepsilon
-        utfSym.insert((unsigned char)101,181);
-        utfSym.insert((unsigned char)101,206);
-        // iota
-        utfSym.insert((unsigned char)105,185);
-        utfSym.insert((unsigned char)105,206);
-        // pi
-        utfSym.insert((unsigned char)112,128);
-        utfSym.insert((unsigned char)112,207);
-        // sigma
-        utfSym.insert((unsigned char)115,131);
-        utfSym.insert((unsigned char)115,207);
-        // tau
-        utfSym.insert((unsigned char)116,132);
-        utfSym.insert((unsigned char)116,207);
-        // upsilon
-        utfSym.insert((unsigned char)117,133);
-        utfSym.insert((unsigned char)117,207);
-        // omega
-        utfSym.insert((unsigned char)119,137);
-        utfSym.insert((unsigned char)119,207);
-        // div
-        utfSym.insert((unsigned char)184,183);
-        utfSym.insert((unsigned char)184,195);
-        // Gamma
-        utfSym.insert((unsigned char)71,147);
-        utfSym.insert((unsigned char)71,206);
-        // varphi
-        utfSym.insert((unsigned char)106,134);
-        utfSym.insert((unsigned char)106,207);
-        // exists
-        utfSym.insert((unsigned char)36,131);
-        utfSym.insert((unsigned char)36,136);
-        utfSym.insert((unsigned char)36,226);
-        // varpi
-        utfSym.insert((unsigned char)118,150);
-        utfSym.insert((unsigned char)118,207);
-        // chi
-        utfSym.insert((unsigned char)99,135);
-        utfSym.insert((unsigned char)99,207);
-        // varsigma
-        utfSym.insert((unsigned char)86,130);
-        utfSym.insert((unsigned char)86,207);
-        // phi
-        utfSym.insert((unsigned char)102,166);
-        utfSym.insert((unsigned char)102,206);
-        // lambda
-        utfSym.insert((unsigned char)108,187);
-        utfSym.insert((unsigned char)108,206);
-        // varrho
-        // utfSym.insert((unsigned char)114,241);
-        // utfSym.insert((unsigned char)114,206);
-        // vartheta
-        utfSym.insert((unsigned char)74,145);
-        utfSym.insert((unsigned char)74,207);
-    }
-
-    initUTFSym = false;
-
-#else
 int svginitgraphics(void)
 {
-#endif
-
+    init_char_map();
+//cout << "starte svg init" << endl;
     /* device-dependent routines */
     devupdatecmap   = svg_updatecmap;
-
+    
     devdrawpixel    = svg_drawpixel;
     devdrawpolyline = svg_drawpolyline;
     devfillpolygon  = svg_fillpolygon;
@@ -653,10 +619,9 @@ int svginitgraphics(void)
     if (init_svg_data() != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
-
-    //fprintf(prstream, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
-    fprintf(prstream, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-
+//cout << "mitte svg-init-ende" << endl;
+    fprintf(prstream, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
+    //fprintf(prstream, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     fprintf(prstream, "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"");
     fprintf(prstream, " \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n");
     fprintf(prstream, "<!-- generated by %s -->\n", bi_version_string());
@@ -667,12 +632,12 @@ int svginitgraphics(void)
             0.0, 0.0, page_width_pp, page_height_pp);
     fprintf(prstream, " <g transform=\"translate(0,%.4f) scale(1,-1)\">\n",
             page_height_pp);
-
+//cout << "kurz vor svg-init-ende" << endl;
     /* project description */
     if (get_project_description() != NULL) {
         fprintf(prstream, " <desc>%s</desc>\n", get_project_description());
     }
-
+//cout << "end svg-init" << endl;
     return RETURN_SUCCESS;
 }
 
@@ -887,7 +852,7 @@ void svg_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
     if (a1 == a2) {
         return;
     }
-
+    
     center.x = 0.5*(vp1.x + vp2.x);
     center.y = 0.5*(vp1.y + vp2.y);
     rx       = 0.5*fabs(vp2.x - vp1.x);
@@ -946,7 +911,7 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
         fprintf(prstream,"   <ellipse  rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",scaleval(rx), scaleval(ry),scaleval(0), scaleval(0));
     } else {
         VPoint start, end;
-
+        
         /*start.x = center.x + rx*cos((M_PI/180.0)*a1);
         start.y = center.y + ry*sin((M_PI/180.0)*a1);
         end.x   = center.x + rx*cos((M_PI/180.0)*a2);
@@ -990,7 +955,7 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     fprintf(prstream, "</g>");
 }
 
-void svg_putpixmap(VPoint vp, int width, int height, char *databits,
+void svg_putpixmap(VPoint vp, int width, int height, char *databits, 
                    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     /* not implemented yet */
@@ -1004,65 +969,11 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
     double fsize = scaleval(1);
 
     svg_group_props(FALSE, TRUE);
-
+    
     fprintf(prstream, "   <text  ");
 
-
-
-#ifdef SKF_QtGrace
-    if(font!=12){ //12 is the location of the symbol font in the FontDataBase file located in the font folder
-
-        fontalias = get_fontalias(font);
-        fontfullname = get_fontfullname(font);
-    }else{
-        //replace symbol font to Times
-        //font = 0; //BZ2033
-
-        fontalias = get_fontalias(font);
-        fontfullname = get_fontfullname(font);
-
-        int spos=0;
-        unsigned char k;
-        k = s[spos];
-
-        //Select symbol by given key
-        //QList<int> values = utfSym.values(s[spos]);
-
-        // The strings are not 0-terminated.
-        // The length is given in "len" only.
-        char *d = new char[len*3];
-        // 3 because the largest list in the table is 3
-        // Some have length 2 some 3
-        char *tmpd = d;
-
-        int newlen=0;
-        while(spos<len){
-            QList<int> values = utfSym.values(s[spos]);
-            if(values.size()!=3 && values.size()!=2){
-                *tmpd = '?';
-                tmpd++;newlen++;
-
-            } else {
-                *tmpd = (unsigned char)(values[0]);
-                tmpd++;newlen++;
-                *tmpd = (unsigned char)(values[1]);
-                tmpd++;newlen++;
-                if(values.size()==3){
-                    *tmpd = (unsigned char)(values[2]);
-                    tmpd++;newlen++;}
-            }
-
-            spos++;
-
-        }
-        s = d;
-        len=newlen;
-
-    }
-#else
     fontalias = get_fontalias(font);
     fontfullname = get_fontfullname(font);
-#endif
 
     family  = NULL;
     if ((dash = strchr(fontalias, '-')) == NULL) {
@@ -1073,12 +984,12 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
         family[dash - fontalias] = '\0';
     }
     fprintf(prstream, " style=\"font-family:'%s'", family);
-
+    
     familyff=get_fontfamilyname(font);
     if (strcmp(family,familyff) != 0){
         fprintf(prstream, ",'%s'",familyff);
     }
-
+    
     copy_string(family, NULL);
 
     if (get_italic_angle(font) != 0) {
@@ -1170,15 +1081,10 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
             -tm->cxy, -tm->cyy,
             scaleval(vp.x), scaleval(vp.y));
 
-
-
-
-
-    fprintf(prstream,"%s",escape_specials((unsigned char *) s, len,fontalias));
+    cur_font=font;
+    fprintf(prstream,"%s",escape_specials((unsigned char *) s, len));
 
     fprintf(prstream, "</text>\n");
-
-
 }
 
 void svg_leavegraphics(void)

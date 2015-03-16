@@ -1,27 +1,27 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- *
+ * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- *
+ * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2002 Grace Development Team
- *
+ * 
  * Maintained by Evgeny Stambulchik
- *
- * Modified by Andreas Winter 2008-2012
- *
+ * 
+ * Modified by Andreas Winter 2008-2015
+ * 
  *                           All Rights Reserved
- *
+ * 
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- *
+ * 
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- *
+ * 
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -36,10 +36,7 @@
 
 #include <iostream>
 #include <stdio.h>
-#ifdef _MSC_VER
-#else
-#include <unistd.h>
-#endif
+/*#include <unistd.h>*/
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -52,8 +49,11 @@
 #include "patterns.h"
 #include "psdrv.h"
 #include "noxprotos.h"
+#include "globals.h"
 
+/*#ifdef _MSC_VER
 #include "rint.h"
+#endif*/
 
 /*#ifndef NONE_GUI
 #  include "motifinc.h"
@@ -62,7 +62,6 @@
 using namespace std;
 
 extern FILE *prstream;
-extern int RotationAngle;
 
 static void put_string(FILE *fp, char *s, int len);
 
@@ -104,51 +103,40 @@ int eps_setup_docdata = DOCDATA_8BIT;
 int tight_bb;
 
 static Device_entry dev_ps = {DEVICE_PRINT,
-                              "PostScript",
-                              psprintinitgraphics,
-                              ps_op_parser,
-                              ps_gui_setup,
-                              "ps",
-                              TRUE,
-                              #ifdef SKF_QtGrace
-                              TRUE,
-                              {3300, 2550, 72},
-                              #else
-                              TRUE,
-                              {3300, 2550, 300},
-                              #endif
-                              NULL
-                             };
+          "PostScript",
+          psprintinitgraphics,
+          ps_op_parser,
+          ps_gui_setup,
+          "ps",
+          TRUE,
+          FALSE,
+          {3300, 2550, 300.0},
+          NULL
+         };
 
 static Device_entry dev_eps = {DEVICE_FILE,
-                               "EPS",
-                               epsinitgraphics,
-                               eps_op_parser,
-                               eps_gui_setup,
-                               "eps",
-                               TRUE,
-                               #ifdef SKF_QtGrace
-                               TRUE,
-
-                               {2500, 2500, 72},
-                               #else
-                               FALSE,
-                               {2500, 2500, 300},
-                               #endif
-                               NULL
-                              };
+          "EPS",
+          epsinitgraphics,
+          eps_op_parser,
+          eps_gui_setup,
+          "eps",
+          TRUE,
+          FALSE,
+          {2500, 2500, 300.0},
+          NULL
+         };
 
 VPoint CenterOfMass(int n,VPoint *p)
 {
-    VPoint p0={0.0,0.0};
-    for (int i=0;i<n;i++)
-    {
-        p0.x+=p[i].x;
-        p0.y+=p[i].y;
-    }
-    p0.x/=n;
-    p0.y/=n;
-    return p0;
+VPoint p0={0.0,0.0};
+for (int i=0;i<n;i++)
+{
+p0.x+=p[i].x;
+p0.y+=p[i].y;
+}
+p0.x/=n;
+p0.y/=n;
+return p0;
 }
 
 int register_ps_drv(void)
@@ -244,9 +232,9 @@ static int ps_initgraphics(int format)
     if (tight_bb == TRUE) {
         fprintf(prstream, "%%%%BoundingBox: (atend)\n");
     } else {
-        fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n",
-                page_offset_x, page_offset_y,
-                width_pp + page_offset_x, height_pp + page_offset_y);
+        fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
+            page_offset_x, page_offset_y,
+            width_pp + page_offset_x, height_pp + page_offset_y);
     }
     
     if (ps_level2 == TRUE) {
@@ -319,12 +307,12 @@ static int ps_initgraphics(int format)
             frgb = get_frgb(i);
             if (frgb != NULL) {
                 fprintf(prstream, "%.4f %.4f %.4f",
-                        frgb->red,frgb->green, frgb->blue);
+                                    frgb->red,frgb->green, frgb->blue);
             }
         }
         fprintf(prstream,"} def\n");
     }
-
+       
     if (ps_level2 == TRUE) {
         fprintf(prstream, "/PTRN {\n");
         fprintf(prstream, " /pat_bits exch def \n");
@@ -414,8 +402,8 @@ static int ps_initgraphics(int format)
         case MEDIA_FEED_MATCH:
             fprintf(prstream, "%%%%BeginFeature: *PageSize\n");
             fprintf(prstream,
-                    "<</PageSize [%d %d] /ImagingBBox null>> setpagedevice\n",
-                    width_pp, height_pp);
+                "<</PageSize [%d %d] /ImagingBBox null>> setpagedevice\n",
+                width_pp, height_pp);
             fprintf(prstream, "%%%%EndFeature\n");
             break;
         case MEDIA_FEED_MANUAL:
@@ -429,7 +417,7 @@ static int ps_initgraphics(int format)
         if (ps_setup_hwres == TRUE) {
             fprintf(prstream, "%%%%BeginFeature: *HWResolution\n");
             fprintf(prstream, "<</HWResolution [%d %d]>> setpagedevice\n",
-                    (int) pg.dpi, (int) pg.dpi);
+                (int) pg.dpi, (int) pg.dpi);
             fprintf(prstream, "%%%%EndFeature\n");
         }
     }
@@ -474,7 +462,7 @@ void ps_setpen(void)
                     fprintf(prstream, "[/Pattern /DeviceRGB] SCS\n");
                 }
                 fprintf(prstream,
-                        "Color%d Pattern%d SC\n", pen.color, pen.pattern);
+                    "Color%d Pattern%d SC\n", pen.color, pen.pattern);
             }
         } else {
             if (ps_grayscale == TRUE) {
@@ -499,7 +487,7 @@ void ps_setdrawbrush(void)
     ls = getlinestyle();
     lw = MAX2(getlinewidth(), pixel_size);
     
-    if (ls != ps_lines || lw != ps_linew) {
+    if (ls != ps_lines || lw != ps_linew) {    
         fprintf(prstream, "[");
         if (ls > 1) {
             for (i = 0; i < dash_array_length[ls]; i++) {
@@ -579,9 +567,9 @@ void ps_drawpolyline(VPoint *vps, int n, int mode)
     ps_setdrawbrush();
     ps_setlineprops();
     ps_setpen();
-    fprintf(prstream, "gsave\n");
-    fprintf(prstream, "%.4f %.4f translate\n",p0.x,p0.y);
-    fprintf(prstream, "%d rotate\n",-RotationAngle);
+        fprintf(prstream, "gsave\n");
+        fprintf(prstream, "%.4f %.4f translate\n",p0.x,p0.y);
+        fprintf(prstream, "%d rotate\n",-RotationAngle);
     fprintf(prstream, "n\n");
     fprintf(prstream, "%.4f %.4f m\n", vps[0].x-p0.x, vps[0].y-p0.y);
     for (i = 1; i < n; i++) {
@@ -592,7 +580,7 @@ void ps_drawpolyline(VPoint *vps, int n, int mode)
         fprintf(prstream, "c\n");
     }
     fprintf(prstream, "s\n");
-    fprintf(prstream, "grestore\n");
+        fprintf(prstream, "grestore\n");
 }
 
 void ps_fillpolygon(VPoint *vps, int nc)
@@ -605,9 +593,9 @@ void ps_fillpolygon(VPoint *vps, int nc)
         return;
     }
     ps_setpen();
-    fprintf(prstream, "gsave\n");
-    fprintf(prstream, "%.4f %.4f translate\n",p0.x,p0.y);
-    fprintf(prstream, "%d rotate\n",-RotationAngle);
+        fprintf(prstream, "gsave\n");
+        fprintf(prstream, "%.4f %.4f translate\n",p0.x,p0.y);
+        fprintf(prstream, "%d rotate\n",-RotationAngle);
     fprintf(prstream, "n\n");
     fprintf(prstream, "%.4f %.4f m\n", vps[0].x-p0.x, vps[0].y-p0.y);
     for (i = 1; i < nc; i++) {
@@ -629,7 +617,7 @@ void ps_fillpolygon(VPoint *vps, int nc)
             }
             fprintf(prstream, "Color%d SRGB\n", getbgcolor());
         }
-        fprintf(prstream, "Color%d SC\n", pen.color);
+        //fprintf(prstream, "Color%d SC\n", pen.color);
         if (getfillrule() == FILLRULE_WINDING) {
             fprintf(prstream, "fill\n");
         } else {
@@ -639,13 +627,13 @@ void ps_fillpolygon(VPoint *vps, int nc)
     }
     
     ps_setpen();
-    fprintf(prstream, "Color%d SC\n", pen.color);
+    //fprintf(prstream, "Color%d SC\n", pen.color);
     if (getfillrule() == FILLRULE_WINDING) {
         fprintf(prstream, "fill\n");
     } else {
         fprintf(prstream, "eofill\n");
     }
-    fprintf(prstream, "grestore\n");
+        fprintf(prstream, "grestore\n");
 }
 
 void ps_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
@@ -662,12 +650,12 @@ void ps_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
     rx = fabs(vp2.x - vp1.x)/2;
     ry = fabs(vp2.y - vp1.y)/2;
     ps_setpen();
-    fprintf(prstream, "gsave\n");
-    fprintf(prstream, "%d rotate\n",-RotationAngle);
-    fprintf(prstream, "%.4f %.4f translate\n",-vpc.x, -vpc.y);
+        fprintf(prstream, "gsave\n");
+        fprintf(prstream, "%d rotate\n",-RotationAngle);
+        fprintf(prstream, "%.4f %.4f translate\n",-vpc.x, -vpc.y);
     //fprintf(prstream, "n %.4f %.4f %.4f %.4f %d %d EARC s\n",vpc.x, vpc.y, rx, ry, a1, a2);//original command without rotation
     fprintf(prstream, "n %.4f %.4f %.4f %.4f %d %d EARC s\n",vpc.x+vpc.x*ca-vpc.y*sa, vpc.y+vpc.x*sa+vpc.y*ca, rx, ry, a1, a2);
-    fprintf(prstream, "grestore\n");
+        fprintf(prstream, "grestore\n");
 }
 
 void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
@@ -687,9 +675,9 @@ void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     rx = fabs(vp2.x - vp1.x)/2;
     ry = fabs(vp2.y - vp1.y)/2;
     ps_setpen();
-    fprintf(prstream, "gsave\n");
-    fprintf(prstream, "%d rotate\n",-RotationAngle);
-    fprintf(prstream, "%.4f %.4f translate\n",-vpc.x, -vpc.y);
+        fprintf(prstream, "gsave\n");
+        fprintf(prstream, "%d rotate\n",-RotationAngle);
+        fprintf(prstream, "%.4f %.4f translate\n",-vpc.x, -vpc.y);
     fprintf(prstream, "n\n");
     
     if (mode == ARCFILL_PIESLICE)
@@ -720,11 +708,11 @@ void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 
     ps_setpen();
     fprintf(prstream, "fill\n");
-    fprintf(prstream, "grestore\n");
+        fprintf(prstream, "grestore\n");
 }
 
 void ps_putpixmap(VPoint vp, int width, int height, 
-                  char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
+     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     int j, k;
     int cindex;
@@ -738,8 +726,8 @@ void ps_putpixmap(VPoint vp, int width, int height,
     
     fprintf(prstream, "GS\n");
     fprintf(prstream, "%.4f %.4f translate\n", vp.x, vp.y);
-    fprintf(prstream, "%.4f %.4f scale\n", (float) width/page_scale,
-            (float) height/page_scale);
+    fprintf(prstream, "%.4f %.4f scale\n", (float) width/page_scale, 
+                                           (float) height/page_scale);    
     if (pixmap_bpp != 1) {
         if (pixmap_type == PIXMAP_TRANSPARENT) {
             /* TODO: mask */
@@ -766,7 +754,7 @@ void ps_putpixmap(VPoint vp, int width, int height,
                 cindex = (databits)[k*width+j];
                 if (ps_grayscale == TRUE || ps_level2 == FALSE) {
                     linelen += fprintf(prstream,"%02x",
-                                       (int) (255*get_colorintensity(cindex)));
+                                      (int) (255*get_colorintensity(cindex)));
                 } else {
                     rgb = get_rgb(cindex);
                     linelen += fprintf(prstream, "%02x%02x%02x",
@@ -784,11 +772,11 @@ void ps_putpixmap(VPoint vp, int width, int height,
         if (pixmap_type == PIXMAP_OPAQUE) {
             if (ps_grayscale == TRUE) {
                 fprintf(prstream,"%.4f SGRY\n",
-                        get_colorintensity(getbgcolor()));
+                                  get_colorintensity(getbgcolor()));
             } else {
                 frgb = get_frgb(getbgcolor());
                 fprintf(prstream,"%.4f %.4f %.4f SRGB\n",
-                        frgb->red, frgb->green, frgb->blue);
+                                  frgb->red, frgb->green, frgb->blue);
             }
             fprintf(prstream, "0 0 1 -1 rectfill\n");
         }
@@ -797,7 +785,7 @@ void ps_putpixmap(VPoint vp, int width, int height,
         } else {
             frgb = get_frgb(getcolor());
             fprintf(prstream,"%.4f %.4f %.4f SRGB\n",
-                    frgb->red, frgb->green, frgb->blue);
+                              frgb->red, frgb->green, frgb->blue);
         }
         fprintf(prstream, "/picstr %d string def\n", paddedW/8);
         fprintf(prstream, "%d %d true\n", paddedW, height);
@@ -821,7 +809,7 @@ void ps_putpixmap(VPoint vp, int width, int height,
 }
 
 void ps_puttext(VPoint vp, char *s, int len, int font,
-                TextMatrix *tm, int underline, int overline, int kerning)
+     TextMatrix *tm, int underline, int overline, int kerning)
 {
     char *fontname;
     char *encscheme;
@@ -850,7 +838,7 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     fprintf(prstream, "%.4f %.4f m\n", vp.x, vp.y);
     fprintf(prstream, "GS\n");
     fprintf(prstream, "[%.4f %.4f %.4f %.4f 0 0] CC\n",
-            tm->cxx, tm->cyx, tm->cxy, tm->cyy);
+                        tm->cxx, tm->cyx, tm->cxy, tm->cyy);
     
     if (kerning) {
         kvector = get_kerning_vector(s, len, font);
@@ -919,16 +907,16 @@ void ps_leavegraphics(void)
         v = get_bbox(BBOX_TYPE_GLOB);
         if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
             fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n",
-                    (int) (page_scalef*(1.0 - v.yv2)) - 1,
-                    (int) (page_scalef*v.xv1) - 1,
-                    (int) (page_scalef*(1.0 - v.yv1)) + 2,
-                    (int) (page_scalef*v.xv2) + 2);
+                                         (int) (page_scalef*(1.0 - v.yv2)) - 1,
+                                         (int) (page_scalef*v.xv1) - 1,
+                                         (int) (page_scalef*(1.0 - v.yv1)) + 2,
+                                         (int) (page_scalef*v.xv2) + 2);
         } else {
             fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n",
-                    (int) (page_scalef*v.xv1) - 1,
-                    (int) (page_scalef*v.yv1) - 1,
-                    (int) (page_scalef*v.xv2) + 2,
-                    (int) (page_scalef*v.yv2) + 2);
+                                         (int) (page_scalef*v.xv1) - 1,
+                                         (int) (page_scalef*v.yv1) - 1,
+                                         (int) (page_scalef*v.xv2) + 2,
+                                         (int) (page_scalef*v.yv2) + 2);
         }
     }
     
@@ -937,7 +925,7 @@ void ps_leavegraphics(void)
         if (psfont_status[i] == TRUE) {
             if (first) {
                 fprintf(prstream, "%%%%DocumentNeededResources: font %s\n",
-                        get_fontalias(i));
+                    get_fontalias(i));
                 first = FALSE;
             } else {
                 fprintf(prstream, "%%%%+ font %s\n", get_fontalias(i));
@@ -983,7 +971,7 @@ static void put_string(FILE *fp, char *s, int len)
             linelen++;
         }
         if ((docdata == DOCDATA_7BIT && !is7bit(uc)) ||
-                (docdata == DOCDATA_8BIT && !is8bit(uc))) {
+            (docdata == DOCDATA_8BIT && !is8bit(uc))) {
             linelen += fprintf(fp, "\\%03o", uc);
         } else {
             fputc(c, fp);
@@ -1143,30 +1131,30 @@ void ps_gui_setup(void)
             {DOCDATA_BINARY, "Binary"    }
         };
         
-    ps_setup_frame = CreateDialogForm(app_shell, "PS options");
+	ps_setup_frame = CreateDialogForm(app_shell, "PS options");
 
         ps_setup_rc = CreateVContainer(ps_setup_frame);
 
-    fr = CreateFrame(ps_setup_rc, "PS options");
+	fr = CreateFrame(ps_setup_rc, "PS options");
         rc = CreateVContainer(fr);
-    ps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
-    ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
-    ps_setup_docdata_item =
+	ps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
+	ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
+	ps_setup_docdata_item =
             CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
 
-    fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
+	fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
         rc = CreateHContainer(fr);
-    ps_setup_offset_x_item = CreateSpinChoice(rc,
+	ps_setup_offset_x_item = CreateSpinChoice(rc,
             "X: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
-    ps_setup_offset_y_item = CreateSpinChoice(rc,
+	ps_setup_offset_y_item = CreateSpinChoice(rc,
             "Y: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
 
-    fr = CreateFrame(ps_setup_rc, "Hardware");
+	fr = CreateFrame(ps_setup_rc, "Hardware");
         rc = CreateVContainer(fr);
-    ps_setup_feed_item = CreateOptionChoice(rc, "Media feed:", 1, 3, op_items);
-    ps_setup_hwres_item = CreateToggleButton(rc, "Set hardware resolution");
+	ps_setup_feed_item = CreateOptionChoice(rc, "Media feed:", 1, 3, op_items);
+	ps_setup_hwres_item = CreateToggleButton(rc, "Set hardware resolution");
 
-    CreateAACDialog(ps_setup_frame, ps_setup_rc, set_ps_setup_proc, NULL);
+	CreateAACDialog(ps_setup_frame, ps_setup_rc, set_ps_setup_proc, NULL);
     }
     update_ps_setup_frame();
     
@@ -1219,17 +1207,17 @@ void eps_gui_setup(void)
             {DOCDATA_8BIT,   "8bit"},
             {DOCDATA_BINARY, "Binary"    }
         };
-
+	
         eps_setup_frame = CreateDialogForm(app_shell, "EPS options");
 
         fr = CreateFrame(eps_setup_frame, "EPS options");
         rc = CreateVContainer(fr);
-    eps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
-    eps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
-    eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
-    eps_setup_docdata_item =
+	eps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
+	eps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
+	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
+	eps_setup_docdata_item =
             CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
-    CreateAACDialog(eps_setup_frame, fr, set_eps_setup_proc, NULL);
+	CreateAACDialog(eps_setup_frame, fr, set_eps_setup_proc, NULL);
     }
     update_eps_setup_frame();
     RaiseWindow(GetParent(eps_setup_frame));

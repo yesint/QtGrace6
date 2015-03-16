@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -46,6 +46,10 @@
 #include "utils.h"
 #include "files.h"
 #include "noxprotos.h"
+
+#ifdef _MSC_VER
+#define popen _popen
+#endif
 
 typedef struct filter {
 	char *command;
@@ -161,11 +165,6 @@ FILE *filter_read( char *fn )
 		fclose( in );
 		sprintf( buf, ifilt[i].command, fn );
 		fflush( stdout );
-
-#ifdef _MSC_VER		
-#define popen(x,y) _popen(x,y)		
-#endif
-		
 		return popen(grace_exe_path(buf), "r");
 	} else {
 		return in;

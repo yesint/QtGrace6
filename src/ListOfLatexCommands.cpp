@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Andreas Winter                             *
+ *   Copyright (C) 2008-2015 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -25,22 +25,15 @@
 #include "defines.h"
 #include "t1fonts.h"
 #include "utils.h"
-#define toAscii toLatin1
+
 using namespace std;
 
 extern char dummy[];
+extern bool useQtFonts;
 
 static int font_nr;
 static double oblique, vshift, hshift, zoom;
 static bool underline,overline;
-QString errmessage;
-
-struct LatexCommands
-{
-    char * la_com;
-    char font;
-    char * ch;
-};
 
 struct SpecialLatexCommands
 {
@@ -50,101 +43,101 @@ struct SpecialLatexCommands
     int nr_of_exp_args;
 };
 
-#define NUMBER_OF_LATEX_COMMANDS 78
+#define NUMBER_OF_LATEX_COMMANDS 82
 
 struct LatexCommands allCommands[NUMBER_OF_LATEX_COMMANDS]=
 {
-    //0
-{"alpha",'x',"a"},
-{"beta",'x',"b"},
-{"gamma",'x',"g"},
-{"delta",'x',"d"},
-{"epsilon",'x',"\\cN\\C"},
-{"varepsilon",'x',"e"},
-{"zeta",'x',"z"},
-{"eta",'x',"h"},
-{"theta",'x',"q"},
-{"vartheta",'x',"J"},
+//0
+{"alpha",'x',"a",QString("α"),945},
+{"beta",'x',"b",QString("β"),946},
+{"gamma",'x',"g",QString("γ"),947},
+{"delta",'x',"d",QString("δ"),948},
+{"epsilon",'x',"\\cN\\C",QString("ϵ"),1013},
+{"varepsilon",'x',"e",QString("ε"),949},
+{"zeta",'x',"z",QString("ζ"),950},
+{"eta",'x',"h",QString("η"),951},
+{"theta",'x',"q",QString("θ"),952},
+{"vartheta",'x',"J",QString("ϑ"),977},
 //10
-{"iota",'x',"i"},
-{"kappa",'x',"k"},
-{"lambda",'x',"l"},
-{"mu",'x',"m"},
-{"nu",'x',"n"},
-{"xi",'x',"x"},
-{"pi",'x',"p"},
-{"varpi",'x',"v"},
-{"rho",'x',"r"},
-{"varrho",'x',"r"},//not exactely the same...
+{"iota",'x',"i",QString("ι"),953},
+{"kappa",'x',"k",QString("κ"),954},
+{"lambda",'x',"l",QString("λ"),955},
+{"mu",'x',"m",QString("μ"),956},
+{"nu",'x',"n",QString("ν"),957},
+{"xi",'x',"x",QString("ξ"),958},
+{"pi",'x',"p",QString("π"),960},
+{"varpi",'x',"v",QString("ϖ"),982},
+{"rho",'x',"r",QString("ρ"),961},
+{"varrho",'x',"r",QString("ϱ"),1009},//not exactely the same in iso-latin-1...
 //20
-{"sigma",'x',"s"},
-{"varsigma",'x',"V"},
-{"tau",'x',"t"},
-{"upsilon",'x',"u"},
-{"phi",'x',"f"},
-{"varphi",'x',"j"},
-{"chi",'x',"c"},
-{"psi",'x',"y"},
-{"omega",'x',"w"},
-{"Gamma",'x',"G"},
+{"sigma",'x',"s",QString("σ"),963},
+{"varsigma",'x',"V",QString("ς"),962},
+{"tau",'x',"t",QString("τ"),964},
+{"upsilon",'x',"u",QString("υ"),965},
+{"phi",'x',"f",QString("ϕ"),981},
+{"varphi",'x',"j",QString("φ"),966},
+{"chi",'x',"c",QString("χ"),967},
+{"psi",'x',"y",QString("ψ"),968},
+{"omega",'x',"w",QString("ω"),969},
+{"Gamma",'x',"G",QString("Γ"),915},
 //30
-{"Delta",'x',"D"},
-{"Theta",'x',"Q"},
-{"Lambda",'x',"L"},
-{"Xi",'x',"X"},
-{"Pi",'x',"P"},
-{"Sigma",'x',"S"},
-//{"Upsilon",'x',"\\c!\\C"},
-{"Phi",'x',"F"},
-{"Psi",'x',"Y"},
-{"Omega",'x',"W"},
+{"Delta",'x',"D",QString("Δ"),916},
+{"Theta",'x',"Q",QString("Θ"),920},
+{"Lambda",'x',"L",QString("Λ"),923},
+{"Xi",'x',"X",QString("Ξ"),926},
+{"Pi",'x',"P",QString("Π"),928},
+{"Sigma",'x',"S",QString("Σ"),931},
+{"Upsilon",'x',"\\c!\\C",QString("Υ"),933},
+{"Phi",'x',"F",QString("Φ"),934},
+{"Psi",'x',"Y",QString("Ψ"),936},
+{"Omega",'x',"W",QString("Ω"),937},
 //40
-{"sum",'x',"\\ce\\C"},
-{"prod",'x',"\\cU\\C"},
-{"int",'x',"\\cr\\C"},
-{"in",'x',"\\cN\\C"},
-{"forall",'x',"\""},
-{"exists",'x',"$"},
-{"surd",'x',"\\cV\\C"},
-{"Rightarrow",'x',"\\c^\\C"},
-{"Leftarrow",'x',"\\c\\\\\\C"},
-{"propto",'x',"\\c5\\C"},
+{"sum",'x',"\\ce\\C",QString("Σ"),931},
+{"prod",'x',"\\cU\\C",QString("Π"),928},
+{"int",'x',"\\cr\\C",QString("ʃ"),643},
+{"in",'x',"\\cN\\C",QString("ϵ"),1013},
+{"forall",'x',"\"",QString("∀"),8704},
+{"exists",'x',"$",QString("∃"),8707},
+{"surd",'x',"\\cV\\C",QString("√"),8730},
+{"Rightarrow",'x',"\\c^\\C",QString("⇒"),8658},
+{"Leftarrow",'x',"\\c\\\\C",QString("⇐"),8656},
+{"propto",'x',"\\c5\\C",QString("∝"),8733},
 //50
-{"partial",'x',"\\c6\\C"},
-{"infty",'x',"\\c%\\C"},
-{"cdot",'x',"\\cW\\C"},
-{"times",'x',"\\c4\\C"},
-{"pm",'x',"\\c1\\C"},
-{"equiv",'x',"\\c:\\C"},
-{"approx",'x',"\\c;\\C"},
-{"ast",'x',"*"},
-{"bullet",'x',"\\c7\\C"},
-{"div",'x',"\\c8\\C"},
+{"partial",'x',"\\c6\\C",QString("∂"),8706},
+{"infty",'x',"\\c%\\C",QString("∞"),8734},
+{"cdot",'x',"\\cW\\C",QString("⋅"),8901},
+{"times",'x',"\\c4\\C",QString("×"),215},
+{"pm",'x',"\\c1\\C",QString("±"),177},
+{"equiv",'x',"\\c:\\C",QString("≡"),8801},
+{"approx",'x',"\\c;\\C",QString("≈"),8776},
+{"ast",'x',"*",QString("∗"),8727},
+{"bullet",'x',"\\c7\\C",QString("•"),8226},
+{"div",'x',"\\c8\\C",QString("÷"),247},
 //60
-{"nabla",'x',"\\cQ\\C"},
-{"bot",'x',"^"},
-{"clubsuit",'x',"\\c'\\C"},
-{"diamondsuit",'x',"\\c(\\C"},
-{"heartsuit",'x',"\\c)\\C"},
-{"spadesuit",'x',"\\c*\\C"},
-{"rightarrow",'x',"\\c.\\C"},
-{"leftarrow",'x',"\\c,\\C"},
-{"leq",'x',"\\c#\\C"},
-{"geq",'x',"\\c3\\C"},
+{"nabla",'x',"\\cQ\\C",QString("∂"),8706},
+{"bot",'x',"^",QString("⊥"),8869},
+{"clubsuit",'x',"\\c'\\C",QString("♣"),9827},
+{"diamondsuit",'x',"\\c(\\C",QString("♦"),9830},
+{"heartsuit",'x',"\\c)\\C",QString("♥"),9829},
+{"spadesuit",'x',"\\c*\\C",QString("♠"),9824},
+{"rightarrow",'x',"\\c.\\C",QString("→"),8594},
+{"leftarrow",'x',"\\c,\\C",QString("←"),8592},
+{"leq",'x',"\\c#\\C",QString("≤"),8804},
+{"geq",'x',"\\c3\\C",QString("≥"),8805},
 //70
-{"angle",'x',"\\cP\\C"},
-{"Re",'x',"\\cB\\C"},
-{"Im",'x',"\\cA\\C"},
-{"neq",'x',"\\c9\\C"},
-{"sim",'x',"~"},
-//  {"hbar",'1',"h\\h{-0.55}\\v{-0.04}\\c/\\C\\h{0.3}\\v{0.04}"},
-{"oint",'x',"\\h{0.1}\\cr\\C\\f{Courier}\\h{-0.425}\\v{0.2}o\\v{-0.2}"},
-//  {"odot",'x',"\\h{0.2}\\v{0.05}\\cW\\C\\f{Courier}\\h{-0.435}\\v{0.055}o\\v{-0.105}"},
-{"circ",'x',"o"},
-{"leftrightarrow",'x',"\\c+\\C"},
+{"angle",'x',"\\cP\\C",QString("∠"),8736},
+{"Re",'x',"\\cB\\C",QString("ℜ"),8476},
+{"Im",'x',"\\cA\\C",QString("ℑ"),8465},
+{"neq",'x',"\\c9\\C",QString("≠"),8800},
+{"sim",'x',"~",QString("~"),126},
+{"hbar",'1',"h\\h{-0.55}\\v{-0.04}\\c/\\C\\h{0.3}\\v{0.04}",QString("ħ"),295},
+{"oint",'x',"\\h{0.1}\\cr\\C\\f{Courier}\\h{-0.425}\\v{0.2}o\\v{-0.2}",QString("∮"),8750},
+{"odot",'x',"\\h{0.2}\\v{0.05}\\cW\\C\\f{Courier}\\h{-0.435}\\v{0.055}o\\v{-0.105}",QString("⊙"),8857},
+{"circ",'x',"o",QString("°"),176},
+{"leftrightarrow",'x',"\\c+\\C",QString("↔"),8596},
 //80
-{"Leftrightarrow",'x',"\\c[\\C"},
-// {"AA",'0',"\\cE\\C"}
+{"Leftrightarrow",'x',"\\c[\\C",QString("⇔"),8660},
+{"AA",'0',"\\cE\\C",QString("Å"),197}
 };
 
 #define NUMBER_OF_SPECIAL_LATEX_COMMANDS 6
@@ -161,79 +154,120 @@ struct SpecialLatexCommands specCommands[NUMBER_OF_SPECIAL_LATEX_COMMANDS]=
 
 };
 
-int replace_command(char * command,char & new_font)
+int replace_command(QString & command,char & new_font)
 {
+    int i;
+    strcpy(dummy,command.toLatin1().constData());
     new_font=-1;//invalid
-    for (int i=0;i<NUMBER_OF_LATEX_COMMANDS;i++)
+    //cout << "#" << command.toLatin1().constData() << "#" << endl;
+    for (i=0;i<NUMBER_OF_LATEX_COMMANDS;i++)
     {
-        if (!strcmp(command,allCommands[i].la_com))
+        if (!strcmp(dummy,allCommands[i].la_com))
         {
-            strcpy(command,allCommands[i].ch);
-            command[strlen(allCommands[i].ch)]='\0';
+            strcpy(dummy,allCommands[i].ch);
+            dummy[strlen(allCommands[i].ch)]='\0';
             new_font=allCommands[i].font;
+            if (useQtFonts==true)
+            {
+                //command=allCommands[i].utf8;
+                command=QString(QChar(allCommands[i].unicode));
+            }
             break;
         }
     }
-    if (new_font==-1)
-        return RETURN_FAILURE;
-    else
-        return RETURN_SUCCESS;
+    if (useQtFonts==false)
+    {
+        if (new_font==-1)
+        {
+            return RETURN_FAILURE;
+        }
+        else
+        {
+            command=QString::fromLatin1(dummy);
+            return RETURN_SUCCESS;
+        }
+    }
+    else//QtFonts
+    {
+        if (i<NUMBER_OF_LATEX_COMMANDS)
+            return RETURN_SUCCESS;
+        else
+            return RETURN_FAILURE;
+    }
 }
 
-void remove_emptys(char * text)
+void remove_emptys(QString & text)//removes spaces at the beginning and the end of the string text
 {
-    if (text[0]!=' ' && text[strlen(text)-1]!=' ') return;
-    int pos=0;
-    char * dummy=new char[strlen(text)];
-    while (pos<strlen(text) && isspace(text[pos])) pos++;
-    strcpy(dummy,text+pos);
-    pos=strlen(dummy)-1;
-    while (pos>0 && isspace(dummy[pos])) pos--;
-    if (!isspace(dummy[pos])) pos++;
-    strcpy(text,dummy);//pos is now the position of the last character that is not ' '
-    text[pos]='\0';
-    delete[] dummy;
+    if (text.isEmpty()) return;
+    if (!text.at(0).isSpace() && text.at(text.length()-1).isSpace()) return;//no spaces at beginning or end
+    int first_pos=0;//index of first character in text, that is not space
+    int last_index=text.length()-1;//index of last character in text, that is not space
+    while (first_pos<text.length() && text.at(first_pos).isSpace()) first_pos++;
+    while (last_index>=0 && text.at(last_index).isSpace()) last_index--;
+    if (first_pos>=text.length()) last_index=text.length()-1;
+    if (last_index<0) last_index=0;
+    text=text.mid(first_pos,last_index+1-first_pos);
+    /*int pos=0;
+char * dummy=new char[strlen(text)];
+while (pos<strlen(text) && isspace(text[pos])) pos++;
+strcpy(dummy,text+pos);
+pos=strlen(dummy)-1;
+while (pos>0 && isspace(dummy[pos])) pos--;
+if (!isspace(dummy[pos])) pos++;
+strcpy(text,dummy);//pos is now the position of the last character that is not ' '
+text[pos]='\0';
+delete[] dummy;*/
 }
 
-int remove_braces(char * text)//removes {} at beginning and end if they belong together! returns the position of the closing brace to the initially opened one (returning 0 means: {} removed; returning -1 means: no {} found)
+int remove_braces(QString & text)//removes {} at beginning and end if they belong together! returns the position of the closing brace to the initially opened one (returning 0 means: {} removed; returning -1 means: no {} found)
 {
-    int len=strlen(text);
-    if (text[0]!='{' || text[len-1]!='}') return -1;
+    static QChar opening('{'),closing('}');
+    if (text.isEmpty()) return -1;
+    int len=text.length();
+    if (text.at(0)!=opening) return -1;//no braces at beginning of text
     int bracecounter=1;//first brace
     int i;
-    for (i=1;i<len-1;i++)//do not look at first or last character since we know they are braces
+    for (i=1;i<len;i++)//do not look at first character since we know it is a brace
     {
-        if (text[i]=='{') bracecounter++;
-        if (text[i]=='}') bracecounter--;
+        if (text.at(i)==opening) bracecounter++;
+        if (text.at(i)==closing) bracecounter--;
         if (bracecounter==0) break;//the initially opend brace has been closed!
     }
-    if (i<len-1)
+    if (i<len-1)//we found a closing brace earlier than the the last character (this means contrary to expectation --> usually the case for strings like "{arg1}{arg2}" --> importatnt for splitter)
     {
         return i;
     }
-    else
+    else if (i==len-1)
     {
-        char * dummy=new char[len];
-        strcpy(dummy,text+1);
-        strcpy(text,dummy);
-        text[len-2]='\0';
-        delete[] dummy;
+        /*char * dummy=new char[len];
+strcpy(dummy,text+1);
+strcpy(text,dummy);
+text[len-2]='\0';
+delete[] dummy;*/
+        text=text.mid(1,len-2);
+        return 0;
     }
-    return 0;
+    else
+        return -1;
 }
-
-void arg_splitter(char * argument,char * argument1,char * argument2)
+/// HIER GEHT ES WEITER!
+void arg_splitter(QString & argument,QString & argument1,QString & argument2)
 {
-    argument1[0]=argument2[0]='\0';
+    argument1.clear();
+    argument2.clear();
     remove_emptys(argument);
     int ret=remove_braces(argument);
     while (ret==0)//continue removing unused braces
         ret=remove_braces(argument);
     if (ret==-1) return;//no two arguments
     //two arguments
-    strcpy(argument1,argument+1);
-    argument1[ret-1]='\0';
-    strcpy(argument2,argument+ret+1);
+    /// strcpy(argument1,argument+1);//+1 because we do not need the '{'
+    /// argument1[ret-1]='\0';
+    argument1=argument.mid(1,ret-1);
+    //cout << "argument1=" << argument1.toLatin1().constData() << endl;
+    /// strcpy(argument2,argument+ret+1);
+    argument2=argument.mid(ret+1);
+    //cout << "argument2=" << argument2.toLatin1().constData() << endl;
     ret=remove_braces(argument1);
     while (ret==0)//continue removing unused braces
         ret=remove_braces(argument1);
@@ -242,10 +276,10 @@ void arg_splitter(char * argument,char * argument1,char * argument2)
         ret=remove_braces(argument2);
 }
 
-void find_first_command(char * text,int & start_command,int & command_length,int * brace_pos)
+void find_first_command(QString & text,int & start_command,int & command_length,int * brace_pos)
 {
     int len,i,bracecounter;
-    len=strlen(text);
+    len=text.length();
     bracecounter=0;
     start_command=-1;
     command_length=0;
@@ -342,7 +376,7 @@ void find_first_command(char * text,int & start_command,int & command_length,int
     }//end command found
 }
 
-void splitter(char * text,int start_command,int command_length,int * brace_pos,char * left_part,char * middle_part,char * argument_part,char * right_part)
+void splitter(QString & text,int start_command,int command_length,int * brace_pos,QString & left_part,QString & middle_part,QString & argument_part,QString & right_part)
 {
     static int first_brace,last_brace;
     first_brace=last_brace=brace_pos[0];
@@ -350,42 +384,57 @@ void splitter(char * text,int start_command,int command_length,int * brace_pos,c
         last_brace=brace_pos[1];
     if (brace_pos[3]!=-1)
         last_brace=brace_pos[3];
-    strcpy(left_part,text);
-    argument_part[0]=middle_part[0]=right_part[0]='\0';
+    /// strcpy(left_part,text);
+    left_part=text;
+    /// argument_part[0]=middle_part[0]=right_part[0]='\0';
+    argument_part.clear();
+    middle_part.clear();
+    right_part.clear();
     if (start_command!=-1)
     {
-        left_part[start_command]='\0';
-        if (text[start_command]=='\\')
-            strcpy(middle_part,text+start_command+1);
+        /// left_part[start_command]='\0';
+        left_part=left_part.left(start_command);
+        if (text.at(start_command)==QChar('\\'))
+            middle_part=text.mid(start_command+1);
+        /// strcpy(middle_part,text+start_command+1);
         else
-            strcpy(middle_part,text+start_command);
-        middle_part[command_length]='\0';
+            middle_part=text.mid(start_command);
+        /// strcpy(middle_part,text+start_command);
+        middle_part=middle_part.left(command_length);
+        /// middle_part[command_length]='\0';
         if (first_brace!=-1)
         {
-            strcpy(argument_part,text+first_brace);
+            argument_part=text.mid(first_brace);
+            /// strcpy(argument_part,text+first_brace);
             if (text[first_brace]=='{')
             {
-                argument_part[last_brace-first_brace+1]='\0';
-                strcpy(right_part,text+last_brace+1);
+                argument_part=argument_part.left(last_brace-first_brace+1);
+                /// argument_part[last_brace-first_brace+1]='\0';
+                right_part=text.mid(last_brace+1);
+                /// strcpy(right_part,text+last_brace+1);
             }
             else
             {
-                argument_part[last_brace-first_brace]='\0';
-                strcpy(right_part,text+last_brace);
+                argument_part=argument_part.left(last_brace-first_brace);
+                /// argument_part[last_brace-first_brace]='\0';
+                right_part=text.mid(last_brace);
+                /// strcpy(right_part,text+last_brace);
             }
         }
         else
-            strcpy(right_part,text+start_command+1+command_length);
+            right_part=text.mid(start_command+1+command_length);
+        /// strcpy(right_part,text+start_command+1+command_length);
     }
 }
 
-int find_spec_function(char * command)
+int find_spec_function(QString & command)
 {
     static int ret;
     ret=-1;
+    strcpy(dummy,command.toLatin1().constData());
     for (int i=0;i<NUMBER_OF_SPECIAL_LATEX_COMMANDS;i++)
     {
-        if (!strcmp(specCommands[i].la_com,command))
+        if (!strcmp(specCommands[i].la_com,dummy))
         {
             ret=i;
             break;
@@ -394,53 +443,58 @@ int find_spec_function(char * command)
     return ret;
 }
 
-int recursive_replacer(char * text)
+int recursive_replacer(QString & text)
 {//takes text and searches for the first latex-command beginning with '\' or '^' or '_' and replaces this command
     //if '{' is encountered, the contents of the '{}' are given to another instance of this function
     //if no command is found, the text is returned unchanged, the same is the case if the command can not be identified
     //if no '{' is found the function continues to replace the following commands or copies the following text
     //returns the number of actual commands found
     int command_count=0;
-    int len=strlen(text);
-
+    int len=text.length();
+    QString errmessage;
 
     if (len==0) return 0;
 
     char new_font;
-    char * result=new char[256+len];
-    char * temp=new char[256+len];
+    ///char * result=new char[256+len];
+    ///char * temp=new char[256+len];
     //cout << "input=#" << text << "#" << endl;
-    char * left_part=new char[128+len];
-    char * middle_part=new char[128+len];
-    char * argument_part=new char[128+len];
-    char * argument1=new char[128+len];
-    char * argument2=new char[128+len];
-    char * right_part=new char[128+len];
+    /*char * left_part=new char[128+len];
+char * middle_part=new char[128+len];
+char * argument_part=new char[128+len];
+char * argument1=new char[128+len];
+char * argument2=new char[128+len];
+char * right_part=new char[128+len];*/
+
+    QString result,temp,temp2;
+    QString left_part,middle_part,argument_part,argument1,argument2,right_part;
 
     int start_command=0,command_length,brace_pos[4];
     int res_pos=0,com_nr;
 
     remove_emptys(text);
     //cout << "after remove input=#" << text << "#" << endl;
-    if (strlen(text)>0)
+    if (text.length()>0)
     {
-        strcpy(temp,text);
-        while (start_command!=-1 && strlen(temp))
+        /// strcpy(temp,text);
+        temp=text;
+        while (start_command!=-1 && temp.length())
         {
             find_first_command(temp,start_command,command_length,brace_pos);
             splitter(temp,start_command,command_length,brace_pos,left_part,middle_part,argument_part,right_part);
             //cout << "pos=" << start_command << " len=" << command_length << " " << middle_part << endl;
-            strcpy(result+res_pos,left_part);//copy the part that does not contain any useful commands
-            res_pos+=strlen(left_part);
-            command_count+=strlen(left_part);//we have to count normal characters as commands --> necessary to count length of commands for complicated commands
+            result=result.left(res_pos)+left_part;
+            /// strcpy(result+res_pos,left_part);//copy the part that does not contain any useful commands
+            res_pos+=left_part.length();
+            command_count+=left_part.length();//we have to count normal characters as commands --> necessary to count length of commands for complicated commands
             arg_splitter(argument_part,argument1,argument2);//split this to be on the save side!
             //cout << "#" << left_part << "#" << middle_part << "#" << argument_part << "#" << right_part << "#" << endl;
-            if (strlen(middle_part)>0)
+            if (middle_part.length()>0)
                 if (replace_command(middle_part,new_font)==RETURN_SUCCESS)
                 {
                     //cout << "new_font=" << new_font << endl;
                     command_count++;
-                    if (new_font!=-1)
+                    if (new_font!=-1 && useQtFonts==false)
                     {
                         result[res_pos++]='\\';
                         result[res_pos++]='f';
@@ -458,9 +512,10 @@ int recursive_replacer(char * text)
                             result[res_pos++]=new_font;
                         result[res_pos++]='}';
                     }
-                    strcpy(result+res_pos,middle_part);
-                    res_pos+=strlen(middle_part);
-                    if (new_font!=-1)
+                    result=result.left(res_pos)+middle_part;
+                    /// strcpy(result+res_pos,middle_part);
+                    res_pos+=middle_part.length();
+                    if (new_font!=-1 && useQtFonts==false)
                     {
                         result[res_pos++]='\\';//we set back to standard font
                         result[res_pos++]='f';
@@ -476,24 +531,26 @@ int recursive_replacer(char * text)
                     if (com_nr!=-1)//special command recognized
                     {
                         command_count++;
-                        strcpy(result+res_pos,specCommands[com_nr].gr_com);
+                        result=result.left(res_pos)+QString(specCommands[com_nr].gr_com);
+                        /// strcpy(result+res_pos,specCommands[com_nr].gr_com);
                         res_pos+=strlen(specCommands[com_nr].gr_com);
                         if (specCommands[com_nr].nr_of_exp_args==1)
                         {
                             command_count+=recursive_replacer(argument_part);
-                            strcpy(result+res_pos,argument_part);
-                            res_pos+=strlen(argument_part);
+                            result=result.left(res_pos)+argument_part;
+                            /// strcpy(result+res_pos,argument_part);
+                            res_pos+=argument_part.length();
                         }
                         else
                         {
                             if (com_nr==5 && argument1[0]!='\0')//special case 'frac'
                             {
-
                                 int count1,count2,max_count;
                                 count1=count2=0;
                                 count1=recursive_replacer(argument1);
                                 count2=recursive_replacer(argument2);
-                                max_count=count1>count2?count1:count2;
+                                max_count = count1>count2 ? count1 : count2;
+                                temp2.clear();
                                 //cout << "frac found " << count1 << " " << count2 << " max=" << max_count << endl;
                                 if (count1>=count2)
                                 {
@@ -503,10 +560,12 @@ int recursive_replacer(char * text)
                                 {//lower part is longer
                                     sprintf(dummy,"\\h{%f}",(count2-count1)*0.25);
                                 }
-                                strcpy(result+res_pos,dummy);//commands to go on top of the line
+                                result=result.left(res_pos)+QString(dummy);
+                                /// strcpy(result+res_pos,dummy);//commands to go on top of the line
                                 res_pos+=strlen(dummy);
-                                strcpy(result+res_pos,argument1);//copy upper part = first argument of frac
-                                res_pos+=strlen(argument1);
+                                result=result.left(res_pos)+argument1;
+                                /// strcpy(result+res_pos,argument1);//copy upper part = first argument of frac
+                                res_pos+=argument1.length();
                                 if (count1>=count2)
                                 {
                                     sprintf(dummy,"\\U\\v{-1}\\h{%f}",-count1*0.5+0.25*(count1-count2));//switch from above to below line
@@ -515,10 +574,12 @@ int recursive_replacer(char * text)
                                 {
                                     sprintf(dummy,"\\v{-1}\\h{%f}\\o",0.25*(count1-count2)-0.5*count1);
                                 }
-                                strcpy(result+res_pos,dummy);//go below line
+                                result=result.left(res_pos)+QString(dummy);
+                                /// strcpy(result+res_pos,dummy);//go below line
                                 res_pos+=strlen(dummy);
-                                strcpy(result+res_pos,argument2);//copy lower part = second argument of frac
-                                res_pos+=strlen(argument2);
+                                result=result.left(res_pos)+argument2;
+                                /// strcpy(result+res_pos,argument2);//copy lower part = second argument of frac
+                                res_pos+=argument2.length();
                                 if (count1>=count2)
                                 {
                                     sprintf(dummy,"\\v{0.5}\\h{%f}",(count1-count2)*0.25);
@@ -527,61 +588,56 @@ int recursive_replacer(char * text)
                                 {
                                     sprintf(dummy,"\\O\\v{0.5}");
                                 }
-                                strcpy(result+res_pos,dummy);//end command
+                                result=result.left(res_pos)+QString(dummy);
+                                /// strcpy(result+res_pos,dummy);//end command
                                 res_pos+=strlen(dummy);
-
-#ifdef SKF_QtGrace
-                                errmessage=QObject::tr("Warning:frac currently not supported by pdf, png, and svg export files");
-                                errmsg(errmessage.toAscii().constData());
-#endif
-
-
                             }
                             else
                             {
                                 errmessage=QObject::tr("command too complicated: #") + QString(middle_part) + QObject::tr("#\n") + QObject::tr("argument_part=#") + QString(argument_part) + QObject::tr("#argument1=#") + QString(argument1) + QObject::tr("#argument2=#") + QString(argument2);
-                                errmsg(errmessage.toAscii().constData());
+                                errmsg(errmessage.toLocal8Bit().constData());
                                 //cout << "command too complicated: #" << middle_part << "#" << endl;
                                 //cout << "argument_part=#" << argument_part << "#argument1=#" << argument1 << "#argument2=#" << argument2 << endl;
                             }
                         }
-                        strcpy(result+res_pos,specCommands[com_nr].stop_com);
+                        result=result.left(res_pos)+QString(specCommands[com_nr].stop_com);
+                        /// strcpy(result+res_pos,specCommands[com_nr].stop_com);
                         res_pos+=strlen(specCommands[com_nr].stop_com);
-#ifdef SKF_QtGrace
-                        if(!strcmp("overline",middle_part)||!strcmp("sqrt",middle_part)||!strcmp("underline",middle_part)||!strcmp("frac",middle_part)){
-                            errmessage=QObject::tr("Warning:" )+ QString(middle_part) + QObject::tr(" currently not supported by pdf, png, and svg export files");
-                            errmsg(errmessage.toAscii().constData());
-                        }
-#endif
                     }
                     else
                     {
                         errmessage=QObject::tr("special command not found: #") + QString(middle_part) + QObject::tr("#");
                         //cout << "special command not found: #" << middle_part << "#" << endl;
-                        errmsg(errmessage.toAscii().constData());
-                        strcpy(result+res_pos,middle_part);//just copy the command...
-                        res_pos+=strlen(middle_part);
-                        command_count+=strlen(middle_part);
+                        errmsg(errmessage.toLocal8Bit().constData());
+                        result=result.left(res_pos)+middle_part;
+                        /// strcpy(result+res_pos,middle_part);//just copy the command...
+                        res_pos+=middle_part.length();
+                        command_count+=middle_part.length();
                     }
                 }
             command_count+=recursive_replacer(right_part);//right part is clear with this
-            strcpy(result+res_pos,right_part);//go on with right part
-            res_pos+=strlen(right_part);
+            result=result.left(res_pos)+right_part;
+            /// strcpy(result+res_pos,right_part);//go on with right part
+            res_pos+=right_part.length();
             //cout << "temp=#" << temp << "#" << endl;
-            temp[0]='\0';
+            /// temp[0]='\0';
+            temp.clear();
         }//end of while-loop
         //cout << "result=#" << result << "#" << endl;
-        strcpy(text,result);
+        /// strcpy(text,result);
+        text=result;
     }//end test for empty 'text'
 
-    delete[] left_part;
-    delete[] middle_part;
-    delete[] argument_part;
-    delete[] argument1;
-    delete[] argument2;
-    delete[] right_part;
-    delete[] result;
-    delete[] temp;
+    /*
+delete[] left_part;
+delete[] middle_part;
+delete[] argument_part;
+delete[] argument1;
+delete[] argument2;
+delete[] right_part;
+delete[] result;
+delete[] temp;
+*/
 
     return command_count;
 }
@@ -603,10 +659,11 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
     static QRegExp regex_ol1("\\\\o");
     static QRegExp regex_ol2("\\\\O");
 
-
+    bool ok;
     static QString result,mtext;
     static char mtext2[32];
     static int pos1,pos2,pos3;
+    static double tmp_val;
 
     result=text;
     ///font=-1;//original font --> \f{}
@@ -619,22 +676,23 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
         {
             pos2=result.indexOf(QString("}"),pos1+1);
             mtext=result.mid(pos1+3,pos2-pos1-3);
-            //cout << "font mtext=#" << mtext.toAscii().constData() << "#" << endl;
+            //cout << "font mtext=#" << mtext.toLocal8Bit().constData() << "#" << endl;
             if (mtext.length()<=0)
                 font=-1;
             else
             {
-                strcpy(mtext2,mtext.toAscii());
+                strcpy(mtext2,mtext.toLocal8Bit());
                 font=get_font_by_name(mtext2);
             }
             pos1=pos2=pos2+1;
         }
         else//short font-nr like \5
         {
-            mtext2[0]=result.at(pos2+1).toAscii();
-            mtext2[1]='\0';
-            font=atoi(mtext2);
-            //cout << "mfont=" << font << endl;
+            /// mtext2[0]=result.at(pos2+1).toLatin1();
+            /// mtext2[1]='\0';
+            /// font=atoi(mtext2);
+            font=result.mid(pos2+1).toInt(&ok);
+            //cout << "ueber number: mfont=" << font << endl;
             pos1=pos2=pos2+2;
         }
     }
@@ -658,11 +716,16 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
         {
             pos2=result.indexOf(QString("}"),pos3+1);
             mtext=result.mid(pos3+3,pos2-pos3-3);
-            //cout << "oblique mtext=#" << mtext.toAscii().constData() << "#" << endl;
+            //cout << "oblique mtext=#" << mtext.toLocal8Bit().constData() << "#" << endl;
             if (mtext.length()>0)
             {
-                strcpy(mtext2,mtext.toAscii());
-                oblique+=atof(mtext2);
+                /// strcpy(mtext2,mtext.toLocal8Bit());
+                /// oblique+=atof(mtext2);
+                tmp_val=mtext.toDouble(&ok);
+                if (ok==true)
+                    oblique+=tmp_val;
+                else
+                    cout << "Error converting " << mtext.toLocal8Bit().constData() << " to Double." << endl;
             }
             pos1=pos2=pos3=pos2+1;
         }
@@ -677,11 +740,16 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
         {
             pos2=result.indexOf(QString("}"),pos1+1);
             mtext=result.mid(pos1+3,pos2-pos1-3);
-            //cout << "vshift mtext=#" << mtext.toAscii().constData() << "#" << endl;
+            //cout << "vshift mtext=#" << mtext.toLocal8Bit().constData() << "#" << endl;
             if (mtext.length()>0)
             {
-                strcpy(mtext2,mtext.toAscii());
-                vshift+=atof(mtext2);
+                /// strcpy(mtext2,mtext.toLocal8Bit());
+                /// vshift+=atof(mtext2);
+                tmp_val=mtext.toDouble(&ok);
+                if (ok==true)
+                    vshift+=tmp_val;
+                else
+                    cout << "Error converting " << mtext.toLocal8Bit().constData() << " to Double." << endl;
             }
             pos1=pos2=pos3=pos2+1;
         }
@@ -689,11 +757,16 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
         {
             pos3=result.indexOf(QString("}"),pos2+1);
             mtext=result.mid(pos2+3,pos3-pos2-3);
-            //cout << "hshift mtext=#" << mtext.toAscii().constData() << "#" << endl;
+            //cout << "hshift mtext=#" << mtext.toLocal8Bit().constData() << "#" << endl;
             if (mtext.length()>0)
             {
-                strcpy(mtext2,mtext.toAscii());
-                hshift+=atof(mtext2);
+                /// strcpy(mtext2,mtext.toLocal8Bit());
+                /// hshift+=atof(mtext2);
+                tmp_val+=mtext.toDouble(&ok);
+                if (ok==true)
+                    hshift+=tmp_val;
+                else
+                    cout << "Error converting " << mtext.toLocal8Bit().constData() << " to Double." << endl;
             }
             pos1=pos2=pos3=pos3+1;
         }
@@ -718,11 +791,16 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
         {
             pos2=result.indexOf(QString("}"),pos3+1);
             mtext=result.mid(pos3+3,pos2-pos3-3);
-            //cout << "zoom mtext=#" << mtext.toAscii().constData() << "#" << endl;
+            //cout << "zoom mtext=#" << mtext.toLocal8Bit().constData() << "#" << endl;
             if (mtext.length()>0)
             {
-                strcpy(mtext2,mtext.toAscii());
-                zoom*=atof(mtext2);
+                /// strcpy(mtext2,mtext.toLocal8Bit());
+                /// zoom*=atof(mtext2);
+                tmp_val+=mtext.toDouble(&ok);
+                if (ok==true)
+                    zoom*=tmp_val;
+                else
+                    cout << "Error converting " << mtext.toLocal8Bit().constData() << " to Double." << endl;
             }
             else
                 zoom=1.0;
@@ -815,7 +893,7 @@ void complete_LaTeX_to_Grace_Translator(QString & text)
     static QString ref("$$");
     static QString result,intermediate,new_text;
     static QString text_before,text_incl_options;
-    ///cout << "to Convert #" << text.toAscii().constData() << "#-->#";
+    ///cout << "to Convert #" << text.toLocal8Bit().constData() << "#-->#";
     //initialization
     underline=overline=false;
     font_nr=-1;//no special font --> \f{}
@@ -828,7 +906,7 @@ void complete_LaTeX_to_Grace_Translator(QString & text)
     altpos=-1;
     while ((pos=str.indexOf(ref,pos))>=0)
     {
-        //cout << "str=" << str.toAscii().constData() << " ZZZZ=" << zoom << endl;
+        //cout << "str=" << str.toLocal8Bit().constData() << " ZZZZ=" << zoom << endl;
         if (pos==altpos) break;
         //cout << "pos=" << pos << " pos2=" << pos2 << endl;
         altpos=pos;
@@ -836,18 +914,18 @@ void complete_LaTeX_to_Grace_Translator(QString & text)
         text_before=str.mid(pos2,pos-pos2);
         last_settings_in_string(text_before,font_nr,oblique,vshift,hshift,zoom,underline,overline);
         include_spec_text_settings(text_incl_options,font_nr,oblique,vshift,hshift,zoom,underline,overline,true);
-        /// text_incl_options contains apart from the font only special text-commands like underline, overline or oblique
-        //cout << "text before #" << text_before.toAscii().constData() << "#" << " ZZZZ=" << zoom<< endl;
-        //cout << "text incl. options #" << text_incl_options.toAscii().constData() << "#" << endl;
+        /// text_incl_options contains - apart from the font - only special text-commands like underline, overline or oblique
+        //cout << "text before #" << text_before.toLocal8Bit().constData() << "#" << " ZZZZ=" << zoom<< endl;
+        //cout << "text incl. options #" << text_incl_options.toLocal8Bit().constData() << "#" << endl;
         pos+=2;//beginning of commands after '$$'
         pos2=str.indexOf(ref,pos);//search for end of command
         str2=str.mid(pos,pos2-pos);
         intermediate=ref+str2+ref;//The complete LaTeX-command framed by '$$'
-        //cout << "intermediate #" << intermediate.toAscii().constData() << "#" << endl;
-        strcpy(dummy,str2.toAscii());//dummy is now the LaTeX-command without the '$$'
+        //cout << "intermediate #" << intermediate.toLocal8Bit().constData() << "#" << endl;
+        /// strcpy(dummy,str2.toLocal8Bit());//dummy is now the LaTeX-command without the '$$'
         //cout << "without dollar #" << dummy << "#" << endl;
-        ret=recursive_replacer(dummy);//everything will be replaced by Grace-commands here
-        new_text=QString(dummy)+text_incl_options;
+        ret=recursive_replacer(str2);//everything will be replaced by Grace-commands here
+        new_text=str2+text_incl_options;
         //result.replace(intermediate,QString(dummy)+text_incl_options);//replace commands in actual string
         result.replace(pos-2,intermediate.length(),new_text);//replace only one command
         pos-=2;//beginning first '$$' in original text = first position that has been replaced
@@ -855,9 +933,9 @@ void complete_LaTeX_to_Grace_Translator(QString & text)
         pos+=new_text.length();
         //pos+=text_incl_options.length();
         str=result;
-        //cout << "str=#" << str.toAscii().constData() << "# result=#" << result.toAscii().constData() << "#" << " ZZZZ=" << zoom<< endl;
+        //cout << "str=#" << str.toLocal8Bit().constData() << "# result=#" << result.toLocal8Bit().constData() << "#" << " ZZZZ=" << zoom<< endl;
     }
-    ///cout << result.toAscii().constData() << "#" << endl;
+    ///cout << result.toLocal8Bit().constData() << "#" << endl;
     text=result;
 }
 

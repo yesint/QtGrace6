@@ -8,7 +8,8 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * 
+ * Modified by Andreas Winter and Nimal Kailasanathan, 2014-2015
+ *
  *                           All Rights Reserved
  * 
  *    This program is free software; you can redistribute it and/or modify
@@ -38,7 +39,8 @@
 
 #define MAXPATTERNS 32
 
-#define MAXLINESTYLES 9
+//#define MAXLINESTYLES 12
+#define MAXLINESTYLES 9 // changed! there are more linestyles now
 
 #define MAX_LINEWIDTH 20.0        /* max width of drawn lines */
 

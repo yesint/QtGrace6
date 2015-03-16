@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2014
  * 
  *                           All Rights Reserved
  * 
@@ -115,6 +115,7 @@ typedef struct {
     int advancing;
     int ligatures;
     int kerning;
+    int qtCharShift;
     VPoint start;
     VPoint stop;
     GLYPH *glyph;
@@ -151,6 +152,7 @@ int get_mapped_font(int mapped_id);
 int map_font(int font, int mapped_id);
 int map_font_by_name(char *fname, int mapped_id);
 void map_fonts(int map);
+int font_map_equals_font_ids(void);
 
 #ifdef __cplusplus
 }

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "gd.h"
+#include "globals.h"
 
 #define costScale 1024
 static int cost[] = { 1024, 1023, 1023, 1022, 1021, 1020, 1018, 1016, 1014,
@@ -65,8 +66,6 @@ static int sint[] = { 0, 17, 35, 53, 71, 89, 107, 124, 142, 160, 177, 195, 212,
 
 static void gdImageBrushApply(gdImagePtr im, int x, int y);
 static void gdImageTileApply(gdImagePtr im, int x, int y);
-
-extern int RotationAngle;
 
 gdImagePtr gdImageCreate(int sx, int sy)
 {

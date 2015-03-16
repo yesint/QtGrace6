@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -43,12 +43,13 @@
 #include <cstring>
 
 #include "defines.h"
+#include "globals.h"
 #include "device.h"
 #include "graphs.h"
 #include "utils.h"
 #include "draw.h"
 #include <QtGui>
-#include "cmath.h"
+
 using namespace std;
 
 extern QPainter * GeneralPainter;
@@ -169,7 +170,6 @@ int getlinestyle(void)
     return (draw_props.lines);
 }
 
-#define MAGIC_LINEW_SCALE 0.0015
 /*
  * make the current line width linew
  */
@@ -200,7 +200,7 @@ int getpattern(void)
  */
 void setcharsize(double charsize)
 {
-    draw_props.charsize = charsize;
+    draw_props.charsize = charsize*universal_font_size_factor;
     return;
 }
 
@@ -484,19 +484,7 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                         } else {
                             npurged = nc;
                         }
-                        if(false){
-                        cerr << "npurged=" << npurged << endl;
-                        for(int kk=0;kk<npurged;kk++){ cerr<<" "<<
-                        kk<<"="<<"("<<vpsc[kk].x<<","<<vpsc[kk].y<<")";}
-                        }
-                        // Probably one should divide differently
-                        bool x45fix=false;
-                        if(x45fix){ // This does not help either...
-                           (*devdrawpolyline)(vpsc, 22, mode);
-                           (*devdrawpolyline)(vpsc+21, npurged-21, mode);
-                        }else{
-                            (*devdrawpolyline)(vpsc, npurged, mode);
-                        }
+                       (*devdrawpolyline)(vpsc, npurged, mode);
                     }
                     
                     nc = 0;

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Andreas Winter                             *
+ *   Copyright (C) 2008-2015 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -39,6 +39,8 @@ extern int max_node_nr;
 extern class undo_node * Node;
 extern DrawProps draw_props;
 extern frmAxisProp * FormAxisProperties;
+extern frmTextProps * TextProps;
+extern frmTextProps * EditTextProps;
 extern frmNonlinCurveFit * FormNonlinCurveFit;
 extern Device_entry *device_table;
 extern unsigned int ndevices;
@@ -57,6 +59,7 @@ extern bool GlobalInhibiton;
 extern QStringList ListOfChanges;
 extern QStringList ListOfOldStates;
 extern char dummy[];
+extern char dummy2[];
 
 //necessary for saving before and after state during modifications
 int saved_prev_sets=0;
@@ -81,6 +84,16 @@ void * old_general_data=NULL;
 
 bool wait_till_update=false;
 bool dont_delete_saved_set_memory=false;
+extern void CheckLaTeXLinesForAddress(char * o_adr,char * n_adr);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern void prepare_strings_for_saving(void);
+extern void resume_strings_after_load_or_save(void);
+#ifdef __cplusplus
+}
+#endif
 
 undo_node::undo_node(void)
 {
@@ -120,6 +133,7 @@ region * regio;
 Device_entry ** dev_entr;
 GLocator ** glt;
 CMap_entry ** cmp;
+struct agr_file_info * afi;
 int findindex;
 char ** old_str;
 struct all_fit_settings * ps;
@@ -337,12 +351,14 @@ gnos=snos=NULL;
             gnos=snos=NULL;
             if (this->multiple==false)
             {
-            strcpy(dummy,savedFileName.toAscii());
+            strcpy(dummy,savedFileName.toLocal8Bit());
             exchange_point_comma=id[0][5];
             autoscale_onread=id[0][4];
             cursource=id[0][2];
             load=id[0][3];
-            getdata(id[0][0], dummy, cursource, load,1);//new set(s) imported
+            prepare_strings_for_saving();
+            getdata(id[0][0], dummy, cursource, load);//new set(s) imported
+            resume_strings_after_load_or_save();
                 gnos=new int[new_set_no+2];
                 snos=new int[new_set_no+2];
                 slen=new_set_no;
@@ -358,9 +374,10 @@ gnos=snos=NULL;
             autoscale_onread=id[0][2];
             cursource=id[0][0];
             load=id[0][1];
+            prepare_strings_for_saving();
                 for (int j=0;j<this->origin[3];j++)//load from all files
                 {
-                getdata(id[0][4], old_str[j], cursource, load,1);//new set(s) imported
+                getdata(id[0][4], old_str[j], cursource, load);//new set(s) imported
                     if (slen==0)//new
                     {
                         gnos=new int[new_set_no+2];
@@ -390,6 +407,7 @@ gnos=snos=NULL;
                     slen+=new_set_no;
                     }
                 }
+            resume_strings_after_load_or_save();
             }
                 //slen=new_set_no;
                 //delete[] this->id[0];
@@ -447,6 +465,48 @@ gnos=snos=NULL;
         gnos=snos=NULL;
         exchange_point_comma=false;
     break;
+    case UNDO_TYPE_IMPORT_SET_FROM_AGR:
+        if (this->active==true)//not undone yet --> delete set
+        {
+            for (int k=0;k<this->origin[2];k++) killsetdata(this->origin[0],this->id[0][2+k]);
+        }
+        else//active == false --> redo = reload
+        {
+        afi=new agr_file_info;
+
+        read_header_from_agr((char*)this->data,*afi);
+            if (afi->filename[0]=='\0')
+            {
+            errmsg(QObject::tr("Unable to redo set-import, because agr-file does not exist.").toLocal8Bit().constData());
+            this->active=!(this->active);//we invert it to be inverted again --> no changes here
+            }
+            else
+            {
+                for (int k=0;k<(this->id[0][0]<afi->nr_of_sets?this->id[0][0]:afi->nr_of_sets);k++)
+                {
+                afi->import.replace(k,this->id[0][2+this->origin[2]+k]);
+                }
+                for (int k=this->id[0][0];k<afi->nr_of_sets;k++)
+                {
+                afi->import.replace(k,FALSE);
+                }
+            afi->target_gno=this->id[0][1];
+            read_datasets_from_agr(*afi);
+            delete[] this->id[0];
+            this->id[0]=new int[2+new_set_no+afi->nr_of_sets];
+            this->id[0][0]=afi->nr_of_sets;
+            this->id[0][1]=afi->target_gno;
+                for (int i=0;i<new_set_no;i++)
+                {
+                this->id[0][2+i]=new_set_nos[i];
+                }
+                for (int i=0;i<afi->nr_of_sets;i++)
+                {
+                this->id[0][2+new_set_no+i]=afi->import.at(i);
+                }
+            }
+        }
+    break;
     case UNDO_TYPE_IMPORT_BLOCK_DATA:
         if (this->active==true)//not undone yet --> delete set
         {
@@ -460,9 +520,11 @@ gnos=snos=NULL;
         else
         {
             autoscale_onread=id[0][4];
-            strcpy(dummy,savedFileName.toAscii());
-        getdata(id[0][0], dummy, id[0][2], id[0][3],1);
+            strcpy(dummy,savedFileName.toLocal8Bit());
+        prepare_strings_for_saving();
+        getdata(id[0][0], dummy, id[0][2], id[0][3]);
         create_set_fromblock(id[0][0],id[0][1],id[0][3],id[1][0],id[2],id[1][1],id[0][4]);
+        resume_strings_after_load_or_save();
             id[0][1]=new_set_no;
             sprintf(dummy,"[G%d.S%d]",id[0][0],id[0][1]);
             this->Description=QObject::tr("BlockData --> ")+QString(dummy);
@@ -609,6 +671,18 @@ gnos=snos=NULL;
                 {
                 pstr[nid].s_plotstring=copy_string(NULL,(st[offset])->s_plotstring);
                 }
+                if (pstr[nid].alt_plotstring!=NULL)
+                {
+                pstr[nid].alt_plotstring=copy_string(NULL,(st[offset])->alt_plotstring);
+                }
+                if (EditTextProps!=NULL)
+                {
+                    if (EditTextProps->flp->obj_id==nid)
+                    {
+                    EditTextProps->init(nid);
+                    }
+                }
+                //ToDo: update Explorer
             }
         break;
         }
@@ -711,6 +785,83 @@ gnos=snos=NULL;
                 }
             }
         set_fit_settings(ps+offset);
+    break;
+    case UNDO_TYPE_SET_REGRESSION:
+        if (this->active==true)//not undone yet --> reinstall previous stuff
+        {//delete set
+            //cout << "kill " << this->id[0][1] << " sets" << endl;
+            for (int i=0;i<this->id[0][1];i++)
+            {
+            //cout << this->id[0][2+this->id[0][0]*2+2*i] << "," << this->id[0][2+this->id[0][0]*2+2*i+1] << endl;
+                if (is_set_active(this->id[0][2+this->id[0][0]*2+2*i],this->id[0][2+this->id[0][0]*2+2*i+1])==TRUE)
+                {//set still exists --> remove it
+                killset(this->id[0][2+this->id[0][0]*2+2*i],this->id[0][2+this->id[0][0]*2+2*i+1]);
+                }
+                else
+                {
+                ;//no set to delete
+                }
+            }
+        }
+        else//redo regression
+        {
+            //cout << "regression " << this->id[0][0] << " sets" << endl;
+            for (int i=0;i<this->id[0][0];i++)
+            {
+                if (is_set_active(this->id[0][2+2*i],this->id[0][2+2*i+1])==TRUE)
+                {//set still exists --> do regression
+                    if( this->id[1][5] == 2 )
+                    {
+                        if (generate_x_mesh_from_formula(this->id[0][2+2*i],this->id[0][2+this->id[0][0]*2+2*i+1],this->ddata[0][0],this->ddata[0][1],this->id[1][4],(char*)(this->data),SET_XY)==RETURN_FAILURE)
+                        {
+                            errwin(QObject::tr("Not enough sets").toLocal8Bit().constData());
+                            return;
+                        }
+                    }
+                    //cout << "rset(-1)=" << this->id[0][2+this->id[0][0]*2+2*i+1] << "iresid(2)=" << this->id[1][1] << endl;
+                    if (this->id[1][1]==2) this->id[0][2+this->id[0][0]*2+2*i+1]=-1;//no new set
+                do_regress(this->id[0][2+2*i],this->id[0][2+2*i+1], this->id[1][0], this->id[1][1], this->id[1][2], this->id[1][3], this->id[0][2+this->id[0][0]*2+2*i+1]);
+                }
+            }
+        ;// new regression set will be the same as the old one --> the id has already been saved (data has not to be saved, because we will only delete it and not restore it)
+        }
+        update_set_lists(ALL_GRAPHS);
+    break;
+    case UNDO_TYPE_SET_FILTER:
+        if (this->active==true)//not undone yet --> reinstall previous stuff
+        {
+        offset=0;
+            if (this->id[2][10]<1)//all sets are new --> just delete the new sets
+            {
+                for (int i=0;i<this->origin[3];i++)
+                {
+                    if (is_set_active(this->id[0][i],this->id[1][i]))
+                    {
+                    //cout << "kill set G" << this->id[0][i] << ".S" << this->id[1][i] << endl;
+                    killset(this->id[0][i],this->id[1][i]);
+                    }
+                    else
+                    {
+                    ;//no set to delete
+                    }
+                }
+            }
+            else//we have old sets and new sets, the new sets are changed old sets --> reinstall old ones
+            {
+                for (int i=0;i<this->id[2][10];i++)
+                {
+                reinstallSet(this->id[0][i+offset],this->id[1][i+offset],this->p[i+offset],UNDO_COMPLETE);
+                }
+            }
+        }
+        else//redo --> do filter again
+        {
+            for (int i=0;i<this->origin[2];i++)//filter all original sets again!
+            {
+            (void)do_filter_on_one_set(this->id[0][i+this->id[2][10]],this->id[1][i+this->id[2][10]],this->id[3][2*i],this->id[3][2*i+1],this->id[2][0],this->id[2][1],this->id[2][8],this->id[2][9],this->id[2][4],this->id[2][5],(char *)this->data,this->id[2][6],this->id[2][7],this->ddata[0][2],this->id[2][2],this->id[2][3],this->ddata[0][0],this->ddata[0][1]);
+            }
+        }
+        update_set_lists(ALL_GRAPHS);
     break;
     case UNDO_TYPE_REGION:
         regio=(region*)data;
@@ -897,7 +1048,9 @@ nr=origin[2];
     st=(plotstr**)data;
         for (int i=0;i<nr;i++)
         {
-        XCFREE(st[i]->s_plotstring);
+            if (st[i]->s_plotstring  !=NULL) delete[] st[i]->s_plotstring;
+            if (st[i]->alt_plotstring!=NULL) delete[] st[i]->alt_plotstring;
+        //XCFREE(st[i]->s);
         delete[] st[i];
         }
     break;
@@ -987,10 +1140,19 @@ case UNDO_TYPE_IMPORT_ASCII:
         delete[] old_str;
     }
 break;
+case UNDO_TYPE_IMPORT_SET_FROM_AGR:
+    delete[] ((char*)data);
+break;
 case UNDO_TYPE_COLOR_MAP_CHANGED:
     cmp=(CMap_entry**) data;
     DeleteColMapFromMemory(origin+0,cmp+0);
     DeleteColMapFromMemory(origin+1,cmp+1);
+break;
+case UNDO_TYPE_SET_REGRESSION:
+    delete[] ((char*)data);
+break;
+case UNDO_TYPE_SET_FILTER:
+    delete[] ((char*)data);
 break;
 //OTHER CASES
 }
@@ -1193,6 +1355,11 @@ st=new plotstr*[len];
         st[i]->s_plotstring=new char[strlen(pstr[ids[i]].s_plotstring)+1];
         strcpy(st[i]->s_plotstring,pstr[ids[i]].s_plotstring);
         }
+        if (st[i]->alt_plotstring!=NULL)
+        {
+        st[i]->alt_plotstring=new char[strlen(pstr[ids[i]].alt_plotstring)+1];
+        strcpy(st[i]->alt_plotstring,pstr[ids[i]].alt_plotstring);
+        }
     }
 nn->data=(void*)st;
 break;
@@ -1270,7 +1437,7 @@ if (used_Nodes==0) return false;//no Nodes to Undo
     }
     else
     {
-    //cout << "used_Nodes<0 !?" << endl;
+    cout << "used_Nodes<0 !?" << endl;
     }
 return false;
 }
@@ -1287,7 +1454,7 @@ if (used_Nodes==0) return false;//no Nodes to Undo or Redo
     }
     else
     {
-    //cout << "used_Nodes<0 !?" << endl;
+    cout << "used_Nodes<0 !?" << endl;
     }
 return false;
 }
@@ -1331,11 +1498,10 @@ void NextNode(void)//increase Nodes
     used_Nodes++;
     if (used_Nodes>=max_node_nr)
     used_Nodes=max_node_nr;//used_nodes never greater then max_node_nr
-
-    if (NodeNr>=max_node_nr) //wrap around
-    {
-    NodeNr=0;//next Node to write to is first Node in memory
-    }
+        if (NodeNr>=max_node_nr) //wrap around
+        {
+        NodeNr=0;//next Node to write to is first Node in memory
+        }
     CheckActive();
 }
 
@@ -1531,6 +1697,216 @@ nn->Description=nn->Description.replace(0,QObject::tr("Kill").size(),QObject::tr
 updateUndoList();
 }
 
+void SetRegression(int n_sets,int * gnos,int * snos,int n_n_sets,int * n_gnos,int * n_snos,int ideg,int iresid,int rno,int invr,double start,double stop,int points,int rx,char * formula)
+{
+if (undo_active==false) return;
+QString regressionCommand;
+undo_node * nn=getNextNode();
+nn->clearContents();
+int index;
+nn->active=true;
+nn->origin[0]=gnos[0];
+nn->origin[1]=snos[0];
+nn->origin[2]=n_sets;//Number of saved sets
+nn->origin[3]=UNDO_COMPLETE;
+nn->type=UNDO_TYPE_SET_REGRESSION;
+
+if (n_sets>1)
+nn->multiple=true;
+else
+nn->multiple=false;
+
+index=0;
+nn->id[0]=new int[2+n_sets*2+n_n_sets*2];
+nn->id[0][index++]=n_sets;
+nn->id[0][index++]=n_n_sets;
+    regressionCommand=QString("#QTGRACE_SPECIAL REGRESSION ");
+    sprintf(dummy2,"%d,%d{",n_sets,n_n_sets);
+    regressionCommand+=QString(dummy2);
+for (int i=0;i<n_sets;i++)
+{
+nn->id[0][index++]=gnos[i];
+nn->id[0][index++]=snos[i];
+sprintf(dummy2,"%d,%d",gnos[i],snos[i]);
+    regressionCommand+=QString(dummy2);
+    if (i<n_sets-1) regressionCommand+=QString(";");
+}
+regressionCommand+=QString("}{");
+for (int i=0;i<n_n_sets;i++)
+{
+nn->id[0][index++]=n_gnos[i];
+nn->id[0][index++]=n_snos[i];
+    sprintf(dummy2,"%d,%d",n_gnos[i],n_snos[i]);
+    regressionCommand+=QString(dummy2);
+    if (i<n_n_sets-1) regressionCommand+=QString(";");
+}
+regressionCommand+=QString("}{");
+//cout << 2*(1+n_sets+n_n_sets) << "|" << index << endl;
+
+nn->id[1]=new int[6];
+nn->id[1][0]=ideg;
+nn->id[1][1]=iresid;
+nn->id[1][2]=rno;
+nn->id[1][3]=invr;
+nn->id[1][4]=points;
+nn->id[1][5]=rx;
+
+nn->ddata[0]=new double[2];
+nn->ddata[0][0]=start;
+nn->ddata[0][1]=stop;
+
+sprintf(dummy2,"%d;%d;%d;%d;%d;%f;%f;%s",ideg,rno,invr,points,rx,start,stop,formula);
+regressionCommand+=QString(dummy2)+QString("}");
+
+    if (nn->multiple==true)
+    {
+    nn->Description=QObject::tr("Regression");
+    }
+    else
+    {
+    sprintf(dummy2,"[G%d.S%d]",gnos[0],snos[0]);
+    nn->Description=QObject::tr("Regression on ")+QString(dummy2);
+    }
+
+char * saved_formula=new char[strlen(formula)+2];
+strcpy(saved_formula,formula);
+nn->data=(void*)saved_formula;
+
+ListOfOldStates.clear();
+ListOfChanges.clear();
+ListOfChanges << regressionCommand;
+//cout << "Command: " << regressionCommand.toLatin1().constData() << "#formula=" << formula << "#" << endl;
+NextNode();//finish writing and prepare the next node
+if (wait_till_update==false) updateUndoList();
+}
+
+void SetFilter(int o_n_sets,int * o_gnos,int * o_snos,int n_sets,int * gnos,int * snos,int type,int realization,double * limits,int * orders,char * x_formula,double ripple,int absolute,int debug,int point_extension,int oversampling,int rno,int invr)
+{
+if (undo_active==false) return;
+int what=UNDO_COMPLETE;
+char tmp_str[256];
+undo_node * nn=getNextNode();
+nn->clearContents();
+nn->active=true;
+nn->type=UNDO_TYPE_SET_FILTER;
+    if (o_n_sets==1)
+    {
+    sprintf(tmp_str,"[G%d.S%d]",o_gnos[0],o_snos[0]);
+    nn->Description=QObject::tr("Filter on set ")+QString(tmp_str);
+    nn->multiple=false;
+    }
+    else
+    {
+    nn->Description=QObject::tr("Filter sets");
+    nn->multiple=true;
+    }
+//cout << "Number of saved sets:" << saved_prev_sets << endl;
+nn->origin[0]=o_gnos[0];
+nn->origin[1]=o_snos[0];
+nn->origin[2]=o_n_sets;
+nn->origin[3]=n_sets;
+
+nn->id[2]=new int[11];
+nn->id[3]=new int[2*o_n_sets+2];
+nn->ddata[0]=new double[3];
+
+nn->id[2][0]=type;
+nn->id[2][1]=realization;
+nn->id[2][2]=orders[0];
+nn->id[2][3]=orders[1];
+nn->id[2][4]=absolute;
+nn->id[2][5]=debug;
+nn->id[2][6]=point_extension;
+nn->id[2][7]=oversampling;
+nn->id[2][8]=rno;
+nn->id[2][9]=invr;
+nn->id[2][10]=saved_prev_sets;
+
+nn->ddata[0][0]=limits[0];
+nn->ddata[0][1]=limits[1];
+nn->ddata[0][2]=ripple;
+
+char * x_form=new char[1+strlen(x_formula)];
+strcpy(x_form,x_formula);
+nn->data=(void*)x_form;
+
+nn->Changes.clear();
+QString filterCommand;
+filterCommand=QString("#QTGRACE_SPECIAL FILTER_SET ");
+
+sprintf(dummy2,"%d,%d",o_n_sets,n_sets);
+filterCommand+=QString(dummy2);
+strcpy(dummy2,"");
+for (int i=0;i<o_n_sets;i++)
+{
+    nn->id[3][2*i]=o_gnos[i];
+    nn->id[3][2*i+1]=o_snos[i];
+sprintf(tmp_str,"%d,%d",o_gnos[i],o_snos[i]);
+strcat(dummy2,tmp_str);
+if (i<o_n_sets-1) strcat(dummy2,";");
+}//original sets
+filterCommand+=QString("{") + QString(dummy2) + QString("}");
+
+strcpy(dummy2,"");
+for (int i=0;i<n_sets;i++)
+{
+sprintf(tmp_str,"%d,%d",gnos[i],snos[i]);
+strcat(dummy2,tmp_str);
+if (i<n_sets-1) strcat(dummy2,";");
+}//target sets
+filterCommand+=QString("{") + QString(dummy2) + QString("}");
+
+strcpy(dummy2,"");
+for (int i=0;i<10;i++)
+{
+sprintf(tmp_str,"%d",nn->id[2][i]);
+strcat(dummy2,tmp_str);
+if (i<9) strcat(dummy2,";");
+}//integer parameters
+sprintf(tmp_str,";%f;%f;%f;%s",nn->ddata[0][0],nn->ddata[0][1],nn->ddata[0][2],x_form);
+strcat(dummy2,tmp_str);
+filterCommand+=QString("{") + QString(dummy2) + QString("}");
+//cout << "Filter Command: " << filterCommand.toLatin1().constData() << endl;
+ListOfChanges.clear();
+ListOfChanges << filterCommand;
+
+nn->OldStates.clear();
+
+nn->id[0]=new int[n_sets+saved_prev_sets];//graph-ids
+nn->id[1]=new int[n_sets+saved_prev_sets];//set-ids
+memcpy(nn->id[0],
+       old_idata[0],
+       saved_prev_sets*sizeof(int));
+memcpy(nn->id[1],old_idata[1],saved_prev_sets*sizeof(int));
+if (old_idata[0]!=NULL)
+{
+delete[] old_idata[0];
+old_idata[0]=NULL;
+}
+if (old_idata[1]!=NULL)
+{
+delete[] old_idata[1];
+old_idata[1]=NULL;
+}
+memcpy(nn->id[0]+saved_prev_sets,gnos,n_sets*sizeof(int));
+memcpy(nn->id[1]+saved_prev_sets,snos,n_sets*sizeof(int));
+plotarr ** pa=new plotarr*[n_sets+saved_prev_sets];//save old and new sets
+    for (int i=0;i<saved_prev_sets;i++)
+    {
+    pa[i]=prev_sets[i];//previous//adresses are enough
+    prev_sets[i]=NULL;//don't delete this next time!
+    }
+    for (int i=saved_prev_sets;i<saved_prev_sets+n_sets;i++)
+    {
+    pa[i]=new plotarr;//allocate memory
+    copySet(gnos[i-saved_prev_sets],snos[i-saved_prev_sets],pa[i],what);//after
+    }
+nn->p=pa;
+
+NextNode();//finish writing and prepare the next node
+if (wait_till_update==false) updateUndoList();
+}
+
 void GraphsDeleted(int len,int * gnos,int what)
 {
 if (undo_active==false) return;
@@ -1672,7 +2048,7 @@ if (valid==false)//set completely new -- should not happen, because we are talki
 else//set exists or has existed (in any way: memory already allocated)
 {
     if (what!=UNDO_DATA)//data only means: do not reinstall appearance
-    memcpy(g[gno].p+setno,pa,sizeof(plotarr));//set appearance
+    memcpy(g[gno].p+setno,pa,sizeof(plotarr));//set appearance --> this copy operation also copies the legend strings!
 
     //do not override data (at first) --> copy old addresses back to set
     g[gno].p[setno].data.s=sav_s;
@@ -1740,6 +2116,10 @@ void deleteSavedGraph(graph * gr,int what)
     }
         if (what&UNDO_APPEARANCE || what==UNDO_COMPLETE)
         {
+        CheckLaTeXLinesForAddress(gr->labs.title.s_plotstring,NULL);
+        CheckLaTeXLinesForAddress(gr->labs.stitle.s_plotstring,NULL);
+        CheckLaTeXLinesForAddress(gr->labs.title.alt_plotstring,NULL);
+        CheckLaTeXLinesForAddress(gr->labs.stitle.alt_plotstring,NULL);
         XCFREE(gr->labs.title.s_plotstring);
         XCFREE(gr->labs.stitle.s_plotstring);
         XCFREE(gr->labs.title.alt_plotstring);
@@ -1788,7 +2168,6 @@ if (what&UNDO_DATA || what==UNDO_COMPLETE)//clean up old sets
 kill_all_sets(gno);
 pl=g[gno].p;
 }
-
     if (what==UNDO_COMPLETE || what&UNDO_APPEARANCE)
     {
     memcpy(g+gno,gr,sizeof(graph));//copy graph appearance
@@ -1897,8 +2276,8 @@ if (len>0)
     ///cout << "old_idata deleted" << endl;
     old_idata[0]=new int[len];
     old_idata[1]=new int[len];
-    memcpy(old_idata[0],gnos,len*sizeof(int));
-    memcpy(old_idata[1],snos,len*sizeof(int));
+memcpy(old_idata[0],gnos,len*sizeof(int));
+memcpy(old_idata[1],snos,len*sizeof(int));
     ///cout << "ids coppied begin copying of plotarrs" << endl;
         for (int i=0;i<len;i++)
         {
@@ -2278,6 +2657,11 @@ case OBJECT_STRING:
         sav_st->s_plotstring=new char[strlen(pstr[id].s_plotstring)+1];
         strcpy(sav_st->s_plotstring,pstr[id].s_plotstring);
         }
+        if (sav_st->alt_plotstring!=NULL)//copy the actual string/text
+        {
+        sav_st->alt_plotstring=new char[strlen(pstr[id].alt_plotstring)+1];
+        strcpy(sav_st->alt_plotstring,pstr[id].alt_plotstring);
+        }
 break;
 }
 }
@@ -2343,6 +2727,11 @@ case OBJECT_STRING:
         st[0]->s_plotstring=new char[strlen(pstr[id].s_plotstring)+1];
         strcpy(st[0]->s_plotstring,pstr[id].s_plotstring);
         }
+        if (st[0]->alt_plotstring!=NULL)
+        {
+        st[0]->alt_plotstring=new char[strlen(pstr[id].alt_plotstring)+1];
+        strcpy(st[0]->alt_plotstring,pstr[id].alt_plotstring);
+        }
     }
     else
     {
@@ -2355,6 +2744,11 @@ case OBJECT_STRING:
         {
         st[1]->s_plotstring=new char[strlen(pstr[id].s_plotstring)+1];
         strcpy(st[1]->s_plotstring,pstr[id].s_plotstring);
+        }
+        if (st[1]->alt_plotstring!=NULL)
+        {
+        st[1]->alt_plotstring=new char[strlen(pstr[id].alt_plotstring)+1];
+        strcpy(st[1]->alt_plotstring,pstr[id].alt_plotstring);
         }
     nn->data=(void*)st;
 break;
@@ -2503,7 +2897,6 @@ nn->data=(void*)loc2;
 //no additional data needed here! No data is destroyed!
 NextNode();//finish writing and prepare the next node
 updateUndoList();
-
 }
 
 void UndoSwapGraphs(int g1,int g2)
@@ -2729,7 +3122,7 @@ sprintf(dummy," %d ",nr);
         CopyRegion(rg+nr,ps);//old
         nn->Description=QString("Region")+QString(dummy)+QObject::tr("cleared");
         }
-        else//all sets
+        else//all regions
         {
         nn->origin[2]=MAXREGION;
         ps=new region[MAXREGION];
@@ -2755,10 +3148,10 @@ void SaveFitSettings(void)
     prev_sets=NULL;
     }
 get_fit_settings(&old_fit_settings);
-    if (old_fit_settings.dest_sets>=0)
+    if (old_fit_settings.dest_sets>=0)//there exists a destination set that will be overwritten
     {
     saved_prev_sets=1;
-    prev_sets=new plotarr*[1];
+    prev_sets=new plotarr*[2];
     prev_sets[0]=new plotarr;
     copySet(old_fit_settings.dest_gno,old_fit_settings.dest_sets,prev_sets[0],UNDO_COMPLETE);
     }
@@ -2775,6 +3168,7 @@ if (undo_active==false) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
+nn->multiple=false;
 nn->type=UNDO_TYPE_FIT;
 nn->origin[0]=1;
 nn->origin[1]=1;
@@ -2803,8 +3197,19 @@ else
 nn->p[0]=NULL;//no previous set
 }
 nn->p[1]=new plotarr;
+if (!is_valid_setno(ps[1].dest_gno,ps[1].dest_sets))
+{
+delete nn->p[1];
+nn->p[1]=NULL;
+}
+else
+{
 copySet(ps[1].dest_gno,ps[1].dest_sets,nn->p[1],UNDO_COMPLETE);//save set after fit
-sprintf(dummy," [G%d.S%d]",old_fit_settings.src_gno,old_fit_settings.src_sets);
+}
+    if (old_fit_settings.nr_sr_sets>1)
+    sprintf(dummy," multiple sets in G%d",old_fit_settings.src_gno);
+    else
+    sprintf(dummy," [G%d.S%d]",old_fit_settings.src_gno,old_fit_settings.src_sets[0]);
 nn->Description=QObject::tr("A fit to")+QString(dummy);
 nn->AdditionalDescription=old_fit_settings.formula;
 nn->data=(void*)ps;
@@ -2965,7 +3370,9 @@ void get_fit_settings(struct all_fit_settings * fit)
     if (undo_active==false) return;
     if (FormNonlinCurveFit==NULL) return;
 GetSingleListChoice(FormNonlinCurveFit->grpSource->listGraph, &fit->src_gno);
-GetSingleListChoice(FormNonlinCurveFit->grpSource->listSet, &fit->src_sets);
+fit->src_sets=new int[2];
+FormNonlinCurveFit->grpSource->listSet->get_selection(&fit->nr_sr_sets,&fit->src_sets);
+//GetSingleListChoice(FormNonlinCurveFit->grpSource->listSet, &fit->src_sets);
 fit->dest_sets=-1;
 GetSingleListChoice(FormNonlinCurveFit->grpDestination->listGraph, &fit->dest_gno);
 GetSingleListChoice(FormNonlinCurveFit->grpDestination->listSet,&fit->dest_sets);
@@ -2998,7 +3405,8 @@ FormNonlinCurveFit->grpSource->listGraph->set_graph_number(fit->src_gno,true);
 FormNonlinCurveFit->grpSource->set_graph_nr(fit->src_gno);
 FormNonlinCurveFit->grpDestination->listGraph->set_graph_number(fit->dest_gno,true);
 FormNonlinCurveFit->grpDestination->set_graph_nr(fit->dest_gno);
-SelectListChoice(FormNonlinCurveFit->grpSource->listSet,fit->src_sets);
+FormNonlinCurveFit->grpSource->listSet->set_new_selection(fit->nr_sr_sets,fit->src_sets);
+//SelectListChoice(FormNonlinCurveFit->grpSource->listSet,fit->src_sets);
     if (fit->dest_sets==-1)
     FormNonlinCurveFit->grpDestination->listSet->clearSelection();
     else
@@ -3276,6 +3684,46 @@ nn->id[0][3]=exchange_point_comma;
     {
     nn->id[0][4+i*2]=gnos[i];
     nn->id[0][5+i*2]=snos[i];
+    }
+NextNode();//finish writing and prepare the next node
+updateUndoList();
+}
+
+void SetsImportedFromAgr(int len,int * snos,struct agr_file_info afi,int autoscale)
+{
+if (undo_active==false || len<=0) return;
+undo_node * nn=getNextNode();
+nn->clearContents();
+nn->active=true;
+nn->type=UNDO_TYPE_IMPORT_SET_FROM_AGR;
+nn->origin[0]=afi.target_gno;
+nn->origin[1]=snos[0];
+nn->origin[2]=len;
+nn->origin[3]=autoscale;
+if (len==1)
+{
+sprintf(dummy,"[G%d.S%d]",afi.target_gno,snos[0]);
+nn->Description=QObject::tr("Set-import from AGR --> ")+QString(dummy);
+nn->multiple=false;//only one new set
+}
+else
+{
+nn->Description=QObject::tr("Set-import from AGR");
+nn->multiple=true;//important: multiple characterizes the mode how data is stored
+}
+char * da=new char[strlen(afi.filename)+2];
+strcpy(da,afi.filename);
+nn->data=(void*)da;
+nn->id[0]=new int[2+len+afi.nr_of_sets];
+nn->id[0][0]=afi.nr_of_sets;
+nn->id[0][1]=afi.target_gno;
+    for (int i=0;i<len;i++)
+    {
+    nn->id[0][2+i]=snos[i];
+    }
+    for (int i=0;i<afi.nr_of_sets;i++)
+    {
+    nn->id[0][2+len+i]=afi.import.at(i);
     }
 NextNode();//finish writing and prepare the next node
 updateUndoList();

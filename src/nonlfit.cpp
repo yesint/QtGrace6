@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  *
  *                           All Rights Reserved
  * 
@@ -42,16 +42,23 @@
 #include "utils.h"
 #include "parser.h"
 #include "noxprotos.h"
+#include <iostream>
 
 /* Needed only for `integer' and `doublereal' definitions */
 #include "f2c.h"
 
+using namespace std;
+
+int fcn_error=0;
 extern int lmdif_(U_fp, integer *, integer *, doublereal *,
             doublereal *, doublereal *, doublereal *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *, integer *, doublereal *, integer *, integer 
 	    *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *);
+
+extern void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true);
+extern char last_formula[];
 
 static double *xp, *yp, *y_saved;
 static double *wts;
@@ -150,6 +157,7 @@ void fcn(int * m, int * n, double * x, double * fvec, int * iflag)
     if (errpos) {
 	errmsg("error in fcn");
 	*iflag = -1;
+    fcn_error=1;
 	return;
     }
     for (i = 0; i < *m; ++i) {
@@ -203,7 +211,8 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     double *fvec, *wa;
     int i, n;
     integer lwa, iwa[MAXPARM];
-    double a[MAXPARM];
+    double a[MAXPARM],b[MAXPARM];
+    bool par_changed;
     int parnum = nonl_opts.parnum;
     char buf[128];
     double cor, chisq, rms_pe, ysq, theil;
@@ -235,14 +244,19 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     }
 
     stufftext("Fitting with formula: ");
-    stufftext(nonl_opts.formula);
+    strcpy(buf,nonl_opts.formula);
+    strcpy(last_formula,nonl_opts.formula);
+    SetDecimalSeparatorToUserValue(buf);
+    stufftext(buf);
     //stufftext("\n");
     stufftext("Initial guesses:");
     for (i = 0; i < nonl_opts.parnum; i++) {
         sprintf(buf, "\ta%1d = %g", i, nonl_parms[i].value);
+        SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
     }
     sprintf(buf, "Tolerance = %g", nonl_opts.tolerance);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     
     xp = getx(gno, setno);
@@ -255,9 +269,32 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     ra = rarray;
     wts = warray;
 
+    fcn_error=0;//to recognize errors in the formula
+
     parms_to_a(a);
+    memcpy(b,a,sizeof(double)*MAXPARM);
+    par_changed=false;
+
+        /*cout << "vor dem Fit:" << endl;
+        for (int i=0;i<parnum;i++)
+        {
+        cout << "a" << i << " = " << a[i] << endl;
+        }*/
+
     info = lmdif_drv((U_fp) fcn, (integer) n, (integer) parnum, a, fvec, &nonl_opts.tolerance, iwa, wa, lwa, (integer) nsteps);
 
+        //cout << "nach dem Fit:" << endl;
+        for (int i=0;i<parnum;i++)
+        {
+            if (a[i]!=b[i])
+            {
+            par_changed=true;
+            break;
+            }
+        //cout << "a" << i << " = " << a[i] << endl;
+        }
+
+    if (fcn_error) goto start_cleanup_in_nonlinfit;
     a_to_parms(a);
     
     correlation(yp, y_saved, n, &cor);
@@ -282,13 +319,16 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     	    rms_pe += (yp[i] - y_saved[i])*(yp[i] - y_saved[i])/
                 (y_saved[i]*y_saved[i]);
         }
-        rms_pe = sqrt(rms_pe/n);
+        /*rms_pe = sqrt(rms_pe/n);*/
+        rms_pe = 100.0*sqrt(rms_pe/n);
     }
 
     for (i = 0; i < n; ++i) {
     	yp[i] = y_saved[i];
     }
-    
+
+    start_cleanup_in_nonlinfit:
+
     xfree(y_saved);
     xfree(fvec);
     xfree(wa);
@@ -329,26 +369,35 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         stufftext(s);
     }
     
-    if ((info > 0 && info < 4) || (info == 5)) {
+    if (fcn_error==0)
+    {
+    if ((info > 0 && info < 4) || (info == 5) || (par_changed==true)) {
         stufftext("Computed values:");
         for (i = 0; i < nonl_opts.parnum; i++) {
             sprintf(buf, "\ta%1d = %g", i, nonl_parms[i].value);
+            SetDecimalSeparatorToUserValue(buf,false);
             stufftext(buf);
         }
         //stufftext("\n");
         sprintf(buf, "Chi-square: %g", chisq);
+        SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
         sprintf(buf, "Correlation coefficient: %f", cor);
+        SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
         if (rms_ok) {
             sprintf(buf, "RMS per cent error: %g", rms_pe);
+            SetDecimalSeparatorToUserValue(buf,false);
             stufftext(buf);
         }
         sprintf(buf, "Theil U coefficent: %g\n", theil);
+        SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
     }
-
     return RETURN_SUCCESS;
+    }
+    else
+    return RETURN_FAILURE;
 }
 
 /*

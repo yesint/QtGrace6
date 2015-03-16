@@ -7,14 +7,46 @@ macx:DEFINES += MAC_SYSTEM
 
 # For Linux Systems
 unix:!macx:DEFINES += LINUX_SYSTEM
+
 TRANSLATIONS += qt_grace_ger.ts
 QT += network
-QT += webkit
+QT += svg
+
+greaterThan(QT_MAJOR_VERSION, 4) {
+QT += widgets
+QT += printsupport
+}
+
+#QT += webkit
+#QT += webkitwidgets
+
 ICON = GraceIcon.icns
 !unix:RC_FILE = qtgrace.rc
+
+# Activate the following options if you have the static libraries for fftw3 and libHaru (otherwise dynamic libraries are to be used)
+DEFINES += USE_STATIC_EXT_LIB_FFTW3
+unix:LIBS += -lfftw3
+#win32:LIBS += "C:\path\to\libfftw3.a"
+DEFINES += USE_STATIC_EXT_LIB_HARU
+unix:LIBS += -lhpdf
+#win32:LIBS += "C:\path\to\libhpdfs.a"
+
+win32 {
+!contains(QMAKE_CC, gcc) {
+QMAKE_CXXFLAGS += /showIncludes
+QMAKE_CXXFLAGS_RELEASE += /showIncludes
+QMAKE_CXXFLAGS -= -Zc:strictStrings
+QMAKE_CXXFLAGS_RELEASE -= -Zc:strictStrings
+}
+}
+
+
 #CONFIG -= debug \
 #    debug_and_release
 #CONFIG += release
+#CONFIG -= x86_64
+#QMAKE_CXXFLAGS += -Wno-deprecated
+
 HEADERS += MainWindow.h \
     allWidgets.h \
     graphs.h \
@@ -109,7 +141,11 @@ HEADERS += MainWindow.h \
     ../type1/types.h \
     ../type1/util.h \
     ../type1/Xstuff.h \
-    undo_module.h
+    Server.h \
+    undo_module.h \
+    include/hpdf.h \
+    fftw3.h \
+    external_libs.h
 SOURCES += allWidgets.cpp \
     qtgrace.cpp \
     MainWindow.cpp \
@@ -240,5 +276,7 @@ SOURCES += allWidgets.cpp \
     zeta.c \
     zetac.c \
     undo_module.cpp \
-    ListOfLatexCommands.cpp
+    Server.cpp \
+    ListOfLatexCommands.cpp \
+    external_libs.cpp
 TARGET = ../bin/qtgrace

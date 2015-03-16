@@ -58,6 +58,13 @@
 #define GA_OFFSET_DEFAULT    0.15
 #define GA_GAP_DEFAULT       0.2
 
+/*Attachement types for a graphs legend box*/
+#define G_LB_ATTACH_NONE   0
+#define G_LB_ATTACH_LEFT   1
+#define G_LB_ATTACH_RIGHT  2
+#define G_LB_ATTACH_TOP    4
+#define G_LB_ATTACH_BOTTOM 8
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -90,6 +97,10 @@ void move_legend(int gno, VVector shift);
 void move_timestamp(VVector shift);
 
 void rescale_viewport(double ext_x, double ext_y);
+
+//get the position (nvx,nvy) in viewport-coordinates needed to align the legendbox from the graph from_gno to the attachement-axis of graph to_gno
+void position_leg_box(int from_gno,int to_gno,int attachement,double * nvx,double * nvy);
+
 #ifdef __cplusplus
 }
 #endif

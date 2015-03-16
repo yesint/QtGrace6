@@ -28,8 +28,8 @@
 
 #include "defines.h"
 
+#ifdef HAVE_LIBPDF
 int pdfinitgraphics(void);
-
 void pdf_drawpixel(VPoint vp);
 void pdf_drawpolyline(VPoint *vps, int n, int mode);
 void pdf_fillpolygon(VPoint *vps, int nc);
@@ -39,10 +39,23 @@ void pdf_putpixmap(VPoint vp, int width, int height,
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
 void pdf_puttext(VPoint vp, char *s, int len, int font,
      TextMatrix *tm, int underline, int overline, int kerning);
-
 void pdf_leavegraphics(void);
 
 int pdf_op_parser(char *opstring);
+#endif
+
+/* libHaru */
+int haru_pdf_initgraphics(void);
+void haru_pdf_drawpixel(VPoint vp);
+void haru_pdf_drawpolyline(VPoint *vps, int n, int mode);
+void haru_pdf_fillpolygon(VPoint *vps, int nc);
+void haru_pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
+void haru_pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
+void haru_pdf_putpixmap(VPoint vp, int width, int height,
+     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void haru_pdf_puttext(VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning);
+void haru_pdf_leavegraphics(void);
 
 #if defined(NONE_GUI)
 #  define pdf_gui_setup NULL

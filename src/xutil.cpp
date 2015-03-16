@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -27,21 +27,10 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-///#include <config.h>
-
 #include <stdlib.h>
-
-#ifdef _MSC_VER
-#else
-#include <unistd.h>
-#endif
-
 #include <QtGui>
 
 #include "MainWindow.h"
-
-/*#include <X11/Xlib.h>
-#include <X11/cursorfont.h>*/
 
 #include "defines.h"
 #include "globals.h"
@@ -57,13 +46,7 @@
 
 #include "xprotos.h"
 #include "noxprotos.h"
-//#include <QRubberBand>
 
-///extern Window root, xwin;
-///extern Display *disp;
-///extern Widget app_shell;
-///extern XtAppContext app_con;
-///extern GC gc, gcxor;
 extern int depth;
 
 static QPixmap * bufpixmap;// = (Pixmap) NULL;
@@ -71,8 +54,8 @@ static QPixmap * bufpixmap;// = (Pixmap) NULL;
 extern QPainter * GeneralPainter;
 extern MainWindow * mainWin;
 extern QImage * MainPixmap;
-
-extern unsigned int win_h, win_w;	/* declared in x11drv.c */
+extern int print_target;
+extern bool printing_in_file;
 
 extern int inpipe;
 extern "C" char batchfile[];
@@ -93,6 +76,7 @@ extern QCursor * text_cursor;
 extern QCursor * kill_cursor;
 extern QCursor * what_cursor;
 extern int cur_cursor;
+extern int simple_draw_setting;
 
 ///static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId);
 
@@ -152,7 +136,7 @@ delete[] nrl;
 void DefineDialogCursor(QCursor c);
 void UndefineDialogCursor();
 
-void set_wait_cursor()
+void set_wait_cursor(void)
 {
     if (mainWin!=NULL)
     {
@@ -161,7 +145,7 @@ void set_wait_cursor()
     }
 }
 
-void unset_wait_cursor()
+void unset_wait_cursor(void)
 {
     if (mainWin!=NULL)
     {
@@ -201,7 +185,7 @@ void set_cursor(int c)
         ///XDefineCursor(disp, xwin, move_cursor);
         break;
     case 5:
-        mainWin->setCursor(*what_cursor);
+    mainWin->setCursor(*what_cursor);
         break;
     default:
         cur_cursor = -1;
@@ -229,7 +213,6 @@ void init_cursors(void)
     cur_cursor = -1;
 }
 
-
 /*
  * put a string in the title bar
  */
@@ -246,7 +229,7 @@ void set_title(char *ts)
         char *buf1, *buf2;
         ts_save = copy_string(ts_save, ts);
         dstate_save = dstate;
-        buf1 = copy_string(NULL, "qtGrace: ");
+        buf1 = copy_string(NULL, "QtGrace: ");
         buf1 = concat_strings(buf1, ts);
         buf2 = copy_string(NULL, ts);
         if (dstate) {
@@ -347,7 +330,7 @@ void draw_focus(int gno)
     view v;
     VPoint vp;
     
-    if (draw_focus_flag == TRUE) {
+    if (draw_focus_flag == TRUE && print_target==PRINT_TARGET_SCREEN && printing_in_file==false) {
         get_graph_viewport(gno, &v);
         vp.x = v.xv1;
         vp.y = v.yv1;
@@ -367,10 +350,11 @@ void draw_focus(int gno)
  */
 void select_line(int x1, int y1, int x2, int y2, int erase)
 {
-    static int x1_old, y1_old, x2_old, y2_old;
+static int x1_old, y1_old, x2_old, y2_old;
 
-    if (erase) {
-        ///aux_XDrawLine(x1_old, y1_old, x2_old, y2_old);
+    if (erase)
+    {
+    ///aux_XDrawLine(x1_old, y1_old, x2_old, y2_old);
     }
     x1_old = x1;
     y1_old = y1;
@@ -396,17 +380,16 @@ void select_line(int x1, int y1, int x2, int y2, int erase)
     rg[MAXREGION].active=TRUE;
     ///aux_XDrawLine(x1, y1, x2, y2);
 	
-        /*
-        if (nr_rubber_lines==alloc_rubber_lines)
+    /*
+    if (nr_rubber_lines==alloc_rubber_lines)
 	{
 	cout << "more rubber lines" << endl;
 	more_rubber_lines();
 	}
 	///rubber_lines[nr_rubber_lines]
-        nr_rubber_lines++;*/
-	
+    nr_rubber_lines++;
+    */
 }
-
 
 /*
  * draw an xor'ed box (optionally erasing previous one)
@@ -478,6 +461,7 @@ void crosshair_motion(int x, int y)
         aux_XDrawLine(0, cursor_oldy, win_w, cursor_oldy);
         aux_XDrawLine(cursor_oldx, 0, cursor_oldx, win_h);
     }*/
+    simple_draw_setting|=SIMPLE_DRAW_CROSSHAIR;
 mainWin->mainArea->completeRedraw();
     /* Draw the new crosshair */
     /*aux_XDrawLine(0, y, win_w, y);
@@ -486,7 +470,6 @@ mainWin->mainArea->completeRedraw();
     cursor_oldx = x;
     cursor_oldy = y;*/
 }
-
 
 /*
  * expose/resize proc
@@ -545,14 +528,10 @@ mainWin->mainArea->completeRedraw();
  */
 void xdrawgraph(void)
 {
-//cout << "inwin="<< inwin << endl;
-    ///if (inwin && (auto_redraw)) {
-        set_wait_cursor();
-        drawgraph();
-	unset_wait_cursor();
-    ///}
+set_wait_cursor();
+drawgraph();
+unset_wait_cursor();
 }
-
 
 void xlibredraw(MainArea * ma, int x, int y, int width, int height)
 {

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Andreas Winter                             *
+ *   Copyright (C) 2008-2015 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -17,34 +17,69 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+
 #ifndef FUNDAMENTALS_H
 #define FUNDAMENTALS_H
 
 #include <iostream>
+#include <QtCore>
 #include <QtGui>
-
-#if QT_VERSION < 0x050000
-#else
-#include <QtWidgets>
-#include <QtPrintSupport>
-#endif
-
-
 #include <fstream>
 #include <cstring>
-#include <QListWidget>
 #include <QMouseEvent>
-#include <QMenu>
-#include <QMenuBar>
+
+#include <QListWidget>
 #include <QMenu>
 #include <QMenuBar>
 #include <QString>
+
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QDoubleSpinBox>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QDirModel>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QTreeWidgetItem>
+#include <QtWidgets/QTableView>
+#include <QtWidgets/QTableWidget>
+#include <QtWidgets/QTableWidgetItem>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QInputDialog>
+#include <QtWidgets/QColorDialog>
+#include <QtPrintSupport/QPrinter>
+#include <QtPrintSupport/QPrintDialog>
+#include <QtPrintSupport/QPrinterInfo>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QFontDialog>
+#include <QtWidgets/QProgressBar>
+#endif
+
 #include "noxprotos.h"
 #include "t1fonts.h"
 #include "parser.h"
 #include "graphs.h"
-
-#define toAscii toLatin1
 
 #define DIRLIST 0
 #define FILELIST 1
@@ -72,17 +107,44 @@ void append_to_storage(int * len,int ** storage,int n,int * new_entries);
 int indexOfFontInDatabase(QFont & f);
 QFont getFontFromDatabase(int i);
 int addFontToDatabase(QFont & f);
+void appendTextToLegendString(int gno,int sno,QString text);
+void getSetIDFromText(char * text,int & gno,int & sno,int & column);
 
 struct komplex
 {
 double real;
 double imag;
 };
+
 struct komplex add_komplex(struct komplex a,struct komplex b);
 struct komplex sub_komplex(struct komplex a,struct komplex b);
 struct komplex mult_komplex(struct komplex a,struct komplex b);
 struct komplex div_komplex(struct komplex a,struct komplex b);
 struct komplex pow_komplex(struct komplex a,double n);
+
+class single_formula_token
+{
+public:
+single_formula_token(char * token=NULL);
+~single_formula_token();
+int type;//type=0 --> an integer counter, type=1 --> a double value, type=2 --> unknown
+//counters have to be increased manually
+//double values have to be increased manually (usually by evaluating a formula)
+char * representation;//the 'name' of the token (necessary to replace it in a given formula)
+private:
+int i_counter;//the internal counter-value
+double d_value;//the double value
+public:
+void initialize(void * value,int n_type=-1);//initialize the token (it is possible to change the type here, -1 means: no change) - this means: set the value
+void changeCounter(int delta=1);//increases the i_counter-value by delta
+void setValueToFormula(char * formula=NULL);//evaluates a formula and sets the d_value to the result (NULL does not change anything)
+int get_counter_value(void);
+void raise_counter(void);
+void lower_counter(void);
+double get_d_value(void);
+void reset_token(char * token);//sets the token to a new value (does not reset the counter and double value)
+class single_formula_token & operator=(class single_formula_token & a);
+};
 
 class uniList;
 
@@ -143,7 +205,8 @@ QAction * actEditInSpreadsheet,* actEditInTextEditor;
 QAction * actViewSetComments,*actShowDataLess,*actShowHidden,*actSelectAll,*actUnselectAll,*actInvertSelection,*actUpdate;
 QAction * actCopy12,*actCopy21,*actMove12,*actMove21;
 QAction * actCopyClipBoard,*actPasteClipBoard;
-QAction * actSelectEven,*actSelectOdd;
+QAction * actSelectEven,*actSelectOdd,*actSelectVisible,*actSelectInvisible,*actSelectNth;
+QAction * actStoreAppearance,*actApplyStoredAppearance;
 
 public slots:
 void prepareForAction(void);
@@ -169,6 +232,9 @@ void doSelectAll(void);
 void doUnSelectAll(void);
 void doSelectEven(void);
 void doSelectOdd(void);
+void doSelectVisible(void);
+void doSelectInVisible(void);
+void doSelectNth(void);
 void doUpdate(void);
 void doInvertSelection(void);
 void doShowHidden(void);
@@ -180,6 +246,8 @@ void doCopy12(void);
 void doCopy21(void);
 void doCopyClipBoard(void);
 void doPasteClipBoard(void);
+void doStoreAppearance(void);
+void doApplyStoredAppearance(void);
 void update_menu_content(void);
 };
 
@@ -305,6 +373,7 @@ virtual void leaveEvent( QEvent * event );
 void mouseReleaseEvent(QMouseEvent *event);
 void mousePressEvent(QMouseEvent *event);
 void mouseMoveEvent(QMouseEvent * event);
+void keyPressEvent(QKeyEvent * event);
 signals:
 void newSelection(int i);
 };
@@ -326,7 +395,7 @@ virtual void showPopup();
 private slots:
 void wrapperSetCurrentIndex(int index);
 signals:
-void currentIndexChanged( int index );
+void current_Index_Changed( int index );
 };
 
 class fitLine:public QWidget
@@ -345,6 +414,7 @@ QHBoxLayout * layout;
 public slots:
 void getValues(double & value,bool & active,double & lowerBound,double & upperBound);
 void constr_check(int t);
+void Redisplay(void);
 };
 
 class axisLine:public QWidget
@@ -435,10 +505,13 @@ class stdSlider:public QWidget
 Q_OBJECT
 public:
 stdSlider(QWidget * parent,QString label,int min,int max,double factor=1.0,int type=SLIDE_LINEAR);
-QLabel * Indicator;
+//QLabel * Indicator;
+QLineEdit * Indicator;
 QLabel * lblText;
 QSlider * sldSlider;
+QTime * ret_time;
 int textHeight,slideType;
+int old_value;//important for immediate updates and undo-list
 double ScalingFactor;
 virtual void resizeEvent( QResizeEvent * e);
 signals:
@@ -452,8 +525,11 @@ void SliderReleased(void);
 void SliderPressed(void);
 int value(void);
 void setValue(int i);
+void redisplay(void);
 QString indicatorText(void);
 void slideIndicator(void);
+void Indicator_Enter_Pressed(void);
+void Indicator_Finished(void);
 };
 
 class FontSelector:public QWidget
@@ -462,14 +538,15 @@ Q_OBJECT
 public:
 FontSelector(QWidget * parent=0);
 
-QLabel * lblText;
-QComboBox * cmbFontSelect;
-QPushButton * cmdSelFont;
-QFont font;
+QLabel * lblText;//just a label
+QComboBox * cmbFontSelect;//standard-combo-box for selecting one of a few predefined T1-fonts (or preselected Qt-fonts)
+QPushButton * cmdSelFont;//a button to open the font selector dialog of the operating system --> only for Qt-fonts
+QFont font;//currently selected Qt-font
 QHBoxLayout * layout;
 signals:
 void currentIndexChanged(int i);
 public slots:
+void updateAppearance(bool QtIsNew);//updates the current appearance of the selector according to the setting of useQtFonts
 void setLabelText(QString s);
 void updateFonts(bool preserve);//displays all fonts that are currently available in the font-selector
 void displayFont(void);//shows how the font looks like in the command button
@@ -660,9 +737,10 @@ bool displayStd;//Std is the original user input (probably in LaTeX-format)
 QLabel * lblText;
 QLineEdit * lenText;
 QHBoxLayout * layout;
-char * c1, * c2;//places where the text is stored at (Grace- and LaTeX-version)
+char * c1, * c2;//places where the text is stored at (Grace- and LaTeX-/Original-version)
 signals:
 void changed(void);
+void NoMoreValidAdr(void);
 public slots:
 void ContentChanged(void);
 void clickedOnLabel(void);
@@ -670,11 +748,17 @@ void mouseReleaseEvent(QMouseEvent * e);
 //the following two functions are for standard-text-operations without LaTeX-support
 QString text(void);
 void setText(QString text);
-//The following wto functions are only for use with static arrays
+//The following two functions are only for use with static arrays
 void SetTextToMemory(char * t1,char * t2);//Function to set text according to t2 in the memory
 void SetMemoryToText(char * t1,char * t2);//Function to get the text and place it in the memory in t2 and convert t2 form LaTeX to Grace and set it to t1
 //The following function is only for use with dynamic arrays --> copy_string
 void DynSetMemoryToText(char * &t1,char * &t2);
+void ReplaceNumberContents(void);//replaces the decimal separators according to the setting of 'OldDecimalPoint' and 'DecimalPointToUse' --> should only be used on lines where numbers and formulas are to be entered
+void RedisplayContents(void);//refreshes the displayed text (usually after a change in the underlying addresses)
+void setDoubleValue(const char * form,double val);
+double getDoubleValue(void);
+int getIntValue(void);
+double guessDoubleValue(void);//tries to convert the text entered into double-value (this should also work for integer) -- a lot of guesswork here -- it should work if the user is not trying to be funny (in which case he/she will get funny results)
 };
 
 class stdButtonGroup:public QWidget
@@ -725,6 +809,7 @@ QGroupBox * grpChDir;
 QHBoxLayout * layout0;
 StdSelector * selChdir;
 QPushButton * cmdSetCwd;
+//QPushButton * cmdGetCwd;
 QPushButton * cmdGoUp;
 QPushButton * cmdStdDialog;
 
@@ -757,6 +842,7 @@ void DirDoubleClicked( const QModelIndex & index );
 void showFilesLikeFilter(void);
 void newFilterEntered(void);
 void doSetCWD(void);
+//void doGetCWD(void);
 void toggleHiddenFile(int i);
 void setFilterFromExtern(QString & directory,QString & extension);
 void currentDirChanged(int i);
@@ -783,6 +869,7 @@ QHBoxLayout * layout;
 bool error;
 
 public slots:
+void Redisplay(void);//changes the decimal separators
 double start(void);
 double stop(void);
 int length(void);
@@ -848,7 +935,6 @@ bool GetToggleButtonState(QCheckBox * c);*/
 
 class treeView;
 class frmExplorer;
-class frmFontSettings;
 
 class TreePopup:public QMenu
 {
@@ -910,7 +996,7 @@ void newItemClicked(char type,int gno,int sno);
 #define COLUMN_LONG_DOUBLE 11
 #define COLUMN_STRING 12
 
-#define NUMBER_OF_IMPORT_DESTINATIONS 29
+#define NUMBER_OF_IMPORT_DESTINATIONS 61
 
 #define IMPORT_TO_NONE 0
 #define IMPORT_TO_TITLE 1
@@ -941,7 +1027,39 @@ void newItemClicked(char type,int gno,int sno);
 #define IMPORT_TO_SET_LEGEND 26
 #define IMPORT_TO_TRIGGER 27
 #define IMPORT_TO_TRIGGER_FACTOR 28
-//#define IMPORT_TO_ 29
+#define IMPORT_TO_CHANNEL0_FACTOR 29
+#define IMPORT_TO_CHANNEL1_FACTOR 30
+#define IMPORT_TO_CHANNEL2_FACTOR 31
+#define IMPORT_TO_CHANNEL3_FACTOR 32
+#define IMPORT_TO_CHANNEL4_FACTOR 33
+#define IMPORT_TO_CHANNEL5_FACTOR 34
+#define IMPORT_TO_CHANNEL6_FACTOR 35
+#define IMPORT_TO_CHANNEL7_FACTOR 36
+#define IMPORT_TO_CHANNEL8_FACTOR 37
+#define IMPORT_TO_CHANNEL9_FACTOR 38
+#define IMPORT_TO_CHANNEL10_FACTOR 39
+#define IMPORT_TO_CHANNEL11_FACTOR 40
+#define IMPORT_TO_CHANNEL12_FACTOR 41
+#define IMPORT_TO_CHANNEL13_FACTOR 42
+#define IMPORT_TO_CHANNEL14_FACTOR 43
+#define IMPORT_TO_CHANNEL15_FACTOR 44
+#define IMPORT_TO_CHANNEL0_OFFSET 45
+#define IMPORT_TO_CHANNEL1_OFFSET 46
+#define IMPORT_TO_CHANNEL2_OFFSET 47
+#define IMPORT_TO_CHANNEL3_OFFSET 48
+#define IMPORT_TO_CHANNEL4_OFFSET 49
+#define IMPORT_TO_CHANNEL5_OFFSET 50
+#define IMPORT_TO_CHANNEL6_OFFSET 51
+#define IMPORT_TO_CHANNEL7_OFFSET 52
+#define IMPORT_TO_CHANNEL8_OFFSET 53
+#define IMPORT_TO_CHANNEL9_OFFSET 54
+#define IMPORT_TO_CHANNEL10_OFFSET 55
+#define IMPORT_TO_CHANNEL11_OFFSET 56
+#define IMPORT_TO_CHANNEL12_OFFSET 57
+#define IMPORT_TO_CHANNEL13_OFFSET 58
+#define IMPORT_TO_CHANNEL14_OFFSET 59
+#define IMPORT_TO_CHANNEL15_OFFSET 60
+//#define IMPORT_TO_ 45
 
 //#define IMPORT_TO_DELTAX 19
 
@@ -962,9 +1080,29 @@ unsigned int n_columns_to_read;//number of columns to be saved
 int * col_numbers_to_read;//which columns are to be read and where they are to be stored
 };
 
-void store_plot_string(plotstr * p,stdLineEdit * led);
+//void store_plot_string(plotstr * p,stdLineEdit * led);
 
 void LoadBinaryData(int gno,int setno,int settype,char * filename,struct BinReadInstructions inst);
+
+struct FoundSetID
+{
+int pos;
+int len;//the length includes control characters for the characteristic
+int gno,sno;
+int characteristic;//0=basic set id; 1=constant set-id; 2=set-id to be increased by offset
+int color;
+int repl_gno,repl_sno;
+};
+
+void find_set_ids(char * str,int * nr,struct FoundSetID ** foundIds);//tries to find complete set-ids like "G0.S2" inside a string and returns the number of found ids (nr), there positions inside the string (startpos), their length (len) and the graph- and set-numbers (gnos/snos)
+void find_graph_ids(char * str,int * nr,struct FoundSetID ** foundIds);//tries to find sigular appearances of Graph-ids without set ids
+void postprocess_found_set_ids(int nr,struct FoundSetID ** foundIds,int * nr_unique_ids,int ** unique_id);//tries to identifiy multiple occurences of the same set and gives every set-id a color matching the color in the graph - if possible; unique_id gives the position of a singular id in the set-ids
+QString CreateRichTextColorTable(void);
+QString PaintSetIds(char * str,int nr,struct FoundSetID * setIds);//Creates a html-representation for str with colored set-ids
+QString ReplaceSetIds(char * str,int nr,struct FoundSetID * setIds);
+QString ReplaceGraphIds(char * str,int nr,struct FoundSetID * setIds);
+QString ColorToHtml(int nr);
+QString ColorHtmlEnd(void);
 
 extern int GetSpinChoice(stdIntSelector * s);
 extern double GetSpinChoice(LineWidthSelector * s);
@@ -984,6 +1122,7 @@ extern double GetCharSizeChoice(stdSlider * sel);
 extern double GetAngleChoice(stdSlider * sel);
 extern char * GetTextString(stdLineEdit * led);
 extern void SetToggleButtonState(QCheckBox * cb, int v);
+extern void SetToggleButtonState(QAction * c, int v);
 extern void SetChoice(StdSelector * sel,int v);
 extern void SetChoice(PositionSelector * sel,int v);
 extern void SetOptionChoice(ColorSelector * sel,int v);
@@ -1010,6 +1149,7 @@ extern void SetSensitive(QPushButton * led, bool e);
 extern void SetSensitive(QCheckBox * led, bool e);
 extern int GetScaleValue(stdSlider * sel);
 extern int xv_evalexpr(stdLineEdit * led,double * val);
+extern int std_evalexpr(char * buf,double * val);
 extern int xv_evalexpri(stdLineEdit * led,int * val);
 extern int xv_evalexpr(QLineEdit * led,double * val);
 extern int xv_evalexpri(QLineEdit * led,int * val);
@@ -1019,5 +1159,48 @@ extern int GetListChoices(uniList * list, int ** sel);
 extern int GetSelectedSets(uniList * list, int ** sel);
 extern int GetSelectedSet(uniList * list);
 extern int GetSingleListChoice(uniList * list, int * sel);
+
+#if QT_VERSION < 0x050000
+        #include <QPlastiqueStyle>
+        #include <QCleanlooksStyle>
+        #include <QWindowsStyle>
+    #if QT_VERSION < 0x040500
+        #define MYSTYLE QWindowsStyle
+    #else
+        #define MYSTYLE QPlastiqueStyle
+    #endif
+
+#else
+    #include <QCommonStyle>
+    #include <QStyle>
+    #define MYSTYLE QCommonStyle
+#endif
+
+class skfStyle:public MYSTYLE
+{
+public:
+    skfStyle(int marginIn,int spacingIn):MYSTYLE(),margin(marginIn),spacing(spacingIn) {};
+    virtual ~skfStyle(){};
+    int margin;
+    int spacing;
+    virtual int pixelMetric ( PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const {
+        // BTRACEF(Int2Str(QStyle::PM_SmallIconSize)); // STRANGE IN 67.73
+        int retval=MYSTYLE::pixelMetric(metric,option,widget);
+        if (retval!=-1){
+            //   if ((margin<0)||(spacing<0)) return MYSTYLE::pixelMetric(metric,option,widget);
+            if (metric==QStyle::PM_LayoutTopMargin) retval=margin;
+            if (metric==QStyle::PM_LayoutRightMargin) retval=margin;
+            if (metric==QStyle::PM_LayoutBottomMargin) retval= margin;
+            if (metric==QStyle::PM_LayoutLeftMargin) retval= margin;
+            if (metric==QStyle::PM_LayoutHorizontalSpacing) retval= spacing;
+            if (metric==QStyle::PM_LayoutVerticalSpacing) retval= spacing;
+            if (metric==QStyle::PM_ButtonMargin) retval= spacing;
+            if (metric==QStyle::PM_ToolBarIconSize) retval=32;
+            if (metric==QStyle::PM_MenuBarItemSpacing) retval=20;
+            // if (metric==77) retval= spacing;
+        }
+         return retval;
+    };
+};
 
 #endif

@@ -8,6 +8,15 @@ extern "C" {
 #endif
 extern  int merror;
 
+/*#if defined(_MSC_VER) && _MSC_VER>=1800
+#else
+// These functions should not be declared  in VS2013. They are in math.h already.
+extern  double expm1 ( double x );
+extern  double frexp ( double x, int *pw2 );
+extern  double ldexp ( double x, int pw2 );
+extern  double log1p ( double x );
+#endif*/
+
 extern  int airy ( double x, double *ai, double *aip, double *bi, double *bip );
 extern  double beta ( double a, double b );
 extern  double lbeta ( double a, double b );
@@ -24,8 +33,6 @@ extern  double fac ( int i );
 extern  double fdtrc ( int ia, int ib, double x );
 extern  double fdtr ( int ia, int ib, double x );
 extern  double fdtri ( int ia, int ib, double y );
-extern  double frexp ( double x, int *pw2 );
-extern  double ldexp ( double x, int pw2 );
 extern  int fresnl ( double xxa, double *ssa, double *cca );
 extern  double gdtr ( double a, double b, double x );
 extern  double gdtrc ( double a, double b, double x );
@@ -66,8 +73,6 @@ extern  double stdtri ( int k, double p );
 extern  double onef2 ( double a, double b, double c, double x, double *err );
 extern  double threef0 ( double a, double b, double c, double x, double *err );
 extern  double struve ( double v, double x );
-extern  double log1p ( double x );
-extern  double expm1 ( double x );
 extern  double cosm1 ( double x );
 extern  double yv ( double v, double x );
 extern  double zeta ( double x, double q );

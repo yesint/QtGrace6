@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -33,10 +33,10 @@
 #include <cmath>
 
 #ifndef MACHEP
-extern  "C" double MACHEP;
+extern "C" double MACHEP;
 #endif
 #ifndef UFLOWTHRESH
-extern  "C" double UFLOWTHRESH;
+extern "C" double UFLOWTHRESH;
 #endif
 #ifndef MAXNUM
 extern "C" double MAXNUM;

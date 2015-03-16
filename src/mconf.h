@@ -63,7 +63,7 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 
 Adjusted for use with ACE/gr by Evgeny Stambulchik, October 1997
 
-Modified by Andreas Winter 2008-2012
+Modified by Andreas Winter 2008-2014
 */
 
 #define __GRACE_SOURCE_
@@ -190,3 +190,7 @@ Modified by Andreas Winter 2008-2012
    See atan.c and clog.c. */
 #define ANSIC 1
 
+#ifdef _MSC_VER
+#define HAVE_ASINH
+#define HAVE_ROUND
+#endif

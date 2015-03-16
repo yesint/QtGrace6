@@ -1,31 +1,31 @@
 /*
-     * Grace - GRaphing, Advanced Computation and Exploration of data
-     *
-     * Home page: http://plasma-gate.weizmann.ac.il/Grace/
-     *
-     * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
-     * Copyright (c) 1996-2003 Grace Development Team
-     *
-     * Maintained by Evgeny Stambulchik
-     *
-     * Modified by Andreas Winter 2008-2012
-     *
-     *                           All Rights Reserved
-     *
-     *    This program is free software; you can redistribute it and/or modify
-     *    it under the terms of the GNU General Public License as published by
-     *    the Free Software Foundation; either version 2 of the License, or
-     *    (at your option) any later version.
-     *
-     *    This program is distributed in the hope that it will be useful,
-     *    but WITHOUT ANY WARRANTY; without even the implied warranty of
-     *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     *    GNU General Public License for more details.
-     *
-     *    You should have received a copy of the GNU General Public License
-     *    along with this program; if not, write to the Free Software
-     *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-     */
+ * Grace - GRaphing, Advanced Computation and Exploration of data
+ *
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ *
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2003 Grace Development Team
+ *
+ * Maintained by Evgeny Stambulchik
+ *
+ * Modified by Andreas Winter 2008-2015
+ *
+ *                           All Rights Reserved
+ *
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
 #include <iostream>
 ///#include <config.h>
@@ -42,13 +42,11 @@
 #include "files.h"
 #include "device.h"
 #include "t1fonts.h"
-
-#include "noxprotos.h"
 #include "cmath.h"
-#include <QPainter>
 #include "globals.h"
+#include "noxprotos.h"
+#include <QPainter>
 
-#define toAscii toLatin1
 using namespace std;
 
 extern QPainter * GeneralPainter;
@@ -59,26 +57,46 @@ extern int curdevice;
 extern bool useQtFonts;
 extern QList<QFont> stdFontList;
 extern GLYPH *GetQtGlyph(CompositeString *cs, double dpv, int fontaa);
+extern void errwin(const char *s);
 //extern void WriteQtString(VPoint vp,int rot,int just,char * s);
+extern QFont get_Std_QFont_From_GraceFontID(int fontID,bool & ok);
+extern QFont get_Std_QFont_From_GraceFontName(char * grace_font_name,int & font_nr,bool & ok);
 
-static int nfonts = 0;
+extern int find_QtFont_in_List(char * name,int whatlist);//you need a qt-font-name for this
+extern int find_QtFont_in_List(QString fontname,int whatlist);//finds a qt-font-name
+extern int find_default_id_of_Grace_Font(char * name);//you need a Grace-font-name for this
+extern int find_GraceFontID_of_QtFontName(QString fontname);//you need a qt-font-name for this
+extern QString getNameOfDefaultQtFont(int index);
+extern QString get_QtName_of_Default_Grace_Font(char * name);//compares a Grace-font-name with the default font names and returns the qt-font-name
+extern char * get_Grace_Font_Name_of_Default_Qt_Font(QString fontname);//returns the Grace-font-name of a Qt-Font-name
+extern char * getNameOfStdQtFont(int index);//returns the Qt-Name of the Font in the StdList
+extern char * getFamilyNameOfStdQtFont(int index);//returns the Qt-Name of the Font in the StdList
+
+//this is what you need
+//--> convert Grace-name into QtFontID
+extern int get_QtFontID_from_Grace_Name(char * name,int whatlist);//get the index of a QtFont in a list by its Grace-name
+//--> convert Grace-font-id into QtFontID
+extern int get_QtFontID_from_GraceID(int font_id,int whatlist);
+
+int nfonts = 0;
 static FontDB *FontDBtable = NULL;
 static char **DefEncoding = NULL;
 bool useQtFunctions=false;
+unsigned int qtCharShift=0;
 
 /*
-    void (*devputpixmap) (VPoint vp, int width, int height,
-         char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
-    void (*devputtext) (VPoint vp, char *s, int len, int font,
-         TextMatrix *tm, int underline, int overline, int kerning);
-    */
+void (*devputpixmap) (VPoint vp, int width, int height, 
+     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void (*devputtext) (VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning);
+*/
 
 int init_t1(void)
 {
     int i;
     char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN], *bufp;
     FILE *fd;
-
+    
     /* Set search paths: */
     bufp = grace_path("fonts/type1");
     if (bufp == NULL) {
@@ -91,7 +109,7 @@ int init_t1(void)
         return (RETURN_FAILURE);
     }
     T1_SetFileSearchPath(T1_ENC_PATH, bufp);
-
+    
     /* Set font database: */
     bufp = grace_path("fonts/FontDataBase");
     if (bufp == NULL) {
@@ -101,25 +119,25 @@ int init_t1(void)
 
     /* Set log-level: */
     T1_SetLogLevel(T1LOG_DEBUG);
-
+    
     /* Initialize t1-library */
     ///
     if (T1_InitLib(T1LOGFILE|IGNORE_CONFIGFILE) == NULL) {
         return (RETURN_FAILURE);
     }
-
+    
     nfonts = T1_GetNoFonts();
     if (nfonts < 1) {
         return (RETURN_FAILURE);
     }
-
+    
     fd = grace_openr("fonts/FontDataBase", SOURCE_DISK);
     if (fd == NULL) {
         return (RETURN_FAILURE);
     }
-
+    
     FontDBtable = (FontDB*)xmalloc(nfonts*sizeof(FontDB));
-
+    
     /* skip the first line */
     grace_fgets(buf, GR_MAXPATHLEN - 1, fd);
     for (i = 0; i < nfonts; i++) {
@@ -133,9 +151,9 @@ int init_t1(void)
         FontDBtable[i].fallback  = copy_string(NULL, fbuf);
     }
     fclose(fd);
-
+    
     T1_SetDeviceResolutions(72.0, 72.0);
-
+    
     DefEncoding = T1_LoadEncoding(T1_DEFAULT_ENCODING_FILE);
     if (DefEncoding == NULL) {
         DefEncoding = T1_LoadEncoding(T1_FALLBACK_ENCODING_FILE);
@@ -145,20 +163,25 @@ int init_t1(void)
     } else {
         return (RETURN_FAILURE);
     }
-
+    
     T1_AASetBitsPerPixel(GRACE_BPP);
-
+    
     T1_SetBitmapPad(T1_DEFAULT_BITMAP_PAD);
-
+    
     return (RETURN_SUCCESS);
 }
 
 void map_fonts(int map)
 {
+    bool save_use_qtfonts;
     int i;
-
-    if (map == FONT_MAP_ACEGR) {
-        for (i = 0; i < nfonts; i++) {
+    save_use_qtfonts=useQtFonts;
+    useQtFonts=false;//this font mapping is only useful for the original Grace-fonts (the QtFonts are adjusted to fit the Grace fonts)
+    //cout << "Project Version=" << get_project_version() << endl;
+    if (map == FONT_MAP_ACEGR)
+    {
+        for (i = 0; i < nfonts; i++)
+        {
             FontDBtable[i].mapped_id = BAD_FONT_ID;
         }
         map_font_by_name("Times-Roman", 0);
@@ -171,11 +194,28 @@ void map_fonts(int map)
         map_font_by_name("Helvetica-BoldOblique", 7);
         map_font_by_name("Symbol", 8);
         map_font_by_name("ZapfDingbats", 9);
-    } else {
-        for (i = 0; i < nfonts; i++) {
+        //cout << "remapping fonts in OLD order" << endl;
+    }
+    else
+    {
+        for (i = 0; i < nfonts; i++)
+        {
             FontDBtable[i].mapped_id = i;
         }
+        //cout << "remapping fonts to STANDARD order" << endl;
     }
+    useQtFonts=save_use_qtfonts;
+}
+
+int font_map_equals_font_ids(void)
+{
+    int equ=1;
+    int i;
+    for (i = 0; i < nfonts; i++)
+    {
+        if (FontDBtable[i].mapped_id != i) equ=0;
+    }
+    return equ;
 }
 
 int get_font_mapped_id(int font)
@@ -190,34 +230,33 @@ int get_font_mapped_id(int font)
 int get_mapped_font(int mapped_id)
 {
     int i;
-
-    if (useQtFonts==true) return mapped_id;
-
-    for (i = 0; i < nfonts; i++) {
-        if (FontDBtable[i].mapped_id == mapped_id) {
+    if (useQtFonts==true) return mapped_id;//this function is needed to retrive the real number of a font with a specific mapped index --> in Qt we always generate the font-table to be sorted (font-id=mapped-id)
+    for (i = 0; i < nfonts; i++)
+    {
+        if (FontDBtable[i].mapped_id == mapped_id)
+        {
             return(i);
         }
     }
-
     return(BAD_FONT_ID);
 }
 
 int map_font(int font, int mapped_id)
 {
     int i;
-
-    if (font >= nfonts || font < 0) {
+    if (font >= nfonts || font < 0)
+    {
         return RETURN_FAILURE;
     }
-
     /* make sure the mapping is unique */
-    for (i = 0; i < nfonts; i++) {
-        if (FontDBtable[i].mapped_id == mapped_id) {
+    for (i = 0; i < nfonts; i++)
+    {
+        if (FontDBtable[i].mapped_id == mapped_id)
+        {
             FontDBtable[i].mapped_id = BAD_FONT_ID;
         }
     }
     FontDBtable[font].mapped_id = mapped_id;
-
     return RETURN_SUCCESS;
 }
 
@@ -234,27 +273,61 @@ int number_of_fonts(void)
         return (nfonts);
 }
 
-int get_font_by_name(char *fname)
+int get_font_by_name(char * fname)
 {
-    int i;
+    int i,font_nr=-1;
 
     if (fname == NULL)
     {
         return(BAD_FONT_ID);
     }
-
-    if (useQtFonts)
+    
+    if (useQtFonts==true)
     {
-        for (i=0;i<stdFontList.length();i++)
+        font_nr=get_QtFontID_from_Grace_Name(fname,1);//we search in the current qt-std-font-list for a font with the Grace-name stated
+        if (font_nr==-1)//we have found nothing - it may be a Qt-font-name
         {
-            if (strcmp(get_fontalias(i), fname) == 0)
-            {
-                return(i);
-            }
+            font_nr=find_QtFont_in_List(QString(fname),1);
+        }
+        if (font_nr!=-1)//we found something
+        {
+            return font_nr;
+        }
+        else//we found nothing --> font not present!
+        {
+            char dummytext[128];
+            sprintf(dummytext,"Font %s not found!",fname);
+            errwin(dummytext);
+            return BAD_FONT_ID;
+        }
+    }//end useQtFonts
+
+    /*if (useQtFonts)
+{//fname can be the name of a Grace-Std-Font
+cout << "find=#" << fname << "# QT=" << useQtFonts << endl;
+cout << "stdFontList.length()=" << stdFontList.length() << endl;
+
+f=get_Std_QFont_From_GraceFontName(fname,font_nr,ok);
+if (font_nr>0)
+{
+    cout << "found=" << font_nr << endl;
+return font_nr;
+}
+cout << "NOT FOUND" << endl;
+    for (i=0;i<stdFontList.length();i++)
+    {
+    cout << "name[" << i << "]=" << get_fontalias(i) << endl;
+        if (strcmp(get_fontalias(i), fname) == 0)
+        {
+            return(i);
         }
     }
-    /*else
-    {*/
+cout << "getfont/QtFonts/notFound! length=" << stdFontList.length() << endl;
+}
+else
+{*/
+
+    //only used if useQtFonts==false
     for (i = 0; i < nfonts; i++)
     {
         if (strcmp(get_fontalias(i), fname) == 0)
@@ -262,7 +335,6 @@ int get_font_by_name(char *fname)
             return(i);
         }
     }
-
     for (i = 0; i < nfonts; i++)
     {
         if (strcmp(get_fontfallback(i), fname) == 0)
@@ -277,8 +349,8 @@ int get_font_by_name(char *fname)
 char *get_fontfilename(int font, int abspath)
 {
     if (useQtFonts)
-    {
-        return stdFontList.at(font).toString().toAscii().data();
+    {//no paths for this font
+        return NULL;//stdFontList.at(font).toString().toLocal8Bit().data();
     }
     if (abspath) {
         return (T1_GetFontFilePath(font));
@@ -298,12 +370,12 @@ char *get_afmfilename(int font, int abspath)
     } else {
         s = T1_GetAfmFileName(font);
     }
-
+    
     if (s == NULL) {
         char *s1;
         static char buf[256];
         int len;
-
+        
         s = get_fontfilename(font, abspath);
         len = strlen(s);
         s1 = s + (len - 1);
@@ -323,7 +395,7 @@ char *get_afmfilename(int font, int abspath)
 char *get_fontname(int font)
 {
     if (useQtFonts)
-        return stdFontList.at(font).toString().toAscii().data();
+        return getNameOfStdQtFont(font);//stdFontList.at(font).toString().toLocal8Bit().data();
     else
         return (T1_GetFontName(font));
     ///return 0;
@@ -332,7 +404,7 @@ char *get_fontname(int font)
 char *get_fontfullname(int font)
 {
     if (useQtFonts)
-        return stdFontList.at(font).toString().toAscii().data();
+        return getNameOfStdQtFont(font);//stdFontList.at(font).toString().toLocal8Bit().data();
     else
         return (T1_GetFullName(font));
     ///return 0;
@@ -341,7 +413,7 @@ char *get_fontfullname(int font)
 char *get_fontfamilyname(int font)
 {
     if (useQtFonts)
-        return stdFontList.at(font).family().toAscii().data();
+        return getFamilyNameOfStdQtFont(font);//stdFontList.at(font).family().toLocal8Bit().data();
     else
         return (T1_GetFamilyName(font));
     ///return 0;
@@ -355,11 +427,24 @@ char *get_fontweight(int font)
 
 char *get_fontalias(int font)
 {
+    static char aliasname[512];
+    char * fpointer;
     if (useQtFonts==true)
-        return stdFontList.at(font).toString().toAscii().data();
+    {
+        fpointer=getNameOfStdQtFont(font);
+        if (fpointer==NULL)
+            aliasname[0]='\0';
+        else
+            strcpy(aliasname,fpointer);
+
+        /*if (stdFontList.length()<=font || font<0)
+        strcpy(aliasname,stdFontList.at(0).toString().toLocal8Bit().constData());
+        else
+        strcpy(aliasname,stdFontList.at(font).toString().toLocal8Bit().constData());*/
+    }
     else
-        return (FontDBtable[font].alias);
-    ///return 0;
+        strcpy(aliasname,FontDBtable[font].alias);
+    return aliasname;
 }
 
 char *get_fontfallback(int font)
@@ -411,7 +496,7 @@ double *get_kerning_vector(char *str, int len, int font)
     } else {
         int i, k, ktot;
         double *kvector;
-
+        
         kvector = (double*)xmalloc(len*sizeof(double));
         for (i = 0, ktot = 0; i < len - 1; i++) {
             k = T1_GetKerning(font, str[i], str[i + 1]);
@@ -423,7 +508,7 @@ double *get_kerning_vector(char *str, int len, int font)
         } else {
             XCFREE(kvector);
         }
-
+        
         return kvector;
     }
 }
@@ -453,7 +538,7 @@ static double tm_size(TextMatrix *tm)
 static int tm_product(TextMatrix *tm, TextMatrix *p)
 {
     TextMatrix tmp;
-
+    
     if (tm_det(p) != 0.0) {
         tmp.cxx = p->cxx*tm->cxx + p->cxy*tm->cyx;
         tmp.cxy = p->cxx*tm->cxy + p->cxy*tm->cyy;
@@ -492,15 +577,15 @@ static void tm_slant(TextMatrix *tm, double slant)
 GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
 {
     int i;
-
+    
     int len = cs->len;
     int FontID = cs->font;
     float Size;
-
+    
     long Space = 0;
-
+    
     GLYPH *glyph;
-
+    
     static int aacolors[T1_AALEVELS];
     unsigned int fg, bg;
     static unsigned long last_bg = 0, last_fg = 0;
@@ -510,7 +595,7 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
 
     RGB fg_rgb, bg_rgb, delta_rgb, *prgb;
     CMap_entry cmap;
-
+    
     if (cs->len == 0) {
         return NULL;
     }
@@ -580,16 +665,19 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
 
         /* Set the colors for Anti-Aliasing */
         T1_AASetGrayValues(aacolors[0],
-                aacolors[1],
-                aacolors[2],
-                aacolors[3],
-                aacolors[4]);
+                           aacolors[1],
+                           aacolors[2],
+                           aacolors[3],
+                           aacolors[4]);
 
         glyph = T1_AASetString(FontID, cs->s, len,
                                Space, modflag, Size, matrixP);
     } else {
+        fg = cs->color;
+        bg = getbgcolor();
         glyph = T1_SetString(FontID, cs->s, len,
                              Space, modflag, Size, matrixP);
+//cout << glyph->metrics.leftSideBearing << " right=" << glyph->metrics.rightSideBearing << endl;
     }
 
     return glyph;
@@ -598,7 +686,7 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
 static void FreeCompositeString(CompositeString *cs, int nss)
 {
     int i = 0;
-
+    
     for (i = 0; i < nss; i++) {
         xfree(cs[i].s);
         if (cs[i].glyph != NULL) {
@@ -611,7 +699,7 @@ static void FreeCompositeString(CompositeString *cs, int nss)
 static int get_escape_args(char *s, char *buf)
 {
     int i = 0;
-
+    
     if (*s == '{') {
         s++;
         while (*s != '\0') {
@@ -624,7 +712,7 @@ static int get_escape_args(char *s, char *buf)
             }
         }
     }
-
+    
     return -1;
 }
 
@@ -643,7 +731,7 @@ static CompositeString *String2Composite(char *string, int *nss)
     int upperset = FALSE;
     double scale;
     TextMatrix tm_buf;
-
+    
     int font = BAD_FONT_ID, new_font = font;
     int color = BAD_COLOR, new_color = color;
     TextMatrix tm = unit_tm, tm_new = tm;
@@ -656,25 +744,26 @@ static CompositeString *String2Composite(char *string, int *nss)
     int direction = STRING_DIRECTION_LR, new_direction = direction;
     int advancing = TEXT_ADVANCING_LR, new_advancing = advancing;
     int ligatures = FALSE, new_ligatures = ligatures;
+    int new_qtCharShift = CHAR_SHIFT_NONE, cur_qtCharShift = CHAR_SHIFT_NONE;
 
     int setmark = MARK_NONE;
     int gotomark = MARK_NONE, new_gotomark = gotomark;
-
+    
     double val;
 
     csbuf = NULL;
     *nss = 0;
-
+    
     if (string == NULL) {
         return NULL;
     }
 
     slen = strlen(string);
-
+    
     if (slen == 0) {
         return NULL;
     }
-
+    
     ss = (char*)xmalloc(slen + 1);
     buf = (char*)xmalloc(slen + 1);
     acc_buf = (char*)xmalloc(slen + 1);
@@ -687,19 +776,25 @@ static CompositeString *String2Composite(char *string, int *nss)
 
     isub = 0;
     ss[isub] = 0;
-
+    
     for (i = 0; i <= slen; i++) {
         ccode = string[i];
         acc_len = 0;
-        if (ccode < 32 && ccode > 0) {
+        if (ccode < 32 && ccode > 0)
+        {
             /* skip control codes */
             continue;
         }
         if (inside_escape) {
             inside_escape = FALSE;
-
-            if (isdigit(ccode)) {
+            
+            if (isdigit(ccode))
+            {
                 new_font = get_mapped_font(ccode - '0');
+                if (useQtFonts==true && new_font == get_font_by_name("Symbol"))
+                new_qtCharShift |= CHAR_SHIFT_TO_SYMBOL;
+                else
+                new_qtCharShift = CHAR_SHIFT_NONE;
                 continue;
             } else if (ccode == 'd') {
                 i++;
@@ -760,15 +855,40 @@ static CompositeString *String2Composite(char *string, int *nss)
                     break;
                 case 'B':
                     new_font = BAD_FONT_ID;
+                    new_qtCharShift &= ~CHAR_SHIFT_TO_SYMBOL;
                     break;
                 case 'x':
-                    new_font = get_font_by_name("Symbol");
+                    if (useQtFonts==false)
+                    {
+                        new_font = get_font_by_name("Symbol");
+                        new_qtCharShift = CHAR_SHIFT_NONE;
+                    }
+                    else
+                    {
+                        /// Hier sollte auch der Symbol-font stehen
+                        new_font = get_font_by_name("Symbol");/// hinzugefuegt
+                        new_qtCharShift |= CHAR_SHIFT_TO_SYMBOL;
+                    }
                     break;
                 case 'c':
-                    upperset = TRUE;
+                    if (useQtFonts==false)
+                    {
+                        upperset = TRUE;
+                    }
+                    else
+                    {
+                        new_qtCharShift |= CHAR_SHIFT_TO_UPPERSET;
+                    }
                     break;
                 case 'C':
-                    upperset = FALSE;
+                    if (useQtFonts==false)
+                    {
+                        upperset = FALSE;
+                    }
+                    else
+                    {
+                        new_qtCharShift &= ~CHAR_SHIFT_TO_UPPERSET;
+                    }
                     break;
                 case 'u':
                     new_underline = TRUE;
@@ -814,6 +934,14 @@ static CompositeString *String2Composite(char *string, int *nss)
                     } else {
                         new_font = get_font_by_name(buf);
                     }
+                        if (useQtFonts==false)
+                        {
+                        new_qtCharShift &= ~CHAR_SHIFT_TO_SYMBOL;
+                        }
+                        else if (new_font==get_font_by_name("Symbol"))
+                        {
+                        new_qtCharShift |= CHAR_SHIFT_TO_SYMBOL;
+                        }
                     break;
                 case 'v':
                     if (j == 0) {
@@ -936,6 +1064,7 @@ static CompositeString *String2Composite(char *string, int *nss)
                 (new_underline != underline ) ||
                 (new_overline  != overline  ) ||
                 (new_kerning   != kerning   ) ||
+                (new_qtCharShift != cur_qtCharShift   ) ||
                 (new_direction != direction ) ||
                 (new_advancing != advancing ) ||
                 (new_ligatures != ligatures ) ||
@@ -957,12 +1086,14 @@ static CompositeString *String2Composite(char *string, int *nss)
                 csbuf[*nss].direction = direction;
                 csbuf[*nss].advancing = advancing;
                 csbuf[*nss].ligatures = ligatures;
+                csbuf[*nss].qtCharShift = cur_qtCharShift;
                 csbuf[*nss].setmark = setmark;
                 setmark = MARK_NONE;
                 csbuf[*nss].gotomark = gotomark;
 
-                csbuf[*nss].s = (char*)xmalloc(isub*sizeof(char));
+                csbuf[*nss].s = (char*)xmalloc((isub+1)*sizeof(char));/// memory extended by 1 for safety
                 memcpy(csbuf[*nss].s, ss, isub);
+                csbuf[*nss].s[isub]='\0';/// incorporated for safety
                 csbuf[*nss].len = isub;
                 isub = 0;
 
@@ -975,8 +1106,8 @@ static CompositeString *String2Composite(char *string, int *nss)
             hshift = new_hshift;
             if (hshift != 0.0) {
                 /* once a substring is manually advanced, all the following
-                     * substrings will be advanced as well!
-                     */
+                 * substrings will be advanced as well!
+                 */
                 new_hshift = 0.0;
             }
             vshift = new_vshift;
@@ -986,18 +1117,19 @@ static CompositeString *String2Composite(char *string, int *nss)
             direction = new_direction;
             advancing = new_advancing;
             ligatures = new_ligatures;
+            cur_qtCharShift=new_qtCharShift;
             gotomark = new_gotomark;
             if (gotomark >= 0) {
                 /* once a substring is manually advanced, all the following
-                     * substrings will be advanced as well!
-                     */
+                 * substrings will be advanced as well!
+                 */
                 new_gotomark = MARK_NONE;
             }
         }
         memcpy(&ss[isub], acc_buf, acc_len*sizeof(char));
         isub += acc_len;
     }
-
+    
     xfree(acc_buf);
     xfree(buf);
     xfree(ss);
@@ -1009,11 +1141,11 @@ static void reverse_string(char *s, int len)
 {
     char cbuf;
     int i;
-
+    
     if (s == NULL) {
         return;
     }
-
+    
     for (i = 0; i < len/2; i++) {
         cbuf = s[i];
         s[i] = s[len - i - 1];
@@ -1054,18 +1186,17 @@ static void process_ligatures(CompositeString *cs)
         }
     }
     ligtheString[m] = 0;
-
+    
     xfree(cs->s);
     cs->s = ligtheString;
     cs->len = m;
 }
 
-void WriteString(VPoint vp, int rot, int just, char *theString)
+void WriteString(VPoint vp, int rot, int just, char * theString)
 {
     VPoint vptmp;
-
     double page_ipv, page_dpv;
-
+    
     int def_font = getfont();
     int def_color = getcolor();
 
@@ -1079,49 +1210,30 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     int iss, nss;
     GLYPH *glyph;
 
-    CompositeString *cstring;
+    CompositeString *cstring = NULL;
 
     int pheight, pwidth;
     int hjust, vjust;
     double hfudge, vfudge;
-
+    
     int setmark, gotomark;
     VPoint cs_marks[MAX_MARKS];
-
+    
     VPoint rpoint, baseline_start, baseline_stop, bbox_ll, bbox_ur, offset;
-
+    
     Device_entry dev;
 
     if (theString == NULL || strlen(theString) == 0) {
         return;
     }
-
+    
     if (charsize <= 0.0) {
         return;
     }
 
     dev = get_curdevice_props();
 
-    /* #ifdef _MSC_VER
-            if (curdevice==4 && useQtFonts==true && dev.devfonts==TRUE)
-    useQtFunctions=true;
-    else
-    useQtFunctions=false;
-
-        #else
-            if (curdevice==5 && useQtFonts==true && dev.devfonts==TRUE)
-    useQtFunctions=true;
-    else
-    useQtFunctions=false;
-
-        #endif
-*/
-
-#ifdef SKF_QtGrace
     if (curdevice==DEVICE_SCREEN && useQtFonts==true)/// && dev.devfonts==TRUE)//deactivated use of device fonts if qtfonts are used
-#else
-    if (curdevice==0 && useQtFonts==true && dev.devfonts==TRUE)
-#endif
         useQtFunctions=true;
     else
         useQtFunctions=false;
@@ -1168,6 +1280,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         errmsg("Internal error");
         return;
     }
+    //cstring = String2Composite("A", &nss);
+
     cstring = String2Composite(theString, &nss);
     if (cstring == NULL) {
         return;
@@ -1183,8 +1297,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     bbox_ur = rpoint;
     for (iss = 0; iss < nss; iss++)
     {
-        CompositeString *cs = &cstring[iss];
-        //cout << "cs=#" << cs->s << "#font=" << cs->font << endl;
+    CompositeString *cs = &cstring[iss];
+    //cout << "WriteString in t1fonts: cs=#" << cs->s << "# font=" << cs->font << endl;
         /* Post-process the CS */
         if (cs->font == BAD_FONT_ID) {
             cs->font = def_font;
@@ -1199,19 +1313,29 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
             reverse_string(cs->s, cs->len);
         }
         tm_rotate(&cs->tm, Angle);
-
+        
         tm_scale(&cs->tm, charsize);
         cs->vshift *= charsize;
         cs->hshift *= charsize;
-
+        
         text_advancing = cs->advancing;
         gotomark = cs->gotomark;
         setmark = cs->setmark;
-        if (useQtFunctions==true)
-            glyph = GetQtGlyph(cs, page_dpv, dev.fontaa);
-        else
-            glyph = GetGlyphString(cs, page_dpv, dev.fontaa);
 
+        /*cout << "first values=";
+        for (int i=0;i<8;i++)
+        cout << (int)((unsigned char)(cs->s[i])) << " ";
+        cout << endl;*/
+
+        if (useQtFunctions==true)
+        {
+            glyph = GetQtGlyph(cs, page_dpv, dev.fontaa);
+        }
+        else
+        {
+            glyph = GetGlyphString(cs, page_dpv, dev.fontaa);
+            //cout << "noQt, dev.fontaa=" << dev.fontaa << endl;
+        }
         //cout << "s=#" << cs->s << "# asc=" << glyph->metrics.ascent << " dsc=" << glyph->metrics.descent << " lb=" << glyph->metrics.leftSideBearing << " rb=" <<  glyph->metrics.rightSideBearing << " ax=" << glyph->metrics.advanceX << " ay=" << glyph->metrics.advanceY << endl;
         //cout << "hs=" << cs->hshift << " vs=" << cs->vshift << " rot=" << rot << endl;
 
@@ -1229,7 +1353,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 
             vvpshift.x = cs->tm.cxy*cs->vshift/tm_size(&cs->tm);
             vvpshift.y = cs->tm.cyy*cs->vshift/tm_size(&cs->tm);
-
+            
             hvpshift.x = cs->tm.cxx*cs->hshift/tm_size(&cs->tm);
             hvpshift.y = cs->tm.cyx*cs->hshift/tm_size(&cs->tm);
 
@@ -1241,7 +1365,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
             }
             rpoint.x += hvpshift.x;
             rpoint.y += hvpshift.y;
-
+            
             cs->start = rpoint;
             cs->start.x += vvpshift.x;
             cs->start.y += vvpshift.y;
@@ -1256,7 +1380,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
             vptmp.y = cs->start.y + (double) glyph->metrics.ascent/page_dpv;
             bbox_ur.x = MAX2(bbox_ur.x, vptmp.x);
             bbox_ur.y = MAX2(bbox_ur.y, vptmp.y);
-
+            
             rpoint.x += (double) glyph->metrics.advanceX/page_dpv;
             rpoint.y += (double) glyph->metrics.advanceY/page_dpv;
 
@@ -1264,7 +1388,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
                 cs_marks[setmark].x = rpoint.x;
                 cs_marks[setmark].y = rpoint.y;
             }
-
+            
             cs->stop = rpoint;
             cs->stop.x += vvpshift.x;
             cs->stop.y += vvpshift.y;
@@ -1278,16 +1402,16 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     baseline_stop = rpoint;
     if (vjust == JUST_BLINE) {
         offset.x = baseline_start.x +
-                hfudge*(baseline_stop.x - baseline_start.x) - vp.x;
+                   hfudge*(baseline_stop.x - baseline_start.x) - vp.x;
         offset.y = baseline_start.y +
-                hfudge*(baseline_stop.y - baseline_start.y) - vp.y;
+                   hfudge*(baseline_stop.y - baseline_start.y) - vp.y;
     } else {
         offset.x = bbox_ll.x +
-                hfudge*(bbox_ur.x - bbox_ll.x) - vp.x;
+                   hfudge*(bbox_ur.x - bbox_ll.x) - vp.x;
         offset.y = bbox_ll.y +
-                vfudge*(bbox_ur.y - bbox_ll.y) - vp.y;
+                   vfudge*(bbox_ur.y - bbox_ll.y) - vp.y;
     }
-
+    
     /* justification corrections */
     for (iss = 0; iss < nss; iss++) {
         glyph = cstring[iss].glyph;
@@ -1307,55 +1431,64 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     bbox_ur.y -= offset.y;
     update_bboxes(bbox_ll);
     update_bboxes(bbox_ur);
+
     for (iss = 0; iss < nss; iss++)
     {
         CompositeString *cs = &cstring[iss];
-        //cout << "cs=#" << cs->s << "#len=" << cs->len << endl;
+        //cout << "Substrings: cs=#" << cs->s << "#len=" << cs->len << " ShiftCode=" << cs->qtCharShift << endl;
         glyph = cs->glyph;
         if (glyph == NULL && useQtFunctions==false)
         {
-            //cout << "Error: glyph=NULL" << endl;
+            cout << "Error: glyph=NULL" << endl;
             continue;
         }
-
+        
         pheight = glyph->metrics.ascent - glyph->metrics.descent;
         pwidth  = glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing;
 
         if ((pheight <= 0 || pwidth <= 0))// && useQtFunctions==false)
         {
-            //cout << "error, size below zero: h=" << pheight << " w=" << pwidth << " left=" << glyph->metrics.leftSideBearing << " right=" << glyph->metrics.rightSideBearing << endl;
+            cout << "error, size below zero: h=" << pheight << " w=" << pwidth << " left=" << glyph->metrics.leftSideBearing << " right=" << glyph->metrics.rightSideBearing << endl;
             continue;
         }
-
+        
         if (get_draw_mode() == TRUE)
         {
             /* No patterned texts yet */
             setpattern(1);
             setcolor(cs->color);
-
-#ifdef SKF_QtGrace
-            if (dev.devfonts == TRUE || curdevice==DEVICE_SVG || curdevice==DEVICE_PNG  || curdevice==DEVICE_PDF) { //2013-11-20 BZ2033 disabled set "use device fonts" to always true for PDF, PNG, and SVG. Pixmap not implmented for SVG.
-#else
-            if (dev.devfonts == TRUE) {
-#endif
+            //cout << "dev.devfonts=" << dev.devfonts << endl;
+            //cout << "useQtFunctions=" << useQtFunctions << endl;
+            //if (dev.devfonts == TRUE || useQtFunctions == true)/// I added 'useQtFunctions' to remove the necessity for devfonts
+            if (dev.devfonts == TRUE || curdevice==DEVICE_SVG || curdevice==DEVICE_PNG  || curdevice==DEVICE_PDF || (dev.devfonts == FALSE && useQtFunctions == true))
+            {
                 if (cs->advancing == TEXT_ADVANCING_RL) {
                     vptmp = cs->stop;
                 } else {
                     vptmp = cs->start;
                 }
-
-#ifdef SKF_QtGrace
-                if (devputtext == NULL) { //Before change curdevice == 0 (select file format = SCREEN). SCREEN position changed to pos 5 - Nimalendiran Kailasanathan 2013-10-09
-#else
-                if (devputtext == NULL || (curdevice==0 && useQtFonts==false)) {
-
-#endif
+                if (devputtext == NULL || (curdevice==DEVICE_SCREEN && useQtFonts==false)) {
                     errmsg("Device has no built-in fonts");
+                    //cout << "Device has no built-in fonts: curdev=" << curdevice << " useQtFont=" << useQtFonts << endl;
                 } else {
+                    /*if (cs->qtCharShift==1)
+                    {
+                        qtCharShift=945-97;//difference between alpha and a = difference between greek characters and latin characters
+                        //cout << "Shift1" << endl;
+                    }
+                    else if (cs->qtCharShift==2)
+                    {
+                        qtCharShift=128;//difference to 'upper' char set in ascii-table (50073-89)
+                        //cout << "Shift2" << endl;
+                    }
+                    else
+                    {
+                        cout << "No Shift" << endl;
+                    }*/
+                    qtCharShift=cs->qtCharShift;
                     (*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);
+                    qtCharShift=0;
                 }
-
-
             } else {//don't use device fonts --> use pixmaps instead
                 /* upper left corner of bitmap */
                 vptmp = cs->start;

@@ -1,27 +1,27 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- *
+ * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- *
+ * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2000 Grace Development Team
- *
+ * 
  * Maintained by Evgeny Stambulchik
- *
- *
+ * 
+ * 
  *                           All Rights Reserved
- *
+ * 
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- *
+ * 
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- *
+ * 
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -74,7 +74,7 @@
 /* #undef size_t */
 
 /* Define if you have the <unistd.h> header file.  */
-#define HAVE_UNISTD_H 1
+#define HAVE_UNISTD_H 0
 
 /* Define to one of _getb67, GETB67, getb67 for Cray-2 and Cray-YMP systems.
    This function is required for alloca.c support on those systems.  */
@@ -113,8 +113,13 @@
 /* Define if <time.h> and <sys/time.h> can be both included.  */
 #define TIME_WITH_SYS_TIME 1
 
+#ifdef _MSC_VER
+/*#include "rint.h"*/
+#undef HAVE_GETTIMEOFDAY
+#else
 /* Define if you have the gettimeofday function.  */
 #define HAVE_GETTIMEOFDAY 1
+#endif
 
 /* Define if you have the getcwd function.  */
 #define HAVE_GETCWD 1
@@ -181,7 +186,7 @@
 /* #undef REALLOC_IS_BUGGY */
 
 /* Define if you have the drand48 function.  */
-#define HAVE_DRAND48 1
+#define HAVE_DRAND48 0
 
 /* Define if your system supports locale.  */
 #define HAVE_SETLOCALE 1
@@ -325,19 +330,14 @@
 /* #undef HAVE_FFTW */
 
 /* Define if PNG library is available */
-
-#ifdef SKF_QtGrace
 #define HAVE_LIBPNG 0
-#else
-#define HAVE_LIBPNG 1
-#endif
-
+#undef HAVE_LIBPNG
 /* Define if JPEG library is available */
-#define HAVE_LIBJPEG 1
-
+#define HAVE_LIBJPEG 0
+#undef HAVE_LIBJPEG
 /* Define if PDFlib library is available */
-/* #undef HAVE_LIBPDF */
-
+#define HAVE_LIBPDF 0
+#undef HAVE_LIBPDF
 /* Define if you want to compile a Fortran wrapper for grace_np lib.  */
 #define WITH_F77_WRAPPER 1
 
@@ -374,7 +374,7 @@
 #if (defined(HAVE_MOTIF) && !defined(X_DISPLAY_MISSING))
 #  define MOTIF_GUI
 #else
-#  define NONE_GUI
+/*#  define NONE_GUI*/
 #endif
 
 /* Define if the print spooling command itself unlinks the temporary file */
@@ -387,12 +387,6 @@
 #  define DEBUG
 #else
 #  define NDEBUG
-#endif
-
-
-#ifdef _MSC_VER
-#include "rint.h"
-#undef HAVE_GETTIMEOFDAY
 #endif
 
 #endif /* __CONFIG_H */

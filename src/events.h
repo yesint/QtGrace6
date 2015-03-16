@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -131,12 +131,12 @@ int focus_clicked(int cg, VPoint vp, VPoint *avp);
 int legend_clicked(int gno, VPoint vp, view *bb);
 int timestamp_clicked(VPoint vp, view *bb);
 int axis_clicked(int gno, VPoint vp, int *axisno);
-int title_clicked(int gno, VPoint vp);
+int title_clicked(int gno, VPoint vp, int *lower);
 int find_insert_location(int gno, int setno, VPoint vp);
 int find_point(int gno, VPoint vp, int *setno, int *loc);
 void newworld(int gno, int axes, VPoint vp1, VPoint vp2);
 void push_and_zoom(void);
-int hideDialog();
+int hideDialog(void);
 
 /* action routines */
 void set_viewport_action(void);

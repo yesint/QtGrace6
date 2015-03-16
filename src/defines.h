@@ -1,33 +1,33 @@
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
- *
+ * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- *
+ * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2000 Grace Development Team
- *
+ * 
  * Maintained by Evgeny Stambulchik
- *
- * Modified by Andreas Winter 2008-2012
- *
+ * 
+ * Modified by Andreas Winter 2008-2015
+ * 
  *                           All Rights Reserved
- *
+ * 
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
- *
+ * 
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
- *
+ * 
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/*
+/* 
  *
  * constants and typedefs
  *
@@ -35,12 +35,8 @@
 #ifndef __DEFINES_H_
 #define __DEFINES_H_
 
-///#include <config.h>
 #include <stdio.h>
 #include <string.h>
-/*#include <iostream>
-
-using namespace std;*/
 
 /*
  * some constants
@@ -48,6 +44,7 @@ using namespace std;*/
  */
 
 #define MAX_HISTORY 20
+#define MAX_BIN_IMPORT_CHANNELS 32
 
 #ifdef WINDOWS_SYSTEM
 #define GRACE_HOME "C:\\"
@@ -64,22 +61,28 @@ using namespace std;*/
 #ifdef MAC_SYSTEM
 #define GRACE_HELPVIEWER "open /Applications/Safari.app \"%s\""
 #else
-#ifdef LINUX_SYSTEM
-#define GRACE_HELPVIEWER "mozilla -remote openURL\\\\(%s,new-window\\\\) >>/dev/null 2>&1 || mozilla %s"
-#else
-#define GRACE_HELPVIEWER "iexplore %s &"
-#endif
+    #ifdef LINUX_SYSTEM
+    #define GRACE_HELPVIEWER "mozilla -remote openURL\\\\(%s,new-window\\\\) >>/dev/null 2>&1 || mozilla %s"
+    #else
+    #define GRACE_HELPVIEWER "iexplore %s &"
+    #endif
 #endif
 //#define BI_VERSION_ID 50121
 //#define BI_VERSION "Grace-5.1.22"
 #define BI_GUI "Qt"
-#define BI_DATE "May 15th 2012"
+//"May 15th 2012"
+#define BI_DATE __DATE__
 ///#define BI_SYSTEM "LINUX"
 #define BI_T1LIB "T1"
-#define BI_CCOMPILER "gcc"
+
+#ifdef _MSC_VER
+#define BI_CCOMPILER "Visual C++"
+#else
+#define BI_CCOMPILER __VERSION__
+#endif
 
 /* max path length */
-#define GR_MAXPATHLEN 512
+#define GR_MAXPATHLEN 1024
 
 /* max length for strings */
 #define MAX_STRING_LENGTH 512
@@ -91,10 +94,10 @@ using namespace std;*/
 
 #define MAX_ZOOM_STACK 20       /* max stack depth for world stack */
 
-#define MAXPARM 10              /* max number of parameters for non-lin fit */
+#define MAXPARM 20              /* max number of parameters for non-lin fit */
 
 #define MAXFIT 12               /* max degree of polynomial+1 that can be
-    * fitted */
+                                 * fitted */
 
 
 /* number of extra objects of a given type to allocate if not enough */
@@ -105,6 +108,7 @@ using namespace std;*/
 #define MAX_PREC 10
 
 /* symbol types */
+
 #define SYM_NONE    0
 #define SYM_CIRCLE  1
 #define SYM_SQUARE  2
@@ -118,6 +122,10 @@ using namespace std;*/
 #define SYM_SPLAT  10
 #define SYM_CHAR   11
 
+#define CHAR_SHIFT_NONE 0
+#define CHAR_SHIFT_TO_SYMBOL 1
+#define CHAR_SHIFT_TO_UPPERSET 2
+
 /* max number of symbols defined */
 #define MAXSYM  12
 
@@ -129,7 +137,7 @@ using namespace std;*/
  */
 #define COORDINATES_XY      0       /* Cartesian coordinates */
 #define COORDINATES_POLAR   1       /* Polar coordinates */
-
+                                
 /*
  * types of axis scale mappings
  */
@@ -200,6 +208,12 @@ using namespace std;*/
 /* Axis label layout */
 #define LAYOUT_PARALLEL         0
 #define LAYOUT_PERPENDICULAR    1
+
+/* states for simple drawing on background */
+#define SIMPLE_DRAW_NONE 0
+#define SIMPLE_DRAW_CROSSHAIR 1
+#define SIMPLE_DRAW_LINE 2
+#define SIMPLE_DRAW_REGION 4
 
 /* Placement (axis labels, ticks, error bars */
 typedef enum {
@@ -396,6 +410,36 @@ typedef enum {
 #define RESTRICT_REG3   3
 #define RESTRICT_REG4   4
 
+/* features */
+#define FEATURE_Y_MIN 0
+#define FEATURE_Y_MAX 1
+#define FEATURE_Y_AVG 2
+#define FEATURE_Y_STD_DEV 3
+#define FEATURE_Y_MEDIAN 4
+#define FEATURE_X_MIN 5
+#define FEATURE_X_MAX 6
+#define FEATURE_X_AVG 7
+#define FEATURE_X_STD_DEV 8
+#define FEATURE_X_MEDIAN 9
+#define FEATURE_FREQUENCY 10
+#define FEATURE_PERIOD 11
+#define FEATURE_ZERO_CROSSING 12
+#define FEATURE_RISE_TIME 13
+#define FEATURE_FALL_TIME 14
+#define FEATURE_SLOPE 15
+#define FEATURE_Y_INTERCEPT 16
+#define FEATURE_SET_LENGTH 17
+#define FEATURE_HALF_MAX_WIDTH 18
+#define FEATURE_BARYCENTER_X 19
+#define FEATURE_BARYCENTER_Y 20
+#define FEATURE_X_OF_YMAX 21
+#define FEATURE_Y_OF_XMAX 22
+#define FEATURE_INTEGRAL 23
+#define FEATURE_VALUE_CROSSING 24
+#define FEATURE_VALUE_CROSSING2 25
+#define FEATURE_X_OF_YMIN 26
+#define FEATURE_Y_OF_XMIN 27
+
 /*
  * defaults
  */
@@ -413,7 +457,7 @@ typedef struct {
 typedef struct {
     int color;
     int pattern;
-    /*
+/*
  *     int transparency;
  */
 } Pen;
@@ -506,6 +550,7 @@ typedef struct {
 
 typedef struct {
     int active;
+    int path;//only for timestamp
     int loctype;
     int gno;
     double x;
@@ -614,14 +659,14 @@ typedef struct {
 
     double offsx, offsy;        /* offset of axes in viewport coords
                                    (attention: these
-                   are not x and y coordinates but
-                   perpendicular and parallel offsets */
+				   are not x and y coordinates but
+				   perpendicular and parallel offsets */
 
     int t_flag;                 /* toggle tickmark display */
     int t_autonum;              /* approximate default number of major ticks */
 
     int t_spec;                 /* special (user-defined) tickmarks/ticklabels, */
-    /* can be none/marks/both marks and labels */
+                                /* can be none/marks/both marks and labels */
 
     int t_round;                /* place major ticks at rounded positions */
 
@@ -633,7 +678,7 @@ typedef struct {
 
     int t_inout;                /* ticks inward, outward or both */
     PlacementType t_op;         /* ticks on opposite side */
-
+    
     tickprops props;
     tickprops mprops;
 
@@ -656,7 +701,7 @@ typedef struct {
 
     int tl_gaptype;             /* tick label placement auto or specified */
     VVector tl_gap;             /* tick label to tickmark distance
-                   (parallel and perpendicular to axis) */
+				   (parallel and perpendicular to axis) */
 
     int tl_font;                /* font to use for tick labels */
     double tl_charsize;         /* character size for tick labels */
@@ -688,6 +733,8 @@ typedef struct {
     double boxlinew;            /* legend frame line width */
     int boxlines;               /* legend frame line style */
     view bb;
+    int autoattach,autoattachG; /*if this is not 0 then the position is set to the be attached to a graph border*/
+    double xshift,yshift;       /* the shift of the legend box so that it meets the attachement */
 } legend;
 
 typedef struct {
@@ -724,6 +771,8 @@ typedef struct {
     char *formula;      /* fit function */
     int parnum;         /* # of fit parameters */
     double tolerance;   /* tolerance */
+    /*the following parameter is not saved in a file*/
+    int nsteps;          /* nr of iterations */
 } nonlopts;
 
 /* real time inputs */
@@ -733,7 +782,7 @@ typedef struct _Input_buffer {
     int           lineno; /* line number */
     int           zeros;  /* number of successive reads of zero byte */
     int           reopen; /* non-zero if we should close and reopen */
-    /* when other side is closed (mainly for fifos) */
+                          /* when other side is closed (mainly for fifos) */
     char         *name;   /* name of the input (filename or symbolic name) */
     int           size;   /* size of the buffer for already read lines */
     int           used;   /* number of bytes used in the buffer */
@@ -767,7 +816,7 @@ typedef struct { int value;
 
 typedef struct {
     int value;
-    char *label;
+    const char *label;
 } OptionItem;
 
 static OptionItem fmt_option_items[32] =
@@ -806,12 +855,71 @@ static OptionItem fmt_option_items[32] =
     {FORMAT_MMSSLAT,        "MM' SS.s\" (lat)"    }
 };
 
-static OptionItem as_option_items[4] =
+static OptionItem as_option_items[4] = 
 {
     {AUTOSCALE_NONE, "None"},
     {AUTOSCALE_X,    "X"},
     {AUTOSCALE_Y,    "Y"},
     {AUTOSCALE_XY,   "XY"}
 };
+
+struct DIAdem_Global_Header
+{
+char origin[128];
+char revision[128];
+char description[128];
+char comments[128];
+char person[128];
+char date[32];
+char time[32];
+char desc_comments[128];
+char time_format[128];
+double val_o_noval;
+char exch_high_low[32];
+};
+
+struct DIAdem_Channel_Header
+{
+char name[128];
+char comment[128];
+char unit[32];
+char ch_type[16];
+char file_name[512];
+int method;//0=BLOCK
+char da_type[16];
+char masking[32];
+int points;
+int d_pointer,offset,a_pointer;
+char a_separator[8];
+char dec_char[8];
+char exp_char[8];
+double start,step,minimum,maximum;
+char noval_key[32];
+char mono_key[32];
+double val_o_noval;
+char dat_display_key[32];
+char RV[6][64];
+int RI[6];
+};
+
+struct DIAdem_Header
+{
+int nr_of_channels;
+int nr_of_real_channels,implicit_channel;
+struct DIAdem_Global_Header global;
+struct DIAdem_Channel_Header * channels;
+};
+
+#ifdef __cplusplus
+#include <QString>
+struct LatexCommands
+{
+    char * la_com;
+    char font;
+    char * ch;
+    QString utf8;
+    unsigned short unicode;
+};
+#endif
 
 #endif /* __DEFINES_H_ */

@@ -233,7 +233,7 @@ void set_graph_plotarr(int gno, int i, plotarr *p);
 void set_graph_legend(int gno, legend *leg);
 void set_graph_legend_active(int gno, int flag);
 
-
+int create_new_graph(void);/*creates a new graph, sets it visible and returns the new graph-id (-1 if allocation failed)*/
 int nactive(int gno);
 
 #define is_graph_active(gno) is_valid_gno(gno)
@@ -256,6 +256,7 @@ int islogitx(int gno);
 int islogity(int gno);
 
 int number_of_graphs(void);
+int number_of_visible_graphs(void);
 int select_graph(int gno);
 
 int realloc_graphs(int n);

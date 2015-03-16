@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Andreas Winter                             *
+ *   Copyright (C) 2008-2015 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -82,12 +82,15 @@
 #define UNDO_TYPE_IMPORT_ASCII 119
 #define UNDO_TYPE_IMPORT_BLOCK_DATA 120
 #define UNDO_TYPE_COLOR_MAP_CHANGED 121
+#define UNDO_TYPE_SET_REGRESSION 122
+#define UNDO_TYPE_SET_FILTER 123
+#define UNDO_TYPE_IMPORT_SET_FROM_AGR 124
 //#define UNDO_TYPE_OBJECT_MOVED 14 //moved = modified
 //#define UNDO_GENERIC 14
 
 //the following markers are to specify copy- and reinstall-operations
 //complete: everything, including axes, data, settings and labels
-//appearance: only setttings (viewport, coordinates and so on) and labels
+//appearance: only settings (viewport, coordinates and so on) and labels
 //data: only data in sets and sets in graphs
 //axis: only the tickmarks on different axes
 #define UNDO_COMPLETE 0
@@ -103,7 +106,8 @@ using namespace std;
 struct all_fit_settings
 {
 int src_gno,dest_gno;
-int src_sets,dest_sets;
+int nr_sr_sets;
+int * src_sets,dest_sets;
 int nr_of_parameters;
 int iterations;
 int restrictions;
@@ -112,8 +116,8 @@ QString formula;
 QString Tolerance;
 QString weight_func;
 QString start,stop,nr;
-QString value[11],lower[11],upper[11];
-bool bound[11];
+QString value[MAXPARM+1],lower[MAXPARM+1],upper[MAXPARM+1];
+bool bound[MAXPARM+1];
 bool negated;
 };
 
@@ -173,9 +177,13 @@ void SetsDeleted(int len,int * gnos,int * snos,int what);
 void SetsCreated(int len,int * gnos,int * snos,int what);
 void SetImported(int gno,int setno,char * filename,int cursource,int load,int autoscale);
 void SetsImported(int len,int * gnos,int * snos,int files,char ** filename,int cursource,int load,int autoscale);
+void SetsImportedFromAgr(int len,int * snos,struct agr_file_info afi,int autoscale);
 void SetImportBlockData(int gno, int setno,char * filename,int source, int nc, int *coli, int scol,int load,int autoscale);
 void SetNewSetNo(int setno);
 void SetImportBinaryData(int gno,int setno,char * filename,struct importSettings * set);
+
+void SetRegression(int n_sets,int * gnos,int * snos,int n_n_sets,int * n_gnos, int * n_snos, int ideg, int iresid, int rno, int invr,double start,double stop,int points,int rx,char * formula);
+void SetFilter(int o_n_sets,int * o_gnos,int * s_nos,int n_n_sets,int * n_gnos, int * n_setnos,int type,int realization,double * limits,int * orders,char * x_formula,double ripple,int absolute,int debug,int point_extension,int oversampling,int rno,int invr);
 
 void GraphsDeleted(int len,int * gnos,int what);
 void GraphsCreated(int len,int * gnos,int what);

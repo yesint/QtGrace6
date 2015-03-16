@@ -21,7 +21,7 @@
  *                 -
  *                | |
  *                |                   2
- * E(phi_\m)  =    |    sqrt( 1 - m sin t ) dt
+ * E(phi_\m)  =   |    sqrt( 1 - m sin t ) dt
  *                |
  *              | |    
  *               -

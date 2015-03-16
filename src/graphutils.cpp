@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -38,10 +38,6 @@
 
 #include <cstdio>
 
-#ifdef _MSC_VER
-#include "rint.h"
-#endif
-
 #include "globals.h"
 #include "utils.h"
 #include "draw.h"
@@ -49,9 +45,13 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "noxprotos.h"
+#include <iostream>
+#include <allWidgets.h>
 
+using namespace std;
 
-
+extern char print_file[];
+extern frmQuestionDialog * FormQuestion;
 
 static void auto_ticks(int gno, int axis);
 
@@ -165,13 +165,17 @@ char *get_format_types(int f)
     return s;
 }
 
-
 int wipeout(void)
 {
-    if (!noask && is_dirtystate()) {
-        if (!yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
+    if (!noask && is_dirtystate())
+    {
+        FormQuestion->init(QObject::tr("Abandon unsaved changes?"),QObject::tr("Close Project"));
+        int ret=FormQuestion->exec();
+        if (ret==0)//No
             return 1;
-        }
+        /*if (!yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
+            return 1;
+        }*/
     }
     kill_all_graphs();
     do_clear_lines();
@@ -433,7 +437,7 @@ static void auto_ticks(int gno, int axis)
 	t->tmajor = exp(d)/(1.0 + exp(d));
     } 
     else {
-    d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
+	d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
 	t->tmajor = d;
     }
 
@@ -445,14 +449,13 @@ static void auto_ticks(int gno, int axis)
             t->nminor = 8;
         }
     }
-    
+//cout << "d=" << d << " tmpmax=" << tmpmax << " tmpmin=" << tmpmin << " range=" << range << " autonum=" << t->t_autonum << endl;
     set_dirtystate();
 }
 
 /*
  * nicenum: find a "nice" number approximately equal to x
  */
-
 static double nicenum(double x, int nrange, int round)
 {
     int xsign;
@@ -1072,3 +1075,42 @@ int overlay_graphs(int gsec, int gpri, int type)
 
     return RETURN_SUCCESS;
 }
+
+//get the position (nvx,nvy) in viewport-coordinates needed to align the legendbox from the graph from_gno to the attachement-axis of graph to_gno
+void position_leg_box(int from_gno,int to_gno,int attachement,double * nvx,double * nvy)
+{
+view tov;
+view legbb;
+legend gr_l;
+get_graph_legend(from_gno, &gr_l);
+legbb=gr_l.bb;
+get_graph_viewport(to_gno,&tov);
+*nvx=legbb.xv1;//initialize with current position
+*nvy=legbb.yv1;
+if (attachement == G_LB_ATTACH_NONE)//nothing to do here --> return the usual coordinates
+{
+return;
+}
+else
+{
+    //horizontal
+    if (attachement & G_LB_ATTACH_LEFT)
+    {
+    *nvx=tov.xv1;
+    }
+    else if (attachement & G_LB_ATTACH_RIGHT)
+    {
+    *nvx=tov.xv2-fabs(legbb.xv2-legbb.xv1);
+    }
+    //vertical
+    if (attachement & G_LB_ATTACH_TOP)
+    {
+    *nvy=tov.yv2;
+    }
+    else if (attachement & G_LB_ATTACH_BOTTOM)
+    {
+    *nvy=tov.yv1+fabs(legbb.yv2-legbb.yv1);
+    }
+}
+}
+

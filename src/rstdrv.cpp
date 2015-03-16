@@ -8,7 +8,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  *
  *                           All Rights Reserved
  *
@@ -45,11 +45,9 @@
 #include "patterns.h"
 #include "rstdrv.h"
 #include "noxprotos.h"
-
-#ifdef SKF_QtGrace
 #include "svgdrv.h"
-#endif
 #include "gd.h"
+#include "globals.h"
 
 #ifdef HAVE_LIBJPEG
 #  define JPEG_INTERNAL_OPTIONS
@@ -64,13 +62,9 @@
 #  include "motifinc.h"
 #endif*/
 
-
-#include "rint.h"
-
 static void rstImagePnm(gdImagePtr ihandle, FILE *prstream);
 
 extern FILE *prstream;
-extern int RotationAngle;
 extern VPoint CenterOfMass(int n,VPoint *p);
 
 /* Declare the image */
@@ -114,12 +108,7 @@ static Device_entry dev_pnm = {DEVICE_FILE,
                                pnm_op_parser,
                                pnm_gui_setup,
                                "pnm",
-
-                               #ifdef SKF_QtGrace
-                               TRUE,
-                               #else
                                FALSE,
-                               #endif
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL
@@ -139,10 +128,9 @@ static Device_entry dev_jpg = {DEVICE_FILE,
                               };
 #endif
 
-#ifdef SKF_QtGrace
 static Device_entry dev_png = {
     DEVICE_FILE,
-    "PNG",
+    "HD-PNG",
     svginitgraphics,
     NULL,
     NULL,
@@ -153,8 +141,7 @@ static Device_entry dev_png = {
     NULL
 };
 
-#else
-#ifdef HAVE_LIBPNG
+/*#ifdef HAVE_LIBPNG
 static Device_entry dev_png = {DEVICE_FILE,
                                "PNG",
                                pnginitgraphics,
@@ -166,10 +153,7 @@ static Device_entry dev_png = {DEVICE_FILE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL
                               };
-#endif
-
-#endif
-
+#endif*/
 
 int register_pnm_drv(void)
 {
@@ -183,20 +167,17 @@ int register_jpg_drv(void)
 }
 #endif
 
-#ifdef SKF_QtGrace
 int register_high_png_drv(void)
 {
     return register_device(dev_png);
 }
-#else
-#ifdef HAVE_LIBPNG
+
+/*#ifdef HAVE_LIBPNG
 int register_png_drv(void)
 {
     return register_device(dev_png);
 }
-#endif
-
-#endif
+#endif*/
 
 static void rst_updatecmap(void)
 {
@@ -446,7 +427,7 @@ void rst_drawpolyline(VPoint *vps, int n, int mode)
         for (i = 0; i < n - 1; i++) {
             gdImageLine(ihandle, gdps[i].x,     gdps[i].y,
                         gdps[i + 1].x, gdps[i + 1].y,
-                    rst_drawbrush);
+                        rst_drawbrush);
         }
     }
     

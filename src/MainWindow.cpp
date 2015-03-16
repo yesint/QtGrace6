@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Andreas Winter                             *
+ *   Copyright (C) 2008-2015 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,26 +31,30 @@
 #include "undo_module.h"
 #include "device.h"
 
-#include <QFile>
-#include <QMessageBox>
-#include <QDesktopWidget>
-#include <QSettings>
+#ifdef WINDOWS_SYSTEM
+#define WIN_SIZE_CORR 1
+#endif
 
 using namespace std;
 
 extern frmSpreadSheet2 * FormTestSpreadSheet;
 
 QDateTime pipe_change_time;
-
-extern QFont stdFont;
 extern graph *g;
 extern bool useQPrinter;
-extern double GeneralPageZoomFactor;
-extern long orig_page_w,orig_page_h;
+extern bool use_print_command;//to tell the programm whether to use the native dialog (false) or a print command (like lpr -> true)
+extern bool use_new_icons;
+extern double GeneralPageZoomFactor;//only used for the screen-display
+//extern long orig_page_w,orig_page_h;
 extern QPrinter * stdPrinter;
 extern int stdOutputFormat;
-extern bool printing_in_file;
+extern int border_percent;
+int lastPrintDevice=0;//stores the number of the printing device the user selected (used when switching between print-setup and page-setup)
+extern bool printing_in_file;//used to tell the driver(s) how to handle focus-flags and transperancy
+extern int print_target;//where to print to (how to initialize the x11-driver)
 extern int default_Print_Device;
+extern unsigned int unicode_greek_shift;
+//extern bool use_new_print_dialog;
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
 extern frmDrawObjects * FormDrawObjects;
@@ -62,16 +66,11 @@ extern frmPlotAppearance * FormPlotAppearance;
 extern frmLocatorProps * FormLocatorProps;
 extern frmAxisProp * FormAxisProperties;
 extern frmPointExplorer * FormPointExplorer;
-#ifdef SKF_QtGrace
-extern frmFontSettings * FormFontSettings;
-#endif
 extern frmNonlinCurveFit * FormNonlinCurveFit;
 extern frmInterpolation * FormInterpolation;
 extern frmSetOp * FormSetOperations;
 extern frmCommands * FormCommands;
 extern frmDeviceSetup * FormDeviceSetup;
-extern frmDeviceSetup * FormDeviceSetup2;
-extern frmPreferences * FormPreferences;
 extern frmArrangeGraphs * FormArrangeGraphs;
 extern frmOverlayGraphs * FormOverlayGraphs;
 extern frmAutoscaleGraphs * FormAutoScaleGraphs;
@@ -93,12 +92,12 @@ extern frmTransform * FormPruneData;
 extern frmTransform * FormSamplePoints;
 extern frmTransform * FormGeometricTransform;
 extern frmHotLinks * FormHotLinks;
+extern frmMasterRegionOperator * FormRegionMaster;
 extern frmRegionStatus * FormRegionStatus;
 extern frmRegions * FormReportRegion;
 extern frmRegions * FormClearRegion;
 extern frmRegions * FormDefineRegion;
 extern frmExplorer * FormExplorer;
-extern frmColorManagement * FormColManage;
 extern frmRealTimeInputManager * FormRTIManage;
 
 extern frmNetCDF * FormNetCDF;
@@ -112,6 +111,8 @@ extern frmIOForm * FormWriteParameters;
 extern frmIOForm * FormReadBinary;
 extern frmIOForm * FormWriteBinary;
 extern frmCSVImporter * FormCSVImport;
+extern frmProgressWin * FormProgress;
+extern frmQuestionDialog * FormQuestion;
 
 extern frmBinaryFormatInput * FormBinaryImportFilter;
 
@@ -119,7 +120,11 @@ extern frmFontTool * FormFontTool;
 extern frmAbout * FormAbout;
 extern frmUndoList * FormUndoList;
 
-extern frmExtraPreferences * ExtraPreferences;
+extern frm_Preferences * Form_Preferences;
+//extern frmColorManagement * FormColManage;
+//extern frmPreferences * FormPreferences;
+//extern frmExtraPreferences * ExtraPreferences;
+
 extern bool showhideworkaround;
 extern bool immediateUpdate;
 extern bool updateRunning;
@@ -130,8 +135,6 @@ extern char qt_grace_exe_dir[1024];
 extern int inwin;
 extern int monomode;
 extern int cursortype;
-extern int win_w;
-extern int win_h;
 extern int anchor_x;
 extern int anchor_y;
 extern QRect ShiftRect;
@@ -178,10 +181,15 @@ extern int allocated_colors;
 extern QIcon ** ColorIcons;
 extern QPixmap ** ColorPixmaps;
 extern QString ** ColorNames;
-extern QIcon * LineIcons[MAXLINESTYLES];
+/*extern QIcon * LineIcons[MAXLINESTYLES];
 extern QPixmap * LinePixmaps[MAXLINESTYLES];
-
-extern QVector<qreal> * PenDashPattern[MAXLINESTYLES];
+extern QVector<qreal> * PenDashPattern[MAXLINESTYLES];*/
+extern int nr_of_current_linestyles;
+extern int * lenghts_of_linestyle_patterns;
+extern char ** current_linestyle_patterns;
+extern QIcon ** LineIcons;
+extern QPixmap ** LinePixmaps;
+extern QVector<qreal> ** PenDashPattern;
 
 extern QCursor * wait_cursor;
 extern QCursor * line_cursor;
@@ -192,7 +200,7 @@ extern QCursor * kill_cursor;
 extern int cur_cursor;
 
 extern int action_flag;
-
+extern char print_file[];
 
 extern int max_history;
 extern int current_history;
@@ -213,9 +221,17 @@ extern void HelpCB(char *data);
 extern void get_tracking_props(int *setno, int *move_dir, int *add_at);
 extern int graph_zoom(int type,int nr_of_graphs,int * graph_nrs);
 extern int graph_scroll(int type,int nr_of_graphs,int * graph_nrs);
+extern QPoint VPoint2XPoint(VPoint vp);
+extern bool openNativePrinter(int dev);
 
-extern void copy_LaTeX_to_Grace(void);
-extern void copy_Grace_to_LaTeX(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern void prepare_strings_for_saving(void);
+extern void resume_strings_after_load_or_save(void);
+#ifdef __cplusplus
+}
+#endif
 
 extern void GeneralPaste(const QMimeData * mimeData);
 extern void update_default_props(void);
@@ -226,8 +242,6 @@ extern void write_settings(void);
 extern Device_entry *device_table;
 
 extern QString get_filename_with_extension(int device);
-
-
 
 void init_Patterns(void)
 {
@@ -255,38 +269,17 @@ void init_Patterns(void)
 }
 
 MainWindow::MainWindow( QWidget *parent):QWidget( parent )
-  #ifdef SKF_QtGrace
-  ,SocketConnection(NULL)
-  ,originalSystemFont(NULL)
-  ,isDeleteExportDialogue(true)
-  ,newFileName(true)
-
-  #endif
-
 {
-
     QPixmap HelpPixmap;
 
-#ifndef SKF_QtGrace
-    setFont(stdFont);
-#endif
+    SocketConnection=NULL;
 
+/// setFont(*stdFont);
 
-    setWindowTitle(tr("qtGrace: untitled"));
+    setWindowTitle(tr("QtGrace: untitled"));
 
-#ifdef SKF_QtGrace
-    //2013-07-03 changed main window size to - Nimal Kailasanathan
-    windowWidth=1060;
-    windowHeight=800;
-
-    //Save default system font
-    originalSystemFont=new QFont(QApplication::font());
-    //Read font settings for .ini file
-    ReadFontConfiguration();
-#else
     windowWidth=872;
     windowHeight=670;
-#endif
 
     helpMapper=new QSignalMapper();
     rtiTimer=new QTimer(this);
@@ -314,26 +307,18 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuFile->addAction(actRevert);
     mnuHistory=new QMenu(tr("Recently opened files"),this);
     mnuHistory->setTearOffEnabled(TRUE);
-    for (int i=0;i<MAX_HISTORY;i++)
+        for (int i=0;i<MAX_HISTORY;i++)
         mnuHistory->addAction(actHistory[i]);
     mnuHistory->addSeparator();
     mnuHistory->addAction(actClearHistory);
     mnuFile->addMenu(mnuHistory);
-
-#ifdef SKF_QtGrace
-    //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
     mnuFile->addSeparator();
-    mnuFile->addAction(actExportToFile);
-#endif
-    mnuFile->addSeparator();
-#ifdef SKF_QtGrace
-#else
-
     mnuFile->addAction(actPrintSetup);
-#endif
-
+    mnuFile->addAction(actPrintToFile);
     mnuFile->addAction(actPrint);
+#ifndef MAC_SYSTEM
     mnuFile->addSeparator();
+#endif
     mnuFile->addAction(actExit);
 
     //The Edit-Menu and its entries
@@ -357,6 +342,8 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuRegions->addAction(actRegionsStatus);
     mnuRegions->addAction(actRegionsDefine);
     mnuRegions->addAction(actRegionsClear);
+    mnuRegions->addSeparator();
+    mnuRegions->addAction(actRegionMaster);
     mnuRegions->addSeparator();
     mnuRegions->addAction(actRegionsReportOn);
     mnuEdit->addMenu(mnuRegions);
@@ -415,7 +402,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuData->addMenu(mnuImport);
     mnuData->addMenu(mnuExport);
 
-    //The Plot-Menu and its entries
+    //The Plo-Menu and its entries
     mnuPlot	=new QMenu(tr("&Plot"), this );
     mnuPlot->setTearOffEnabled(TRUE);
     mnuPlot->addAction(actPlotAppearance);
@@ -433,12 +420,6 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuView->addAction(actShowStatusBar);
     mnuView->addAction(actShowToolBar);
     mnuView->addSeparator();
-
-#ifdef SKF_QtGrace
-    mnuView->addAction(actFontSize);
-    mnuView->addSeparator();
-#endif
-
     mnuView->addAction(actPageSetup);
     mnuView->addSeparator();
     mnuView->addAction(actRedraw);
@@ -453,23 +434,15 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuWindow->addAction(actDrawingObjects);
     mnuWindow->addAction(actFontTool);
     mnuWindow->addAction(actConsole);
-    mnuWindow->addAction(actColManager);
+    //mnuWindow->addAction(actColManager);
     mnuWindow->addAction(actRealTimeInput);
 
-#ifdef SKF_QtGrace
-    //The Options-Menu and its entries
-    mnuOptions=new QMenu(tr("&Options"),  this );
-    mnuOptions->setTearOffEnabled(TRUE);
-
-    mnuOptions->addAction(actConfigureFont);
-    mnuOptions->addAction(actResetToSystemFont);
-#endif
     //The Help-Menu and its entries
     mnuHelp	=new QMenu(tr("&Help"),  this );
     mnuHelp->setTearOffEnabled(TRUE);
     mnuExample=new QMenu(tr("&Examples"), this );
     mnuExample->setTearOffEnabled(TRUE);
-    for (int i=0;i<nr_of_Example_Menues;i++)
+        for (int i=0;i<nr_of_Example_Menues;i++)
         mnuExample->addMenu(example_menues[i]);
     connect(helpMapper, SIGNAL(mapped(int)),this, SLOT(HelpOpenExample(int)));
 
@@ -478,6 +451,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuHelp->addAction(actHelpTutorial);
     mnuHelp->addAction(actHelpFAQ);
     mnuHelp->addAction(actHelpChanges);
+    mnuHelp->addAction(actHelpQtGrace);
     mnuHelp->addSeparator();
     mnuHelp->addMenu(mnuExample);
     mnuHelp->addSeparator();
@@ -493,9 +467,6 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     menuBar->addMenu( mnuView );
     menuBar->addMenu( mnuWindow );
     menuBar->addSeparator();
-#ifdef SKF_QtGrace
-    menuBar->addMenu( mnuOptions );
-#endif
     menuBar->addMenu( mnuHelp );
 
     stdBarHeight=menuBar->height()-7;
@@ -526,69 +497,56 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 
     cmdDraw=new QPushButton(tr("Draw"),toolBar1);
     cmdDraw->setToolTip(tr("Redraw project"));
+#ifdef WINDOWS_SYSTEM
+    cmdDraw->setGeometry(2+WIN_SIZE_CORR,4,64+WIN_SIZE_CORR,stdHeight1);
+#else
     cmdDraw->setGeometry(2,4,64,stdHeight1);
+#endif
     connect(cmdDraw, SIGNAL(clicked()), this, SLOT(doDraw()));
-    //convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
-    QString icondir=grace_path("fonts/icons");
-    icondir+="/";
-    QString iconfile=icondir+"zoom.png";
-    if(!QFile::exists(iconfile)){
-        cout << "Cannot open icon  file " << iconfile.toStdString() <<endl;
-    }
-
-    QIcon tmp=QIcon(iconfile);
-    if(tmp.isNull()){
-        cout << "Failed to load icon " <<iconfile.toStdString() <<endl;
-        cout << ("Check your Qt plugin installation!")<<endl;
-    }
-
-
-    cmdZoom=new QPushButton(QIcon(iconfile),"",toolBar1);
-
-
-
+    convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
+    cmdZoom=new QPushButton(HelpPixmap,"",toolBar1);
     cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle"));
     cmdZoom->setGeometry(cmdDraw->x()+stdDistance2,cmdDraw->y()+cmdDraw->height()+6,stdWidth2,stdHeight2);
     connect(cmdZoom, SIGNAL(clicked()), this, SLOT(doZoom()));
-    //convertBitmapToPixmap(autoBitMap,&HelpPixmap);
-    cmdAutoScale=new QPushButton(QIcon(icondir+"autoscale.png"),"",toolBar1);
+    convertBitmapToPixmap(autoBitMap,&HelpPixmap);
+    cmdAutoScale=new QPushButton(HelpPixmap,"",toolBar1);
     cmdAutoScale->setToolTip(tr("Autoscale graph(s) on X and Y axis"));
     cmdAutoScale->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdZoom->y(),stdWidth2,stdHeight2);
     connect(cmdAutoScale, SIGNAL(clicked()), this, SLOT(doAutoScale()));
-    //convertBitmapToPixmap(expandBitMap,&HelpPixmap);
-    cmdZz=new QPushButton(QIcon(icondir+"zoomOut.png"),"",toolBar1);
+    convertBitmapToPixmap(expandBitMap,&HelpPixmap);
+    cmdZz=new QPushButton(HelpPixmap,"",toolBar1);
     cmdZz->setToolTip(tr("Zoom out"));
     cmdZz->setGeometry(cmdDraw->x()+stdDistance2,cmdZoom->y()+cmdZoom->height()+stdDistance1,stdWidth2,stdHeight2);
     connect(cmdZz, SIGNAL(clicked()), this, SLOT(doZz()));
-    //convertBitmapToPixmap(shrinkBitMap,&HelpPixmap);
-    cmdzz=new QPushButton(QIcon(icondir+"zoomIn.png"),"",toolBar1);
+    convertBitmapToPixmap(shrinkBitMap,&HelpPixmap);
+    cmdzz=new QPushButton(HelpPixmap,"",toolBar1);
     cmdzz->setToolTip(tr("Zoom in"));
     cmdzz->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdZz->y(),stdWidth2,stdHeight2);
     connect(cmdzz, SIGNAL(clicked()), this, SLOT(dozz()));
-    //convertBitmapToPixmap(leftBitMap,&HelpPixmap);
-    cmdLeft=new QPushButton(QIcon(icondir+"goLeft.png"),"",toolBar1);
+    convertBitmapToPixmap(leftBitMap,&HelpPixmap);
+    cmdLeft=new QPushButton(HelpPixmap,"",toolBar1);
     cmdLeft->setToolTip(tr("Scroll graph(s) left"));
     cmdLeft->setGeometry(cmdDraw->x()+stdDistance2,cmdZz->y()+cmdZz->height()+stdDistance1,stdWidth2,stdHeight2);
     connect(cmdLeft, SIGNAL(clicked()), this, SLOT(doLeft()));
-    //convertBitmapToPixmap(rightBitMap,&HelpPixmap);
-    cmdRight=new QPushButton(QIcon(icondir+"goRight.png"),"",toolBar1);
+    convertBitmapToPixmap(rightBitMap,&HelpPixmap);
+    cmdRight=new QPushButton(HelpPixmap,"",toolBar1);
     cmdRight->setToolTip(tr("Scroll graph(s) right"));
     cmdRight->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdLeft->y(),stdWidth2,stdHeight2);
     connect(cmdRight, SIGNAL(clicked()), this, SLOT(doRight()));
-    //convertBitmapToPixmap(upBitMap,&HelpPixmap);
-    cmdUp=new QPushButton(QIcon(icondir+"goUp.png"),"",toolBar1);
+    convertBitmapToPixmap(upBitMap,&HelpPixmap);
+    cmdUp=new QPushButton(HelpPixmap,"",toolBar1);
     cmdUp->setToolTip(tr("Scroll graph(s) up"));
     cmdUp->setGeometry(cmdDraw->x()+stdDistance2,cmdLeft->y()+cmdLeft->height()+stdDistance1,stdWidth2,stdHeight2);
     connect(cmdUp, SIGNAL(clicked()), this, SLOT(doUp()));
-    //convertBitmapToPixmap(downBitMap,&HelpPixmap);
-    cmdDown=new QPushButton(QIcon(icondir+"goDown.png"),"",toolBar1);
+    convertBitmapToPixmap(downBitMap,&HelpPixmap);
+    cmdDown=new QPushButton(HelpPixmap,"",toolBar1);
     cmdDown->setToolTip(tr("Scroll graph(s) down"));
     cmdDown->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdUp->y(),stdWidth2,stdHeight2);
     connect(cmdDown, SIGNAL(clicked()), this, SLOT(doDown()));
     /*QtGrace-addition*/
     //chkSyncZoom=new QCheckBox(tr("Sync."),toolBar1);
     //chkSyncZoom->setGeometry(cmdDraw->x()+stdDistance2,cmdUp->y()+cmdUp->height()+stdDistance1,64,stdHeight1);
-    QFont helpFont1(stdFont);
+    QFont helpFont1(qApp->font());
     helpFont1.setPixelSize(12);
     lstGraphs=new uniList(GRAPHLIST,toolBar1);
     lstGraphs->setToolTip(tr("Select graph(s) for zoom operations"));
@@ -598,7 +556,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     lstGraphs->setBehavior(true,true,true);
     lstGraphs->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     lstGraphs->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    lstGraphs->setGeometry(cmdDraw->x()+stdDistance2-4,cmdUp->y()+cmdUp->height()+stdDistance1,60,68);
+    lstGraphs->setGeometry(cmdDraw->x()+stdDistance2-4,cmdUp->y()+cmdUp->height()+stdDistance1,62,68);//60x68
     connect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
     /*End: QtGrace-addition*/
 
@@ -614,7 +572,11 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 
     cmdAutoT=new QPushButton("AutoT",toolBar2);
     cmdAutoT->setToolTip(tr("Automatically set the tick spacing"));
+#ifdef WINDOWS_SYSTEM
+    cmdAutoT->setGeometry(2+WIN_SIZE_CORR,2+2*WIN_SIZE_CORR,64+WIN_SIZE_CORR,stdHeight1);
+#else
     cmdAutoT->setGeometry(2,2,64,stdHeight1);
+#endif
     connect(cmdAutoT, SIGNAL(clicked()), this, SLOT(doAutoT()));
     cmdAutoO=new QPushButton("AutoO",toolBar2);
     cmdAutoO->setToolTip(tr("Autoscale on nearest set"));
@@ -653,18 +615,32 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     cmdCy->setGeometry(cmdZY->x(),cmdPo->y(),cmdZX->width(),cmdZX->height());
     connect(cmdCy, SIGNAL(clicked()), this, SLOT(doCy()));
     lblSD=new QLabel(" SD:1",toolBar2);
+    lblSD->setToolTip(tr("Viewport stack depth"));
     lblSD->setGeometry(cmdDraw->x(),cmdCy->y()+cmdCy->height()+stdDistance1,cmdDraw->width(),cmdDraw->height()-6);
     lblCW=new QLabel(" CW:0",toolBar2);
+    lblCW->setToolTip(tr("Current stack position"));
     lblCW->setGeometry(lblSD->x(),lblSD->y()+lblSD->height(),lblSD->width(),lblSD->height());
     /*QtGrace-addition*/
     sldPageZoom=new stdSlider(toolBar2,QString(""),-100,100,0.01,SLIDE_LOGARITHMIC);
     sldPageZoom->setToolTip(tr("Page zoom"));
-    sldPageZoom->setGeometry(cmdAutoO->x(),lblCW->y()+lblCW->height()+14,cmdAutoO->width(),cmdAutoO->height()+5);
+    sldPageZoom->setGeometry(cmdAutoO->x(),lblCW->y()+lblCW->height()+12,cmdAutoO->width(),cmdAutoO->height()+5);
     connect(sldPageZoom,SIGNAL(valueChanged(int)),this,SLOT(doPageZoom(int)));
-    cmdFitPage=new QPushButton("Fit",toolBar2);
+    cmdFitPage=new QPushButton(tr("Fit"),toolBar2);
     cmdFitPage->setToolTip(tr("Fit page size to window size"));
-    cmdFitPage->setGeometry(cmdAutoO->x(),sldPageZoom->y()+cmdAutoO->height()+5,cmdAutoO->width(),cmdAutoO->height());
+    cmdFitPage->setGeometry(cmdAutoO->x(),sldPageZoom->y()+cmdAutoO->height()+10,cmdAutoO->width(),cmdAutoO->height());
     connect(cmdFitPage, SIGNAL(clicked()), this, SLOT(doFitPage()));
+
+    cmdExport=new QPushButton(tr("Export"),toolBar2);
+    cmdExport->setToolTip(tr("Export to file"));
+    cmdExport->setGeometry(0,0,cmdAutoT->width(),cmdAutoT->height());
+    connect(cmdExport, SIGNAL(clicked()), this, SLOT(PrintToFile()));
+    cmdPrint=new QPushButton(tr("Print"),toolBar2);
+    cmdPrint->setToolTip(tr("Print on physical printer"));
+    cmdPrint->setGeometry(0,0,cmdAutoT->width(),cmdAutoT->height());
+    connect(cmdPrint, SIGNAL(clicked()), this, SLOT(Print()));
+    cmdExport->hide();
+    cmdPrint->hide();
+
     /*End: QtGrace-addition*/
     cmdExit=new QPushButton(tr("Exit"),toolBar2);
     cmdExit->setToolTip(tr("Close QtGrace"));
@@ -682,14 +658,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     //The main drawing area
     mainArea=new MainArea(this);
     mainArea->setGeometry(toolBar1->width(),stdBarHeight+statLocBar->height(),windowWidth-toolBar1->width(),windowHeight-statusBar->height()-stdBarHeight-statLocBar->height());
-#ifdef SKF_QtGrace
-    QPalette Pal(palette());
-    // set white background
-    Pal.setColor(QPalette::Background, Qt::white);
-    mainArea->setAutoFillBackground(true);
-    mainArea->setPalette(Pal);
     mainArea->show();
-#endif
 
     mainGrid=new QGridLayout();
     mainGrid->setMargin(2);
@@ -723,12 +692,11 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mainGrid->setRowMinimumHeight(0,0);
 #endif
     setLayout(mainGrid);
-
+    if (use_new_icons==true) redisplayIcons();
 }
 
 MainWindow::~MainWindow()
 {
-
     for (int i=0;i<MAXPATTERNS;i++)
         delete patterns[i];
 
@@ -762,7 +730,7 @@ MainWindow::~MainWindow()
     delete Qt_m_vh_rl_bt_bits;
     delete Qt_m_vh_rl_tb_bits;
 
-    for (int i=0;i<MAXLINESTYLES;i++)
+    for (int i=0;i<nr_of_current_linestyles;i++)
     {
         delete PenDashPattern[i];
         delete LineIcons[i];
@@ -781,6 +749,46 @@ MainWindow::~MainWindow()
     delete move_cursor;
     delete text_cursor;
     delete kill_cursor;
+    if (SocketConnection) delete SocketConnection;
+}
+
+void MainWindow::redisplayIcons(void)
+{
+//cout << "redisplay: new=" << use_new_icons << endl;
+if (use_new_icons==false)
+{
+QPixmap HelpPixmap;
+convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
+cmdZoom->setIcon(QIcon(HelpPixmap));
+convertBitmapToPixmap(autoBitMap,&HelpPixmap);
+cmdAutoScale->setIcon(QIcon(HelpPixmap));
+convertBitmapToPixmap(expandBitMap,&HelpPixmap);
+cmdZz->setIcon(QIcon(HelpPixmap));
+convertBitmapToPixmap(shrinkBitMap,&HelpPixmap);
+cmdzz->setIcon(QIcon(HelpPixmap));
+convertBitmapToPixmap(leftBitMap,&HelpPixmap);
+cmdLeft->setIcon(QIcon(HelpPixmap));
+convertBitmapToPixmap(rightBitMap,&HelpPixmap);
+cmdRight->setIcon(QIcon(HelpPixmap));
+convertBitmapToPixmap(upBitMap,&HelpPixmap);
+cmdUp->setIcon(QIcon(HelpPixmap));
+convertBitmapToPixmap(downBitMap,&HelpPixmap);
+cmdDown->setIcon(QIcon(HelpPixmap));
+}
+else
+{
+QString icondir=grace_path("fonts/icons");
+icondir+="/";
+//cout << "iconfile=" << icondir.toLatin1().constData() << endl;
+cmdZoom->setIcon(QIcon(icondir+"zoom.png"));
+cmdAutoScale->setIcon(QIcon(icondir+"autoscale.png"));
+cmdZz->setIcon(QIcon(icondir+"zoomOut.png"));
+cmdzz->setIcon(QIcon(icondir+"zoomIn.png"));
+cmdLeft->setIcon(QIcon(icondir+"goLeft.png"));
+cmdRight->setIcon(QIcon(icondir+"goRight.png"));
+cmdUp->setIcon(QIcon(icondir+"goUp.png"));
+cmdDown->setIcon(QIcon(icondir+"goDown.png"));
+}
 }
 
 void MainWindow::CreatePatterns(void)
@@ -1017,7 +1025,7 @@ void MainWindow::CreatePatterns(void)
     //*Qt_m_vh_rl_tb_bits=generate_Bitmap_from_Bits(m_vh_rl_tb_bits,5*12,MBITMAP_WIDTH,MBITMAP_HEIGHT);
     generate_Pixmap_from_Bits(m_vh_rl_tb_bits,5*12,MBITMAP_WIDTH,MBITMAP_HEIGHT,Qt_m_vh_rl_tb_bits);
 
-    QPixmap templIcon(82,16);//22
+    /*QPixmap templIcon(82,16);//22
     QPainter templPainter;
     QPen pen1(Qt::black);
     for (int i=0;i<MAXLINESTYLES;i++)
@@ -1028,7 +1036,7 @@ void MainWindow::CreatePatterns(void)
 
         PenDashPattern[i]=new QVector<qreal>();
         for (int j=0;j<dash_array_length[i];j++)
-            *PenDashPattern[i] << dash_array[i][j];
+            *(PenDashPattern[i]) << dash_array[i][j];
         if (i==0)
         {
             templPainter.setPen(pen1);
@@ -1045,7 +1053,7 @@ void MainWindow::CreatePatterns(void)
         templPainter.end();
         LineIcons[i]=new QIcon(templIcon);
         LinePixmaps[i]=new QPixmap(templIcon);
-    }
+    }*/
 }
 
 void MainWindow::newFile(void)
@@ -1071,11 +1079,11 @@ void MainWindow::Open(void)
 
 void MainWindow::IOrequested(int type,QString file,bool exists,bool writeable,bool readable)
 {
-    char* dummy=new char [file.length()+2]; // Windows port
-    strcpy(dummy,file.toAscii());
-    char* dummy2=new char[strlen(dummy)+35]; // Windows port
-    sprintf(dummy2,"%s%s",tr("Can't stat file ").toAscii().constData(),dummy);
-    /*cout << "Origin(type)=" << type << endl;
+    char *dummy=new char[file.length()+2];
+    strcpy(dummy,file.toLocal8Bit());
+    char *dummy2=new char[strlen(dummy)+35];
+    sprintf(dummy2,"%s%s",tr("Can't stat file ").toLocal8Bit().constData(),dummy);
+/*cout << "Origin(type)=" << type << endl;
 cout << "file to load=" << dummy << endl;
 cout << "exists? = " << exists << endl;
 cout << "writable? = " << writeable << endl;
@@ -1089,6 +1097,8 @@ cout << "readable? = " << readable << endl;*/
     {
         errwin(dummy2);
         unset_wait_cursor();
+        delete[] dummy;
+        delete[] dummy2;
         return;
     }
     switch (type)
@@ -1104,6 +1114,8 @@ cout << "readable? = " << readable << endl;*/
         {
             errwin(dummy2);
             unset_wait_cursor();
+            delete[] dummy;
+            delete[] dummy2;
             return;
         }
         else
@@ -1111,32 +1123,27 @@ cout << "readable? = " << readable << endl;*/
             LoadProject(dummy);
             if (FormOpenProject)
                 FormOpenProject->doCancel();
+            if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
         }
         break;
     case WRITE_SET_FORM:
         ;//done separately
         break;
     case WRITE_PROJECT_FORM:
-
         if (exists==false || (exists==true && writeable==true))
         {
             save_project(dummy);
             FormSaveProject->doFilter();
             FormSaveProject->doCancel();
-
             /// CHANGED!
             /*Device_entry dev = get_device_props(hdevice);
 if (FormDeviceSetup!=NULL) dev = get_device_props(FormDeviceSetup->cur_dev);
 sprintf(print_file,"%s.%s",get_docbname(),dev.fext);
 if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(QString(print_file));*/
-
-            if (FormDeviceSetup!=NULL)
-                FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+            if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
         }
-
         break;
     case READ_PARAMETERS:
-
         if (readable!=false)
         {
             getparms(dummy);
@@ -1144,12 +1151,10 @@ if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(QString(prin
             mainArea->completeRedraw();
             FormReadParameters->hide();
         }
-
         break;
     case WRITE_PARAMETERS:
         int gno;
         FILE *pp;
-
         if (GetChoice(FormWriteParameters->selParamGraph) == 0)
         {
             gno = get_cg();
@@ -1158,7 +1163,6 @@ if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(QString(prin
         {
             gno = ALL_GRAPHS;
         }
-
         pp = grace_openw(dummy);
         if (pp != NULL)
         {
@@ -1169,6 +1173,8 @@ if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(QString(prin
         break;
     }
     unset_wait_cursor();
+    delete[] dummy;
+    delete[] dummy2;
 }
 
 void MainWindow::Save(void)
@@ -1215,99 +1221,14 @@ void MainWindow::RevertToSaved(void)
 
 void MainWindow::Exit(void)
 {
-    write_settings();
     int ret=bailout();
-    if (ret==1)
+    if (ret!=0)
     {
+        write_settings();
         initNodes();//to clear all Contents of the undo-list
         qApp->exit(0);
     }
 }
-
-#ifdef SKF_QtGrace
-QString MainWindow::getExportName(void)
-{
-
-
-    if (FormDeviceSetup2!=NULL)
-    {
-        return   FormDeviceSetup2->printfile_item->text();
-
-    }else{
-
-        if(isDeleteExportDialogue && newFileName){
-            printfileName = "";
-        }
-
-        newFileName = false;
-
-        return printfileName;
-    }
-}
-
-void MainWindow::setExportName(QString setName)
-{
-
-
-    if (FormDeviceSetup2!=NULL)
-    {
-      FormDeviceSetup2->printfile_item->setText(setName);
-    }else{
-        printfileName = setName;
-    }
-
-}
-#endif
-
-
-//2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
-void MainWindow::ExportToFile(void)
-{
-#ifdef SKF_QtGrace
-
-
-    if (FormDeviceSetup2==NULL || isDeleteExportDialogue )
-    {
-
-
-        isDeleteExportDialogue = false;
-        FormDeviceSetup2=new frmDeviceSetup(3,this);
-
-        if(!printfileName.isEmpty()) {
-            FormDeviceSetup2->printfile_item->setText(printfileName);
-        }
-
-        if (default_Print_Device==-1)//last one
-            FormDeviceSetup2->devices_item->setCurrentIndex(stdOutputFormat);
-        else
-            FormDeviceSetup2->devices_item->setCurrentIndex(default_Print_Device);
-
-    }
-
-    //FormDeviceSetup2->printfile_item->setText(get_filename_with_extension(FormDeviceSetup2->cur_dev));
-    FormDeviceSetup2->setStartQtgrace(false);
-    FormDeviceSetup2->show();
-    FormDeviceSetup2->raise();
-    FormDeviceSetup2->activateWindow();
-
-
-#endif
-}
-
-#ifdef SKF_QtGrace
-void MainWindow::PrintSetup(void)
-{
-    FormDeviceSetup=new frmDeviceSetup(2,this);
-    FormDeviceSetup->doNativePrinterDialog();
-    FormDeviceSetup->doClose();
-}
-
-
-#else
-
-
-
-
 
 void MainWindow::PrintSetup(void)
 {
@@ -1315,11 +1236,20 @@ void MainWindow::PrintSetup(void)
     {
         FormDeviceSetup=new frmDeviceSetup(this);
         //initialize this only on startup
+        cout << "default_Print_Device=" << default_Print_Device << endl;
+        cout << "stdOutput=" << stdOutputFormat << endl;
+
         if (default_Print_Device==-1)//last one
-            FormDeviceSetup->devices_item->setCurrentIndex(stdOutputFormat);
+            FormDeviceSetup->devices_item->setCurrentValue(stdOutputFormat);
         else
-            FormDeviceSetup->devices_item->setCurrentIndex(default_Print_Device);
+            FormDeviceSetup->devices_item->setCurrentValue(default_Print_Device);
+
+        if (lastPrintDevice<=0) lastPrintDevice=FormDeviceSetup->devices_item->currentValue();
+
+        FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
     }
+    FormDeviceSetup->changeDeviceList(2);
+
     /*Device_entry dev = get_device_props(FormDeviceSetup->cur_dev);
     sprintf(print_file,"%s.%s",get_docbname(),dev.fext);
     QDir tmpFile(get_docname());
@@ -1334,43 +1264,89 @@ void MainWindow::PrintSetup(void)
     FormDeviceSetup->printfile_item->setText(QString(print_file));
     }*/
 
-    FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+///FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
 
-    FormDeviceSetup->show();
+//cout << "LastPrintDevice=" << lastPrintDevice << " current=" << FormDeviceSetup->devices_item->currentValue() << endl;
+
+    /// I changed this to std-Output-Format (not last format): this means, that if Device setup is closed without apply, the settings will be lost!
+    /*if (FormDeviceSetup->devices_item->currentValue()!=lastPrintDevice)//dialog is set to display the page-setup --> switch back to print-setup with a 'real' print device
+    {
+        FormDeviceSetup->devices_item->setCurrentValue(lastPrintDevice);
+    }*/
+
+    FormDeviceSetup->devices_item->setCurrentValue(stdOutputFormat);
+
     //FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("PS")-1);//'-1' because dummy-device not shown
+
+    if (win_w>win_h)//landscape
+    {
+        if (FormDeviceSetup->page_orient_item->currentIndex()!=0)//not set to landscape
+        {
+            FormDeviceSetup->page_orient_item->setCurrentIndex(0);
+        }
+    }
+    else//portrait
+    {
+        if (FormDeviceSetup->page_orient_item->currentIndex()==0)//not set to portrait
+        {
+            FormDeviceSetup->page_orient_item->setCurrentIndex(1);
+        }
+    }
+//cout << "new device=" << FormDeviceSetup->devices_item->currentValue() << endl;
+    FormDeviceSetup->devices_item->setEnabled(true);
+    FormDeviceSetup->init(FormDeviceSetup->devices_item->currentValue());
+    FormDeviceSetup->show();
     FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
 }
 
-#endif
-
-
-
-
-
-
-
 void MainWindow::Print(void)
 {
-    printing_in_file=true;
-#ifdef SKF_QtGrace
-    device_table[DEVICE_SCREEN].pg.width=orig_page_w;//use original page size
-    device_table[DEVICE_SCREEN].pg.height=orig_page_h;
-#else
-    device_table[0].pg.width=orig_page_w;//use original page size
-    device_table[0].pg.height=orig_page_h;
-#endif
-    do_hardcopy();
-#ifdef SKF_QtGrace
-    device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
-    device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
-#else
-    device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
-    device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;
-#endif
-    printing_in_file=false;
-    mainArea->completeRedraw();
+set_ptofile(false);//we are going to print on a printer (not realy in a file)
+bool ret=true;
+if (use_print_command==true)
+{
+FormProgress->init(tr("Printing..."),3);
+FormProgress->show();
+FormProgress->raise();
+FormProgress->activateWindow();
+qApp->processEvents();
 
+do_hardcopy();
+
+FormProgress->hide();
+}
+else
+ret=openNativePrinter(DEVICE_PDF);
+    if (ret==false)
+    {
+    cout << "native printing aborted" << endl;
+    }
+}
+
+void MainWindow::PrintToFile(void)
+{
+static int save_dirty_state=dirtystate;
+/// print_target=PRINT_TARGET_FILE;
+    set_ptofile(true);
+//cout << "Print To File: #" << print_file << "#" << endl;
+    printing_in_file=true;
+    //device_table[DEVICE_SCREEN].pg.width=orig_page_w;//use original page size
+    //device_table[DEVICE_SCREEN].pg.height=orig_page_h;
+FormProgress->init(tr("File output..."),3);
+FormProgress->show();
+FormProgress->raise();
+FormProgress->activateWindow();
+qApp->processEvents();
+    do_hardcopy();
+FormProgress->hide();
+    //device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;//use Page Zoom
+    //device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
+    printing_in_file=false;
+    print_target=PRINT_TARGET_SCREEN;
+    mainArea->completeRedraw();
+dirtystate=save_dirty_state;
+    update_app_title();
 }
 
 void MainWindow::DataSets(void)
@@ -1399,30 +1375,26 @@ void MainWindow::SetOperations(void)
 
 void MainWindow::Explorer(void)
 {
-
-
     if (FormExplorer==NULL)
     {
         FormExplorer=new frmExplorer(this);
     }
-
     FormExplorer->init();
     FormExplorer->show();
     FormExplorer->raise();
     FormExplorer->activateWindow();
-
 }
 
 void MainWindow::ColorManager(void)
 {
-    if (FormColManage==NULL)
+    /*if (FormColManage==NULL)//Color-Management is now part of the Preferences
     {
-        FormColManage=new frmColorManagement(this);
+        FormColManage=new frmColorManagement(0);
     }
     FormColManage->init();
     FormColManage->show();
     FormColManage->raise();
-    FormColManage->activateWindow();
+    FormColManage->activateWindow();*/
 }
 
 void MainWindow::RealTimeInputDisplay(void)
@@ -1515,14 +1487,35 @@ void MainWindow::LocProp(void)
 
 void MainWindow::Preferences(void)
 {
-    if (FormPreferences==NULL)
+    /*if (FormPreferences==NULL)
     {
         FormPreferences=new frmPreferences(this);
     }
     FormPreferences->init();
     FormPreferences->show();
     FormPreferences->raise();
-    FormPreferences->activateWindow();
+    FormPreferences->activateWindow();*/
+    if (Form_Preferences==NULL)
+    {
+        Form_Preferences=new frm_Preferences(this);
+    }
+    Form_Preferences->init();
+    Form_Preferences->show();
+    Form_Preferences->raise();
+    Form_Preferences->activateWindow();
+
+}
+
+void MainWindow::RegionsMaster(void)
+{
+    if (FormRegionMaster==NULL)
+    {
+        FormRegionMaster=new frmMasterRegionOperator(this);
+    }
+    FormRegionMaster->init();
+    FormRegionMaster->show();
+    FormRegionMaster->raise();
+    FormRegionMaster->activateWindow();
 }
 
 void MainWindow::RegionsStatus(void)
@@ -1590,6 +1583,7 @@ void MainWindow::FeatureExtraction(void)
     if (FormFeatureExtraction==NULL)
     {
         FormFeatureExtraction=new frmFeatureExtract(this);
+        FormFeatureExtraction->resize(250,600);//to make it small enough
     }
     FormFeatureExtraction->init();
     FormFeatureExtraction->show();
@@ -1708,7 +1702,6 @@ void MainWindow::Fourier(void)
     {
         FormFourier=new frmFourier(this);
     }
-
     FormFourier->init();
     FormFourier->show();
     FormFourier->raise();
@@ -1720,9 +1713,8 @@ void MainWindow::Fourier2(void)
     if (FormFourier2==NULL)
     {
         FormFourier2=new frmFourier2(this);
+        FormFourier2->init();
     }
-
-    FormFourier2->init();
     FormFourier2->show();
     FormFourier2->raise();
     FormFourier2->activateWindow();
@@ -1894,7 +1886,6 @@ void MainWindow::PlotAppearance(void)
     {
         FormPlotAppearance=new frmPlotAppearance(this);
     }
-
     FormPlotAppearance->init();
     FormPlotAppearance->show();
     FormPlotAppearance->raise();
@@ -1950,7 +1941,6 @@ void MainWindow::AxisProperties(void)
     {
         FormAxisProperties=new frmAxisProp(this);
     }
-
     FormAxisProperties->create_axes_dialog(0);
     FormAxisProperties->show();
     FormAxisProperties->raise();
@@ -1987,7 +1977,26 @@ void MainWindow::SaveParameters(void)
 
 void MainWindow::ShowLocBar(void)
 {
-    if (actShowLocBar->isChecked()==FALSE)
+show_LocatorBar=(actShowLocBar->isChecked()==true?TRUE:FALSE);
+ManageBars();
+}
+
+void MainWindow::ShowStatusBar(void)
+{
+show_StatusBar=(actShowStatusBar->isChecked()==true?TRUE:FALSE);
+ManageBars();
+}
+
+void MainWindow::ShowToolBar(void)
+{
+show_ToolBar=(actShowToolBar->isChecked()==true?TRUE:FALSE);
+ManageBars();
+}
+
+void MainWindow::ManageBars(void)
+{
+//show or hide the bars
+    if (!show_LocatorBar)//Locator bar
     {
         statLocBar->hide();
         mainGrid->setRowMinimumHeight(1,0);
@@ -1997,11 +2006,7 @@ void MainWindow::ShowLocBar(void)
         statLocBar->show();
         mainGrid->setRowMinimumHeight(1,stdBarHeight);
     }
-}
-
-void MainWindow::ShowStatusBar(void)
-{
-    if (actShowStatusBar->isChecked()==FALSE)
+    if (!show_StatusBar)//Status bar
     {
         statusBar->hide();
         mainGrid->setRowMinimumHeight(4,0);
@@ -2011,11 +2016,7 @@ void MainWindow::ShowStatusBar(void)
         statusBar->show();
         mainGrid->setRowMinimumHeight(4,stdBarHeight);
     }
-}
-
-void MainWindow::ShowToolBar(void)
-{
-    if (actShowToolBar->isChecked()==FALSE)
+    if (!show_ToolBar)//Tool bar
     {
         toolBar1->hide();
         toolBar2->hide();
@@ -2023,170 +2024,198 @@ void MainWindow::ShowToolBar(void)
     }
     else
     {
+        mainGrid->setColumnMinimumWidth(0,70);
+        //rearrange the buttons
+    int xpos,ypos;
+        xpos=2+stdDistance2;
+#ifdef WINDOWS_SYSTEM
+xpos+=WIN_SIZE_CORR;
+#endif
+        ypos=4+6+cmdDraw->height();
+        //toolbar1
+        if (show_Navi_B)
+        {
+        cmdZoom->move(xpos,ypos);
+        cmdAutoScale->move(xpos+stdDistance2+cmdZoom->width(),ypos);
+        cmdZoom->show();
+        cmdAutoScale->show();
+        ypos+=cmdZoom->height()+stdDistance1;
+        cmdZz->move(xpos,ypos);
+        cmdzz->move(xpos+stdDistance2+cmdZz->width(),ypos);
+        cmdZz->show();
+        cmdzz->show();
+        ypos+=cmdZz->height()+stdDistance1;
+        cmdLeft->move(xpos,ypos);
+        cmdRight->move(xpos+cmdLeft->width()+stdDistance2,ypos);
+        cmdLeft->show();
+        cmdRight->show();
+        ypos+=cmdLeft->height()+stdDistance1;
+        cmdUp->move(xpos,ypos);
+        cmdDown->move(xpos+cmdUp->width()+stdDistance2,ypos);
+        cmdUp->show();
+        cmdDown->show();
+        ypos+=cmdUp->height()+stdDistance1;
+        }
+        else
+        {
+        cmdZoom->hide();
+        cmdAutoScale->hide();
+        cmdZz->hide();
+        cmdzz->hide();
+        cmdLeft->hide();
+        cmdRight->hide();
+        cmdUp->hide();
+        cmdDown->hide();
+        }
+        if (show_Graph_List)
+        {
+        xpos=stdDistance2-2;
+#ifdef WINDOWS_SYSTEM
+xpos+=WIN_SIZE_CORR;
+#endif
+        lstGraphs->move(xpos,ypos);
+        lstGraphs->show();
+        ypos+=lstGraphs->height()+3;//2?
+        }
+        else
+        {
+        lstGraphs->hide();
+        }
+        //cout << "stdRowHeight=" << stdRowHeight << endl;
+        //cout << "berechnet=" << ypos << endl;
+        mainGrid->setRowMinimumHeight(2,ypos);
+        //toolbar2
+        xpos=2;
+#ifdef WINDOWS_SYSTEM
+xpos+=WIN_SIZE_CORR;
+#endif
+        ypos=cmdAutoT->y()+cmdAutoT->height()+2;//position of AutoO
+        if (show_special_Zoom)
+        {
+        cmdAutoO->move(xpos,ypos);
+        cmdAutoO->show();
+        xpos+=stdDistance2;
+        ypos+=cmdAutoO->height()+stdDistance1-1;
+        cmdZX->move(xpos,ypos);
+        cmdZX->show();
+        cmdZY->move(xpos+cmdZX->width()+stdDistance2,ypos);
+        cmdZY->show();
+        ypos+=cmdZX->height()+stdDistance1;
+        cmdAX->move(xpos,ypos);
+        cmdAX->show();
+        cmdAY->move(xpos+cmdAX->width()+stdDistance2,ypos);
+        cmdAY->show();
+        ypos+=cmdAX->height()+stdDistance1;
+        }
+        else
+        {
+        cmdAutoO->hide();
+        cmdZX->hide();
+        cmdZY->hide();
+        cmdAX->hide();
+        cmdAY->hide();
+        }
+
+        if (show_Viewport_Stack)
+        {
+        xpos=cmdAutoT->x()+stdDistance2;
+        cmdPZ->move(xpos,ypos);
+        cmdPZ->show();
+        cmdPu->move(xpos+cmdPZ->width()+stdDistance2,ypos);
+        cmdPu->show();
+        ypos+=cmdPZ->height()+stdDistance1;
+        cmdPo->move(xpos,ypos);
+        cmdPo->show();
+        cmdCy->move(xpos+cmdPo->width()+stdDistance2,ypos);
+        cmdCy->show();
+        ypos+=cmdPo->height()+stdDistance1;
+        lblSD->move(xpos,ypos);
+        lblSD->show();
+        ypos+=lblSD->height();
+        lblCW->move(xpos,ypos);
+        lblCW->show();
+        ypos+=lblCW->height()+12;
+        }
+        else
+        {
+        cmdPZ->hide();
+        cmdPu->hide();
+        cmdPo->hide();
+        cmdCy->hide();
+        lblSD->hide();
+        lblCW->hide();
+        }
+        xpos=cmdAutoT->x();
+        if (show_Page_Zoom)
+        {
+        sldPageZoom->move(xpos,ypos);
+        sldPageZoom->show();
+        ypos+=cmdAutoO->height()+10;
+        cmdFitPage->move(xpos,ypos);
+        cmdFitPage->show();
+        ypos+=cmdFitPage->height()+2;
+        }
+        else
+        {
+        sldPageZoom->hide();
+        cmdFitPage->hide();
+        }
+
+        if (show_Export_B)
+        {
+        cmdExport->move(xpos,ypos);
+        cmdExport->show();
+        ypos+=cmdExport->height();
+        }
+        else
+        {
+        cmdExport->hide();
+        }
+        if (show_Print_B)
+        {
+        cmdPrint->move(xpos,ypos);
+        cmdPrint->show();
+        ypos+=cmdPrint->height();
+        }
+        else
+        {
+        cmdPrint->hide();
+        }
+
+        ypos+=8;
+        cmdExit->move(xpos,ypos);
+        cmdExit->show();
+        //show the tool bar
         toolBar1->show();
         toolBar2->show();
-        mainGrid->setColumnMinimumWidth(0,70);
     }
 }
 
-
 void MainWindow::PageSetup(void)
 {
-#ifdef SKF_QtGrace
-    FormDeviceSetup=new frmDeviceSetup(1,this);
-#else
     if (FormDeviceSetup==NULL)
     {
         FormDeviceSetup=new frmDeviceSetup(this);
     }
-#endif
-
     FormDeviceSetup->show();
-
-#ifdef SKF_QtGrace
-    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("SCREEN")); //Set screen as default for display settings
-#else
-    FormDeviceSetup->devices_item->setCurrentIndex(find_dev_nr("X11"));
-#endif
-
+        if (FormDeviceSetup->devices_item->currentValue()!=DEVICE_SCREEN)//'0'=Screen
+        lastPrintDevice=FormDeviceSetup->devices_item->currentValue();
+    FormDeviceSetup->changeDeviceList(1);
+    FormDeviceSetup->devices_item->setCurrentValue(find_dev_nr("X11"));
+    FormDeviceSetup->devices_item->setEnabled(false);
+    FormDeviceSetup->DeviceChanged(DEVICE_SCREEN);
     FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
 }
 
-
-void MainWindow::FontSettings(void)
-{
-#ifdef SKF_QtGrace
-    if (FormFontSettings==NULL)
-    {
-        FormFontSettings=new frmFontSettings(this);
-    }
-    FormFontSettings->spinFontSize->setValue(100);
-    FormFontSettings->saveDefaultFont();
-    FormFontSettings->show();
-    FormFontSettings->resize(FormFontSettings->width(),FormFontSettings->width()/3);
-    FormFontSettings->raise();
-    FormFontSettings->activateWindow();
-    connect(FormFontSettings,SIGNAL(closeEvent()),SLOT(FormFontSettings->doClose()));
-#endif
-}
-
-
-
-void MainWindow::ConfigureFontDlg(){
-#ifdef SKF_QtGrace
-    QMessageBox msgBox;
-    bool ok;
-    QFont f( QFontDialog::getFont( &ok, QApplication::font() ) );
-    if(!ok) return; // Cancel pressed
-    if(f.pointSize()>14) {
-
-        QMessageBox::information(NULL, "Reset fonts","Fonts with point size larger than 14 are not recommended.\n"
-                                 "Please restart Beauty, then font change will take a full effect.\n"
-                                 "To restore font to default one please use Options/Reset font");
-    } else {
-        QMessageBox::information(NULL, "Reset fonts",
-                                 "Please restart QtGrace, then font change will take a full effect.\n"
-                                 "To restore font to default one please use Options/Reset font");
-
-    }
-
-    QApplication::setFont(f);
-    SaveFontConfiguration(f);
-    doFitPage();
-
-#endif
-}
-
-
-void MainWindow::ResetToSystemFont(){
-#ifdef SKF_QtGrace
-    assert(originalSystemFont);
-    QApplication::setFont(*originalSystemFont);
-    QMessageBox::information(NULL, "Reset fonts",
-                             "Please restart QtGrace, then font change will take a full effect.");
-
-    QFile file(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"));
-
-    if( !file.exists()) {
-        return;
-    }else{
-        SaveFontConfiguration(*originalSystemFont);
-        doFitPage();
-
-    }
-
-#endif
-}
-
-void MainWindow::SaveFontConfiguration(QFont font)
-{
-#ifdef SKF_QtGrace
-    //QtGrace application font settings
-
-    QSettings fontSettings(QString(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
-    
-    fontSettings.beginGroup("FontSettings");
-
-    fontSettings.setValue("font", font.family());
-    
-    int size = font.pointSize();
-    fontSettings.setValue( "size",size);
-
-    int weight = font.weight();
-    fontSettings.setValue("weight", weight);
-
-    int italic = font.italic();
-    fontSettings.setValue("italics", italic);
-    fontSettings.endGroup();
-#endif
-}
-
-void MainWindow::ReadFontConfiguration()
-{
-#ifdef SKF_QtGrace
-    QFile file(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini"));
-
-    //Check file exist otherwise use default font settings
-    if( !file.exists()) {
-        return;
-    }
-
-    //Read font settings from .ini file
-    QSettings fontSettings(QString(QDir::homePath().toAscii()+QString("/qtGrace_Settings.ini")), QSettings::IniFormat);
-
-    fontSettings.beginGroup("FontSettings");
-
-    QString fontName = fontSettings.value("font","").toString();
-
-    int fontSize = fontSettings.value("size","").toInt();
-
-    int fontWeight = fontSettings.value("weight","").toInt();
-
-    int italics = fontSettings.value("italics","").toInt();
-
-    QStringList keys = fontSettings.allKeys();
-    if( keys.isEmpty()) {
-        return;
-    }else{
-        QApplication::setFont(QFont(fontName, fontSize, fontWeight, italics));
-
-    }
-#endif
-}
-
-
 void MainWindow::Redraw(void)
 {
-
     mainArea->completeRedraw();
-    doFitPage();
 }
 
 void MainWindow::UpdateAll(void)
 {
     update_all();
-
 }
 
 void MainWindow::Commands(void)
@@ -2194,20 +2223,18 @@ void MainWindow::Commands(void)
     if (FormCommands==NULL)
     {
         FormCommands=new frmCommands(this);
+        update_all();
     }
     FormCommands->show();
     FormCommands->raise();
     FormCommands->activateWindow();
 }
 
-
 void MainWindow::PointExplorer(void)
 {
-
     if (FormPointExplorer==NULL)
     {
         FormPointExplorer=new frmPointExplorer(this);
-
     }
     FormPointExplorer->init();
     FormPointExplorer->show();
@@ -2232,8 +2259,8 @@ void MainWindow::FontTool(void)
     if (FormFontTool==NULL)
     {
         FormFontTool=new frmFontTool(this);
+        FormFontTool->resize(460,570);
     }
-
     FormFontTool->show();
     FormFontTool->raise();
     FormFontTool->activateWindow();
@@ -2275,6 +2302,13 @@ void MainWindow::HelpChanges(void)
     HelpCB("doc/CHANGES.html");
 }
 
+void MainWindow::HelpQtGrace(void)
+{
+    /*for (int i=0;i<nr_of_Examples;i++)
+    HelpOpenExample(i);*/
+    HelpCB("doc/QTGRACE_EXTENSIONS.html");
+}
+
 void MainWindow::HelpComments(void)
 {
     char buf[256];
@@ -2304,32 +2338,34 @@ void MainWindow::HelpOpenExample(int i)
     char buf[2056];
     char buf2[2056];
     char ex_name[2056];
-    strcpy(ex_name,examplesFiles[i].toAscii());
+    stop_repaint=TRUE;
+    strcpy(ex_name,examplesFiles[i].toLocal8Bit());
     sprintf(buf, "%s/../examples/%s",qt_grace_exe_dir, ex_name);
     sprintf(buf2, "%s/../examples",qt_grace_exe_dir);
-    set_workingdir(buf2);
+    //set_workingdir(buf2);
     QFile file(buf);
     if (!file.exists())
     {
         QString errorText=tr("Example file \"")+QString(buf)+tr("\" does not exist!");
         //cout << "Example file " << buf <<  " does not exist!" << endl;
-        errmsg(errorText.toAscii().constData());
+        errmsg(errorText.toLocal8Bit().constData());
     }
     else
     {
-        load_project_file(buf, FALSE);
-        copy_Grace_to_LaTeX();
-        update_default_props();
+        //load_project_file(buf, FALSE);
+        //update_default_props();
+        load_project(buf);
     }
     initNodes();
+    stop_repaint=FALSE;
     mainArea->completeRedraw();
-    mainArea->setGeometry(mainArea->x(),mainArea->y(),mainArea->width(),mainArea->height());
-    //setGeometry(x(),y(),width(),height());
-    ///xdrawgraph();
+/*mainArea->setGeometry(mainArea->x(),mainArea->y(),mainArea->width(),mainArea->height());*/
+    //update_all();
 }
 
 void MainWindow::doDraw(void)
 {
+    simple_draw_setting=SIMPLE_DRAW_NONE;
     mainArea->completeRedraw();
 }
 
@@ -2378,7 +2414,7 @@ void MainWindow::doAutoT(void)
     char dummy[256];
     SaveTickmarksStatesPrevious(X_AXIS,Y_AXIS,get_cg(),get_cg());
     autotick_axis(get_cg(), ALL_AXES);
-    if (FormAxisProperties!=NULL)
+        if (FormAxisProperties!=NULL)
         FormAxisProperties->update_ticks(get_cg());
     TickmarksModified(X_AXIS,Y_AXIS,get_cg(),get_cg());
     sprintf(dummy,"Autotick axes [G%d]",get_cg());
@@ -2435,43 +2471,46 @@ void MainWindow::doCy(void)
 void MainWindow::doPageZoom(int i)
 {
     GeneralPageZoomFactor=pow(10.0,i*sldPageZoom->ScalingFactor);
-
-#ifdef SKF_QtGrace
-    device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;
-    device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
-#else
-    device_table[0].pg.width=orig_page_w*GeneralPageZoomFactor;
-    device_table[0].pg.height=orig_page_h*GeneralPageZoomFactor;
-#endif
-
+    //device_table[DEVICE_SCREEN].pg.width=orig_page_w*GeneralPageZoomFactor;
+    //device_table[DEVICE_SCREEN].pg.height=orig_page_h*GeneralPageZoomFactor;
     mainArea->completeRedraw();
 }
 
 void MainWindow::doFitPage(void)
 {
     // a) calculate proper zoom level
-    double factorX =  double(mainArea->scroll->width()) / double(orig_page_w);
-    double factorY =  double(mainArea->scroll->height()) / double(orig_page_h);
+    double factorX =  double(mainArea->scroll->width()) / double(device_table[DEVICE_SCREEN].pg.width);
+    double factorY =  double(mainArea->scroll->height()) / double(device_table[DEVICE_SCREEN].pg.height);
+    /*double factorX =  double(mainArea->scroll->width()) / double(orig_page_w);
+    double factorY =  double(mainArea->scroll->height()) / double(orig_page_h);*/
     double fact = factorX > factorY ? factorY : factorX;
-    int zoomLevel = int(log(fact) / (sldPageZoom->ScalingFactor * log(10.)));
+    //fact = the smaller factor
+    int zoomLevel = ceil(log(fact) / (sldPageZoom->ScalingFactor * log(10.)) -0.5)-1;/// round or int?
     if (zoomLevel<0) zoomLevel--;
     zoomLevel = zoomLevel > 100 ? 100 : (zoomLevel < -100 ? -100 : zoomLevel);
 
-#ifdef SKF_QtGrace
-    sldPageZoom->setValue(zoomLevel-5); //Because we don't want to see the scroll bar when we change the application font size.
-#else
-    sldPageZoom->setValue(zoomLevel);
-#endif
+    //cout << "x-factor=" << factorX << " y_factor=" << factorY << " zoomLevel=" << zoomLevel << " Umrechnung=" << (log(fact) / (sldPageZoom->ScalingFactor * log(10.))) << endl;
 
     // b) reset position sliders to 0
     mainArea->scroll->horizontalScrollBar()->setValue(0);
     mainArea->scroll->verticalScrollBar()->setValue(0);
 
+    // c) change zoom-level
+    if (enableServerMode)
+    sldPageZoom->setValue(zoomLevel-2);//-1, -2 or -5 ?
+    else
+    sldPageZoom->setValue(zoomLevel);//as calculated
 }
 
 void MainWindow::doExit(void)
 {
     Exit();
+}
+
+void setExportTypeDescription(char * ext)
+{
+mainWin->actPrintToFile->setText(QObject::tr("Export to &File")+QString(" (")+QString(ext)+QString(")"));
+//mainWin->mnuFile->update();
 }
 
 void MainWindow::CreateActions(void)
@@ -2491,34 +2530,22 @@ void MainWindow::CreateActions(void)
     actSave->setStatusTip(tr("Save current data"));
     connect(actSave, SIGNAL(triggered()), this, SLOT(Save()));
     actSaveAs= new QAction(tr("S&ave As..."), this);
-    actSaveAs->setStatusTip(tr("Save to file new file"));
+    actSaveAs->setStatusTip(tr("Save to new file"));
     connect(actSaveAs, SIGNAL(triggered()), this, SLOT(SaveAs()));
     actRevert= new QAction(tr("Re&vert to Saved"), this);
     actRevert->setStatusTip(tr("Revert to version last saved"));
     connect(actRevert, SIGNAL(triggered()), this, SLOT(RevertToSaved()));
     actPrint= new QAction(tr("&Print"), this);
     actPrint->setShortcut(tr("Ctrl+P"));
-    actPrint->setStatusTip(tr("Print"));
-
-#ifdef SKF_QtGrace
-    connect(actPrint, SIGNAL(triggered()), this, SLOT(PrintSetup()));
-#else
+    actPrint->setStatusTip(tr("Use Printer"));
     connect(actPrint, SIGNAL(triggered()), this, SLOT(Print()));
-    actPrintSetup= new QAction(tr("Prin&t Setup..."), this);
-    actPrintSetup->setStatusTip(tr("Adjust print properties"));
+    actPrintToFile=new QAction(tr("Export to &File"),this);
+    actPrintToFile->setShortcut(tr("Ctrl+F"));
+    actPrintToFile->setStatusTip(tr("Export image to file"));
+    connect(actPrintToFile, SIGNAL(triggered()), this, SLOT(PrintToFile()));
+    actPrintSetup= new QAction(tr("Prin&t/Export Setup..."), this);
+    actPrintSetup->setStatusTip(tr("Adjust print/export properties"));
     connect(actPrintSetup, SIGNAL(triggered()), this, SLOT(PrintSetup()));
-
-#endif
-
-#ifdef SKF_QtGrace
-    //2013-07-03 Added Export to file drop-down menu in File- Nimal Kailasanathan
-
-    actExportToFile= new QAction(tr("Plot to file..."), this);
-    actExportToFile->setStatusTip(tr("Export to PDF, SVG, PNG..."));
-    connect(actExportToFile, SIGNAL(triggered()), this, SLOT(ExportToFile()));
-#endif
-
-
     actExit= new QAction(tr("E&xit"), this);
     actExit->setShortcut(tr("Ctrl+Q"));
     actExit->setStatusTip(tr("Exit program"));
@@ -2536,6 +2563,8 @@ void MainWindow::CreateActions(void)
     connect(actOverlayGraphs, SIGNAL(triggered()), this, SLOT(OverlayGraphs()));
     actAutoscaleGraphs= new QAction(tr("&Autoscale graphs..." ), this);
     connect(actAutoscaleGraphs, SIGNAL(triggered()), this, SLOT(AutoscaleGraphs()));
+    actRegionMaster= new QAction(tr("Region &Master..." ), this);
+    connect(actRegionMaster, SIGNAL(triggered()), this, SLOT(RegionsMaster()));
     actRegionsStatus= new QAction(tr("&Status..." ), this);
     connect(actRegionsStatus, SIGNAL(triggered()), this, SLOT(RegionsStatus()));
     actRegionsDefine= new QAction(tr("&Define..." ), this);
@@ -2641,22 +2670,7 @@ void MainWindow::CreateActions(void)
     actShowToolBar->setCheckable(TRUE);
     actShowToolBar->setChecked(TRUE);
     connect(actShowToolBar, SIGNAL(triggered()), this, SLOT(ShowToolBar()));
-
-#ifdef SKF_QtGrace
-    actFontSize= new QAction(tr("&Font settings" ), this);
-    connect(actFontSize, SIGNAL(triggered()), this, SLOT(FontSettings()));
-    actPageSetup= new QAction(tr("&Screen setup" ), this);
-
-    //Actions for option menu
-    actConfigureFont= new QAction(tr("&Configure fonts..." ), this);
-    connect(actConfigureFont, SIGNAL(triggered()), this, SLOT(ConfigureFontDlg()));
-    actResetToSystemFont= new QAction(tr("&Reset fonts..." ), this);
-    connect(actResetToSystemFont, SIGNAL(triggered()), this, SLOT(ResetToSystemFont()));
-
-#else
     actPageSetup= new QAction(tr("&PageSetup" ), this);
-#endif
-
     connect(actPageSetup, SIGNAL(triggered()), this, SLOT(PageSetup()));
     actRedraw= new QAction(tr("&Redraw" ), this);
     connect(actRedraw, SIGNAL(triggered()), this, SLOT(Redraw()));
@@ -2691,12 +2705,14 @@ void MainWindow::CreateActions(void)
     connect(actHelpOnContext, SIGNAL(triggered()), this, SLOT(HelpOnContext()));
     actHelpUsersGuide= new QAction(tr("User's &Guide" ), this);
     connect(actHelpUsersGuide, SIGNAL(triggered()), this, SLOT(HelpUsersGuide()));
-    actHelpTutorial= new QAction(tr( "&Tutorial"), this);
+    actHelpTutorial= new QAction(tr("&Tutorial"), this);
     connect(actHelpTutorial, SIGNAL(triggered()), this, SLOT(HelpTutorial()));
-    actHelpFAQ= new QAction(tr( "FA&Q"), this);
+    actHelpFAQ= new QAction(tr("FA&Q"), this);
     connect(actHelpFAQ, SIGNAL(triggered()), this, SLOT(HelpFAQ()));
     actHelpChanges= new QAction(tr("&Changes" ), this);
     connect(actHelpChanges, SIGNAL(triggered()), this, SLOT(HelpChanges()));
+    actHelpQtGrace= new QAction(tr("QtGrace-&Extensions" ), this);
+    connect(actHelpQtGrace, SIGNAL(triggered()), this, SLOT(HelpQtGrace()));
     actHelpComments= new QAction(tr("Co&mments" ), this);
     connect(actHelpComments, SIGNAL(triggered()), this, SLOT(HelpComments()));
     actHelpLicense= new QAction(tr("License terms" ), this);
@@ -2705,7 +2721,7 @@ void MainWindow::CreateActions(void)
     connect(actHelpAbout, SIGNAL(triggered()), this, SLOT(HelpAbout()));
 
     //the Examples
-    nr_of_Example_Menues=8;
+    nr_of_Example_Menues=9;
     ExampleMenuNames[0]=tr("General &intro");
     ExampleMenuNames[1]=tr("XY &graphs");
     ExampleMenuNames[2]=tr("XY &charts");
@@ -2714,6 +2730,7 @@ void MainWindow::CreateActions(void)
     ExampleMenuNames[5]=tr("&Special set presentations");
     ExampleMenuNames[6]=tr("&Type setting");
     ExampleMenuNames[7]=tr("Calc&ulus");
+    ExampleMenuNames[8]=tr("&QtGrace");
     nr_of_Example_Menu_Entries[0]=10;
     ExampleMenuEntries[0][0]=tr("Explain");
     ExampleMenuEntries[0][1]=tr("Properties");
@@ -2760,6 +2777,9 @@ void MainWindow::CreateActions(void)
     ExampleMenuEntries[6][2]=tr("Advanced");
     nr_of_Example_Menu_Entries[7]=1;
     ExampleMenuEntries[7][0]=tr("Non-linear fit");
+    nr_of_Example_Menu_Entries[8]=2;
+    ExampleMenuEntries[8][0]=tr("Filter");
+    ExampleMenuEntries[8][1]=tr("Advanced Scripting");
 
     int numbers=0;//counts the different Examples
 
@@ -2816,7 +2836,8 @@ void MainWindow::CreateActions(void)
     examplesFiles[35]=QString("txttrans.agr");
     examplesFiles[36]=QString("typeset.agr");
     examplesFiles[37]=QString("logistic.agr");
-
+    examplesFiles[38]=QString("filterexample.agr");
+    examplesFiles[39]=QString("script_example.agr");
     //History-actions
     char dummy[64];
     historyMapper=new QSignalMapper();
@@ -2842,18 +2863,19 @@ void MainWindow::resizeEvent( QResizeEvent * e)
 
 void MainWindow::LoadProject(char * filename)
 {
+stop_repaint=TRUE;
     inwin=1;
     load_project(filename);
     ///Are the following two statements realy necessary?
     /*inwin=1;
-monomode=0;*/
+    monomode=0;*/
     //addToHistory(filename);
     initNodes();//Undo-Stuff
 
     int use_dev=hdevice;
     if (FormDeviceSetup!=NULL) use_dev=FormDeviceSetup->cur_dev;
     QString fwe=get_filename_with_extension(use_dev);
-    strcpy(print_file,fwe.toAscii().constData());
+    strcpy(print_file,fwe.toLocal8Bit().constData());
     if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(fwe);
 
     /*Device_entry dev = get_device_props(hdevice);
@@ -2878,27 +2900,42 @@ char * bufptr = strrchr(print_file, '.');
 Device_entry dev = get_device_props(FormDeviceSetup->cur_dev);
 strcat(print_file, dev.fext);
 FormDeviceSetup->printfile_item->setText(QString(print_file));
-}*/
-    mainArea->completeRedraw();
-    mainArea->setGeometry(mainArea->x(),mainArea->y(),mainArea->width(),mainArea->height());
-    /*
+}
 FormTestSpreadSheet->init(0,0);
+
+mainArea->completeRedraw();
+mainArea->setGeometry(mainArea->x(),mainArea->y(),mainArea->width(),mainArea->height());
 */
+stop_repaint=FALSE;
+    mainArea->completeRedraw();
+    clear_dirtystate();
 }
 
 void MainWindow::closeEvent( QCloseEvent * event )
 {
-    write_settings();
     int ret=bailout();
     if (ret==0)
     {
         event->ignore();
+    }
+    else
+    {
+        write_settings();
+        initNodes();
+        event->accept();
+        qApp->exit(0);
     }
 }
 
 void MainWindow::getselectedgraphs(int * nr_of_graphs, int ** graph_nrs)
 {
     lstGraphs->get_selection(nr_of_graphs,graph_nrs);
+    if (*nr_of_graphs==0 && is_valid_gno(get_cg())==TRUE)
+    {
+    int n_sel[2]={get_cg(),get_cg()};
+    lstGraphs->set_new_selection(1,n_sel);
+    lstGraphs->get_selection(nr_of_graphs,graph_nrs);
+    }
     if (*nr_of_graphs==0) return;
     bool all_graphs=false;
     for (int i=0;i<(*nr_of_graphs);i++)
@@ -2933,7 +2970,7 @@ void MainWindow::autoscale_proc(int data)
     if (nr_of_graphs<=0)
     {
         errormsg=tr("No Graph selected!");
-        errmsg(errormsg.toAscii().constData());
+        errmsg(errormsg.toLocal8Bit().constData());
         delete[] graph_nrs;
         return;
     }
@@ -2972,7 +3009,7 @@ void MainWindow::autoscale_proc(int data)
         else
         {
             sprintf(dummy," G%d",cg);
-            errmsg((errormsg+QString(dummy)).toAscii().constData());
+            errmsg((errormsg+QString(dummy)).toLocal8Bit().constData());
         }
     }
     //Undo-Stuff
@@ -3024,7 +3061,7 @@ void MainWindow::graph_scroll_proc(int data)
     getselectedgraphs(&nr_of_graphs,&graph_nrs);
     if (nr_of_graphs<=0)
     {
-        errmsg(tr("No graph(s) selected for scrolling!").toAscii().constData());
+        errmsg(tr("No graph(s) selected for scrolling!").toLocal8Bit().constData());
         return;
     }
     //SaveTickmarksStatesPrevious(X_AXIS,Y_AXIS,get_cg(),get_cg());
@@ -3066,7 +3103,7 @@ void MainWindow::graph_zoom_proc(int data)
     getselectedgraphs(&nr_of_graphs,&graph_nrs);
     if (nr_of_graphs<=0)
     {
-        errmsg(tr("No graph(s) selected for zoom!").toAscii().constData());
+        errmsg(tr("No graph(s) selected for zoom!").toLocal8Bit().constData());
         return;
     }
     //SaveTickmarksStatesPrevious(X_AXIS,Y_AXIS,get_cg(),get_cg());
@@ -3118,25 +3155,15 @@ void MainWindow::world_stack_proc(int data)
 
 void MainWindow::load_example(char *data)
 {
-    char *s, buf[128];
-    
+    char buf[128];
     set_wait_cursor();
-    
-    s = data;
-    sprintf(buf, "examples/%s", s);
-    load_project_file(buf, FALSE);
-    copy_Grace_to_LaTeX();
-    update_default_props();
+    sprintf(buf, "examples/%s", data);
+    //load_project_file(buf, FALSE);
+    //update_default_props();
+    load_project(buf);
     mainArea->completeRedraw();//xdrawgraph();
-
     unset_wait_cursor();
 }
- #ifdef SKF_QtGrace
-void MainWindow::deleteExportDialogue(bool setValue) {
-    isDeleteExportDialogue = setValue;
-    newFileName = setValue;
-}
-#endif
 
 void MainWindow::set_stack_message(void)
 {
@@ -3156,9 +3183,10 @@ void MainWindow::newgraphselection(int gr_nr)
     int * selection=new int[2];
     int nr_selection=0;
     lstGraphs->get_selection(&nr_selection,&selection);
-    if (graph_number<=0)
+    //cout << "newgraphselection=" << gr_nr << endl;
+        if (graph_number<=0)
         switch_current_graph(0);
-    else
+        else
         switch_current_graph(graph_number);
     //cout << "gr_nr=" << gr_nr << " graph_number=" << graph_number << " NR_OF_SEL_ITEMS=" << nr_selection << endl;
     //qApp->processEvents();
@@ -3172,19 +3200,21 @@ void MainWindow::newgraphselection(int gr_nr)
     {
         int sel[2]={-1,1};
         if (nr_selection==number_of_graphs())
-            lstGraphs->set_new_selection(1,sel);
+        lstGraphs->set_new_selection(1,sel);
         else
-            lstGraphs->set_new_selection(nr_selection,selection);
+        lstGraphs->set_new_selection(nr_selection,selection);
     }
     connect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
-    if (selection!=NULL)
+        if (selection!=NULL)
         delete[] selection;
 }
 
 void MainWindow::mouseReleaseEvent ( QMouseEvent * event )
 {
     event->accept();
-    mainArea->completeRedraw();
+    /*cout << "mouse Release 0" << endl;
+    mainArea->completeRedraw();//redraw on MouseRelease removed --> should not be neccessary
+    cout << "mouse Release 1" << endl;*/
 }
 
 void MainWindow::keyPressEvent( QKeyEvent * e )
@@ -3194,7 +3224,7 @@ void MainWindow::keyPressEvent( QKeyEvent * e )
 
 void MainWindow::SpreadSheetClosed(int gno,int setno)
 {
-    //cout << "Spreadsheet closed: G" << gno << ".S" << setno << endl;
+    cout << "Spreadsheet closed: G" << gno << ".S" << setno << endl;
 }
 
 void MainWindow::checkForRealTimeIO(void)
@@ -3242,7 +3272,7 @@ void MainWindow::doRealTimeMonitoring(void)
 void MainWindow::helpSlot1(QString s)//qint64 w)
 {
     char dummy[512];
-    sprintf(dummy,"noticed change: %s",s.toAscii().constData());
+    sprintf(dummy,"noticed change: %s",s.toLocal8Bit().constData());
     errmsg(dummy);
 
     /*FILE *fp;
@@ -3266,7 +3296,7 @@ void MainWindow::helpSlot2(void)
     pipe_change_time3=pipe_change_time2.toTime_t()-pipe_change_time.toTime_t();
     if (pipe_change_time3>100)
     {
-        cout << pipe_change_time3 << endl;
+        /// cout << pipe_change_time3 << endl;
         //errmsg("found changes!");
     }
     pipe_change_time=pipe_change_time2;
@@ -3286,8 +3316,25 @@ void MainWindow::set_barebones(int onoff)
 
 void MainWindow::addToHistory(char * entry)
 {
-    int found=-1;
+    char sep=QDir::separator().toLatin1();
+    int found=-1,len;
     QString to_find=QString(entry);
+    char buf[MAX_STRING_LENGTH];
+    char buf2[MAX_STRING_LENGTH];
+    strcpy(buf,entry);
+    len=strlen(buf);
+    for (int i=0;i<len;i++)
+    {
+        if (buf[i]=='\\' || buf[i]=='/')
+            found=i;
+    }
+    if (found>=0) buf[found]='\0';
+    sprintf(buf2, "%s/../examples",qt_grace_exe_dir);
+    if (strcmp(buf,buf2)==0)
+    {
+        return;//File is an example-file --> do not store this in the history
+    }
+    found=-1;
     for (int i=0;i<current_history;i++)
     {
         if (history[i]==to_find)
@@ -3510,10 +3557,73 @@ special_XEvent QWheelToXEvent( QWheelEvent * e )
     return event;
 }
 
+void limit_viewport(int & posx,int & posy,int & dx,int & dy)
+{
+static Page_geometry pg;
+static Device_entry dev;
+static int delta1;
+    dev = get_device_props(DEVICE_SCREEN);
+    pg = dev.pg;
+    pg.width*=GeneralPageZoomFactor;
+    pg.height*=GeneralPageZoomFactor;
+
+    if (posx<pg.width*0.01*border_percent)
+    {
+    delta1=pg.width*0.01*border_percent-posx;
+    posx+=delta1;
+    dx-=delta1;
+    }
+    else if (posx+dx>pg.width*0.01*(100-border_percent))
+    {
+    delta1=posx+dx-pg.width*0.01*(100-border_percent);
+    dx-=delta1;
+    }
+
+    if (posy<pg.height*0.01*border_percent)
+    {
+    delta1=pg.height*0.01*border_percent-posy;
+    posy+=delta1;
+    dy-=delta1;
+    }
+    else if (posy+dy>pg.height*0.01*(100-border_percent))
+    {
+    delta1=posy+dy-pg.height*0.01*(100-border_percent);
+    dy-=delta1;
+    }
+}
+
+void limit_viewport(double & x1,double & y1,double & x2,double & y2)
+{
+static Page_geometry pg;
+static Device_entry dev;
+static int delta1;
+static double x_factor,y_factor;
+    dev = get_device_props(DEVICE_SCREEN);
+    pg = dev.pg;
+x_factor=1.0;
+y_factor=1.0;
+
+if (pg.height<pg.width)//the height is [0-1]
+{
+x_factor=pg.width/(1.0*pg.height);
+}
+else//width is [0-1]
+{
+y_factor=pg.height/(1.0*pg.width);
+}
+    if (x1<0.01*border_percent*x_factor) x1=0.01*border_percent*x_factor;
+    if (x2>0.01*(100-border_percent)*x_factor) x2=0.01*(100-border_percent)*x_factor;
+    if (y1<0.01*border_percent*y_factor) y1=0.01*border_percent*y_factor;
+    if (y2>0.01*(100-border_percent)*y_factor) y2=0.01*(100-border_percent)*y_factor;
+}
+
 void MainArea::mouseMoveEvent( QMouseEvent * e)
 {
     special_XEvent event=QMouseToXEvent(e);
-    //cout << "(" << e->x() << "|" << e->y() << ")" << endl;
+    legend tmp_l;
+    get_graph_legend(get_cg(), &tmp_l);
+    e->accept();
+//cout << "(" << e->x() << "|" << e->y() << ")" << endl;
     if (event.xbutton.x<0 || event.xbutton.x>MainPixmap->width() || event.xbutton.y<0 || event.xbutton.y>MainPixmap->height()) return;
     event.type=QEvent::MouseMove;
     int setno,move_dir,add_at;
@@ -3529,9 +3639,25 @@ void MainArea::mouseMoveEvent( QMouseEvent * e)
         box_end_y=event.xbutton.y;
         rubber->setGeometry(QRect(origin, lblBackGr->mapFrom(this,e->pos())).normalized());
         break;
+    case PLACE_LEGEND_2ND:
+        box_end_x=event.xbutton.x;
+        box_end_y=event.xbutton.y;
+        if (tmp_l.autoattach!=G_LB_ATTACH_NONE)
+        {
+            if ( (tmp_l.autoattach & G_LB_ATTACH_LEFT)!=0 || (tmp_l.autoattach & G_LB_ATTACH_RIGHT)!=0 )
+            {
+            mainWin->mainArea->rubber->setGeometry(ShiftRect.translated(0,event.xbutton.y-ShiftPoint.y()));
+            }
+            if ( (tmp_l.autoattach & G_LB_ATTACH_TOP)!=0 || (tmp_l.autoattach & G_LB_ATTACH_BOTTOM)!=0 )
+            {
+            mainWin->mainArea->rubber->setGeometry(ShiftRect.translated(event.xbutton.x-ShiftPoint.x(),0));
+            }
+        }
+        else
+        mainWin->mainArea->rubber->setGeometry(ShiftRect.translated(event.xbutton.x-ShiftPoint.x(),event.xbutton.y-ShiftPoint.y()));
+        break;
     case MOVE_OBJECT_2ND:
     case COPY_OBJECT2ND:
-    case PLACE_LEGEND_2ND:
     case PLACE_TIMESTAMP_2ND:
         box_end_x=event.xbutton.x;
         box_end_y=event.xbutton.y;
@@ -3545,6 +3671,9 @@ void MainArea::mouseMoveEvent( QMouseEvent * e)
         posy=anchor_y<box_end_y?anchor_y:box_end_y;
         dx=abs(anchor_x-box_end_x);
         dy=abs(anchor_y-box_end_y);
+
+        limit_viewport(posx,posy,dx,dy);
+
         mainWin->mainArea->rubber->setGeometry(posx,posy,dx,dy);
         break;
     case MAKE_LINE_2ND:
@@ -3570,8 +3699,7 @@ void MainArea::mouseMoveEvent( QMouseEvent * e)
 
 void MainArea::mousePressEvent(QMouseEvent * e)
 {
-
-
+//cout << "Mouse Press 0: " << e->x() << "|" << e->y() << endl;
     e->accept();
     QCursor curs=cursor();
     QCursor curs2(Qt::WhatsThisCursor);
@@ -3586,6 +3714,7 @@ void MainArea::mousePressEvent(QMouseEvent * e)
     event.type=QEvent::MouseButtonPress;
     origin = lblBackGr->mapFrom(this,e->pos());
     processClickCommand(event);
+//cout << "Mouse Press 1: " << e->x() << "|" << e->y() << endl;
 }
 
 void MainArea::dragEnterEvent(QDragEnterEvent *event)
@@ -3632,8 +3761,9 @@ void MainArea::processClickCommand(special_XEvent & event)
     case MOVE_POINT1ST:
         box_end_x=box_start_x=event.xbutton.x;
         box_end_y=box_start_y=event.xbutton.y;
-        rubberLine->setGeometry(QRect(origin, QSize()));
-        rubberLine->show();
+        /// rubberLine->setGeometry(QRect(origin, QSize()));
+        /// rubberLine->show();
+        rubberLine->hide();
         break;
     case MOVE_POINT2ND:
         rubberLine->hide();
@@ -3654,17 +3784,6 @@ void MainArea::mouseReleaseEvent(QMouseEvent * e )
 {
     //special_XEvent event=QMouseToXEvent(e);
     mainWin->mouseReleaseEvent(e);
-
-    //BUG 1907: The points are updated using single left click on the mouse, when the Point Explorer Window is open.
-    //However, this functionality cause the axis properties dialogs to open on a single click as well (only when using the Point Explorer Window).
-    if(FormPointExplorer!=NULL)
-        if(FormPointExplorer->isVisible()){
-            {special_XEvent event=QMouseToXEvent(e);
-                event.doubleClick=true;
-                event.type=QEvent::MouseButtonPress;
-                processClickCommand(event);
-            }
-        }
 }
 
 void MainArea::keyPressEvent( QKeyEvent * e )
@@ -3720,32 +3839,66 @@ QImage paintXOR(QImage * canvas,QImage * toDraw)//draw "toDraw" at position in X
 
 void MainArea::completeRedraw(void)
 {
-    //cout << "Complete redraw()" << endl;
+static bool compl_redraw_running=false;
+//cout << "Start Complete redraw(), running=" << compl_redraw_running << endl;
+    if (compl_redraw_running==true)
+    {
+    return;
+    }
+    else
+    {
+    print_target=PRINT_TARGET_SCREEN;//this is the standard (is only changed in do_hardcopy())
+    compl_redraw_running=true;
+        update_all();
+        xdrawgraph();
+    compl_redraw_running=false;
+    }
+//cout << "Ende Complete redraw()" << endl;
 
-    update_all();
-    xdrawgraph();
-    /*Incorporated into drawgraph as part of xdrawgraph
+/*Incorporated into drawgraph as part of xdrawgraph
 contentChanged=true;
 repaint();*/
 }
 
+void drawRegionOnPainter(QPainter * pa,int region)
+{
+if (region>=0 && region<=MAXREGION)
+{
+QPoint * points=new QPoint[rg[region].n+2];
+WPoint wps;
+VPoint vps;
+//cout << "region " << region << " points=" << rg[region].n << endl;
+    for (int i = 0; i < rg[region].n; i++)
+    {
+        wps.x=rg[region].x[i];
+        wps.y=rg[region].y[i];
+    vps=Wpoint2Vpoint(wps);
+        points[i] = VPoint2XPoint(vps);
+    //cout << "rg.x=" << rg[region].x[i] << " v.x=" << vps.x << " QPoint.x=" << points[i].x() << endl;
+    //cout << "rg.y=" << rg[region].y[i] << " v.y=" << vps.y << " QPoint.y=" << points[i].y() << endl;
+    }
+    pa->drawPolygon(points,rg[region].n);
+delete[] points;
+}
+}
+
 void MainArea::paintEvent( QPaintEvent *e )
 {
-    static QPixmap pm;
-    if (contentChanged==false)
+static QPixmap pm;
+    if (contentChanged==false && simple_draw_setting==SIMPLE_DRAW_NONE)
     {
-        return;
+    return;
     }
 
     contentChanged=false;
 
-    if (cursortype!=0)
+    /*if (cursortype!=0)
     {
         QPoint cpoint=mapFromGlobal(QCursor::pos());
         GeneralPainter->setPen(Qt::black);
         GeneralPainter->drawLine(-4,cpoint.y()-4,width()+4,cpoint.y()-4);
         GeneralPainter->drawLine(cpoint.x()-4,0,cpoint.x()-4,height());
-    }
+    }*/
 
     /// QTextCodec *codec = QTextCodec::codecForName("KOI8-R");
     /// GeneralPainter->drawText(50,50,codec->toUnicode(g[0].labs.stitle.s));
@@ -3754,6 +3907,31 @@ void MainArea::paintEvent( QPaintEvent *e )
         pm=QPixmap::fromImage(*MainPixmap,Qt::AutoColor);
     else
         pm=QPixmap::fromImage(*MainPixmap,Qt::MonoOnly);
+
+//simple-drawing (without refreshing the whole background-graph)
+    QPainter tempPainter(&pm);
+//cout << "PaintEvent: simple_draw_setting=" << simple_draw_setting << " (simple_draw_setting&SIMPLE_DRAW_LINE)=" << (simple_draw_setting & SIMPLE_DRAW_LINE) << endl;
+    if (cursortype!=0 && (simple_draw_setting & SIMPLE_DRAW_CROSSHAIR) )
+    {
+        QPoint cpoint=mapFromGlobal(QCursor::pos());
+        tempPainter.setPen(Qt::black);
+        tempPainter.drawLine(-4,cpoint.y()-4,width()+4,cpoint.y()-4);
+        tempPainter.drawLine(cpoint.x()-4,0,cpoint.x()-4,height());
+    }
+    if (simple_draw_setting & SIMPLE_DRAW_LINE)
+    {
+    //cout << "PaintEvent: simple drawing line" << endl;
+        drawRegionOnPainter(&tempPainter,MAXREGION);
+    }
+    if (simple_draw_setting & SIMPLE_DRAW_REGION)
+    {
+    //cout << "PaintEvent: simple drawing Region" << endl;
+        drawRegionOnPainter(&tempPainter,nr);
+    }
+
+    tempPainter.end();
+
+    simple_draw_setting=SIMPLE_DRAW_NONE;
 
     lblBackGr->setPixmap(pm);
 
@@ -3782,3 +3960,14 @@ void MainArea::transf_window_coords(int x,int y,int & real_x,int & real_y)
     real_y=p.y();
 }
 
+void MainArea::setBGtoColor(QColor col)
+{
+//cout << "change BG-Color: " << col.red() << " " << col.green() << " " << col.blue() << endl;
+QPalette Pal(scroll->palette());
+Pal.setColor(QPalette::Background, col);
+scroll->setAutoFillBackground(true);
+scroll->setPalette(Pal);
+lblBackGr->setAutoFillBackground(true);
+lblBackGr->setPalette(Pal);
+scroll->show();
+}

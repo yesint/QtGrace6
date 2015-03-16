@@ -46,11 +46,7 @@ static Device_entry dev_dummy = {DEVICE_TERM,
                                  NULL,
                                  "",
                                  TRUE,
-                                 #ifdef SKF_QtGrace
-                                 TRUE,
-                                 #else
                                  FALSE,
-                                 #endif
                                  {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                  NULL
                                 };

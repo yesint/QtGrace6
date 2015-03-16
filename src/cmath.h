@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -30,6 +30,13 @@
 /* cmath.h - replacement for math.h or missing in libm functions */
 
 ///#include <config.h>
+
+#if defined(_MSC_VER) && _MSC_VER>=1800
+#define HAVE_HYPOT 1
+#define HAVE_RINT  1
+#define HAVE_LGAMMA 1
+#define HAVE_ISFINITE_DECL 1
+#endif
 
 #ifdef __cplusplus
 extern "C" {

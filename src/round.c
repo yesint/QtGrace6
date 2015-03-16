@@ -36,6 +36,8 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 #include "mconf.h"
 #include "cephes.h"
 
+#ifndef HAVE_ROUND
+
 double round(x)
 double x;
 {
@@ -65,3 +67,5 @@ rndup:
 /* Else round down. */
 return(y);
 }
+
+#endif

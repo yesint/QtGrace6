@@ -29,7 +29,7 @@
 #include <QtNetwork/QLocalSocket>
 #include <QMessageBox>
 
-extern bool startupphase;
+extern char startupphase;
 
 // initialize server
 LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent)
@@ -86,18 +86,30 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 
     //Read from Beast
     messageFromClienttPtr_m = new QLocalServer(this);
+    qDebug()<<"Start Init\n";
 
     bool listenOK=messageFromClienttPtr_m->listen(writeServerName);
     if(listenOK){
+      //  QMessageBox::information(0,"Communication Error", ". Try to restart QtGrace");
+
+       qDebug()<<"Start the Server (listen OK)\n";
         if(isDebugFlagOn_m){
             *debugOut_m<< "Start the Server (listen OK)\n"<<endl;
             debugOut_m->flush();
         }
+
+
+
     }  else{
+        qDebug()<<"Not able to start the Server\n";
+
         if(isDebugFlagOn_m){
             *debugOut_m<< "Not able to start the Server\n"<<endl;
             debugOut_m->flush();
         }
+
+
+
     }
 
     connect(messageFromClienttPtr_m, SIGNAL(newConnection()), this, SLOT(createNewSocketConnection()));
@@ -122,6 +134,9 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 }
 
 void LocalSocketIpcServer::ConnectToClient( const char* sendParam, int sendLen) {
+
+    qDebug()<<"connect To client line 126";
+
     if(isDebugFlagOn_m){
         *debugOut_m<< "2) Connect to Server\n"+readServer_m;
         *debugOut_m<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
@@ -344,13 +359,13 @@ void LocalSocketIpcServer::executeTaskFromClient()
         set_page_dimensions(733,538,1);
         //set_page_geometry()
 
-        startupphase=true;
+        startupphase=1;
         oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
         setScalingMode();
         noask=oldNoask_m;
-        startupphase=false;
+        startupphase=0;
 
         //Update legend properties
         for(int igno = 0; igno < graphNo_m+1; igno++){
@@ -394,13 +409,13 @@ void LocalSocketIpcServer::executeTaskFromClient()
             *debugOut_m<<"Run Command" << command_m<<"\n";
             debugOut_m->flush();
         }
-        startupphase=true;
+        startupphase=1;
         oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
         setScalingMode();
         noask=oldNoask_m;
-        startupphase=false;
+        startupphase=0;
 
         countNoOfRead_m = 0;
         isWriteToTmpFile_m=false;
@@ -431,9 +446,9 @@ void LocalSocketIpcServer::executeTaskFromClient()
             *debugOut_m<<"Run Command" << command_m<<"\n";
             debugOut_m->flush();
         }
-        startupphase=true;
+        startupphase=1;
         setLayoutMode();
-        startupphase=false;
+        startupphase=0;
         if(isDebugFlagOn_m){
             *debugOut_m<<"Was setLayoutMode" << command_m<<"\n";
             debugOut_m->flush();
@@ -869,7 +884,7 @@ void LocalSocketIpcServer::writeDataToTmpFile()
         //Read data from tmp file and update QtGrace plot
         readDataFromClient(dataFromBuffer_m.data(),0,"plot");
         update_all();
-        setResetExportDialogue(true);
+     //   setResetExportDialogue(true);
         buffer_m.close();
         dataFromBuffer_m.clear();
         buffer_m.open(QIODevice::Append);

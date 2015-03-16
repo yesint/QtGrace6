@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -37,10 +37,6 @@
 #include <cmath>
 
 #include <stdio.h>
-#ifdef _MSC_VER
-#else
-#include <unistd.h>
-#endif
 #include <string.h>
 
 #include <iostream>
@@ -64,6 +60,7 @@ extern frmAxisProp * FormAxisProperties;
 extern frmGraphApp * FormGraphAppearance;
 extern frmPointExplorer * FormPointExplorer;
 extern frmLocatorProps * FormLocatorProps;
+extern frmMasterRegionOperator * FormRegionMaster;
 extern void hide_rubber_lines(void);
 extern int object_edit_popup(int obj, int id);
 extern int region_def_under_way;
@@ -71,6 +68,10 @@ extern int regiontype;
 extern QPoint VPoint2XPoint(VPoint vp);
 extern unsigned int win_h, win_w;
 #define win_scale ((win_h < win_w) ? win_h:win_w)
+
+extern QStringList ListOfChanges;
+extern QStringList ListOfOldStates;
+extern int simple_draw_setting;
 
 /*#include <X11/X.h>
 #include <X11/Xatom.h>
@@ -84,7 +85,9 @@ extern Widget arealab;
 extern Widget perimlab;*/
 
 int cursortype = 0;
-//QTime lastc=QTime::currentTime();  /* time of last mouse click */
+#if QT_VERSION >= 0x050000
+QTime lastc=QTime::currentTime();  /* time of last mouse click */
+#endif
 QRect ShiftRect;
 QPoint ShiftPoint;
 static VPoint anchor_vp = {0.0, 0.0};
@@ -94,6 +97,7 @@ int anchor_y = 0;
 static view bb;
 static int move_dir;
 extern int action_flag;
+extern char DecimalPointToUse;
 
 /*
  * for region, area and perimeter computation
@@ -109,8 +113,10 @@ using namespace std;
 extern void get_tracking_props(int *setno, int *move_dir, int *add_at);
 extern void set_graph_selectors(int gno);
 extern void do_hotupdate_proc(void);
-
+extern void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true);
 extern void GeneralPaste(const QMimeData * mimeData);
+extern void limit_viewport(int & posx,int & posy,int & dx,int & dy);
+extern void limit_viewport(double & x1,double & y1,double & x2,double & y2);
 
 //this is for simple use of the undo-stuff - to be used with single objects only!
 int nrOfUndoObj=1;
@@ -120,6 +126,15 @@ int * undo_nrs=NULL;
 region undo_region,undo_region2;
 extern bool immediateUpdate;
 extern bool updateRunning;
+extern bool point_explorer_activ;
+
+bool is_legend_movable(int attach)
+{
+    if (attach==(G_LB_ATTACH_LEFT | G_LB_ATTACH_TOP) || attach==(G_LB_ATTACH_RIGHT | G_LB_ATTACH_TOP) || attach==(G_LB_ATTACH_LEFT | G_LB_ATTACH_BOTTOM) || attach==(G_LB_ATTACH_RIGHT | G_LB_ATTACH_BOTTOM))
+    return false;
+    else
+    return true;
+}
 
 void anchor_point(int curx, int cury, VPoint curvp)
 {
@@ -147,6 +162,7 @@ static int axisno;
 static int nr_of_sel_graphs,*sel_graphs=new int[2];
 static Datapoint dpoint;
 static GLocator locator;
+static legend tmp_l;
 bool old_upd;
 old_upd=immediateUpdate;
 immediateUpdate=false;
@@ -181,7 +197,7 @@ updateRunning=true;
         case ZOOMY_2ND:
         case MAKE_BOX_2ND:
         case MAKE_ELLIP_2ND:
-	    select_region(anchor_x, anchor_y, x, y, 1);
+            select_region(anchor_x, anchor_y, x, y, 1);
             break;
         case MOVE_OBJECT_2ND:
         case COPY_OBJECT2ND:
@@ -191,10 +207,12 @@ updateRunning=true;
             break;
         case DEF_REGION2ND:
             select_line(anchor_x, anchor_y, x, y, 1);
+            simple_draw_setting|=SIMPLE_DRAW_LINE;
             mainWin->mainArea->completeRedraw();
             break;
         case MAKE_LINE_2ND:
             select_line(anchor_x, anchor_y, x, y, 1);
+            simple_draw_setting|=SIMPLE_DRAW_LINE;
             mainWin->mainArea->completeRedraw();
             break;
         case DEF_REGION:
@@ -203,8 +221,7 @@ updateRunning=true;
                 anchor_point(x, y, vp);
                 iax[region_pts] = x;
                 iay[region_pts] = y;
-                view2world(vp.x, vp.y,
-                &region_wps[region_pts].x, &region_wps[region_pts].y);
+                view2world(vp.x, vp.y,&region_wps[region_pts].x, &region_wps[region_pts].y);
                 select_line(anchor_x, anchor_y, x, y, 1);
                 rg[nr].n = region_pts+1;
                 //rg[nr].n = region_pts;
@@ -216,22 +233,25 @@ updateRunning=true;
                     rg[nr].x[region_pts] = region_wps[region_pts].x;
                     rg[nr].y[region_pts] = region_wps[region_pts].y;
                 //}
+                simple_draw_setting|=SIMPLE_DRAW_REGION;
                 mainWin->mainArea->completeRedraw();
             }
             break;
         case MOVE_POINT2ND:
             switch (move_dir)
             {
-	    case MOVE_POINT_XY:
-                ///select_line(anchor_x, anchor_y, x, y, 1);
+            case MOVE_POINT_XY:
+                select_line(anchor_x, anchor_y, x, y, 1);
                 break;
-	    case MOVE_POINT_X:
-                ///select_line(x, anchor_y, anchor_x, anchor_y, 1);
-	        break;
-	    case MOVE_POINT_Y:
-                ///select_line(anchor_x, anchor_y, anchor_x, y, 1);
-	        break;
-	    }
+            case MOVE_POINT_X:
+                select_line(x, anchor_y, anchor_x, anchor_y, 1);
+                break;
+            case MOVE_POINT_Y:
+                select_line(anchor_x, anchor_y, anchor_x, y, 1);
+                break;
+            }
+            simple_draw_setting|=SIMPLE_DRAW_LINE;
+            mainWin->mainArea->completeRedraw();
             break;
         default:
             immediateUpdate=old_upd;
@@ -246,33 +266,24 @@ updateRunning=true;
 	x = event->xbutton.x;
 	y = event->xbutton.y;
 	vp = xlibdev2VPoint(x, y);
-        getpoints(&vp);
-        //cout << x << " " << y << endl;
+	getpoints(&vp);
         switch (event->xbutton.button)
         {
         case Qt::LeftButton://Button1:
-            /* first, determine if it's double click --> replaced by QT-double-click function*/
-            /*if (lastc.restart() < CLICKINT)
-	    {
+            /* first, determine if it's double click --> replaced by QT-double-click function in Qt4.7, but reverted in Qt5.0*/
+#if QT_VERSION >= 0x050000
+            if (lastc.restart() < CLICKINT)
+            {
                 dbl_click = TRUE;
             } else {
                 dbl_click = FALSE;
-            }*/
-//            if(FormPointExplorer==NULL){
-//                dbl_click=event->doubleClick;
-//            }else{
-//                dbl_click=TRUE;
-//                allow_dc = TRUE;
-
-//            }
-
-          dbl_click=event->doubleClick;
-
-
-
-          switch (action_flag)
+            }
+#else
+            dbl_click=event->doubleClick;
+#endif
+            switch (action_flag)
             {
-            case 0:
+            case DO_NOTHING:
                 if (dbl_click == TRUE && allow_dc == TRUE)
                 {
                     track_setno = -1;
@@ -280,7 +291,7 @@ updateRunning=true;
                     {
                         xlibVPoint2dev(anchor_vp, &anchor_x, &anchor_y);
                         set_action(VIEW_2ND);
-                    select_region(anchor_x, anchor_y, x, y, 0);
+	                select_region(anchor_x, anchor_y, x, y, 0);
                         get_graph_viewport(cg,&bb);
                         ShiftRect=QRect(xconvxlib(bb.xv1),yconvxlib(bb.yv2),xconvxlib(bb.xv2)-xconvxlib(bb.xv1),yconvxlib(bb.yv1)-yconvxlib(bb.yv2));
                         ShiftPoint=QPoint(x,y);
@@ -289,8 +300,8 @@ updateRunning=true;
                     }
                     else if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS)
                     {
-         /*   if (FormSetAppearance==NULL)
-            {
+                        if (FormSetAppearance==NULL)
+                        {
                         FormSetAppearance=new frmSetAppearance(mainWin);
                         FormSetAppearance->init();
                         }
@@ -298,47 +309,45 @@ updateRunning=true;
                         FormSetAppearance->ShowSetData_external(cg,track_setno);
                         FormSetAppearance->raise();
                         FormSetAppearance->activateWindow();
-
-                        if(FormPointExplorer!=NULL){
-                             if(FormPointExplorer->isVisible()){
-                            FormSetAppearance->hide();
-                             }
-                        }*/
-
                     }
                     else if (axis_clicked(cg, vp, &axisno) == TRUE)
                     {
-			if (FormAxisProperties==NULL)
-			{
-			FormAxisProperties=new frmAxisProp(mainWin);
-			}
+                        if (FormAxisProperties==NULL)
+                        {
+                        FormAxisProperties=new frmAxisProp(mainWin);
+                        }
                         FormAxisProperties->show();
                         FormAxisProperties->raise();
                         FormAxisProperties->create_axes_dialog(axisno);
                     }
-                    else if (title_clicked(cg, vp) == TRUE)
+                    else if (title_clicked(cg, vp, &add_at) == TRUE)
                     {
-			if (FormGraphAppearance==NULL)
-			{
-			FormGraphAppearance=new frmGraphApp(mainWin);
-			}
-			FormGraphAppearance->init();
-			FormGraphAppearance->show_graph_data_external(cg);
+                        if (FormGraphAppearance==NULL)
+                        {
+                        FormGraphAppearance=new frmGraphApp(mainWin);
+                        }
+                        FormGraphAppearance->init();
+                        FormGraphAppearance->show_graph_data_external(cg);
                         FormGraphAppearance->show();
                         FormGraphAppearance->raise();
                         FormGraphAppearance->activateWindow();
+                        FormGraphAppearance->flp->tabs->setCurrentIndex(0);
+                        if (add_at==1)//subtitle
+                        FormGraphAppearance->flp->tabMain->ledSubtitle->lenText->setFocus();
+                        else
                         FormGraphAppearance->flp->tabMain->ledTitle->lenText->setFocus();
                     }
                     else if (legend_clicked(cg, vp, &bb) == TRUE)
                     {
-			if (FormGraphAppearance==NULL)
-			{
-			FormGraphAppearance=new frmGraphApp(mainWin);
-			}
-			FormGraphAppearance->init();
-			FormGraphAppearance->show_graph_data_external(cg);
-			FormGraphAppearance->show();
+                        if (FormGraphAppearance==NULL)
+                        {
+                        FormGraphAppearance=new frmGraphApp(mainWin);
+                        }
+                        FormGraphAppearance->init();
+                        FormGraphAppearance->show_graph_data_external(cg);
+                        FormGraphAppearance->show();
                         FormGraphAppearance->raise();
+                        FormGraphAppearance->flp->tabs->setCurrentIndex(3);
                     }
                     else if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS)
                     {
@@ -363,21 +372,20 @@ updateRunning=true;
                         FormSetAppearance->init();
                         FormSetAppearance->show();
                         FormSetAppearance->raise();
-
-                        if(FormPointExplorer!=NULL){
-                            if(FormPointExplorer->isVisible()){
-                           FormSetAppearance->hide();
-                            }
-                        }
                     }
                 }
                 else
                 {
+                    track_setno = -1;
+                    find_point(cg, vp, &track_setno, &loc);/// added in order to automatically update the point-explorer-dialog
+
                     if (focus_policy == FOCUS_CLICK)
-		    {
+                    {
                         if ((newg = next_graph_containing(cg, vp)) != cg)
-			{
+                        {
+                        updateRunning=false;
                         switch_current_graph(newg);
+                        updateRunning=true;
                         }
                     }
                 }
@@ -385,16 +393,17 @@ updateRunning=true;
             case VIEW_2ND:
                 set_action(DO_NOTHING);
                 v.xv1 = MIN2(vp.x, anchor_vp.x);
-		v.yv1 = MIN2(vp.y, anchor_vp.y);
-		v.xv2 = MAX2(vp.x, anchor_vp.x);
-		v.yv2 = MAX2(vp.y, anchor_vp.y);
+                v.yv1 = MIN2(vp.y, anchor_vp.y);
+                v.xv2 = MAX2(vp.x, anchor_vp.x);
+                v.yv2 = MAX2(vp.y, anchor_vp.y);
+                limit_viewport(v.xv1,v.yv1,v.xv2,v.yv2);
                     ///Undo-Stuff
                     ViewportChanged(cg,v);
                 set_graph_viewport(cg, v);
                     if (FormGraphAppearance!=NULL)
                     FormGraphAppearance->update_view(cg);
                 mainWin->mainArea->rubber->hide();
-		mainWin->mainArea->completeRedraw();
+                mainWin->mainArea->completeRedraw();
                 break;
             case ZOOM_1ST:
                 anchor_point(x, y, vp);
@@ -424,12 +433,19 @@ updateRunning=true;
                     get_graph_world(get_cg(), &wtmp);//save zoomed axes scale
                 for (int ll=0;ll<nr_of_sel_graphs;ll++)
                 {
-                cg=sel_graphs[ll];
-                get_graph_world(cg, &wtmp2);
-                wtmp2.xg1 = wtmp.xg1;//all shall be zoomed --> copy all axes from current graph
-                wtmp2.xg2 = wtmp.xg2;
-                wtmp2.yg1 = wtmp.yg1;
-                wtmp2.yg2 = wtmp.yg2;
+                cg=sel_graphs[ll];//get current graph-number
+                get_graph_world(cg, &wtmp2);//get old axis-settings
+                    sprintf(dummy,"with G%d",cg);
+                    ListOfChanges << QString(dummy);
+                    ListOfOldStates << QString(dummy);
+                    sprintf(dummy,"    world %g, %g, %g, %g",wtmp2.xg1,wtmp2.yg1,wtmp2.xg2,wtmp2.yg2);
+                    ListOfOldStates << QString(dummy);
+                    sprintf(dummy,"    world %g, %g, %g, %g",wtmp.xg1,wtmp.yg1,wtmp.xg2,wtmp.yg2);
+                    ListOfChanges << QString(dummy);
+                    wtmp2.xg1 = wtmp.xg1;//all shall be zoomed --> copy all axes from current graph
+                    wtmp2.xg2 = wtmp.xg2;
+                    wtmp2.yg1 = wtmp.yg1;
+                    wtmp2.yg2 = wtmp.yg2;
                 //newworld(cg, ALL_Y_AXES, anchor_vp, vp);
                 set_graph_world(cg, wtmp2);//set zoom values of all graphs
                 autotick_axis(cg, ALL_AXES);
@@ -587,9 +603,11 @@ updateRunning=true;
                 rg[MAXREGION].linkto=cg;
                 rg[MAXREGION].active=TRUE;
 	        select_line(anchor_x, anchor_y, x, y, 0);
+                simple_draw_setting=SIMPLE_DRAW_LINE;
                 set_action(MAKE_LINE_2ND);
                 break;
             case MAKE_LINE_2ND:
+                simple_draw_setting&=(~SIMPLE_DRAW_LINE);
                 select_line(anchor_x, anchor_y, x, y, 0);
                 id = next_line();
                 init_line(id, anchor_vp, vp);
@@ -655,7 +673,7 @@ updateRunning=true;
                 {
                     DataPointEdited(cg,track_setno,&loc,1,NULL,1);
                     del_point(cg, track_setno, loc);
-		    update_set_lists(cg);
+                    update_set_lists(cg);
                     mainWin->mainArea->completeRedraw();
                 }
                 break;
@@ -665,7 +683,7 @@ updateRunning=true;
                     anchor_point(x, y, vp);
                     get_point(cg, track_setno, track_loc, &wp);
                     ///select_line(anchor_x, anchor_y, x, y, 0);
-		    set_action(MOVE_POINT2ND);
+                    set_action(MOVE_POINT2ND);
                 }
                 break;
             case MOVE_POINT2ND:
@@ -675,16 +693,16 @@ updateRunning=true;
                     view2world(vp.x, vp.y, &wp_new.x, &wp_new.y);
                     switch (move_dir)
                     {
-		    case 0:
-		        wp = wp_new;
+                    case 0:
+                    wp = wp_new;
                         break;
-		    case 1:
-		        wp.x = wp_new.x;
-		        break;
-		    case 2:
-		        wp.y = wp_new.y;
-		        break;
-		    }
+                    case 1:
+                    wp.x = wp_new.x;
+                        break;
+                    case 2:
+                    wp.y = wp_new.y;
+                        break;
+                    }
                     ///get_datapoint(cg,track_setno,track_loc,&nrOfUndoObj,&undo_dp);
                         if (undo_dp!=NULL) delete[] undo_dp;
                         undo_dp=new Datapoint[2];
@@ -703,21 +721,22 @@ updateRunning=true;
                 }
                 break;
             case ADD_POINT:
-		view2world(vp.x, vp.y, &wp.x, &wp.y);
+            view2world(vp.x, vp.y, &wp.x, &wp.y);
                 zero_datapoint(&dpoint);
                 dpoint.ex[0] = wp.x;
                 dpoint.ex[1] = wp.y;
-                switch (add_at) {
-		case ADD_POINT_BEGINNING: /* at the beginning */
-		    loc = 0;
-		    break;
-		case ADD_POINT_END: /* at the end */
-		    loc = getsetlength(cg, track_setno);
-		    break;
-		default: /* between nearest points */
-		    loc = find_insert_location(cg, track_setno, vp);
-		    break;
-		}
+                switch (add_at)
+                {
+                case ADD_POINT_BEGINNING: /* at the beginning */
+                loc = 0;
+                    break;
+                case ADD_POINT_END: /* at the end */
+                loc = getsetlength(cg, track_setno);
+                    break;
+                default: /* between nearest points */
+                loc = find_insert_location(cg, track_setno, vp);
+                    break;
+                }
                 if (undo_dp!=NULL) delete[] undo_dp;
                 undo_dp=new Datapoint[2];
                 if (undo_nrs!=NULL) delete[] undo_nrs;
@@ -727,8 +746,8 @@ updateRunning=true;
                 DataPointEdited(cg,track_setno,&loc,1,undo_dp,0);
                 if (add_point_at(cg, track_setno, loc, &dpoint)== RETURN_SUCCESS)
                 {
-                 update_set_lists(cg);
-                 mainWin->mainArea->completeRedraw();
+                update_set_lists(cg);
+                mainWin->mainArea->completeRedraw();
                 }
                 break;
             case PLACE_LEGEND_1ST:
@@ -746,11 +765,23 @@ updateRunning=true;
             case PLACE_LEGEND_2ND:
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
+                get_graph_legend(cg, &tmp_l);
+                if (tmp_l.autoattach!=G_LB_ATTACH_NONE)
+                {
+                    if ( (tmp_l.autoattach & G_LB_ATTACH_LEFT)!=0 || (tmp_l.autoattach & G_LB_ATTACH_RIGHT)!=0 )
+                    {
+                    shift.x=0;
+                    }
+                    if ( (tmp_l.autoattach & G_LB_ATTACH_TOP)!=0 || (tmp_l.autoattach & G_LB_ATTACH_BOTTOM)!=0 )
+                    {
+                    shift.y=0;
+                    }
+                }
                 move_legend(cg, shift);
                     if (FormGraphAppearance!=NULL)
                     FormGraphAppearance->updatelegends(cg);
                 mainWin->mainArea->rubber->hide();
-		mainWin->mainArea->completeRedraw();
+                mainWin->mainArea->completeRedraw();
                 set_action(PLACE_LEGEND_1ST);
                 break;
             case PLACE_TIMESTAMP_1ST:
@@ -770,7 +801,7 @@ updateRunning=true;
                 shift.y = vp.y - anchor_vp.y;
                 move_timestamp(shift);
                 mainWin->mainArea->rubber->hide();
-		mainWin->mainArea->completeRedraw();
+                mainWin->mainArea->completeRedraw();
                 set_action(PLACE_TIMESTAMP_1ST);
                 break;
 	    case SEL_POINT:
@@ -788,11 +819,13 @@ updateRunning=true;
 		set_action(DO_NOTHING);
 		break;
 	    case DEF_REGION1ST:
-		anchor_point(x, y, vp);
-                select_line(anchor_x, anchor_y, x, y, 0);
-		set_action(DEF_REGION2ND);
+            anchor_point(x, y, vp);
+            select_line(anchor_x, anchor_y, x, y, 0);
+            simple_draw_setting=SIMPLE_DRAW_LINE;
+            set_action(DEF_REGION2ND);
 		break;
 	    case DEF_REGION2ND:
+                simple_draw_setting&=(~SIMPLE_DRAW_REGION);
 		set_action(DO_NOTHING);
                 rg[MAXREGION].active=FALSE;
                 //select_line(anchor_x, anchor_y, x, y, 0);
@@ -809,6 +842,10 @@ updateRunning=true;
 		view2world(anchor_vp.x, anchor_vp.y, &rg[nr].x1, &rg[nr].y1);
 		view2world(vp.x, vp.y, &rg[nr].x2, &rg[nr].y2);
 		mainWin->mainArea->completeRedraw();
+            if (FormRegionMaster!=NULL)
+            {
+            FormRegionMaster->init();
+            }
 		break;
 	    case DEF_REGION:
                 if (rg[nr].n>0 || region_def_under_way==-1)
@@ -838,6 +875,7 @@ updateRunning=true;
                     rg[nr].y[iii] = region_wps[iii].y;
                 }
                 select_line(anchor_x, anchor_y, x, y, 0);
+                simple_draw_setting|=SIMPLE_DRAW_REGION;
                 mainWin->mainArea->completeRedraw();
 		break;
             default:
@@ -860,6 +898,7 @@ updateRunning=true;
             }
             break;
         case Qt::RightButton://Button3:
+            mainWin->mainArea->rubber->hide();
             switch (action_flag)
             {
             case DO_NOTHING:
@@ -897,12 +936,17 @@ updateRunning=true;
                     }
                 RegionModified(nr,&undo_region2,0);
                 }
-		load_poly_region(nr, cg, region_pts, region_wps);
+            load_poly_region(nr, cg, region_pts, region_wps);
                 set_action(DO_NOTHING);
-		mainWin->mainArea->completeRedraw();
+            mainWin->mainArea->completeRedraw();
+                    if (FormRegionMaster!=NULL)
+                    {
+                    FormRegionMaster->init();
+                    }
                 break;
             default:
                 rg[MAXREGION].active=FALSE;
+                simple_draw_setting=SIMPLE_DRAW_NONE;
                 set_action(DO_NOTHING);
                 break;
             }
@@ -932,8 +976,11 @@ updateRunning=true;
         }
         else if (event->key==Qt::Key_L && event->ctrl==true && event->alt==false)
         {
-        set_action(DO_NOTHING);
-        set_action(PLACE_LEGEND_1ST);
+            if (is_legend_movable(g[get_cg()].l.autoattach)==true)
+            {
+            set_action(DO_NOTHING);
+            set_action(PLACE_LEGEND_1ST);
+            }
         }
         else if (event->key==Qt::Key_L && event->ctrl==true && event->alt==true)
         {
@@ -962,6 +1009,42 @@ updateRunning=true;
         {
         set_action(DO_NOTHING);
         set_action(PLACE_TIMESTAMP_1ST);
+        }
+        else if (event->key==Qt::Key_I && event->ctrl==true && event->alt==false)
+        {
+        strcpy(dummy,QObject::tr("Report on intersection; visible sets:").toLocal8Bit().constData());
+        stufftext(dummy);
+        //cout << "Report on intersection; visible sets:" << endl;
+        int * sets=NULL;
+        int nr_of_vis_sets=current_visible_sets(get_cg(),&sets);
+        double cx,cy;
+            for (int klm=0;klm<nr_of_vis_sets;klm++)
+            {
+                for (int klm2=klm+1;klm2<nr_of_vis_sets;klm2++)
+                {
+                sprintf(dummy,"G[%d].S[%d] <--> G[%d].S[%d]",get_cg(),sets[klm],get_cg(),sets[klm2]);
+                stufftext(dummy);
+                //cout << "set " << sets[klm] << " <--> set " << sets[klm2] << endl;
+                if (get_set_crossing(get_cg(),sets[klm],get_cg(),sets[klm2],RESTRICT_WORLD,0,&cx,&cy)==RETURN_FAILURE)
+                {
+                stufftext(QObject::tr("no intersection found").toLocal8Bit().constData());
+                //cout << "no intersection" << endl;
+                }
+                else
+                {
+                    if (DecimalPointToUse=='.')
+                    sprintf(dummy,"[ %g , %g ]",cx,cy);
+                    else//','
+                    {
+                    sprintf(dummy,"[ %g | %g ]",cx,cy);
+                    SetDecimalSeparatorToUserValue(dummy);
+                    }
+                //cout << "(" << cx << "|" << cy << ")" << endl;
+                stufftext(dummy);
+                }
+                }
+            }
+        if (sets!=NULL) delete[] sets;
         }
         else if (event->key==Qt::Key_U && event->ctrl==true && event->alt==false)
         {
@@ -1045,7 +1128,7 @@ void set_action(CanvasAction act)
  * indicate what's happening with a message in the left footer
  */
     switch (act) {
-    case 0:
+    case DO_NOTHING:
         switch (action_flag) {
         case ZOOM_2ND:
         case ZOOMX_2ND:
@@ -1062,7 +1145,7 @@ void set_action(CanvasAction act)
         case DEF_REGION2ND:
             break;
         case MAKE_LINE_2ND:
-	    select_line(anchor_x, anchor_y, x, y, 0);
+            select_line(anchor_x, anchor_y, x, y, 0);
             break;
         case DEF_REGION:
             /*select_line(anchor_x, anchor_y, x, y, 0);
@@ -1071,17 +1154,17 @@ void set_action(CanvasAction act)
             }*/
             break;
         case MOVE_POINT2ND:
-	    switch (move_dir) {
-	    case 0:
+            switch (move_dir) {
+            case 0:
                 ///select_line(anchor_x, anchor_y, x, y, 0);
                 break;
-	    case 1:
+            case 1:
                 ///select_line(anchor_x, anchor_y, x, anchor_y, 0);
 	        break;
-	    case 2:
+            case 2:
                 ///select_line(anchor_x, anchor_y, anchor_x, y, 0);
 	        break;
-	    }
+            }
             break;
         default:
             break;
@@ -1089,6 +1172,7 @@ void set_action(CanvasAction act)
 	hide_rubber_lines();
 	set_cursor(-1);
 	set_left_footer(NULL);
+    point_explorer_activ=false;
 	break;
     case ZOOM_1ST:
 	set_cursor(0);
@@ -1171,21 +1255,26 @@ void set_action(CanvasAction act)
     case TRACKER:
 	set_cursor(1);
 	set_left_footer("Tracker");
+    point_explorer_activ=true;
 	break;
     case DEL_POINT:
 	set_cursor(3);
 	set_left_footer("Delete point");
+    point_explorer_activ=true;
 	break;
     case MOVE_POINT1ST:
 	set_cursor(4);
 	set_left_footer("Pick point to move");
+    point_explorer_activ=true;
 	break;
     case MOVE_POINT2ND:
 	set_left_footer("Pick final location");
+    point_explorer_activ=true;
 	break;
     case ADD_POINT:
 	set_cursor(0);
 	set_left_footer("Add point");
+    point_explorer_activ=true;
 	break;
     case PLACE_LEGEND_1ST:
 	set_cursor(1);
@@ -1293,23 +1382,26 @@ void getpoints(VPoint *vpp)
     char buf[256], bufx[64], bufy[64], *s;
     GLocator locator;
     
-    if (vpp != NULL) {
-        vp = *vpp;
+    if (vpp != NULL)
+    {
+    vp = *vpp;
     }
     
     view2world(vp.x, vp.y, &wx, &wy);
-    if (get_graph_locator(cg, &locator) != RETURN_SUCCESS) {
-	mainWin->statLocBar->setText(QString("[No graphs]"));
+        if (get_graph_locator(cg, &locator) != RETURN_SUCCESS)
+        {
+        mainWin->statLocBar->setText(QObject::tr("[No graphs]"));
         return;
-    }
+        }
     
-    if (locator.pointset) {
+    if (locator.pointset)
+    {
 	dsx = locator.dsx;
 	dsy = locator.dsy;
     }
     
     switch (locator.pt_type) {
-    case 0:
+    case 0://X,Y
         if (get_graph_type(cg) == GRAPH_POLAR) {
             polar2xy(wx, wy, &xtmp, &ytmp);
         } else {
@@ -1317,11 +1409,11 @@ void getpoints(VPoint *vpp)
             ytmp = wy;
         }
         break;
-    case 1:
+    case 1://DX,DY
         xtmp = wx - dsx;
         ytmp = wy - dsy;
         break;
-    case 2:
+    case 2://Distance
         if (get_graph_type(cg) == GRAPH_POLAR) {
             polar2xy(wx, wy, &xtmp, &ytmp);
         } else {
@@ -1331,7 +1423,7 @@ void getpoints(VPoint *vpp)
         xtmp = hypot(dsx - xtmp, dsy - ytmp);
         ytmp = 0.0;
         break;
-    case 3:
+    case 3://Phi,Rho
         if (dsx - wx != 0.0 || dsy - wy != 0.0) {
             xy2polar(wx - dsx, wy - dsy, &xtmp, &ytmp);
         } else {
@@ -1339,11 +1431,11 @@ void getpoints(VPoint *vpp)
             ytmp = 0.0;
         }
         break;
-    case 4:
+    case 4://Vx,Vy
         xtmp = vp.x;
         ytmp = vp.y;
         break;
-    case 5:
+    case 5://Sx,Sy
         xlibVPoint2dev(vp, &x, &y);
         xtmp = x;
         ytmp = y;
@@ -1351,11 +1443,29 @@ void getpoints(VPoint *vpp)
     default:
         return;
     }
+
     s = create_fstring(locator.fx, locator.px, xtmp, LFORMAT_TYPE_PLAIN);
     strcpy(bufx, s);
     s = create_fstring(locator.fy, locator.py, ytmp, LFORMAT_TYPE_PLAIN);
     strcpy(bufy, s);
-    sprintf(buf, "G%1d: %s = [%s, %s]", cg, typestr[locator.pt_type], bufx, bufy);
+
+    if (locator.pt_type==2)//Distance
+    {
+    sprintf(buf, "G%1d: %s = [%s]", cg, typestr[locator.pt_type], bufx);//y=0 (always)
+    }
+    else
+    {
+        if (DecimalPointToUse==',')
+        {
+            if (locator.fx>=FORMAT_DECIMAL && locator.fx<=FORMAT_COMPUTING)
+            SetDecimalSeparatorToUserValue(bufx);
+            if (locator.fy>=FORMAT_DECIMAL && locator.fy<=FORMAT_COMPUTING)
+            SetDecimalSeparatorToUserValue(bufy);
+        sprintf(buf, "G%1d: %s = [%s | %s]", cg, typestr[locator.pt_type], bufx, bufy);
+        }
+        else
+        sprintf(buf, "G%1d: %s = [%s, %s]", cg, typestr[locator.pt_type], bufx, bufy);
+    }
     mainWin->statLocBar->setText(QString(buf));
 }
 
@@ -1421,11 +1531,18 @@ int next_graph_containing(int cg, VPoint vp)
 int legend_clicked(int gno, VPoint vp, view *bb)
 {
     if(hideDialog())
-        return FALSE; // hide dialog, if point explorer window is open.
+    return FALSE; // hide dialog, if point explorer window is open.
 
     legend l;
     if (is_graph_hidden(gno) == FALSE) {
         get_graph_legend(gno, &l);
+        if (l.autoattach!=G_LB_ATTACH_NONE)
+        {
+        l.bb.xv1+=l.xshift;
+        l.bb.xv2+=l.xshift;
+        l.bb.yv1+=l.yshift;
+        l.bb.yv2+=l.yshift;
+        }
 	if (l.active && is_vpoint_inside(l.bb, vp, MAXPICKDIST)) {
 	    *bb = l.bb;
             return TRUE;
@@ -1439,9 +1556,8 @@ int legend_clicked(int gno, VPoint vp, view *bb)
 
 int graph_clicked(int gno, VPoint vp)
 {
-
     if(hideDialog())
-        return FALSE; // hide dialog, if point explorer window is open.
+    return FALSE; // hide dialog, if point explorer window is open.
 
     view v;
     if (is_graph_hidden(gno) == FALSE) {
@@ -1459,7 +1575,7 @@ int graph_clicked(int gno, VPoint vp)
 int timestamp_clicked(VPoint vp, view *bb)
 {
     if(hideDialog())
-        return FALSE; // hide dialog, if point explorer window is open.
+    return FALSE; // hide dialog, if point explorer window is open.
 
     if (timestamp.active && is_vpoint_inside(timestamp.bb, vp, MAXPICKDIST)) {
         *bb = timestamp.bb;
@@ -1471,9 +1587,8 @@ int timestamp_clicked(VPoint vp, view *bb)
 
 int focus_clicked(int cg, VPoint vp, VPoint *avp)
 {
-
     if(hideDialog())
-        return FALSE; // hide dialog, if point explorer window is open.
+    return FALSE; // hide dialog, if point explorer window is open.
 
     view v;
     if (is_graph_hidden(cg) == TRUE) {
@@ -1505,9 +1620,8 @@ int focus_clicked(int cg, VPoint vp, VPoint *avp)
 
 int axis_clicked(int gno, VPoint vp, int *axisno)
 {
-
     if(hideDialog())
-        return FALSE; // hide dialog, if point explorer window is open.
+    return FALSE; // hide dialog, if point explorer window is open.
 
     view v;
     /* TODO: check for offsets, zero axes, polar graphs */
@@ -1531,10 +1645,10 @@ int axis_clicked(int gno, VPoint vp, int *axisno)
     }
 }
 
-int title_clicked(int gno, VPoint vp)
+int title_clicked(int gno, VPoint vp, int * lower)
 {
     if(hideDialog())
-        return FALSE; // hide dialog, if point explorer window is open.
+    return FALSE; // hide dialog, if point explorer window is open.
 
     view v;
     /* a rude check; TODO: use right offsets */
@@ -1544,8 +1658,11 @@ int title_clicked(int gno, VPoint vp)
         get_graph_viewport(gno, &v);
         if (vp.x >= v.xv1 && vp.x <= v.xv2 &&
             vp.y > v.yv2 && vp.y < v.yv2 + 0.1) {
+                if (vp.y < v.yv2 + 0.05) *lower=1;
+                else *lower=0;
             return TRUE;
         } else {
+            *lower=0;
             return FALSE;
         }
     }
@@ -1747,9 +1864,13 @@ void switch_current_graph(int gno)
 {
     if (is_graph_hidden(gno) == FALSE)
     {
+        //cout << "selecting" << endl;
         select_graph(gno);
+        //cout << "setGraphSelector" << endl;
         set_graph_selectors(gno);
+        //cout << "getpoints" << endl;
         getpoints(NULL);
+        //cout << "going to redraw" << endl;
 	mainWin->mainArea->completeRedraw();
     }
 }
@@ -1848,16 +1969,23 @@ void push_and_zoom(void)
     set_action(ZOOM_1ST);
 }
 
-int hideDialog(){
-    if(FormPointExplorer!=NULL){
-        if(FormPointExplorer->isVisible()){
-       return TRUE;
-		}else{
-		return FALSE;
-		}
-
-	}else{
-	return FALSE;
-	}
-
+int hideDialog(void)
+{
+    /// TEST-VERSION -- IS ALWAYS FALSE
+    return FALSE;
+    if(FormPointExplorer!=NULL)
+    {
+        if(FormPointExplorer->isVisible())
+        {
+        return TRUE;
+        }
+        else
+        {
+        return FALSE;
+        }
+    }
+    else
+    {
+    return FALSE;
+    }
 }

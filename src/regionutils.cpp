@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2012
+ * Modified by Andreas Winter 2008-2015
  * 
  *                           All Rights Reserved
  * 
@@ -53,22 +53,20 @@ int regiontype = 0;
  */
 int inbounds(int gno, double x, double y)
 {
-    WPoint wp;
-    
+WPoint wp;
     wp.x = x;
     wp.y = y;
-    return is_validWPoint(wp);
+return is_validWPoint(wp);
 }
 
 int isactive_region(int regno)
 {
-    return (regno == MAXREGION || regno == MAXREGION + 1 || rg[regno].active == TRUE);
+return (regno == MAXREGION || regno == MAXREGION + 1 || rg[regno].active == TRUE);
 }
 
 char *region_types(int it, int which)
 {
-    char *s;
-
+char *s;
     s = "UNDEFINED";
     switch (it) {
     case REGION_TOLEFT:
@@ -109,26 +107,29 @@ char *region_types(int it, int which)
     case REGION_VERTO:
       s ="REGION_VERTO";
       break;
-
     }
-    return s;
+return s;
 }
 
 void kill_region(int r)
 {
-    if (rg[r].active) {
+    //if (rg[r].active)
+    //{
 	XCFREE(rg[r].x);
 	XCFREE(rg[r].y);
         rg[r].active = FALSE;
         rg[r].n = 0;
+        rg[r].type=0;
+        rg[r].x1=rg[r].x2=rg[r].y1=rg[r].y2=0.0;
         set_dirtystate();
-    }
+    //}
 }
 
 void kill_all_regions(void)
 {
     int r;
-    for (r = 0; r < MAXREGION; r++) {
+    for (r = 0; r < MAXREGION; r++)
+    {
         kill_region(r);
     }
 }
@@ -142,7 +143,6 @@ void activate_region(int r, int type, int linkto)
     set_dirtystate();
 }
 
-
 /*
  * report on sets in a region
  */
@@ -151,7 +151,12 @@ void reporton_region(int gno, int rno, int type)
     char buf[256];
     int i, j, first, contained;
     double *x, *y;
+    if (rno>=0 && rno<MAXREGION)
     sprintf(buf, "\nRegion R%1d contains:\n", rno);
+    else if (rno==MAXREGION)
+    sprintf(buf, "\nInside World:\n", rno);
+    else
+    sprintf(buf, "\nOutside World:\n", rno);
     stufftext(buf);
     for (j = 0; j < number_of_sets(gno); j++) {
 	if (is_set_active(gno, j)) {

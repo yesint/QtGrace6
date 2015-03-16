@@ -49,22 +49,22 @@
 
 /*#include <config.h>*/
 #include <cmath>
-
+#include <cfloat>
 #include <stdio.h>
 #include <stdlib.h>
+
+#if defined(_MSC_VER)
+#include "cmath.h"
+#endif
 
 #include "defines.h"
 #include "utils.h"
 #include "noxprotos.h"
 #include "as274c.h"
 
-#ifdef _MSC_VER
-#include <float.h>
-// _finite()
-#endif
-
 static char buf[256];
 
+extern void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true);
 
 /*
 	compute mean and standard dev
@@ -152,12 +152,8 @@ int fitcurve(double *x, double *y, int n, int ideg, double *coeff)
 		}
     }
 	/* check coefficients */
-	#ifdef _MSC_VER
-	#define finite(x) _finite(x)
-	#endif
-	
 	for (i = 0; i <= ideg; i++) {
-	    if (!finite(coeff[i])) {
+        if (!finite(coeff[i])) {
 	        errmsg("Linear_regression - all values of x or y are the same");
 			ifail = 3;
 			return ifail;
@@ -435,24 +431,32 @@ int linear_regression(int n, double *x, double *y, double *coeff)
     RSS = SYY - slope * SXY;
 
     sprintf(buf, "Number of observations\t\t\t = %d", n);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Mean of independent variable\t\t = %.7g", xbar);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Mean of dependent variable\t\t = %.7g", ybar);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Standard dev. of ind. variable\t\t = %.7g", sdx);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Standard dev. of dep. variable\t\t = %.7g", sdy);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Correlation coefficient\t\t\t = %.7g", rxy);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Regression coefficient (SLOPE)\t\t = %.7g", slope);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
 
     if (n == 2) {
         coeff[1] = (y[1] - y[0])/(x[1] - x[0]);
         coeff[0] = y[0] - coeff[1]*x[0];
         sprintf(buf, "Regression constant (INTERCEPT)\t\t = %.7g", intercept);
+        SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
         return 0;
     } 
@@ -466,24 +470,34 @@ int linear_regression(int n, double *x, double *y, double *coeff)
     R2 = SSreg / SYY;
 
     sprintf(buf, "Standard error of coefficient\t\t = %.7g", seslope);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "t - value for coefficient\t\t = %.7g", slope / seslope);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Regression constant (INTERCEPT)\t\t = %.7g", intercept);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Standard error of constant\t\t = %.7g", seintercept);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "t - value for constant\t\t\t = %.7g", intercept / seintercept);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "\nAnalysis of variance\n");
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Source\t\t d.f\t Sum of squares\t Mean Square\t F");
+    //SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Regression\t   1\t%.7g\t%.7g\t%.7g", SSreg, SSreg, F);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Residual\t%5d\t%.7g\t%.7g", n - 2, RSS, rms);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
     sprintf(buf, "Total\t\t%5d\t%.7g\n", n - 1, SYY);
+    SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
 
     for (i = 0; i < n; i++) {

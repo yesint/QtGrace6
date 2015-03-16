@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Andreas Winter                             *
+ *   Copyright (C) 2008-2015 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -28,6 +28,7 @@
 #include <QtGui>
 //#include <QtNetwork>
 
+#include "Server.h"
 #include "graphs.h"
 #include "draw.h"
 #include "utils.h"
@@ -36,17 +37,13 @@
 #include "events.h"
 #include "fundamentals.h"
 
-#ifdef SKF_QtGrace
-#include "Server.h"
-#endif
-
 using namespace std;
 
 class MainArea : public QWidget
 {
     Q_OBJECT
 public:
-    QFrame * drawArea;
+//QFrame * drawArea;
     QLabel * lblBackGr;
     int useable_w,useable_h;
     int box_start_x,box_start_y;
@@ -73,37 +70,28 @@ public:
     void completeRedraw(void);
     void paintEvent( QPaintEvent *e );
     void transf_window_coords(int x,int y,int & real_x,int & real_y);
+    void setBGtoColor(QColor col);
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
 };
 
-
 class MainWindow : public QWidget
 {
     Q_OBJECT
-
 public:
-
-#ifdef SKF_QtGrace
-    LocalSocketIpcServer *SocketConnection;
-	// The font used by application before any setting was applied
-    QFont * originalSystemFont;
-#endif
-
     int windowWidth,windowHeight;
     int stdBarHeight,stdRowHeight,stdColWidth;
     int stdDistance1,stdHeight1,stdHeight2;
     int stdDistance2,stdWidth2;
-    //int idLocBar,idStatBar,idToolBar;
 
     int nr_of_Example_Menues;
     int nr_of_Examples;
-    QString ExampleMenuNames[8];
-    QString ExampleMenuEntries[8][11];
-    int nr_of_Example_Menu_Entries[8];
-    QMenu * example_menues[8];
-    QAction * act_examples[8][11];
+    QString ExampleMenuNames[9];
+    QString ExampleMenuEntries[9][11];
+    int nr_of_Example_Menu_Entries[9];
+    QMenu * example_menues[9];
+    QAction * act_examples[9][11];
     QSignalMapper * helpMapper;
     QString examplesFiles[40];
 
@@ -126,10 +114,8 @@ public:
     QMenu * mnuPlot;
     QMenu * mnuView;
     QMenu * mnuWindow;
-	QMenu * mnuOptions;
     QMenu * mnuHelp;
     QMenu * mnuExample;
-
 
     QPushButton * cmdDraw;
     QPushButton * cmdZoom,*cmdAutoScale;
@@ -141,6 +127,7 @@ public:
     QPushButton * cmdAX,*cmdAY;
     QPushButton * cmdPZ,*cmdPu;
     QPushButton * cmdPo,*cmdCy;
+    QPushButton * cmdExport,*cmdPrint;
     uniList * lstGraphs;
     stdSlider * sldPageZoom;
     QPushButton * cmdFitPage;
@@ -148,24 +135,13 @@ public:
     QLabel * lblCW;
     QPushButton * cmdExit;
 
-
-#ifdef SKF_QtGrace
-     QAction * actNew,*actOpen,*actSave,*actSaveAs,*actRevert,*actPrint,*actExit,*actExportToFile;
-#else
-      QAction * actNew,*actOpen,*actSave,*actSaveAs,*actRevert,*actPrint,*actPrintSetup,*actExit;
-#endif
-
-    QAction *actDataSets,*actSetOperations,*actArrangeGraphs,*actOverlayGraphs,*actAutoscaleGraphs,*actRegionsStatus,*actRegionsDefine,*actRegionsClear,*actRegionsReportOn,*actHotLinks,*actSetLocFixPoint,*actClearLocFixPoint,*actLocProp,*actPreferences;
+    QAction * actNew,*actOpen,*actSave,*actSaveAs,*actRevert,*actPrint,*actPrintToFile,*actPrintSetup,*actExit;
+    QAction *actDataSets,*actSetOperations,*actArrangeGraphs,*actOverlayGraphs,*actAutoscaleGraphs,*actRegionMaster,*actRegionsStatus,*actRegionsDefine,*actRegionsClear,*actRegionsReportOn,*actHotLinks,*actSetLocFixPoint,*actClearLocFixPoint,*actLocProp,*actPreferences;
     QAction*actDataSetOperations,*actFeatureExtraction,*actExportAscii,*actImportNetCDF,*actImportAscii,*actEvaluateExpr,*actHistograms,*actFourier,*actFourier2,*actRunningAverages,*actDifferences,*actSeasonalDiff,*actIntegration,*actInterpolation,*actRegression,*actNonLinCurveFitting,*actCorrelation,*actDigitalFilter,*actLinConvolution,*actGeomTransform,*actSamplePoints,*actPruneData;
     QAction *actPlotAppearance,*actGraphAppearance,*actSetAppearance,*actAxisProperties,*actLoadParameters,*actSaveParameters;
     QAction *actCommands,*actPointExplorer,*actDrawingObjects,*actFontTool,*actConsole;
-    QAction *actHelpOnContext,*actHelpUsersGuide,*actHelpTutorial,*actHelpFAQ,*actHelpChanges,*actHelpComments,*actHelpLicense,*actHelpAbout;
-
-#ifdef SKF_QtGrace
-        QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll,*actFontSize,*actConfigureFont,*actResetToSystemFont;
-#else
-        QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll;
-#endif
+    QAction *actHelpOnContext,*actHelpUsersGuide,*actHelpTutorial,*actHelpFAQ,*actHelpChanges,*actHelpQtGrace,*actHelpComments,*actHelpLicense,*actHelpAbout;
+    QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll;
     QAction *actImportBinary,*actExportBinary,*actImportCSV;
     QAction *actUndo,*actRedo,*actUndoList,*actExplorer,*actColManager,*actRealTimeInput;
 
@@ -174,6 +150,7 @@ public:
     QAction *actHistory[MAX_HISTORY],*actClearHistory;
 
     QTimer * rtiTimer;//for monitoring real time input
+    LocalSocketIpcServer *SocketConnection;
 
     MainArea * mainArea;
 
@@ -183,14 +160,6 @@ public:
     virtual void resizeEvent( QResizeEvent * e);
     virtual void mouseReleaseEvent(QMouseEvent * event);
     virtual void keyPressEvent( QKeyEvent * e );
-#ifdef SKF_QtGrace
-    bool isDeleteExportDialogue;
-    bool newFileName;
-public:
-    void deleteExportDialogue(bool setValue);
-    QString printfileName;
-#endif
-
 public slots:
     //Menu Actions
     void newFile(void);
@@ -199,13 +168,8 @@ public slots:
     void SaveAs(void);
     void RevertToSaved(void);
     void Print(void);
+    void PrintToFile(void);
     void PrintSetup(void);
-    void ExportToFile(void);
-#ifdef SKF_QtGrace
-    QString getExportName(void);
-    void setExportName(QString setName);
-#endif
-
     void Exit(void);
     void DataSets(void);
     void Explorer(void);
@@ -220,6 +184,7 @@ public slots:
     void ClearLocFixPoint(void);
     void LocProp(void);
     void Preferences(void);
+    void RegionsMaster(void);
     void RegionsStatus(void);
     void RegionsDefine(void);
     void RegionsClear(void);
@@ -258,12 +223,8 @@ public slots:
     void ShowLocBar(void);
     void ShowStatusBar(void);
     void ShowToolBar(void);
+    void ManageBars(void);
     void PageSetup(void);
-    void FontSettings(void);
-	void ConfigureFontDlg(void);
-	void ResetToSystemFont(void);
-	void SaveFontConfiguration(QFont font);
-	void ReadFontConfiguration(void);
     void Redraw(void);
     void UpdateAll(void);
     void Commands(void);
@@ -276,6 +237,7 @@ public slots:
     void HelpTutorial(void);
     void HelpFAQ(void);
     void HelpChanges(void);
+    void HelpQtGrace(void);
     void HelpComments(void);
     void HelpLicense(void);
     void HelpAbout(void);
@@ -319,6 +281,7 @@ public slots:
     //Initializations
     void CreateActions(void);
     void CreatePatterns(void);
+    void redisplayIcons(void);
 
     //Functions
     void LoadProject(char * filename);
