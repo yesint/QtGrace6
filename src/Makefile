@@ -36,7 +36,7 @@ CPPFILES=device.cpp  graphs.cpp plotone.cpp utils.cpp\
  check_float.cpp draw.cpp fit.cpp humlik.cpp mfdrv.cpp nonlfit.cpp qtgrace.cpp ssdata.cpp xutil.cpp\
  computils.cpp drawticks.cpp fourier.cpp iofilters.cpp mifdrv.cpp objutils.cpp regionutils.cpp svgdrv.cpp \
  dates.cpp dummydrv.cpp ListOfLatexCommands.cpp params.cpp replacement_main.cpp t1fonts.cpp\
- defaults.cpp events.cpp gd.cpp lmdif.cpp pdfdrv.cpp rstdrv.cpp undo_module.cpp
+ defaults.cpp events.cpp gd.cpp lmdif.cpp pdfdrv.cpp rstdrv.cpp undo_module.cpp external_libs.cpp
 
 TOMOCFILES = allWidgets.cpp fundamentals.cpp MainWindow.cpp Server.cpp
 
@@ -68,7 +68,10 @@ INCLUDES= -I.	$(B_INCLUDES) $(QTINCLUDE) \
 LIBS = 	-L$(XHOME)/lib64 \
 	-L$(XHOME)/lib \
         -lm \
-        -L$(QT4HOME)/lib/$(ABI) $(QT4LIBS)  $(XTRLIBS) $(LIBFFTW3)
+        -L$(QT4HOME)/lib/$(ABI) $(QT4LIBS)  $(XTRLIBS) $(LIBFFTW3) \
+	-L$(LIBHARUDIR)/$(ABI)/lib -lhpdfs -lz
+# libQtGui.so  wants -lz
+
 INCLUDES += -I$(QT4HOME)/include/QtSvg
 
 
@@ -84,6 +87,8 @@ else
 CCFLAGS+=-DWINDOWS_SYSTEM -DHAVE_MEMCPY
 endif
 
+CCFLAGS+=-DUSE_STATIC_EXT_LIB_FFTW3
+CCFLAGS+=-DUSE_STATIC_EXT_LIB_HARU
 
 ifneq (,$(BEAST))
 # Only if this is compiled for SKF this flag should be activated.
@@ -134,15 +139,17 @@ dir:
 
 BINABIDIR=$(BEAST)/bin/$(ABI)
 
+INSTDIR=$(BINABIDIR)/qtgrace025
+
 install: $(BIN)
-	if [ ! -d $(BINABIDIR)/qtgrace ] ; then mkdir -p $(BINABIDIR)/qtgrace ; fi
+	if [ ! -d $(INSTDIR) ] ; then mkdir -p $(INSTDIR) ; fi
 	if [ -f $(BIN).manifest ] ; then \
 		(mt.exe -manifest $(BIN).manifest -outputresource:$(BIN)\;1);\
 		echo "Manifsetr done";\
 		fi
-	if [ -f  $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT) ] ; then rm $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT); fi
-	cp -r ../fonts ../bin ../doc ../examples $(BINABIDIR)/qtgrace
-	mv $(BIN) $(BINABIDIR)/qtgrace/bin/qtgrace$(FEXT)
+	if [ -f  $(INSTDIR)/bin/qtgrace$(FEXT) ] ; then rm $(INSTDIR)/bin/qtgrace$(FEXT); fi
+	cp -r ../fonts ../bin ../doc ../examples $(INSTDIR)
+	mv $(BIN) $(INSTDIR)/bin/qtgrace$(FEXT)
 
 
 $(ABI)/makedepend.tail:
