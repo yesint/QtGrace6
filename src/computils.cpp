@@ -42,7 +42,7 @@ extern "C" double MAXNUM;
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cmath.h>
+//#include <cmath.h>
 #include "cmath.h"
 
 #include "globals.h"
