@@ -351,7 +351,12 @@ if (print_target==PRINT_TARGET_SVG_FILE)
     stdGenerator->setFileName(cur_print_fname);
     stdGenerator->setSize(QSize(dev.pg.width,dev.pg.height));
     stdGenerator->setViewBox(QRect(0, 0, dev.pg.width, dev.pg.height));
-    stdGenerator->setTitle(QString("QtGrace: ")+QString(get_docname()));
+
+
+
+std::string Str = std::string(get_docname());
+
+    stdGenerator->setTitle(QString("QtGrace: ")+QString::fromStdString(Str));
     stdGenerator->setDescription(QString(get_project_description()));
 
 }
@@ -735,6 +740,7 @@ if (auto_set_export_extensions==TRUE)
 {
 QFileInfo fi3(print_file);
 QString suf=fi3.suffix();
+
 suf=suf.toLower();
 QString suf2=QString(dev.fext).toLower();
     if (suf!=suf2)

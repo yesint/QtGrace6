@@ -242,6 +242,7 @@ extern void write_settings(void);
 extern Device_entry *device_table;
 
 extern QString get_filename_with_extension(int device);
+extern QString get_export_filename_with_extension(int device);
 
 void init_Patterns(void)
 {
@@ -276,7 +277,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 
 /// setFont(*stdFont);
 
-    setWindowTitle(tr("QtGrace: untitled"));
+    setWindowTitle(tr("QtGrace11: untitled"));
 
     windowWidth=872;
     windowHeight=670;
@@ -1246,7 +1247,7 @@ void MainWindow::PrintSetup(void)
 
         if (lastPrintDevice<=0) lastPrintDevice=FormDeviceSetup->devices_item->currentValue();
 
-        FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+        FormDeviceSetup->printfile_item->setText(get_export_filename_with_extension(FormDeviceSetup->cur_dev));
     }
     FormDeviceSetup->changeDeviceList(2);
 
@@ -1264,7 +1265,7 @@ void MainWindow::PrintSetup(void)
     FormDeviceSetup->printfile_item->setText(QString(print_file));
     }*/
 
-///FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+    FormDeviceSetup->printfile_item->setText(get_export_filename_with_extension(FormDeviceSetup->cur_dev));
 
 //cout << "LastPrintDevice=" << lastPrintDevice << " current=" << FormDeviceSetup->devices_item->currentValue() << endl;
 

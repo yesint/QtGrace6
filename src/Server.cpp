@@ -86,11 +86,9 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 
     //Read from Beast
     messageFromClienttPtr_m = new QLocalServer(this);
-    qDebug()<<"Start Init\n";
 
     bool listenOK=messageFromClienttPtr_m->listen(writeServerName);
     if(listenOK){
-      //  QMessageBox::information(0,"Communication Error", ". Try to restart QtGrace");
 
        qDebug()<<"Start the Server (listen OK)\n";
         if(isDebugFlagOn_m){
@@ -429,12 +427,14 @@ void LocalSocketIpcServer::executeTaskFromClient()
             *debugOut_m<<"fileName" <<   get_docname()<<"\n";
             debugOut_m->flush();
         }
+
         /* force a hardcopy */
         set_pagelayout(PAGE_FIXED);
         update_all();
 
         oldNoask_m=noask;
         noask=true; // prevent questions
+        strcpy(print_file, mybasename(get_exportname()));
         do_hardcopy();
         noask=oldNoask_m;
         countNoOfRead_m = 0;

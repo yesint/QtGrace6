@@ -1376,7 +1376,14 @@ void stufftext(const char *s)
 char *mybasename(const char *s)
 {
 QFileInfo fi(s);
-return fi.fileName().toLocal8Bit().data();
+
+std::string str = fi.fileName().toStdString().c_str();
+char *cstr = new char[str.length() + 1];
+strcpy(cstr, str.c_str());
+
+return cstr;
+
+//return fi.fileName().toLocal8Bit().data();
 //FUNCTION ENDS HERE
 
     int start, end;

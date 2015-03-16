@@ -730,6 +730,26 @@ to->DataSuffix=from->DataSuffix;
 to->HeaderSuffix=from->HeaderSuffix;
 }
 
+
+
+
+QString get_export_filename_with_extension(int device)//generates a filename from export filename, using the extension of the given device
+{
+    Device_entry dev = get_device_props(device);
+    QFileInfo fi(get_exportname());
+
+    QString fwe;
+    fwe=fi.absolutePath() + QDir::separator() + fi.completeBaseName() + QString(".") + QString(dev.fext);
+
+    fwe.replace(QString("/\\"),QDir::separator());
+    return fwe;
+
+}
+
+
+
+
+
 QString get_filename_with_extension(int device)//generates a filename from the name of the document, using the extension of the given device
 {
     Device_entry dev = get_device_props(device);
