@@ -90,7 +90,6 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
     bool listenOK=messageFromClienttPtr_m->listen(writeServerName);
     if(listenOK){
 
-       qDebug()<<"Start the Server (listen OK)\n";
         if(isDebugFlagOn_m){
             *debugOut_m<< "Start the Server (listen OK)\n"<<endl;
             debugOut_m->flush();
@@ -132,8 +131,6 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 }
 
 void LocalSocketIpcServer::ConnectToClient( const char* sendParam, int sendLen) {
-
-    qDebug()<<"connect To client line 126";
 
     if(isDebugFlagOn_m){
         *debugOut_m<< "2) Connect to Server\n"+readServer_m;
