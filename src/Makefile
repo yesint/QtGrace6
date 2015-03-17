@@ -69,7 +69,7 @@ LIBS = 	-L$(XHOME)/lib64 \
 	-L$(XHOME)/lib \
         -lm \
         -L$(QT4HOME)/lib/$(ABI) $(QT4LIBS)  $(XTRLIBS) $(LIBFFTW3) \
-	-L$(LIBHARUDIR)/$(ABI)/lib -lhpdfs -lz
+	-L$(LIBHARUDIR)/$(ABI)/lib -lhpdfs  -L$(ZLIBHOME)/$(ABI) -lz
 # libQtGui.so  wants -lz
 
 INCLUDES += -I$(QT4HOME)/include/QtSvg
