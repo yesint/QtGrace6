@@ -780,18 +780,18 @@ double rint_v2(double x)
 QString path_to_write_settings(void)//we always write to the users home-directory
 {
 #ifdef WINDOWS_SYSTEM
-    return QString(user_home_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
+    return QString(qt_grace_exe_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
 #else
-    return QString(user_home_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
+    return QString(qt_grace_exe_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
 #endif
 }
 
 QString path_to_read_settings(void)//we try to read from the users home directory, if this fails, we use the QtGrace-executable-directory instead
 {
 #ifdef WINDOWS_SYSTEM
-    QString path=QString(user_home_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
+    QString path=QString(qt_grace_exe_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
 #else
-    QString path=QString(user_home_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
+    QString path=QString(qt_grace_exe_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
 #endif
     QFile fil(path);
     if (fil.exists()==false)
