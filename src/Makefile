@@ -148,7 +148,14 @@ install: $(BIN)
 		echo "Manifsetr done";\
 		fi
 	if [ -f  $(INSTDIR)/bin/qtgrace$(FEXT) ] ; then rm $(INSTDIR)/bin/qtgrace$(FEXT); fi
-	cp -r ../fonts ../bin ../doc ../examples $(INSTDIR)
+	cp -v -r ../fonts ../bin ../doc ../examples $(INSTDIR)
+	if [ $(ABI) == "LINUX64" ] ; then \
+		cp -v ../bin/.QtGrace_Settings.ini $(HOME);\
+	fi
+	if [ $(ABI) == "WINDOWS64" ] ; then \
+		cp -v ../bin/QtGrace_Settings.ini $(INSTDIR)/bin;\
+	fi
+
 	mv $(BIN) $(INSTDIR)/bin/qtgrace$(FEXT)
 
 
