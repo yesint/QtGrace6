@@ -1326,7 +1326,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-bxy       [x:y:etc.]                 Form a set from the current block data set\n");
     fprintf(stream, "                                        using the current set type from columns\n");
     fprintf(stream, "                                        given in the argument\n");
-//fprintf(stream, "-SKF                                  enable some SKF-specific settings\n");
     fprintf(stream, "-ServerMode [Server1 Server2]         start in Server-Mode\n");
     fprintf(stream, "-datehint  [iso|european|us\n");
     fprintf(stream, "            |days|seconds|nohint]     Set the hint for dates analysis\n");
