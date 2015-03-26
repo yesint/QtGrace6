@@ -30,7 +30,7 @@
 #include "xprotos.h"
 #include "undo_module.h"
 #include "device.h"
-
+#include <QMessageBox>
 #ifdef WINDOWS_SYSTEM
 #include <Windows.h>
 #endif
@@ -781,8 +781,9 @@ QString path_to_write_settings(void)//we always write to the users home-director
 {
 #ifdef WINDOWS_SYSTEM
     return QString(qt_grace_exe_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
+
 #else
-    return QString(qt_grace_exe_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
+    return QString(user_home_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
 #endif
 }
 
@@ -790,13 +791,15 @@ QString path_to_read_settings(void)//we try to read from the users home director
 {
 #ifdef WINDOWS_SYSTEM
     QString path=QString(qt_grace_exe_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
+
 #else
-    QString path=QString(qt_grace_exe_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
+    QString path=QString(user_home_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
 #endif
     QFile fil(path);
     if (fil.exists()==false)
         path=QString(qt_grace_exe_dir)+QDir::separator()+QString("QtGrace_Settings.ini");//always visible
-    return path;
+
+     return path;
 }
 
 void create_line_Patterns(void);
@@ -2551,15 +2554,6 @@ stdFontMetrics=new QFontMetrics(*stdFont);
     {
         fprintf(stderr, QObject::tr("QtGrace not connected to a client.\n").toLocal8Bit().constData());
     }
-
-/*  if (enableServerMode==TRUE)
-    {
-#if QT_VERSION < 0x050000
-    QApplication::setStyle(new skfStyle(3,3));
-#else
-    QApplication::setStyle(new skfStyle(3,3));
-#endif
-    }*/
 
     if (gracebat==TRUE)//no GUI wanted
     {
