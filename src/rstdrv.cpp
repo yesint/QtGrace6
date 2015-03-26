@@ -62,6 +62,9 @@
 #  include "motifinc.h"
 #endif*/
 
+#include "cmath.h"
+// VC2008 needs it rint().
+
 static void rstImagePnm(gdImagePtr ihandle, FILE *prstream);
 
 extern FILE *prstream;

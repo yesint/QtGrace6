@@ -40,6 +40,9 @@
 #include <QMessageBox>
 #include "svgdrv.h"
 
+#include "cmath.h"
+// VC2008 needs it rint(),asinh().
+
 #ifdef _MSC_VER
 #include "windows.h"
 #endif

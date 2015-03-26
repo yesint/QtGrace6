@@ -190,7 +190,7 @@ Modified by Andreas Winter 2008-2014
    See atan.c and clog.c. */
 #define ANSIC 1
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER>=1800
 #define HAVE_ASINH
 #define HAVE_ROUND
 #endif

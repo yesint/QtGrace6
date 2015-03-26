@@ -51,6 +51,9 @@
 #include "noxprotos.h"
 #include "globals.h"
 
+#include "cmath.h"
+// VC2008 needs it rint().
+
 /*#ifdef _MSC_VER
 #include "rint.h"
 #endif*/

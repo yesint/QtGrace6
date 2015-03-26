@@ -47,6 +47,9 @@
 #include "device.h"
 #include "noxprotos.h"
 
+#include "cmath.h"
+// VC2008 needs it rint().
+
 #ifdef __cplusplus
 extern "C" {
 #endif
