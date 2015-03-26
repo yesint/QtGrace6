@@ -58,6 +58,9 @@
 #include "MainWindow.h"
 #include "allWidgets.h"
 
+#include "cmath.h"
+// VC2008 needs it rint().
+
 using namespace std;
 
 FILE *prstream=NULL;
