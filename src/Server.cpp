@@ -171,9 +171,7 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
 
     if(clientConnection!=NULL){
     clientConnection->abort();
-    delete clientConnection;
-    clientConnection = NULL;
-}
+    }
 
     if(isDebugFlagOn_m){
         debugFile_m->close();
