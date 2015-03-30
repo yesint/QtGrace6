@@ -2311,6 +2311,17 @@ int main( int argc, char **argv )
 #endif
 */
 
+
+    // For Qt > 4.8 plugin search
+    if (getenv("BEAST") && getenv("ABI")){
+      string qt5DevDir = string(getenv("BEAST")) + "/lib/qt5/" + string(getenv("ABI")) + "/plugins";
+      string qt4DevDir = string(getenv("BEAST")) + "/lib/qt4/" + string(getenv("ABI")) + "/plugins";
+      string qtRunDir = string(getenv("BEAST")) + "/bin/" + string(getenv("ABI")) + "/plugins";
+      QCoreApplication::addLibraryPath(qt5DevDir.c_str());
+      QCoreApplication::addLibraryPath(qt4DevDir.c_str());
+      QCoreApplication::addLibraryPath(qtRunDir.c_str());
+    }
+
     QApplication * a=new QApplication( argc, argv );
 
     /*a->setStyle("macintosh");
