@@ -152,6 +152,7 @@ void LocalSocketIpcServer::ConnectToClient( const char* sendParam, int sendLen) 
 
     messageSendGraphParam_m = sendParam;
     messageParamGraphLength_m = sendLen;
+    messageToClientPtr_->abort();
     messageToClientPtr_->connectToServer(readServer_m);
 
 }
@@ -165,13 +166,9 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
     delete messageFromClienttPtr_m;
     messageFromClienttPtr_m = NULL;
 
-    messageToClientPtr_->abort();
     delete messageToClientPtr_;
     messageToClientPtr_ = NULL;
 
-    if(clientConnection!=NULL){
-    clientConnection->abort();
-    }
 
     if(isDebugFlagOn_m){
         debugFile_m->close();
