@@ -2853,6 +2853,8 @@ mainWin->mainArea->completeRedraw();
 
     int execVal=a->exec();
 
+    delete a; //Needed for Qt5 - in order to avoid segmentation fault when exiting QtGrace by pressing X.
+
     return execVal;
 }
 
