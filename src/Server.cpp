@@ -89,14 +89,10 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 
     bool listenOK=messageFromClienttPtr_m->listen(writeServerName);
     if(listenOK){
-
         if(isDebugFlagOn_m){
             *debugOut_m<< "Start the Server (listen OK)\n"<<endl;
             debugOut_m->flush();
         }
-
-
-
     }  else{
         qDebug()<<"Not able to start the Server\n";
 
@@ -104,9 +100,6 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
             *debugOut_m<< "Not able to start the Server\n"<<endl;
             debugOut_m->flush();
         }
-
-
-
     }
 
     connect(messageFromClienttPtr_m, SIGNAL(newConnection()), this, SLOT(createNewSocketConnection()));
@@ -131,7 +124,6 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 }
 
 void LocalSocketIpcServer::ConnectToClient( const char* sendParam, int sendLen) {
-
     if(isDebugFlagOn_m){
         *debugOut_m<< "2) Connect to Server\n"+readServer_m;
         *debugOut_m<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
@@ -169,7 +161,6 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
     delete messageToClientPtr_;
     messageToClientPtr_ = NULL;
 
-
     if(isDebugFlagOn_m){
         debugFile_m->close();
         delete debugFile_m;
@@ -194,6 +185,10 @@ void LocalSocketIpcServer::createNewSocketConnection(){
 }
 
 
+
+
+
+
 void LocalSocketIpcServer::readFromClient() {
 
     if(isDebugFlagOn_m){
@@ -206,7 +201,7 @@ void LocalSocketIpcServer::readFromClient() {
     //Specifiy the amount of bytes to be read
     if(isDebugFlagOn_m){
         *debugOut_m<<"countNoOfRead="<<countNoOfRead_m<<" command="<<command_m<<"\n";
-         debugOut_m->flush();
+        debugOut_m->flush();
     }
     int bytesNeeded;
     if(countNoOfRead_m==1 ||
@@ -214,82 +209,99 @@ void LocalSocketIpcServer::readFromClient() {
             (command_m == SET_SCALING_MODE && countNoOfRead_m==3) ||
             command_m == SET_LAYOUT_MODE){
         bytesNeeded=(int)sizeof(quint32);
+        availableBytesFromSocket_m = 0;
     }else if (command_m==WRITE_DATAVEC){
         bytesNeeded= dataLength_m*8;
+        availableBytesFromSocket_m = 0;
     }else if(command_m == SET_SCALING_MODE && mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY){
         bytesNeeded=(int)sizeof(double);
+        availableBytesFromSocket_m = 0;
     }else{
+
         bytesNeeded= dataLength_m;
+
     }
 
-    if(clientConnection->bytesAvailable() < bytesNeeded){
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"In loop : Needed="<<bytesNeeded<<" Available="<<clientConnection->bytesAvailable()<<"\n";
-             debugOut_m->flush();
+
+    availableBytesFromSocket_m += clientConnection->bytesAvailable();
+
+    if(bytesNeeded==availableBytesFromSocket_m){
+
+        messagePtr_m=new char[availableBytesFromSocket_m+1];
+
+        // ensure that
+        // 0-terminated character strings
+        // come here correctly.
+        messagePtr_m[availableBytesFromSocket_m]=0;
+
+        int receivedFromRead=clientConnection->read(messagePtr_m,availableBytesFromSocket_m);
+
+
+        if (receivedFromRead==-1 ||bytesNeeded!=receivedFromRead ) {
+            if(isDebugFlagOn_m){
+                *debugOut_m<<"readSocket() FAIL 2"<<"\n";
+                debugOut_m->flush();
+            }
+            clientConnection->disconnectFromServer();
+            availableBytesFromSocket_m = 0;
+            return;
         }
 
-               clientConnection->waitForReadyRead();
-
-    }else{
-
-    availableBytesFromSocket_m = clientConnection->bytesAvailable();
-    messagePtr_m=new char[availableBytesFromSocket_m+1];
-
-    // ensure that
-    // 0-terminated character strings
-    // come here correctly.
-    messagePtr_m[availableBytesFromSocket_m]=0;
-
-    int receivedFromRead=clientConnection->read(messagePtr_m,availableBytesFromSocket_m);
-
-    if (receivedFromRead==-1) {
         if(isDebugFlagOn_m){
-            *debugOut_m<<"readSocket() FAIL 2"<<"\n";
-             debugOut_m->flush();
+            *debugOut_m<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes\n";
+            debugOut_m->flush();
         }
+
+        // Read all data from socket
+
+        saveDataFromSocket(countNoOfRead_m);
+        delete[] messagePtr_m;
+
+        if (conditionToExitFunction_m) {
+            if(isDebugFlagOn_m){
+                *debugOut_m<<"An argument countNoOfRead " << countNoOfRead_m<< " for cmd="<< command_m<<"\n";
+                debugOut_m->flush();
+            }
+            clientConnection->disconnectFromServer();
+            availableBytesFromSocket_m = 0;
+            return;
+        }
+
+        //Execute task from client
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Command No (" << command_m<< ")\n";
+        }
+
+        executeTaskFromClient();
+
+        if(isDebugFlagOn_m){
+            *debugOut_m<<"Command was performed " << command_m<<"\n";
+            debugOut_m->flush();
+        }
+
         clientConnection->disconnectFromServer();
-        return;
-    }
-
-    if(isDebugFlagOn_m){
-        *debugOut_m<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes\n";
-        debugOut_m->flush();
-    }
-
-    // Read all data from socket
-
-    saveDataFromSocket(countNoOfRead_m);
-    delete[] messagePtr_m;
-
-    if (conditionToExitFunction_m) {
         if(isDebugFlagOn_m){
-            *debugOut_m<<"An argument countNoOfRead " << countNoOfRead_m<< " for cmd="<< command_m<<"\n";
-             debugOut_m->flush();
+            *debugOut_m<<"readSocket() DONE\n";
+            debugOut_m->flush();
         }
-        clientConnection->disconnectFromServer();
-        return;
+
+        availableBytesFromSocket_m = 0;
     }
 
-    //Execute task from client
-    if(isDebugFlagOn_m){
-        *debugOut_m<<"Command No (" << command_m<< ")\n";
-    }
-
-    executeTaskFromClient();
-
-    if(isDebugFlagOn_m){
-        *debugOut_m<<"Command was performed " << command_m<<"\n";
-        debugOut_m->flush();
-    }
-
-    clientConnection->disconnectFromServer();
-    if(isDebugFlagOn_m){
-        *debugOut_m<<"readSocket() DONE\n";
-        debugOut_m->flush();
-    }
 
 }
-}
+
+
+
+
+
+
+
+
+
+
+
+
 void LocalSocketIpcServer::executeTaskFromClient()
 {
     switch (command_m){
@@ -419,14 +431,12 @@ void LocalSocketIpcServer::executeTaskFromClient()
             *debugOut_m<<"fileName" <<   get_docname()<<"\n";
             debugOut_m->flush();
         }
-
         /* force a hardcopy */
         set_pagelayout(PAGE_FIXED);
         update_all();
 
         oldNoask_m=noask;
         noask=true; // prevent questions
-        strcpy(print_file, mybasename(get_exportname()));
         do_hardcopy();
         noask=oldNoask_m;
         countNoOfRead_m = 0;
@@ -876,7 +886,7 @@ void LocalSocketIpcServer::writeDataToTmpFile()
         //Read data from tmp file and update QtGrace plot
         readDataFromClient(dataFromBuffer_m.data(),0,"plot");
         update_all();
-     //   setResetExportDialogue(true);
+        //setResetExportDialogue(true);
         buffer_m.close();
         dataFromBuffer_m.clear();
         buffer_m.open(QIODevice::Append);
@@ -894,7 +904,7 @@ void LocalSocketIpcServer::setLayoutMode(){
     graphNo_m = dataLength_m;
 
     //Set QtGrace plot viewport
- view v;
+    view v;
     v.xv1 = 0.21;
     v.xv2 = 1.21;
     v.yv1 =0.15;
