@@ -1687,16 +1687,26 @@ int load_project_file(char *fn, int as_n_template)
     {*/
         update_timestamp();
         update_all();
-        mainWin->mainArea->completeRedraw();
+        /// mainWin->mainArea->completeRedraw();
 
         if (FormDeviceSetup!=NULL)
         FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
 
         if (auto_set_cwd)
         {
-        QFileInfo finfo(fn);
-        QString pa=finfo.absolutePath();
-        set_workingdir(pa.toLocal8Bit().constData());
+            /*if ()
+            {*/
+            QFileInfo finfo(fn);
+            QString pa=finfo.absolutePath();
+            set_workingdir(pa.toLocal8Bit().constData());
+            /*}
+            else
+            {
+            char * wdir1=new char[GR_MAXPATHLEN+1];
+            getcwd(wdir1, GR_MAXPATHLEN - 1);
+            set_workingdir(wdir1);
+            delete[] wdir1;
+            }*/
         }
 
         //}
@@ -1712,6 +1722,7 @@ int load_project_file(char *fn, int as_n_template)
 //cout << "AFTER LOAD: FONT=" << grdefaults.font << endl;
         //set_exportname(NULL);
         update_line_style_selectors();
+        mainWin->doPageZoom(mainWin->sldPageZoom->value());
         return retval;
     }
 }

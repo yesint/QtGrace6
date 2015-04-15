@@ -1375,19 +1375,13 @@ void stufftext(const char *s)
 
 char *mybasename(const char *s)
 {
+static char basename[GR_MAXPATHLEN];
 QFileInfo fi(s);
-
-std::string str = fi.fileName().toStdString().c_str();
-char *cstr = new char[str.length() + 1];
-strcpy(cstr, str.c_str());
-
-return cstr;
-
-//return fi.fileName().toLocal8Bit().data();
+strcpy(basename,fi.fileName().toLocal8Bit().data());
+return basename;
 //FUNCTION ENDS HERE
 
     int start, end;
-    static char basename[GR_MAXPATHLEN];
     char seperator=QDir::separator().toLatin1();
 
     /*

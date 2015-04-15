@@ -64,6 +64,9 @@ extern double GeneralPageZoomFactor;
 extern unsigned int unicode_greek_shift;
 extern bool printing_in_file;
 extern QSvgGenerator * stdGenerator;
+#if QT_VERSION >= 0x050300
+extern QPdfWriter * stdPDFWriter;
+#endif
 extern QPrinter * stdPrinter;
 extern QImage * MainPixmap;
 extern QPainter * GeneralPainter;
@@ -131,7 +134,8 @@ static Device_entry dev_x11 = {DEVICE_TERM,
           FALSE,
           TRUE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          NULL
+          NULL,
+          1
          };
 
 QPoint CenterOfMass(int n,QPoint *p)
@@ -370,6 +374,21 @@ else if (print_target==PRINT_TARGET_PRINTER)//use a real printer
 {
 GeneralPainter->begin(stdPrinter);
 }
+#if QT_VERSION >= 0x050300
+else if (print_target==PRINT_TARGET_PDF_FILE)
+{
+stdPDFWriter=new QPdfWriter(print_file);
+double xsize=pg.width/pg.dpi*MM_PER_INCH;
+double ysize=pg.height/pg.dpi*MM_PER_INCH;
+stdPDFWriter->setResolution(pg.dpi);
+stdPDFWriter->setPageSizeMM(QSizeF(xsize,ysize));
+stdPDFWriter->newPage();
+
+QMessageBox::information(0,QString("filename="),QString(print_file));
+
+GeneralPainter->begin(stdPDFWriter);
+}
+#endif
 else//if (print_target== useQPrinter==false || stdPrinter==NULL)
 {//export using the MainPixmap
     if (MainPixmap!=NULL) delete MainPixmap;
@@ -388,7 +407,7 @@ qDebug() << "Definitionsgroesse DIN A4 (Landscape): " << a << "x" << b;*/
         p+=QObject::tr(" h=");
         p+=QString::number(win_h);
         p+=QObject::tr(", cannot paint there.");
-    qDebug(p.toLatin1());
+    qDebug() << p.toLatin1() << endl;
     return RETURN_FAILURE;
     }
 GeneralPainter->begin(MainPixmap);
@@ -1488,7 +1507,7 @@ QFont dFont=getFontFromDatabase(cs->font);
 dFont.setKerning(bool(cs->kerning));
 dFont.setUnderline(bool(cs->underline));
 dFont.setOverline(bool(cs->overline));
-cout << "QtGlyph: fontaa=" << fontaa << endl;
+//cout << "QtGlyph: fontaa=" << fontaa << endl;
     if (fontaa==false)
     dFont.setStyleStrategy(QFont::NoAntialias);
     else

@@ -30,9 +30,17 @@
 #include "xprotos.h"
 #include "undo_module.h"
 #include "device.h"
-#include <QMessageBox>
+
 #ifdef WINDOWS_SYSTEM
 #include <Windows.h>
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
+#ifdef _MSC_VER
+#define chdir _chdir
+#define getcwd _getcwd
 #endif
 
 extern int replacement_main(int argc,char **argv);
@@ -66,6 +74,9 @@ bool point_explorer_activ=false;//blocks some actions if point-explorer-actions 
 
 //long orig_page_w,orig_page_h;
 QPrinter * stdPrinter;
+#if QT_VERSION >= 0x050300
+QPdfWriter * stdPDFWriter;
+#endif
 QSvgGenerator * stdGenerator;
 int stdOutputFormat=1;
 int rtiCheckTime=1000;
@@ -780,8 +791,7 @@ double rint_v2(double x)
 QString path_to_write_settings(void)//we always write to the users home-directory
 {
 #ifdef WINDOWS_SYSTEM
-    return QString(qt_grace_exe_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
-
+    return QString(user_home_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
 #else
     return QString(user_home_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
 #endif
@@ -790,16 +800,14 @@ QString path_to_write_settings(void)//we always write to the users home-director
 QString path_to_read_settings(void)//we try to read from the users home directory, if this fails, we use the QtGrace-executable-directory instead
 {
 #ifdef WINDOWS_SYSTEM
-    QString path=QString(qt_grace_exe_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
-
+    QString path=QString(user_home_dir)+QDir::separator()+QString("QtGrace_Settings.ini");
 #else
     QString path=QString(user_home_dir)+QDir::separator()+QString(".QtGrace_Settings.ini");
 #endif
     QFile fil(path);
     if (fil.exists()==false)
         path=QString(qt_grace_exe_dir)+QDir::separator()+QString("QtGrace_Settings.ini");//always visible
-
-     return path;
+    return path;
 }
 
 void create_line_Patterns(void);
@@ -1599,15 +1607,16 @@ return nr_of_replacemants;
 
 void test_write_pdf(void)
 {
+/*
 QPrinter * pr1=new QPrinter();
 pr1->setOutputFormat(QPrinter::PdfFormat);
 pr1->setOutputFileName(QString("/Users/andreaswinter/test_pdf_out.pdf"));
 QPainter * paint1=new QPainter(pr1);
-     /*if (! paint1->begin(&printer))
-     { // failed to open file
-         qWarning("failed to open file, is it writable?");
+     //if (! paint1->begin(&printer))
+     //{ failed to open file
+     //qWarning("failed to open file, is it writable?");
      //return 1;
-     }*/
+     //}
      paint1->drawText(10, 10, "Test 1");
      if (! pr1->newPage())
      {
@@ -1616,11 +1625,32 @@ QPainter * paint1=new QPainter(pr1);
      }
      paint1->drawText(10, 10, "Test 2");
      paint1->end();
-
 QTextDocument * textDoc=new QTextDocument();
 textDoc->setPlainText(QString("Test Content"));
 pr1->setOutputFileName(QString("/Users/andreaswinter/test_pdf_out_b.pdf"));
 textDoc->print(pr1);
+*/
+
+#if QT_VERSION >= 0x050000
+QPdfWriter * writer=new QPdfWriter("D:\\PdfWriterTest.pdf");
+QMessageBox::information(0,QString("filename="),QString("D:\\PdfWriterTest.pdf"));
+//writer->setPageLayout(QPageLayout::Portrait);
+writer->setResolution(300);
+writer->setPageSizeMM(QSizeF(120.0,290.0));
+writer->newPage();
+
+QPainter * paint=new QPainter();
+paint->begin(writer);
+paint->setPen(Qt::blue);
+paint->setBrush(Qt::red);
+paint->drawRect(10,10,300,300);
+paint->setPen(Qt::black);
+paint->drawText(100,100,QString("Test String"));
+paint->end();
+
+delete paint;
+delete writer;
+#endif
 }
 
 void test_write_svg(void)
@@ -1992,7 +2022,7 @@ cout << "251 = " << 0x23A6 << endl;
 
     QFont stfont;
     defaultFontList.clear();
-    stfont.fromString(QString("Times,10,-1,5,50,0,0,0,0,0"));
+    stfont.fromString(QString("Times,10,-1,5,50,0,0,0,0,0"));//"Times New Roman,10,-1,5,50,0,0,0,0,0"
     defaultFontList << stfont;
     stfont.fromString(QString("Times,10,-1,5,50,1,0,0,0,0"));
     defaultFontList << stfont;
@@ -2310,22 +2340,30 @@ int main( int argc, char **argv )
     cout << "Linux" << endl;
 #endif
 */
-
-
     // For Qt > 4.8 plugin search
-    if (getenv("BEAST") && getenv("ABI")){
-      string qt5DevDir = string(getenv("BEAST")) + "/lib/qt5/" + string(getenv("ABI")) + "/plugins";
-      string qt4DevDir = string(getenv("BEAST")) + "/lib/qt4/" + string(getenv("ABI")) + "/plugins";
-      string qtRunDir = string(getenv("BEAST")) + "/bin/" + string(getenv("ABI")) + "/plugins";
-      QCoreApplication::addLibraryPath(qt5DevDir.c_str());
-      QCoreApplication::addLibraryPath(qt4DevDir.c_str());
-      QCoreApplication::addLibraryPath(qtRunDir.c_str());
-    }
+        if (getenv("BEAST") && getenv("ABI"))
+        {
+            qDebug()<<"START 1";
+            string qt5DevDir = string(getenv("BEAST")) + "/lib/qt5/" + string(getenv("ABI")) + "/plugins";
+            string qt4DevDir = string(getenv("BEAST")) + "/lib/qt4/" + string(getenv("ABI")) + "/plugins";
+            string qtRunDir = string(getenv("BEAST")) + "/bin/" + string(getenv("ABI")) + "/plugins";
+            // If we use a Qt installation outside BEAST directory tree, then it should
+            // appear first in the list, not the last one !
+            QStringList list=QApplication::libraryPaths(); // Qt installation
+            // BEAST tree Qt "installations"
+            list << QString(qt5DevDir.c_str()) << QString(qt4DevDir.c_str()) << QString(qtRunDir.c_str());
+            QApplication::setLibraryPaths(list);
+        }
 
     QApplication * a=new QApplication( argc, argv );
 
     /*a->setStyle("macintosh");
     "windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"*/
+
+    char * wdir1=new char[GR_MAXPATHLEN+1];
+    getcwd(wdir1, GR_MAXPATHLEN - 1);
+    set_workingdir(wdir1);
+    //cout << "A) Working dir=#" << get_workingdir() << "#" << endl;
 
     initSettings(current_bin_import_settings,false);//for binary import
 
@@ -2352,6 +2390,9 @@ int main( int argc, char **argv )
     //At first: Initialize everything with NULL-pointers
     useQPrinter=false;
     stdPrinter=NULL;
+#if QT_VERSION >= 0x050300
+    stdPDFWriter=NULL;
+#endif
     stdGenerator=NULL;
     FormAbout=NULL;
     FormEvalExpr=NULL;
@@ -2566,6 +2607,15 @@ stdFontMetrics=new QFontMetrics(*stdFont);
         fprintf(stderr, QObject::tr("QtGrace not connected to a client.\n").toLocal8Bit().constData());
     }
 
+/*  if (enableServerMode==TRUE)
+    {
+#if QT_VERSION < 0x050000
+    QApplication::setStyle(new skfStyle(3,3));
+#else
+    QApplication::setStyle(new skfStyle(3,3));
+#endif
+    }*/
+
     if (gracebat==TRUE)//no GUI wanted
     {
         delete mainWin;
@@ -2600,6 +2650,25 @@ stdFontMetrics=new QFontMetrics(*stdFont);
     FormQuestion->hide();
 
     read_settings();
+
+    if (default_line!=NULL) delete[] default_line;
+    default_line=new linetype;
+    if (default_box!=NULL) delete[] default_box;
+    default_box=new boxtype;
+    if (default_ellipse!=NULL) delete[] default_ellipse;
+    default_ellipse=new ellipsetype;
+    if (default_string!=NULL) delete[] default_string;
+    default_string=new plotstr;
+        set_default_line(default_line);
+        set_default_box(default_box);
+        set_default_ellipse(default_ellipse);
+        set_default_string(default_string);
+    reset_default_states();
+
+    /*qDebug() << "grdefaults=" << grdefaults.font << endl;
+    qDebug() << "String Font=" << string_font << endl;
+    qDebug() << "default_string->font=" << default_string->font << endl;*/
+
     check_external_lib_usability();
 
 //cout << "AFTER READ SETTINGS: useQtFonts=" << useQtFonts << endl;
@@ -2663,6 +2732,10 @@ if (!hideMainWindow)
 mainWin->activateWindow();
 mainWin->raise();
 }
+
+set_workingdir(wdir1);
+//cout << "B) Working dir=#" << get_workingdir() << "#" << endl;
+delete[] wdir1;
     startupphase=0;
 
     /*START TEST HERE*/
@@ -2851,11 +2924,9 @@ getSetIDFromText(text,gno,sno,column);
     stop_repaint=FALSE;
 mainWin->mainArea->completeRedraw();
 
-    int execVal=a->exec();
-
-    delete a; //Needed for Qt5 - in order to avoid segmentation fault when exiting QtGrace by pressing X.
-
-    return execVal;
+   /* int execVal=a->exec();
+    return execVal;*/
+return a->exec();
 }
 
 int object_edit_popup(int type, int id)
@@ -3229,7 +3300,7 @@ strcpy(tmp_sformat,sformat);
     Form_Preferences->tab_extra->chkActivateLaTeXSupport->setChecked(activateLaTeXsupport);
     immediateUpdate=allPrefs->value(QString("ImmediateUpdates"),QVariant(false)).toBool();
     Form_Preferences->tab_extra->chkImmediateUpdate->setChecked(immediateUpdate);
-    default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(-1)).toInt();
+    default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(DEVICE_PNG)).toInt();//changed from -1 to PNG
     Form_Preferences->tab_qtgrace_prefs2->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);
     //use_new_print_dialog=allPrefs->value(QString("UseNewPrintingDialog"),QVariant(false)).toBool();
     //no paint device yet --> we have to disconnect this, because redraw is inpossible now
@@ -3340,6 +3411,13 @@ mainWin->mainArea->completeRedraw();
 
     Form_Preferences->tab_qtgrace_prefs2->init();
 
+    allPrefs->endGroup();
+
+    allPrefs->beginGroup(QString("OutputDrivers"));
+    for (int i=0;i<number_of_devices();i++)
+    {
+    setDeviceActive(i,allPrefs->value(QString(get_device_name(i)),QVariant(1)).toInt());
+    }
     allPrefs->endGroup();
 
     allPrefs->beginGroup(QString("LineStyles"));
@@ -3502,6 +3580,13 @@ strcpy(ini_sformat,sformat);
     allPrefs->setValue(QString("Show_Display_Name"),QVariant(show_display_name));
     allPrefs->setValue(QString("Show_Project_File"),QVariant(displ_project_filename));
     allPrefs->setValue(QString("Show_Export_File"),QVariant(displ_export_filename));
+    allPrefs->endGroup();
+
+    allPrefs->beginGroup(QString("OutputDrivers"));
+    for (int i=0;i<number_of_devices();i++)
+    {
+    allPrefs->setValue(QString(get_device_name(i)),QVariant(isDeviceActive(i)));
+    }
     allPrefs->endGroup();
 
 //save current linestyles into tmp

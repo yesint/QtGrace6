@@ -95,6 +95,7 @@ typedef struct {
     int fontaa;             /* font antialiasing */
     Page_geometry pg;       /* device defaults */
     void *data;             /* device private data */
+    int active;             /* device selectable for output */
 } Device_entry;
 
 /* device exit */
@@ -122,6 +123,9 @@ int initgraphics (void);
 
 Device_entry get_device_props(int device);
 Device_entry get_curdevice_props(void);
+
+void setDeviceActive(int nr, int active);
+int isDeviceActive(int nr);
 
 char *get_device_name(int device);
 

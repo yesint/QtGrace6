@@ -834,6 +834,24 @@ public slots:
     void doClose(void);
 };
 
+class frmDeviceActivator:public QDialog
+{
+    Q_OBJECT
+public:
+    frmDeviceActivator(QWidget * parent=0);
+    QGridLayout * layout;
+    QPushButton * cmdAll;
+    QPushButton * cmdApply;
+    QPushButton * cmdClose;
+    int alloc_checks;
+    QCheckBox ** chkDeviceActive;
+public slots:
+    void doAll(void);
+    void init(void);
+    void doApply(void);
+    void doClose(void);
+};
+
 class frmDeviceSetup:public QDialog
 {
     Q_OBJECT
@@ -869,19 +887,22 @@ public:
     QCheckBox * devfont_item;
 
     frmDeviceOptions * DevOptions[6];
-    int cur_dev;
+    int cur_dev,cur_version;
     int parent_of_print_dialog;//0=this,1=MainWindow
     char * out_format;
     char out_format_int[5];
     char out_format_float[5];
     QAction * actPrintToFile,*actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
+    QPrintDialog * printDialog;
+    ofstream ofi;
+    Device_entry curdev,tmp_dev;
 
     stdButtonGroup * buttonGroup;
 
     QHBoxLayout * layout0;
     QGridLayout * layout1;
     QGridLayout * layout2;
-    QVBoxLayout * layout3;
+    QHBoxLayout * layout3;
     QVBoxLayout * layout;
 public slots:
     void init(int dev);
@@ -904,6 +925,9 @@ public slots:
     void doHelpOnDevSetup(void);
     void doBrowse(void);
     void doDevOpt(void);
+    bool openNativePrinter(int dev);
+    void printerAccepted(QPrinter * pri);
+    void printerRejected(void);
     void dpiInputChanged(QString text);
     void tryPrintingOnPrinter(QPrinter * printer);
     void doNativePrinterDialog(void);
@@ -1146,6 +1170,8 @@ StdSelector * selFileDisplay1;
 StdSelector * selFileDisplay2;
 QPushButton * cmdGraceDefaults;
 QPushButton * cmdQtGraceDefaults;
+QPushButton * cmdActDevs;
+frmDeviceActivator * diaDevAct;
 QGridLayout * layout2;
 
 //Startup-Settings
@@ -1173,6 +1199,7 @@ public slots:
     void read_settings(void);
     void doGraceDefaults(void);
     void doQtGraceDefaults(void);
+    void doActDevs(void);
     void doApply(void);
     void doAccept(void);
     void doClose(void);
@@ -2769,13 +2796,26 @@ public:
 
     StdSelector * selSpecTicks;
     stdIntSelector * selNumber;
-    QLabel * lblTickLocLabel;
+    //QLabel * lblTickLocLabel;
 
     QScrollArea * scroll;
-    spreadSheet * spreadSpecLabels;
+    //spreadSheet * spreadSpecLabels;
+
+    QLabel * lblTitles[3];
+    QLabel * lblNr[MAX_TICKS];
+    QLineEdit * ledLocation[MAX_TICKS];
+    QLineEdit * ledLabel[MAX_TICKS];
+
+    bool original[MAX_TICKS];
+    char * orig_text[MAX_TICKS],*text[MAX_TICKS];
+    int stdHeight,headerHeight;
+
+    QWidget * empty;
+    QGridLayout * layout0;
 
     QVBoxLayout * layout;
 public slots:
+    void updateSpreadSheet(int i);
 };
 
 class frmAxis_Prop:public QWidget
@@ -2785,7 +2825,7 @@ public:
     frmAxis_Prop(QWidget * parent=0);
     ~frmAxis_Prop();
 
-    int curaxis;
+    int curaxis,apply_to_selection;
 
     StdSelector * selEdit;
     QCheckBox * chkActive;
@@ -2801,12 +2841,14 @@ public:
     AxisTabSpecial * tabSpecial;
 
     StdSelector * selApplyTo;
+    QPushButton * cmdApplyTo;
     stdButtonGroup * buttonGroup;
     QGridLayout * layout;
 public slots:
     void selEditChanged(int i);
     void doAccept(void);
     void doApply(void);
+    void doApplyTo(void);
     void doClose(void);
     int axes_aac_cb(void);
     void axis_scale_cb(int value);

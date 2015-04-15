@@ -46,10 +46,8 @@
 #include "graphutils.h"
 #include "noxprotos.h"
 #include <iostream>
-#include <allWidgets.h>
-
+#include "allWidgets.h"
 #include "cmath.h"
-// VC2008 needs it rint().
 
 using namespace std;
 

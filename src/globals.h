@@ -150,6 +150,7 @@ GLOBAL(cancelExport, int, FALSE);
 #define PRINT_TARGET_SCREEN 0
 #define PRINT_TARGET_PRINTER 1
 #define PRINT_TARGET_SVG_FILE 2
+#define PRINT_TARGET_PDF_FILE 3
 
 /* true if running X */
 GLOBAL(inwin, int, TRUE);

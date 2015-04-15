@@ -57,9 +57,7 @@
 #include <iostream>
 #include "MainWindow.h"
 #include "allWidgets.h"
-
 #include "cmath.h"
-// VC2008 needs it rint().
 
 using namespace std;
 
@@ -76,6 +74,9 @@ extern MainWindow * mainWin;
 extern frmProgressWin * FormProgress;
 extern frmQuestionDialog * FormQuestion;
 extern QPainter * GeneralPainter;
+#if QT_VERSION >= 0x050300
+extern QPdfWriter * stdPDFWriter;
+#endif
 extern QSvgGenerator * stdGenerator;
 extern int print_target;
 extern bool printing_in_file;
@@ -217,6 +218,12 @@ printing_in_file=true;
     break;
     //case DEVICE_HD_PNG:
     case DEVICE_PDF:
+#if QT_VERSION >= 0x050000
+        print_target=PRINT_TARGET_PDF_FILE;
+        target_device=DEVICE_X11;
+        return true;
+        /// Stop here - just to test it
+#else
         //we generate a temporary svg-file here and convert it with the svg-renderer afterwards
         print_target=PRINT_TARGET_SVG_FILE;
         use_temp_file=true;//the temporary file is a svg-file
@@ -230,6 +237,7 @@ printing_in_file=true;
             target_device=DEVICE_SVG;//remember: here we have to do something afterwards!
             return false;
             }*/
+#endif
     break;
     case DEVICE_SVG:
         if (useQtFonts==true)
@@ -354,12 +362,9 @@ if (print_target==PRINT_TARGET_SVG_FILE)
     stdGenerator->setFileName(cur_print_fname);
     stdGenerator->setSize(QSize(dev.pg.width,dev.pg.height));
     stdGenerator->setViewBox(QRect(0, 0, dev.pg.width, dev.pg.height));
-
-
-
-std::string Str = std::string(get_docname());
-
+    std::string Str=std::string(get_docname());
     stdGenerator->setTitle(QString("QtGrace: ")+QString::fromStdString(Str));
+    //stdGenerator->setTitle(QString("QtGrace: ")+QString(get_docname()));
     stdGenerator->setDescription(QString(get_project_description()));
 
 }
@@ -485,6 +490,15 @@ truncated_out = FALSE;
         if (GeneralPainter->isActive()==true)
         GeneralPainter->end();
     }
+#if QT_VERSION >= 0x050300
+    else if (print_target==PRINT_TARGET_PDF_FILE)
+    {
+        if (GeneralPainter->isActive()==true)
+        GeneralPainter->end();
+        delete stdPDFWriter;
+        stdPDFWriter=NULL;
+    }
+#endif
     else if (print_target==PRINT_TARGET_SVG_FILE && use_temp_file==false)
     {
         GeneralPainter->end();
@@ -743,7 +757,6 @@ if (auto_set_export_extensions==TRUE)
 {
 QFileInfo fi3(print_file);
 QString suf=fi3.suffix();
-
 suf=suf.toLower();
 QString suf2=QString(dev.fext).toLower();
     if (suf!=suf2)

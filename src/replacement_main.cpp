@@ -663,7 +663,9 @@ int replacement_main(int argc, char **argv)
     /* load startup file */
     char dummy[1024];
     sprintf(dummy,"%s/gracerc",qt_grace_exe_dir);
-    getparms(dummy);
+#ifndef WINDOWS_SYSTEM
+    getparms(dummy);//this should only be useful on unix-systems
+#endif
 
     /* load default template */
     new_project(NULL);

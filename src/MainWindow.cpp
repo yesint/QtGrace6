@@ -222,7 +222,7 @@ extern void get_tracking_props(int *setno, int *move_dir, int *add_at);
 extern int graph_zoom(int type,int nr_of_graphs,int * graph_nrs);
 extern int graph_scroll(int type,int nr_of_graphs,int * graph_nrs);
 extern QPoint VPoint2XPoint(VPoint vp);
-extern bool openNativePrinter(int dev);
+//extern bool openNativePrinter(int dev);
 
 #ifdef __cplusplus
 extern "C" {
@@ -242,7 +242,6 @@ extern void write_settings(void);
 extern Device_entry *device_table;
 
 extern QString get_filename_with_extension(int device);
-extern QString get_export_filename_with_extension(int device);
 
 void init_Patterns(void)
 {
@@ -277,7 +276,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 
 /// setFont(*stdFont);
 
-    setWindowTitle(tr("QtGrace11: untitled"));
+    setWindowTitle(tr("QtGrace: untitled"));
 
     windowWidth=872;
     windowHeight=670;
@@ -1247,7 +1246,7 @@ void MainWindow::PrintSetup(void)
 
         if (lastPrintDevice<=0) lastPrintDevice=FormDeviceSetup->devices_item->currentValue();
 
-        FormDeviceSetup->printfile_item->setText(get_export_filename_with_extension(FormDeviceSetup->cur_dev));
+        FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
     }
     FormDeviceSetup->changeDeviceList(2);
 
@@ -1265,7 +1264,7 @@ void MainWindow::PrintSetup(void)
     FormDeviceSetup->printfile_item->setText(QString(print_file));
     }*/
 
-    FormDeviceSetup->printfile_item->setText(get_export_filename_with_extension(FormDeviceSetup->cur_dev));
+///FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
 
 //cout << "LastPrintDevice=" << lastPrintDevice << " current=" << FormDeviceSetup->devices_item->currentValue() << endl;
 
@@ -1294,7 +1293,7 @@ void MainWindow::PrintSetup(void)
         }
     }
 //cout << "new device=" << FormDeviceSetup->devices_item->currentValue() << endl;
-    FormDeviceSetup->devices_item->setEnabled(true);
+    /// FormDeviceSetup->devices_item->setEnabled(true);
     FormDeviceSetup->init(FormDeviceSetup->devices_item->currentValue());
     FormDeviceSetup->show();
     FormDeviceSetup->raise();
@@ -1318,7 +1317,10 @@ do_hardcopy();
 FormProgress->hide();
 }
 else
-ret=openNativePrinter(DEVICE_PDF);
+{
+//if (FormDeviceSetup==NULL)
+ret=FormDeviceSetup->openNativePrinter(DEVICE_PDF);
+}
     if (ret==false)
     {
     cout << "native printing aborted" << endl;
@@ -2544,8 +2546,8 @@ void MainWindow::CreateActions(void)
     actPrintToFile->setShortcut(tr("Ctrl+F"));
     actPrintToFile->setStatusTip(tr("Export image to file"));
     connect(actPrintToFile, SIGNAL(triggered()), this, SLOT(PrintToFile()));
-    actPrintSetup= new QAction(tr("Prin&t/Export Setup..."), this);
-    actPrintSetup->setStatusTip(tr("Adjust print/export properties"));
+    actPrintSetup= new QAction(tr("File Expor&t Setup..."), this);
+    actPrintSetup->setStatusTip(tr("Adjust export properties"));
     connect(actPrintSetup, SIGNAL(triggered()), this, SLOT(PrintSetup()));
     actExit= new QAction(tr("E&xit"), this);
     actExit->setShortcut(tr("Ctrl+Q"));
@@ -2671,7 +2673,7 @@ void MainWindow::CreateActions(void)
     actShowToolBar->setCheckable(TRUE);
     actShowToolBar->setChecked(TRUE);
     connect(actShowToolBar, SIGNAL(triggered()), this, SLOT(ShowToolBar()));
-    actPageSetup= new QAction(tr("&PageSetup" ), this);
+    actPageSetup= new QAction(tr("&Page setup" ), this);
     connect(actPageSetup, SIGNAL(triggered()), this, SLOT(PageSetup()));
     actRedraw= new QAction(tr("&Redraw" ), this);
     connect(actRedraw, SIGNAL(triggered()), this, SLOT(Redraw()));
@@ -3890,7 +3892,6 @@ static QPixmap pm;
     {
     return;
     }
-
     contentChanged=false;
 
     /*if (cursortype!=0)
@@ -3929,13 +3930,9 @@ static QPixmap pm;
     //cout << "PaintEvent: simple drawing Region" << endl;
         drawRegionOnPainter(&tempPainter,nr);
     }
-
     tempPainter.end();
-
     simple_draw_setting=SIMPLE_DRAW_NONE;
-
     lblBackGr->setPixmap(pm);
-
     if (pm.width()!=lblBackGr->width() || pm.height()!=lblBackGr->height())
     {
         lblBackGr->setGeometry(0,0,pm.width(),pm.height());
@@ -3943,7 +3940,6 @@ static QPixmap pm;
     }
     //else
     //lblBackGr->setGeometry(0,0,20,20);
-
     //lblBackGr->repaint();
     if (showhideworkaround)//a strange thing which is necessary sometimes
     {
@@ -3951,7 +3947,6 @@ static QPixmap pm;
         qApp->processEvents();
         lblBackGr->show();
     }
-
 }
 
 void MainArea::transf_window_coords(int x,int y,int & real_x,int & real_y)

@@ -57,7 +57,8 @@ Device_entry dev_null = {DEVICE_NULL,
           FALSE,
           TRUE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          NULL
+          NULL,
+          1
          };
 
 int is_valid_page_geometry(Page_geometry pg)
@@ -248,6 +249,19 @@ Device_entry get_curdevice_props()
 char *get_device_name(int device)
 {
     return (device_table[device].name);
+}
+
+void setDeviceActive(int nr,int active)
+{
+if (nr<0 || nr>=number_of_devices()) return;
+device_table[nr].active=active;
+}
+
+int isDeviceActive(int nr)
+{
+    if (nr<0 || nr>=number_of_devices()) return 0;
+    else
+    return (device_table[nr].active);
 }
 
 void *get_curdevice_data(void)

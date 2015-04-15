@@ -49,9 +49,7 @@
 #include "utils.h"
 #include "draw.h"
 #include <QtGui>
-
 #include "cmath.h"
-// VC2008 needs it (M_SQRT1_2,round).
 
 using namespace std;
 

@@ -48,6 +48,7 @@
 #include "svgdrv.h"
 #include "gd.h"
 #include "globals.h"
+#include "cmath.h"
 
 #ifdef HAVE_LIBJPEG
 #  define JPEG_INTERNAL_OPTIONS
@@ -61,9 +62,6 @@
 /*#ifndef NONE_GUI
 #  include "motifinc.h"
 #endif*/
-
-#include "cmath.h"
-// VC2008 needs it rint().
 
 static void rstImagePnm(gdImagePtr ihandle, FILE *prstream);
 
@@ -114,7 +112,8 @@ static Device_entry dev_pnm = {DEVICE_FILE,
                                FALSE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-                               NULL
+                               NULL,
+                               1
                               };
 
 #ifdef HAVE_LIBJPEG
@@ -127,7 +126,8 @@ static Device_entry dev_jpg = {DEVICE_FILE,
                                FALSE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-                               NULL
+                               NULL,
+                               1
                               };
 #endif
 
@@ -141,7 +141,8 @@ static Device_entry dev_png = {
     TRUE,
     TRUE,
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-    NULL
+    NULL,
+    1
 };
 
 /*#ifdef HAVE_LIBPNG

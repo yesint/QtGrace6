@@ -72,7 +72,8 @@ static Device_entry dev_svg = {
     TRUE,
     TRUE,
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-    NULL
+    NULL,
+    1
 };
 
 typedef struct {

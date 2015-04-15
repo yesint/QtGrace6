@@ -894,7 +894,7 @@ void LocalSocketIpcServer::setLayoutMode(){
     graphNo_m = dataLength_m;
 
     //Set QtGrace plot viewport
-    view v;
+ view v;
     v.xv1 = 0.21;
     v.xv2 = 1.21;
     v.yv1 =0.15;

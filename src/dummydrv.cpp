@@ -48,7 +48,8 @@ static Device_entry dev_dummy = {DEVICE_TERM,
                                  TRUE,
                                  FALSE,
                                  {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-                                 NULL
+                                 NULL,
+                                 1
                                 };
 
 int register_dummy_drv(void)

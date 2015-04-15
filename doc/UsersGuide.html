@@ -98,7 +98,7 @@
 <P>Grace is a WYSIWYG tool to make two-dimensional plots of numerical
 data. It runs under various (if not all) flavors of Unix with X11
 and M*tif (LessTif or Motif). It also runs under VMS, OS/2, and
-Windows (95/98/NT/2000/XP/7). Its capabilities are roughly similar to
+Windows (95/98/NT/2000/XP). Its capabilities are roughly similar to
 GUI-based programs like Sigmaplot or Microcal Origin plus
 script-based tools like Gnuplot or Genplot. Its strength lies in the
 fact that it combines the convenience of a graphical user interface
@@ -119,13 +119,223 @@ number 4.1.2.</P>
 <P>Paul still maintains and develops a non-public version of Xmgr for
 internal use.</P>
 
+<H2><A NAME="ss1.2">1.2</A> <A HREF="#toc1.2">Copyright statement   </A>
+</H2>
+
+
 <P>
+<BLOCKQUOTE><CODE>
+<PRE>
+Copyright (&copy;) 1991-1995 Paul J Turner, Portland, OR
+Copyright (&copy;) 1996-2007 Grace Development Team
+
+Maintained by Evgeny Stambulchik
+
+
+                         All Rights Reserved
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+</PRE>
+</CODE></BLOCKQUOTE>
+</P>
+
+<P>For certain libraries required to build Grace
+(which are therefore even included in a suitable version)
+there may be different Copyright/License statements. Though their
+License may by chance match the one used for Grace,
+the Grace Copyright holders can not influence or change them.</P>
+
+<P>
+<BR><CENTER>
+<TABLE BORDER><TR><TD>
+Package </TD><TD> License </TD></TR><TR><TD>
+cephes library </TD><TD> Free </TD></TR><TR><TD>
+T1lib </TD><TD> LGPL </TD></TR><TR><TD>
+Xbae </TD><TD> BSD-like </TD></TR><TR><TD>
+Tab Widget </TD><TD> BSD-like </TD></TR><TR><TD>
+</TD></TR></TABLE>
+<CAPTION>       Licenses
+     </CAPTION>
+</CENTER><BR>
+</P>
+
+
+
+<H2><A NAME="s2">2.</A> <A HREF="#toc2">Installation guide   </A></H2>
+
+
+
+<H2><A NAME="ss2.1">2.1</A> <A HREF="#toc2.1">Installing from sources     </A>
+</H2>
+
+<P>
+<OL>
+<LI> Configuration 
+<A NAME="configuration"></A> 
+<UL>
+<LI> Requirements.
+Grace usually compiles out of the box in a regular Unix-like
+environment. You need an ANSI C compiler (gcc is just fine),
+the X11R5 or above libraries and headers, and an
+implementaion of the M*tif API, version 1.2 or above.
+If you want to compile your own changes to certain parts of
+Grace, you will need a parser generator (<CODE>yacc</CODE> or, better,
+<CODE>bison</CODE>).</LI>
+<LI> Extra libraries. Some features will be available only if
+additional libraries are installed. Those are:
+<UL>
+<LI> The JPEG backend needs the IJG's
+(
+<A HREF="ftp://ftp.uu.net/graphics/jpeg/">JPEG library</A>),
+version 6.x.</LI>
+<LI> The PNG backend needs
+the (
+<A HREF="http://www.libpng.org/pub/png/libpng.html">libpng</A>)
+library (version 0.96 or above).</LI>
+<LI> The PDF driver requires the PDFlib library of Thomas
+Merz to be installed, which is available
+<A HREF="http://www.pdflib.com/">here</A>, version
+4.0.3 or above.</LI>
+<LI> If your computer has the FFTW library installed when
+Grace is compiled, Grace will link itself to this, and
+drop all conventional FFT's and DFT's. All transforms
+will be routed through this package. Note that there is
+then no difference between pushing the "FFT" button and
+the "DFT" button, except that FFT will complain if the
+length isn't a power of 2, and DFT will not.
+
+For more information on this package, see the 
+<A HREF="http://www.fftw.org">FFTW Home page</A>.
+In short, this package allows one to do non-power-of-2
+length FFT's along with the normal ones.  It seems to work
+very efficiently for any set length which factors into 2^a
+3^b 5^c 7^d for integer a, b, c, d. The great feature here
+is that set lengths which are powers of 10 (e.g. 1000,
+10000) and integer multiples of these (500, 2000, 2500,
+5000, etc.) can be computed with no significant penalty
+(maybe 20%) over power-of-2 transforms. Very often, real
+datasets come in these sizes, and not in powers of 2.</LI>
+<LI> In order to read/write sets in the NetCDF data format, you
+will also need the 
+<A HREF="http://unidata.ucar.edu/packages/netcdf/index.html">NetCDF libraries</A>.</LI>
+</UL>
+</LI>
+<LI> Decide whether you want to compile in a separate place (thus
+leaving the source tree pristine). You most probably would
+want it if compiling Grace for more than one OS and keeping
+the sources in a central shared (e.g. via NFS) location.
+If you don't need it, skip the rest of this paragraph and go
+right to the next step. Otherwise, assuming the sources are
+in <CODE>/usr/local/src/grace-x.y.z</CODE> and the compilation
+will be performed in <CODE>/tmp/grace-obj</CODE>, do the following:
+<PRE>
+  % mkdir /tmp/grace-obj
+  % cd /tmp/grace-obj
+  % /usr/local/src/grace-x.y.z/ac-tools/shtool mkshadow \
+    /usr/local/src/grace-x.y.z .
+                 
+</PRE>
+</LI>
+<LI> The <CODE>configure</CODE> shell script attempts to guess correct
+values for various system-dependent variables used during
+compilation. It uses those values to create <CODE>Make.conf</CODE> in the
+top directory of the package. It also create <CODE>config.h</CODE> file
+containing system-dependent definitions. Finally, it creates a shell
+script <CODE>config.status</CODE> that you can run in the future to
+recreate the current configuration, a file <CODE>config.cache</CODE> that
+saves the results of its tests to speed up reconfiguring, and a file
+<CODE>config.log</CODE> containing compiler output (useful mainly for
+debugging <CODE>configure</CODE>). If at some point <CODE>config.cache</CODE>
+contains results you don't want to keep, you may remove or edit it.</LI>
+<LI> Run <CODE>./configure --help</CODE>
+to get list of additional switches specific to Grace</LI>
+<LI> Run <CODE>./configure &lt;options&gt;</CODE>. Just an example:
+<PRE>
+  % ./configure --enable-grace-home=/opt/grace 
+    --with-extra-incpath=/usr/local/include:/opt/include \
+    --with-extra-ldpath=/usr/local/lib:/opt/lib --prefix=/usr
+                 
+</PRE>
+
+would use <CODE>/usr/local/include</CODE> and
+<CODE>/opt/include</CODE> in addition to the default include path
+and <CODE>/usr/local/lib</CODE> and <CODE>/opt/lib</CODE> in addition
+to the default ld path. As well, all stuff would be put under
+the /opt/grace directory and soft links made to
+<CODE>/usr/bin</CODE>, <CODE>/usr/lib</CODE> and <CODE>/usr/include</CODE>.
+<P><B>Note</B>: If you change one of the
+<CODE>--with-extra-incpath</CODE> or
+<CODE>--with-extra-ldpath</CODE> options from one run of
+configure to another, remember to delete the
+<CODE>config.cache</CODE> file!!!</P>
+</LI>
+</UL>
+</LI>
+<LI> Compilation
+<UL>
+<LI> Issue <CODE>make</CODE>
+<P>If something goes wrong, try to see if the problem has been
+described already in the <B>Grace FAQ</B> (in the
+<CODE>doc</CODE> directory).</P>
+</LI>
+</UL>
+</LI>
+<LI> Testing
+    
+<UL>
+<LI> <CODE>make tests</CODE>
+<P>This will give you a slide show demonstrating some nice
+features of Grace.</P>
+</LI>
+</UL>
+</LI>
+<LI> Installation
+<UL>
+<LI> <CODE>make install</CODE></LI>
+<LI> <CODE>make links</CODE>
+<P>The later (optional) step will make soft links from some files
+under the Grace home directory to the system-wide default
+locations (can be changed by the <CODE>--prefix</CODE> option
+during the configuration, see above).</P>
+</LI>
+</UL>
+</LI>
+</OL>
+</P>
+
+<H2><A NAME="ss2.2">2.2</A> <A HREF="#toc2.2">Binary installation     </A>
+</H2>
+
+<P>
+<OL>
+<LI> Getting pre-built packages</LI>
+<LI> Installation</LI>
+<LI> Running tests</LI>
+</OL>
+</P>
+
+<H2><A NAME="ss2.3">2.3</A> <A HREF="#toc2.3">Alternative packaging schemes (RPM, ...)     </A>
+</H2>
+
+
+<P>Not written yet...</P>
 
 
 <H2><A NAME="s3">3.</A> <A HREF="#toc3">Getting started   </A></H2>
-<OL>
-<H2><A >Introduction</A> 
-</H2>
+
+
 <P>For a jump-in start, you can browse the demos ("Help/Examples" menu tree).
 These are ordinary Grace projects, so you can play with them and modify them.
 Also, read the 
@@ -326,15 +536,36 @@ devices to produce its graphics. The current list of
 supported devices is:</P>
 <P>
 <UL>
-<LI> PDF</LI>
+<LI> X11</LI>
 <LI> PostScript (level 1 and level 2)</LI>
 <LI> EPS (encapsulated PostScript)</LI>
+<LI> Metafile (which is Grace format, used at the moment mostly
+for debugging purposes)</LI>
+<LI> MIF (Maker Interchange Format used by FrameMaker)</LI>
 <LI> SVG (Scalable Vector Graphics, a language for describing
 two-dimensional vector and mixed vector/raster graphics
-in XML)
-<LI>PNG</LI>
+in XML)</LI>
+<LI> PDF (depends on extra libraries,
+see 
+<A HREF="#configuration">configuration</A>)</LI>
+<LI> PNM (portable anymap file format)</LI>
+<LI> JPEG (depends on extra libraries,
+see 
+<A HREF="#configuration">configuration</A>)</LI>
+<LI> PNG (depends on extra libraries,
+see 
+<A HREF="#configuration">configuration</A>)</LI>
 </UL>
 </P>
+
+<P>Note that Grace no longer supports GIF due to
+the copyright policy of Unisys. Grace can also be
+instructed to launch conversion programs automatically
+based on file name. As an example you can produce MIF
+(FrameMaker Interchange Format) or Java applets using
+pstoedit, or almost any image format using the netpbm suite
+(see the 
+<A HREF="FAQ.html">FAQ</A>).</P>
 
 <H3><A NAME="magic-path"></A> Magic path        </H3>
 
@@ -589,7 +820,7 @@ is searched for in the magic path (see
 path is ignored. It's recommended that in the <CODE>gracerc</CODE> file,
 one doesn't use statements which are part of a project file - such
 defaults, if needed, should be set in the default template (see 
-<A HREF="#default-template">default template</A>). Two files are automatically generated by qtGrace namely, FontDataBase and qtGrace_Settings.ini. The remaining files are not automatically generated by qtGrace and should therefore not be modified by the user.</P>
+<A HREF="#default-template">default template</A>).</P>
 
 <H3><A NAME="default-template"></A> Default template      </H3>
 
@@ -601,7 +832,7 @@ rest of the path is ignored. It's recommended that in the default
 template, one doesn't use statements which are NOT part of a project
 file - such defaults, if needed, should be set in the
 <CODE>gracerc</CODE> (see 
-<A HREF="#gracerc">init file</A>). Furthermore, the Default.agr file contains the properties the users have modified in qtGrace. Default.agr should NOT be deleted.</P>
+<A HREF="#gracerc">init file</A>).</P>
 
 <H3>X resources       </H3>
 
@@ -2337,11 +2568,11 @@ font is not found.</LI>
 <HR>
 <PRE>
 14
-Helvetica               Helvetica               n019003l.pfb
+Times-Roman             Times-Roman             n021003l.pfb
 Times-Italic            Times-Italic            n021023l.pfb
 Times-Bold              Times-Bold              n021004l.pfb
 Times-BoldItalic        Times-BoldItalic        n021024l.pfb
-Times-Roman             Times-Roman             n021003l.pfb
+Helvetica               Helvetica               n019003l.pfb
 Helvetica-Oblique       Helvetica-Oblique       n019023l.pfb
 Helvetica-Bold          Helvetica-Bold          n019004l.pfb
 Helvetica-BoldOblique   Helvetica-BoldOblique   n019024l.pfb
@@ -2437,23 +2668,7 @@ while being able to exchange files with colleagues from abroad. People
 who ever tried to do this with MS Office applications should appreciate
 the flexibility :-).</P>
 
-
-
-<H3>LaTeX Symbols </H3>
-
-qtGrace supports simple LaTeX symbols. Following symbols are supported by qtGrace:
-
-<P><img src="qtGraceLatexSymbols.png" alt="LaTeX Symbols"> </P>
-
-To use the symbols the user must use the $$ signs before and after each LaTeX commands i.e.: 
-
-<P>$$cos (2\theta) = cos^2 \theta - sin^2 \theta$$</P>
-
-<P>The subscript or superscript symbols are supported, by writing _ or ^.</P>
-
-
-
-<H2><A NAME="ss6.2">6.2</A> <A HREF="#toc6.2">Interaction with other applications     </P>
+<H2><A NAME="ss6.2">6.2</A> <A HREF="#toc6.2">Interaction with other applications     </A>
 </H2>
 
 
@@ -3063,18 +3278,22 @@ with the help of the font tool ("Window/Font tool").</P>
 available devices can be seen (among other stuff) by specifying the
 "-version" command line switch.
 <UL>
-<LI>  PostScript and EPS are full-featured devices</LI>
+<LI> X11, PostScript and EPS are full-featured devices</LI>
 <LI> Raster drivers (PNM/JPEG/PNG):
+<UL>
+<LI> only even-odd fill rule is supported</LI>
+<LI> patterned lines are not implemented</LI>
+</UL>
 </LI>
 <LI> PDF driver:
 <UL>
 <LI> bitmapped text strings are not transparent</LI>
 </UL>
 </LI>
-
+<LI> MIF driver:
 <UL>
-
-
+<LI> some of patterned fills not implemented</LI>
+<LI> bitmapped text strings not implemented</LI>
 </UL>
 </LI>
 <LI> SVG driver:
@@ -3135,6 +3354,75 @@ bbox:tight </TD><TD> enable "tight" bounding box </TD></TR><TR><TD>
 bbox:page </TD><TD> bounding box coincides with page dimensions </TD></TR><TR><TD>
 </TD></TR></TABLE>
 <CAPTION>              EPS driver options
+      </CAPTION>
+</CENTER><BR>
+</P>
+
+
+<P>
+<BR><CENTER>
+<TABLE BORDER><TR><TD>
+Command </TD><TD> Description </TD></TR><TR><TD>
+PDF1.3 </TD><TD> set compatibility mode to PDF-1.3 </TD></TR><TR><TD>
+PDF1.4 </TD><TD> set compatibility mode to PDF-1.4 </TD></TR><TR><TD>
+compression:value </TD><TD> set compression level (0 - 9) </TD></TR><TR><TD>
+patterns:on </TD><TD> enable use of patterns </TD></TR><TR><TD>
+patterns:off </TD><TD> disable use of patterns </TD></TR><TR><TD>
+</TD></TR></TABLE>
+<CAPTION>              PDF driver options
+      </CAPTION>
+</CENTER><BR>
+</P>
+
+
+<P>
+<BR><CENTER>
+<TABLE BORDER><TR><TD>
+Command </TD><TD> Description </TD></TR><TR><TD>
+format:pbm </TD><TD> output in PBM format </TD></TR><TR><TD>
+format:pgm </TD><TD> output in PGM format </TD></TR><TR><TD>
+format:ppm </TD><TD> output in PPM format </TD></TR><TR><TD>
+rawbits:on </TD><TD> "rawbits" (binary) output </TD></TR><TR><TD>
+rawbits:off </TD><TD> ASCII output </TD></TR><TR><TD>
+</TD></TR></TABLE>
+<CAPTION>              PNM driver options
+      </CAPTION>
+</CENTER><BR>
+</P>
+
+
+<P>
+<BR><CENTER>
+<TABLE BORDER><TR><TD>
+Command </TD><TD> Description </TD></TR><TR><TD>
+grayscale </TD><TD> set grayscale output </TD></TR><TR><TD>
+color </TD><TD> set color output </TD></TR><TR><TD>
+optimize:on/off </TD><TD> enable/disable optimization </TD></TR><TR><TD>
+quality:value </TD><TD> set compression quality (0 - 100) </TD></TR><TR><TD>
+smoothing:value </TD><TD> set smoothing (0 - 100) </TD></TR><TR><TD>
+baseline:on/off </TD><TD> do/don't force baseline output </TD></TR><TR><TD>
+progressive:on/off </TD><TD> do/don't output in progressive format </TD></TR><TR><TD>
+dct:ifast </TD><TD> use fast integer DCT method </TD></TR><TR><TD>
+dct:islow </TD><TD> use slow integer DCT method </TD></TR><TR><TD>
+dct:float </TD><TD> use floating-point DCT method </TD></TR><TR><TD>
+</TD></TR></TABLE>
+<CAPTION>              JPEG driver options
+      </CAPTION>
+</CENTER><BR>
+</P>
+
+
+<P>
+<BR><CENTER>
+<TABLE BORDER><TR><TD>
+Command </TD><TD> Description </TD></TR><TR><TD>
+interlaced:on </TD><TD> make interlaced image </TD></TR><TR><TD>
+interlaced:off </TD><TD> don't make interlaced image </TD></TR><TR><TD>
+transparent:on </TD><TD> produce transparent image </TD></TR><TR><TD>
+transparent:off </TD><TD> don't produce transparent image </TD></TR><TR><TD>
+compression:value </TD><TD> set compression level (0 - 9) </TD></TR><TR><TD>
+</TD></TR></TABLE>
+<CAPTION>              PNG driver options
       </CAPTION>
 </CENTER><BR>
 </P>
@@ -3267,6 +3555,59 @@ example using International Atomic Time). But if you bother with
 that you probably already know what to do.</P>
 
 
+<H2><A NAME="ss7.5">7.5</A> <A HREF="#toc7.5">Xmgr to Grace migration guide     </A>
+</H2>
+
+
+<P>This is a very brief guide describing problems and workarounds for
+reading in project files saved with Xmgr. You should read the docs or
+just play with Grace to test new features and controls.</P>
+<P>
+<OL>
+<LI> Grace must be explicitly told the version number of the software
+used to create a file. You can manually put "@version VERSIONID"
+string at the beginning of the file. The VERSIONID is built as
+MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL; so 40101 corresponds
+to xmgr-4.1.1. Projects saved with Xmgr-4.1.2 do NOT need the above,
+since they already have the version string in them. If you have no
+idea what version of Xmgr your file was created with, try some.
+In most cases, 40102 would do the trick.
+ </LI>
+<LI> The above relates to the ASCII projects only. The old binary
+projects (saved with xmgr-4.0.*) are not automatically converted
+anymore. An input filter must be defined to make the conversion
+work on-the-fly. Add the following line to &nbsp;/.gracerc or the
+system-wide $GRACE_HOME/gracerc resource file: DEFINE IFILTER
+"grconvert %s -" MAGIC "00000031" See docs for more info on the
+I/O filters.
+ </LI>
+<LI> Documentation on the script language is severely lacking still.
+ </LI>
+<LI> Grace is WYSIWYG. Xmgr was not. Many changes required to achieve the
+WYSIWYG'ness led to the situation when graphs with objects carefully
+aligned under Xmgr may not look so under Grace. Grace tries its best
+to compensate for the differences, but sometimes you may have to
+adjust such graphs manually.
+ </LI>
+<LI> A lot of symbol types (all except *real* symbols) are removed.
+"Location *" types can be replaced (with much higher comfort) by
+A(nnotating)values. "Impulse *", "Histogram *" and "Stair steps *"
+effects can be achieved using the connecting line parameters (Type,
+Drop lines). "Dot" symbol is removed as well; use the filled circle
+symbol of the zero size with no outline to get the same effect.
+ </LI>
+<LI> Default page layout switched from free (allowing to resize canvas
+with mouse) to fixed. For the old behavior, put "PAGE LAYOUT FREE"
+in the Grace resource file or use the "-free" command line switch.
+<B>The use of the "free" page layout is in general deprecated,
+though.</B>
+ </LI>
+<LI> System (shell) variables GR_* renamed to GRACE_*
+ </LI>
+<LI> Smith plots don't work now. They'll be put back soon.
+ </LI>
+</OL>
+</P>
 
 
 </BODY>

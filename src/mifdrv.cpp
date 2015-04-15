@@ -60,7 +60,8 @@ static Device_entry dev_mif = {DEVICE_FILE,
                                TRUE,
                                FALSE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-                               NULL
+                               NULL,
+                               1
                               };
 
 /* mapping between Grace and MIF fill patterns. This is really ugly but

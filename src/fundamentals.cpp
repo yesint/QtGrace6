@@ -1275,7 +1275,7 @@ void spreadSheet::generate_layout(void)
             spreadlines[i]=new spreadLine(this,i,cols);
             layout->addWidget(spreadlines[i]);
         }
-        /*if (rows>0)
+    /*if (rows>0)
     {
     headline->empty->setMaximumWidth(spreadlines[0]->cmdSelect->width());
     }*/

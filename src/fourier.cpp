@@ -250,7 +250,7 @@ static int bit_swap(int i, int nu)
 /* Start of new FFTW-based transforms by Marcus H. Mendenhall */
 /* We use fftw3 here*/
 //#include <fftw.h>
-#include <fftw3.h>
+#include "fftw3.h"
 #include <string.h>
 
 extern Prototype_fftw_export_wisdom_to_string fftw_dll_export_wisdom_to_string;

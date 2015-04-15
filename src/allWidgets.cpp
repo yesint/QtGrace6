@@ -39,9 +39,7 @@
 #include <QProgressBar>
 #include <QMessageBox>
 #include "svgdrv.h"
-
 #include "cmath.h"
-// VC2008 needs it rint(),asinh().
 
 #ifdef _MSC_VER
 #include "windows.h"
@@ -733,26 +731,6 @@ to->DataSuffix=from->DataSuffix;
 to->HeaderSuffix=from->HeaderSuffix;
 }
 
-
-
-
-QString get_export_filename_with_extension(int device)//generates a filename from export filename, using the extension of the given device
-{
-    Device_entry dev = get_device_props(device);
-    QFileInfo fi(get_exportname());
-
-    QString fwe;
-    fwe=fi.absolutePath() + QDir::separator() + fi.completeBaseName() + QString(".") + QString(dev.fext);
-
-    fwe.replace(QString("/\\"),QDir::separator());
-    return fwe;
-
-}
-
-
-
-
-
 QString get_filename_with_extension(int device)//generates a filename from the name of the document, using the extension of the given device
 {
     Device_entry dev = get_device_props(device);
@@ -1275,7 +1253,8 @@ static Device_entry dev_jpg = {DEVICE_FILE,
                                FALSE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-                               NULL
+                               NULL,
+                               1
                               };
 
 static Device_entry dev_png = {DEVICE_FILE,
@@ -1287,7 +1266,8 @@ static Device_entry dev_png = {DEVICE_FILE,
                                FALSE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-                               NULL
+                               NULL,
+                               1
                               };
 
 static Device_entry dev_bmp = {DEVICE_FILE,
@@ -1299,7 +1279,8 @@ static Device_entry dev_bmp = {DEVICE_FILE,
                                FALSE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-                               NULL
+                               NULL,
+                               1
                               };
 
 #define DATASETOP_SORT 0
@@ -7270,8 +7251,85 @@ void frmDeviceOptions::doClose(void)
     hide();
 }
 
+frmDeviceActivator::frmDeviceActivator(QWidget * parent):QDialog(parent)
+{
+setWindowTitle(tr("QtGrace: Enable/Disable export formats"));
+layout=new QGridLayout;
+layout->setMargin(STD_MARGIN);
+layout->setSpacing(STD_SPACING);
+cmdAll=new QPushButton(tr("Activate all"),this);
+cmdApply=new QPushButton(tr("Accept"),this);
+cmdClose=new QPushButton(tr("Close"),this);
+connect(cmdApply,SIGNAL(clicked()),SLOT(doApply()));
+connect(cmdAll,SIGNAL(clicked()),SLOT(doAll()));
+connect(cmdClose,SIGNAL(clicked()),SLOT(doClose()));
+int index=0;
+layout->addWidget(cmdAll,index++,0,1,2);
+alloc_checks=3;
+chkDeviceActive=new QCheckBox*[alloc_checks];
+    for (int i=0;i<alloc_checks;i++)
+    {
+    chkDeviceActive[i]=new QCheckBox(QString("test"),this);
+    layout->addWidget(chkDeviceActive[i],index++,0,1,2);
+    }
+layout->addWidget(cmdApply,index,0,1,1);
+layout->addWidget(cmdClose,index++,1,1,1);
+setLayout(layout);
+}
+
+void frmDeviceActivator::doAll(void)
+{
+    for (int i=0;i<alloc_checks;i++)
+    {
+    chkDeviceActive[i]->setChecked(true);
+    }
+}
+
+void frmDeviceActivator::init(void)
+{
+//delete old checkBoxes
+    for (int i=0;i<alloc_checks;i++)
+    {
+    delete chkDeviceActive[i];
+    }
+delete[] chkDeviceActive;
+//create new checkBoxes
+alloc_checks=number_of_devices();
+chkDeviceActive=new QCheckBox*[alloc_checks];
+int index=1;
+    for (int i=0;i<alloc_checks;i++)
+    {
+    chkDeviceActive[i]=new QCheckBox(QString(get_device_name(i)),this);
+    layout->addWidget(chkDeviceActive[i],index++,0,1,2);
+    chkDeviceActive[i]->setChecked(isDeviceActive(i));
+    }
+    chkDeviceActive[DEVICE_TERM]->hide();
+    chkDeviceActive[DEVICE_TERM]->setChecked(true);//Screen is always active
+layout->addWidget(cmdApply,index,0,1,1);
+layout->addWidget(cmdClose,index++,1,1,1);
+}
+
+void frmDeviceActivator::doApply(void)
+{
+    for (int i=0;i<alloc_checks;i++)
+    {
+    setDeviceActive(i,chkDeviceActive[i]->isChecked());
+    }
+        if (FormDeviceSetup!=NULL)
+        {
+        FormDeviceSetup->changeDeviceList(FormDeviceSetup->cur_version);
+        }
+    doClose();
+}
+
+void frmDeviceActivator::doClose(void)
+{
+hide();
+}
+
 frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
 {
+    cur_version=0;
     actNativePrinterDialog=NULL;
     int number;
     QString entr[13];
@@ -7292,7 +7350,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
     grpPage=new QGroupBox(tr("Page"),this);
     grpFonts=new QGroupBox(tr("Fonts"),this);
 
-    device_opts_item=new QPushButton(tr("Device options..."),grpDevSetup);
+    device_opts_item=new QPushButton(tr("Format options..."),grpDevSetup);
     connect(device_opts_item,SIGNAL(clicked()),this,SLOT(doDevOpt()));
     wbut=new QPushButton(tr("Browse..."),grpOutput);
     connect(wbut,SIGNAL(clicked()),this,SLOT(doBrowse()));
@@ -7324,7 +7382,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
     {
     entr[i]=get_device_name(i);
     }
-    devices_item=new StdSelector(grpDevSetup,tr("Device:"),number,entr);
+    devices_item=new StdSelector(grpDevSetup,tr("Output format:"),number,entr);
     connect(devices_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(DeviceChanged(int)));
     number=2;
     entr[0]=tr("Landscape");
@@ -7383,6 +7441,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
     printto_item=new QCheckBox(tr("Print to file"),grpOutput);
     connect(printto_item,SIGNAL(stateChanged(int)),this,SLOT(PrintToFileClicked(int)));
     printto_item->setVisible(false);
+
     fontaa_item=new QCheckBox(tr("Enable font antialiasing"),grpFonts);
     devfont_item=new QCheckBox(tr("Use device fonts"),grpFonts);
     devfont_item->setChecked(TRUE);
@@ -7396,6 +7455,8 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
 
     cmdNativePrinterDialog=new QPushButton(tr("Open native printer dialog"),this);
     connect(cmdNativePrinterDialog,SIGNAL(clicked()),this,SLOT(doNativePrinterDialog()));
+    cmdNativePrinterDialog->setVisible(false);
+
     cmdDoPrint=new QPushButton(tr("Export to File"),this);
     connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrintToFile()));
 
@@ -7417,8 +7478,9 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
     /*layout1->addWidget(printto_item,0,0,1,1);
     layout1->addWidget(cmdDoPrint,0,1,1,1);
     layout1->addWidget(cmdNativePrinterDialog,0,2,1,1);*/
-    layout1->addWidget(cmdDoPrint,1,0,1,1);
-    layout1->addWidget(cmdNativePrinterDialog,1,1,1,1);
+    layout1->addWidget(cmdDoPrint,1,0,1,3);
+        //layout1->addWidget(cmdDoPrint,1,0,1,1);
+        //layout1->addWidget(cmdNativePrinterDialog,1,1,1,1);
     //layout1->addWidget(print_string_item,1,0,1,3);
     layout1->addWidget(printfile_item,0,0,1,2);
     layout1->addWidget(wbut,0,2);
@@ -7433,7 +7495,7 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
     layout2->addWidget(dev_res_item,2,0);//,1,2
     layout2->addWidget(chkDontChangeSize,2,1,1,2);
     grpPage->setLayout(layout2);
-    layout3=new QVBoxLayout();
+    layout3=new QHBoxLayout();
     layout3->setMargin(STD_MARGIN);
     layout3->addWidget(fontaa_item);
     layout3->addWidget(devfont_item);
@@ -7479,7 +7541,7 @@ void frmDeviceSetup::CreateActions(void)
     actPrintToFile=new QAction(tr("&Export to file"),this);
     actPrintToFile->setShortcut(tr("Ctrl+F"));
     connect(actPrintToFile,SIGNAL(triggered()), this, SLOT(doPrintToFile()));
-    dsync_item=new QAction(tr("&Sync page size of all devices"),this);
+    dsync_item=new QAction(tr("&Sync page size of screen and all output formats"),this);
     dsync_item->setCheckable(TRUE);
     dsync_item->setChecked(TRUE);
     connect(dsync_item,SIGNAL(triggered()), this, SLOT(doSyncPage()));
@@ -7545,7 +7607,7 @@ void frmDeviceSetup::DeviceChanged(int device_id)//output-device changed (screen
     }
     else
     {
-        device_opts_item->setText(tr("Device options..."));
+        device_opts_item->setText(tr("Format options..."));
     }
 
     if (print_file == NULL || print_file[0] == '\0') {
@@ -7965,7 +8027,7 @@ void frmDeviceSetup::DpisChanged(void)
 OrientationChanged(page_orient_item->currentValue());
 }
 
-void frmDeviceSetup::changeDeviceList(int version)//this verion is useful for a change in the usage of libHaru (activate/deactivate it)
+void frmDeviceSetup::changeDeviceList(int version)//this is useful for a change in the usage of libHaru (activate/deactivate it) and other output formats
 {
 //version=0 --> all
 //version=1 --> just screen
@@ -7977,16 +8039,36 @@ int * i_entr=new int[number];
 int index=0;
     for (int i=0;i<number;i++)
     {
-        if ((version==0 || (version==1 && i==DEVICE_SCREEN) || (version==2 && i!=DEVICE_SCREEN)) && (i!=DEVICE_PDF_HARU || (i==DEVICE_PDF_HARU && use_libHaru==TRUE)) )
+        if (((version==0 && isDeviceActive(i)) || (version==1 && i==DEVICE_SCREEN) || (version==2 && i!=DEVICE_SCREEN && isDeviceActive(i))) && (i!=DEVICE_PDF_HARU || (i==DEVICE_PDF_HARU && use_libHaru==TRUE)) )
         {
         entr[index]=get_device_name(i);
         i_entr[index++]=i;
         }
     }
+cur_version=version;
 disconnect(devices_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(DeviceChanged(int)));
 devices_item->setNewEntries(index,entr,i_entr);
 devices_item->setCurrentValue(old_selection);
 connect(devices_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(DeviceChanged(int)));
+if (version==1)//just screen
+{
+setWindowTitle(tr("QtGrace: Page setup"));
+devices_item->setVisible(false);
+devices_item->setEnabled(false);
+grpDevSetup->setTitle(tr("Screenshot"));
+actHelpOnDevSetup->setText(tr("On &page setup"));
+
+}
+else//everything else --> the usual device-setup
+{
+setWindowTitle(tr("QtGrace: Output format"));
+devices_item->setVisible(true);
+devices_item->setEnabled(true);
+grpDevSetup->setTitle(tr("Select output format"));
+actHelpOnDevSetup->setText(tr("On &output formats"));
+
+}
+
 }
 
 void frmDeviceSetup::doApply(void)
@@ -8341,24 +8423,23 @@ void frmDeviceSetup::doDevOpt(void)
     }
 }
 
-bool openNativePrinter(int dev)//returns true, if everything is ok, and returns false, if the user selected cancel
+bool frmDeviceSetup::openNativePrinter(int dev)//returns true, if everything is ok, and returns false, if the user selected cancel
 {
 static char dummy[1024];
 bool ret=true;
 int ret_val1;
-Device_entry cur_dev,tmp_dev;
-cur_dev = get_device_props(dev);
+
+curdev = get_device_props(dev);
 tmp_dev = get_device_props(DEVICE_SCREEN);
 
-ofstream ofi;
-ofi.open("Printer_Debug.txt");
+ofi.open("/Users/andreaswinter/Printer_Debug.txt");
 
 FormProgress->init(QObject::tr("Printing..."),5);
 FormProgress->show();
 FormProgress->raise();
 FormProgress->activateWindow();
 
-int orientation=cur_dev.pg.height<cur_dev.pg.width?0:1;
+int orientation=curdev.pg.height<curdev.pg.width?0:1;
 if (stdPrinter!=NULL)//delete stdPrinter
 {
 delete stdPrinter;
@@ -8389,26 +8470,40 @@ ofi << "Vor Print Dialog " << endl;
 stdPrinter->setOutputFileName(FormDeviceSetup->printfile_item->text());
 #endif
 stdPrinter->setOutputFormat(QPrinter::NativeFormat);
-stdPrinter->setResolution(cur_dev.pg.dpi);
+stdPrinter->setResolution(curdev.pg.dpi);
 
 //stdPrinter->setResolution(300);
 
 //QPrintDialog * printDialog=new QPrintDialog(mainWin);
-QPrintDialog * printDialog=new QPrintDialog(stdPrinter,mainWin);
+printDialog=new QPrintDialog(stdPrinter,mainWin);
 
+/*
 //printDialog->open(,SLOT(tryPrintingOnPrinter));
 QTime st1;
 st1.start();
 ret_val1=printDialog->exec();
 int millisec=st1.restart();
 if (millisec<500) ret_val1=printDialog->exec();
+*/
 
+printDialog->setModal(true);
+connect(printDialog,SIGNAL(accepted(QPrinter *)),SLOT(printerAccepted(QPrinter *)));
+connect(printDialog,SIGNAL(rejected()),SLOT(printerRejected()));
 
 ofi << "nach new PrintDialog" << endl;
+cout << "nach new PrintDialog" << endl;
 //if (printDialog->exec() == QDialog::Accepted)
-if (ret_val1 == QDialog::Accepted)
+
+printDialog->show();
+//printDialog->open(this,SLOT(printerAccepted(QPrinter*)));
+
+return true;
+}
+
+void frmDeviceSetup::printerAccepted(QPrinter *pri)
 {
-ofi << "in PrintDialog" << endl;
+ofi << "in PrintDialog - accepted" << endl;
+cout << "in PrintDialog - accepted" << endl;
 /*
 delete stdPrinter;
 stdPrinter=printDialog->printer();
@@ -8428,11 +8523,11 @@ cout << "Supported resolutions:" << endl;
             cout << resols.at(k) << " dpi" << endl;
         }
         cout << "---" << endl;*/
-cur_dev = get_device_props(DEVICE_SCREEN);
-    cur_dev.pg.width=stdPrinter->pageRect().width();
-    cur_dev.pg.height=stdPrinter->pageRect().height();
-    cur_dev.pg.dpi=stdPrinter->resolution();
-set_device_props(DEVICE_SCREEN,cur_dev);
+    curdev = get_device_props(DEVICE_SCREEN);
+    curdev.pg.width=stdPrinter->pageRect().width();
+    curdev.pg.height=stdPrinter->pageRect().height();
+    curdev.pg.dpi=stdPrinter->resolution();
+set_device_props(DEVICE_SCREEN,curdev);
 /// cout << "dpi=" << cur_dev.pg.dpi << endl;
 /// cout << "Page=" << cur_dev.pg.width << " x " << cur_dev.pg.height << endl;
 
@@ -8457,6 +8552,7 @@ set_device_props(DEVICE_SCREEN,cur_dev);
             stdPrinter->setOrientation(QPrinter::Portrait);
         }*/
 ofi << "valid PrintDialog - start printing" << endl;
+cout << "valid PrintDialog - start printing" << endl;
     FormProgress->increase();
         print_target=PRINT_TARGET_PRINTER;
         useQPrinter=true;
@@ -8467,14 +8563,16 @@ ofi << "valid PrintDialog - start printing" << endl;
         GeneralPainter->end();
 set_device_props(DEVICE_SCREEN,tmp_dev);
 ofi << "valid PrintDialog - stop printing" << endl;
+cout << "valid PrintDialog - stop printing" << endl;
         print_target=PRINT_TARGET_SCREEN;
         useQPrinter=false;
         xdrawgraph();
     FormProgress->increase();
-        stdPrinter=NULL;
         GeneralPainter->end();
+        stdPrinter=NULL;
         stop_repaint=sav_stop_setting;
 ofi << "valid PrintDialog - repaint screen" << endl;
+cout << "valid PrintDialog - repaint screen" << endl;
     }
     else//Invalid Printer!?
     {
@@ -8529,18 +8627,31 @@ ofi << "Invalid PrintDialog" << endl;
         delete[] sav_print_file;
     FormProgress->increase();
     }
-}
-else
-{
-    ret=false;
-}
-
-ofi.close();
-
+    /*this->disconnect(SLOT(printerAccepted()));
+    this->disconnect(SLOT(printerRejected()));*/
+cout << "ende Accepted A" << endl;
+    ofi.close();
     FormProgress->hide();
-delete printDialog;
-useQPrinter=false;
-return ret;
+cout << "ende Accepted B" << endl;
+    printDialog->hide();
+cout << "ende Accepted C" << endl;
+    delete printDialog;
+cout << "ende Accepted D" << endl;
+    useQPrinter=false;
+}
+
+void frmDeviceSetup::printerRejected(void)
+{
+//ret=false;
+cout << "ende Rejected A" << endl;
+    /*this->disconnect(SLOT(printerAccepted()));
+    this->disconnect(SLOT(printerRejected()));*/
+    ofi.close();
+    FormProgress->hide();
+    printDialog->hide();
+    delete printDialog;
+    useQPrinter=false;
+cout << "ende Rejected B" << endl;
 }
 
 void frmDeviceSetup::dpiInputChanged(QString text)
@@ -10209,6 +10320,9 @@ cmdGraceDefaults=new QPushButton(tr("Grace-defaults"),this);
 connect(cmdGraceDefaults,SIGNAL(clicked()),SLOT(doGraceDefaults()));
 cmdQtGraceDefaults=new QPushButton(tr("QtGrace-defaults"),this);
 connect(cmdQtGraceDefaults,SIGNAL(clicked()),SLOT(doQtGraceDefaults()));
+cmdActDevs=new QPushButton(tr("Enable/Disable export formats"),this);
+connect(cmdActDevs,SIGNAL(clicked()),SLOT(doActDevs()));
+diaDevAct=NULL;
 
 index=0;
 layout2->addWidget(lblToolBar,index++,0);
@@ -10227,6 +10341,7 @@ layout2->addWidget(selFileDisplay1,index++,1);
 layout2->addWidget(selFileDisplay2,index++,1);
 layout2->addWidget(cmdGraceDefaults,index++,1);
 layout2->addWidget(cmdQtGraceDefaults,index++,1);
+layout2->addWidget(cmdActDevs,index++,1);
 grp_tool_bar->setLayout(layout2);
 
 grp_Startup=new QGroupBox(tr("Gui-Startup-Settings"),this);
@@ -10512,6 +10627,17 @@ chkShowDisplay->setChecked(false);
 selFileDisplay1->setCurrentIndex(2);
 selFileDisplay2->setCurrentIndex(2);
     doApply();
+}
+
+void frmQtGracePrefs2::doActDevs(void)
+{
+    if (diaDevAct==NULL)
+    {
+    diaDevAct=new frmDeviceActivator(this);
+    }
+diaDevAct->init();
+diaDevAct->show();
+diaDevAct->activateWindow();
 }
 
 void frmQtGracePrefs2::doApply(void)
@@ -22780,28 +22906,116 @@ AxisTabSpecial::AxisTabSpecial(QWidget * parent):QWidget(parent)
     QString * entr=new QString[12];
     number=3;
     entr[0]=tr("None");
-    entr[1]=tr("Tick marks");
+    entr[1]=tr("Tick marks only");
     entr[2]=tr("Tick marks and labels");
-    selSpecTicks=new StdSelector(this,tr("Special ticks:"),number,entr);
+    selSpecTicks=new StdSelector(this,tr("Custom ticks:"),number,entr);
     selSpecTicks->entryValues[0]=TICKS_SPEC_NONE;
     selSpecTicks->entryValues[1]=TICKS_SPEC_MARKS;
     selSpecTicks->entryValues[2]=TICKS_SPEC_BOTH;
     selNumber=new stdIntSelector(this,tr("Number of user ticks to use:"),0,MAX_TICKS - 1);
-    lblTickLocLabel=new QLabel(tr("Tick location - Label:"),this);
+    //lblTickLocLabel=new QLabel(tr("Nr. - Tick location - Label:"),this);
+
+    connect(selSpecTicks,SIGNAL(currentIndexChanged(int)),SLOT(updateSpreadSheet(int)));
+    connect(selNumber,SIGNAL(currentValueChanged(int)),SLOT(updateSpreadSheet(int)));
 
     scroll=new QScrollArea(this);
-    spreadSpecLabels=new spreadSheet(scroll,2,256,3);
+    empty=new QWidget(this);
+    layout0=new QGridLayout;
+    layout0->setMargin(STD_MARGIN);
+    layout0->setSpacing(STD_SPACING);
+    int index=0;
+    lblTitles[0]=new QLabel(tr("Nr.  "),this);
+    lblTitles[1]=new QLabel(tr("Tick Location"),this);
+    lblTitles[2]=new QLabel(tr("Tick Label"),this);
+        for (int i=0;i<3;i++) layout0->addWidget(lblTitles[i],index,i);
+        index++;
+    for (int i=0;i<MAX_TICKS;i++)
+    {
+    original[i]=true;
+    orig_text[i]=text[i]=NULL;
+    lblNr[i]=new QLabel(QString::number(i),this);
+    ledLocation[i]=new QLineEdit(QString(""),this);
+    ledLabel[i]=new QLineEdit(QString(""),this);
+    layout0->addWidget(lblNr[i],index,0);
+    layout0->addWidget(ledLocation[i],index,1);
+    layout0->setRowStretch(index,0);
+    layout0->addWidget(ledLabel[i],index++,2);
+    }
+    empty->setLayout(layout0);
+    scroll->setWidget(empty);
+
+    /*spreadSpecLabels=new spreadSheet(scroll,2,256,3);
     spreadSpecLabels->setMinimumWidth(400);
-    scroll->setWidget(spreadSpecLabels);
+    scroll->setWidget(spreadSpecLabels);*/
 
     layout=new QVBoxLayout;
     layout->setMargin(STD_MARGIN);
     layout->addWidget(selSpecTicks);
     layout->addWidget(selNumber);
-    layout->addWidget(lblTickLocLabel);
+    //layout->addWidget(lblTickLocLabel);
     layout->addWidget(scroll);
     setLayout(layout);
     delete[] entr;
+}
+
+void AxisTabSpecial::updateSpreadSheet(int i)
+{
+int custom_type=selSpecTicks->currentIndex();//0=none,1=TickMarks only,2=TickMarks and Labels
+int custom_nr=selNumber->value();
+
+headerHeight=lblTitles[0]->height();
+stdHeight=lblNr[0]->height();
+if (headerHeight<16) headerHeight=16;
+if (stdHeight<22) stdHeight=22;
+
+int w,h;
+w=lblTitles[0]->width()+lblTitles[1]->width()+lblTitles[2]->width();
+if (w<316) w=316;
+w+=2*(STD_MARGIN+STD_SPACING);
+h=2*STD_MARGIN+(STD_SPACING+stdHeight)*custom_nr+headerHeight;
+empty->resize(w,h);
+
+if (custom_type==0)//none
+{
+    for (int i=0;i<MAX_TICKS;i++)
+    {
+    lblNr[i]->setEnabled(false);
+    ledLocation[i]->setEnabled(false);
+    ledLabel[i]->setEnabled(false);
+    }
+}
+else if (custom_type==1)//TickMarks only
+{
+    for (int i=0;i<MAX_TICKS;i++)
+    {
+    lblNr[i]->setEnabled(true);
+    ledLocation[i]->setEnabled(true);
+    ledLabel[i]->setEnabled(false);
+    }
+}
+else//TickMarks and Labels
+{
+    for (int i=0;i<MAX_TICKS;i++)
+    {
+    lblNr[i]->setEnabled(true);
+    ledLocation[i]->setEnabled(true);
+    ledLabel[i]->setEnabled(true);
+    }
+}
+
+for (int i=0;i<custom_nr;i++)
+{
+    lblNr[i]->setVisible(true);
+    ledLocation[i]->setVisible(true);
+    ledLabel[i]->setVisible(true);
+}
+for (int i=custom_nr;i<MAX_TICKS;i++)
+{
+    lblNr[i]->setVisible(false);
+    ledLocation[i]->setVisible(false);
+    ledLabel[i]->setVisible(false);
+}
+
 }
 
 frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent)
@@ -22842,7 +23056,7 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent)
     tabs->addTab(tabLabelsBars, tr("Axis label && bar"));
     tabs->addTab(tabTickLabels, tr("Tick labels"));
     tabs->addTab(tabTickMarks, tr("Tick marks"));
-    tabs->addTab(tabSpecial, tr("Special"));
+    tabs->addTab(tabSpecial, tr("Custom ticks"));
     number=4;
     entr[0]=tr("Linear");
     entr[1]=tr("Logarithmic");
@@ -22860,6 +23074,14 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent)
     entr[2]=tr("Current axis, all graphs");
     entr[3]=tr("All axes, all graphs");
     selApplyTo=new StdSelector(this,tr("Apply to:"),number,entr);
+    selApplyTo->lblText->setVisible(true);
+    cmdApplyTo=new QPushButton(tr("Apply to:"),selApplyTo);
+    selApplyTo->layout->removeWidget(selApplyTo->lblText);
+    selApplyTo->layout->removeWidget(selApplyTo->cmbSelect);
+    selApplyTo->layout->addWidget(cmdApplyTo);
+    selApplyTo->layout->addWidget(selApplyTo->cmbSelect);
+    connect(cmdApplyTo,SIGNAL(clicked()),SLOT(doApplyTo()));
+
     buttonGroup=new stdButtonGroup(this);
     connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
     connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
@@ -22945,7 +23167,7 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent)
 
     connect(tabSpecial->selSpecTicks,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(tabSpecial->selNumber,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
-    connect(tabSpecial->spreadSpecLabels,SIGNAL(changed()),SLOT(update0()));
+//connect(tabSpecial->spreadSpecLabels,SIGNAL(changed()),SLOT(update0()));
     //end immediateUpdate
     delete[] entr;
 }
@@ -22967,6 +23189,13 @@ void frmAxis_Prop::doAccept(void)
 
 void frmAxis_Prop::doApply(void)
 {
+    apply_to_selection = 0;//only apply to the current Axis!
+    axes_aac_cb();
+}
+
+void frmAxis_Prop::doApplyTo(void)
+{
+    apply_to_selection = selApplyTo->currentValue();
     axes_aac_cb();
 }
 
@@ -22981,16 +23210,19 @@ void frmAxis_Prop::doClose(void)
 int frmAxis_Prop::axes_aac_cb(void)
 {
     ApplyError=false;
-    QString text;
+    //QString text;
     char dummy[MAX_STRING_LENGTH],dummy2[MAX_STRING_LENGTH],descr_axis[32];
     int i, j;
-    int applyto;
+    int applyto,tmp_active;
     int axis_start, axis_stop, graph_start, graph_stop;
     int scale, invert;
     tickmarks *t,*t2;
     double axestart, axestop;
     world w,w2;
-    applyto = selApplyTo->currentValue();
+
+    //applyto = selApplyTo->currentValue();
+    applyto = apply_to_selection;
+
     t = new_graph_tickmarks();
     if (!t)
     {
@@ -23126,12 +23358,15 @@ int frmAxis_Prop::axes_aac_cb(void)
         /* ensure that enough tick positions have been specified */
         for (i = 0; i < t->nticks; i++)
         {
-            if (xv_evalexpr(tabSpecial->spreadSpecLabels->axislines[i]->ledLocation, &t->tloc[i].wtpos) == RETURN_SUCCESS)
+            //if (xv_evalexpr(tabSpecial->spreadSpecLabels->axislines[i]->ledLocation, &t->tloc[i].wtpos) == RETURN_SUCCESS)
+            if (xv_evalexpr(tabSpecial->ledLocation[i], &t->tloc[i].wtpos) == RETURN_SUCCESS)
             {
-                strcpy(dummy,tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->text().toLatin1().constData());//copy text directly
+                //strcpy(dummy,tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->text().toLatin1().constData());//copy text directly
+                //strcpy(dummy,tabSpecial->ledLabel[i]->text().toLatin1().constData());//copy text directly
                 /// Warning --> use encoding here! (instead of latin1)
                 //strcpy(dummy,tabSpecial->spreadSpecLabels->axislines[i]->LabelText().toLocal8Bit());
-                if (dummy[0] == '\0')
+                //if (dummy[0] == '\0')
+                if (tabSpecial->ledLabel[i]->text().isEmpty()==true)
                 {
                     t->tloc[i].type = TICK_TYPE_MINOR;
                 }
@@ -23141,7 +23376,8 @@ int frmAxis_Prop::axes_aac_cb(void)
                 }
                 if (t->t_spec == TICKS_SPEC_BOTH)
                 {
-                    tabSpecial->spreadSpecLabels->axislines[i]->SetMemoryToText(t->tloc[i].label,t->tloc[i].orig_label);
+                    DynSetMemoryToLineEdit(t->tloc[i].label,t->tloc[i].orig_label,tabSpecial->text[i],tabSpecial->orig_text[i],tabSpecial->original[i],true,tabSpecial->ledLabel[i]);
+                    //tabSpecial->spreadSpecLabels->axislines[i]->SetMemoryToText(t->tloc[i].label,t->tloc[i].orig_label);
                     /*
                     t->tloc[i].orig_label = copy_string(t->tloc[i].label, dummy);
                     t->tloc[i].label = copy_string(t->tloc[i].label, dummy);
@@ -23422,7 +23658,7 @@ int frmAxis_Prop::axes_aac_cb(void)
                 sprintf(dummy,"    %s  tick place %s",descr_axis,dummy2);
                 ListOfOldStates << QString(dummy);
             }
-            if (t->active!=t2->active)
+            if (t->active!=t2->active && applyto==0)//active will only be changed if we apply to current axis
             {
                 sprintf(dummy,"    %s %s",descr_axis,t->active?"on":"off");
                 ListOfChanges << QString(dummy);
@@ -23809,7 +24045,18 @@ int frmAxis_Prop::axes_aac_cb(void)
                 ListOfOldStates << QString(dummy);
 
             }
+
+            if (applyto>0 && !(i==get_cg() && j==curaxis))//apply to more than one axis and we are not on the current axis
+            {
+            tmp_active=t->active;
+            t->active=t2->active;
+            }
             set_graph_tickmarks(i, j, t);//actually do something!!!
+            if (applyto>0 && !(i==get_cg() && j==curaxis))//apply to more than one axis and we are not on the current axis
+            {
+            t->active=tmp_active;
+            }
+
             //the following commands are neccessary for LaTeX-support (because dynamic strings are coppied dynamically)
             if (i==get_cg() && j==curaxis)
             {
@@ -23819,7 +24066,10 @@ int frmAxis_Prop::axes_aac_cb(void)
                 if (g[i].t[j]->t_spec == TICKS_SPEC_BOTH)
                 {
                     for (int k=0;k<g[i].t[j]->nticks;k++)
-                        tabSpecial->spreadSpecLabels->axislines[k]->SetTextToMemory(g[i].t[j]->tloc[k].label,g[i].t[j]->tloc[k].orig_label);
+                    {
+                    SetLineEditToMemory(g[i].t[j]->tloc[k].label,g[i].t[j]->tloc[k].orig_label,tabSpecial->text[k],tabSpecial->orig_text[k],tabSpecial->original[k],tabSpecial->ledLabel[k]);
+                    //tabSpecial->spreadSpecLabels->axislines[k]->SetTextToMemory(g[i].t[j]->tloc[k].label,g[i].t[j]->tloc[k].orig_label);
+                    }
                 }
             }
 
@@ -24160,26 +24410,31 @@ char * ni=NULL;
     {
         sprintf(buf, "%.9g", t->tloc[i].wtpos);
         SetDecimalSeparatorToUserValue(buf);
-        tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(QString(buf));
+        //tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(QString(buf));
+        tabSpecial->ledLocation[i]->setText(QString(buf));
         //xv_setstr(specloc[i], buf);
         if (t->tloc[i].type == TICK_TYPE_MAJOR)
         {
-            tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(g[gno].t[curaxis]->tloc[i].label,g[gno].t[curaxis]->tloc[i].orig_label);
+        SetLineEditToMemory(g[gno].t[curaxis]->tloc[i].label,g[gno].t[curaxis]->tloc[i].orig_label,tabSpecial->text[i],tabSpecial->orig_text[i],tabSpecial->original[i],tabSpecial->ledLabel[i]);
+        //tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(g[gno].t[curaxis]->tloc[i].label,g[gno].t[curaxis]->tloc[i].orig_label);
             //tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->setText(QString(t->tloc[i].label));
             //xv_setstr(speclabel[i], t->tloc[i].label);
         }
         else
         {
-            tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(ni,ni);
+        SetLineEditToMemory(ni,ni,tabSpecial->text[i],tabSpecial->orig_text[i],tabSpecial->original[i],tabSpecial->ledLabel[i]);
+        //tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(ni,ni);
             //tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->setText(QString(""));
             //xv_setstr(speclabel[i], "");
         }
     }
+    strcpy(buf,"");
     for (i = t->nticks; i < MAX_TICKS; i++)
     {
-        tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(ni,ni);//only affects the label
-        strcpy(buf,"");
-        tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(QString(buf));
+    SetLineEditToMemory(ni,ni,tabSpecial->text[i],tabSpecial->orig_text[i],tabSpecial->original[i],tabSpecial->ledLabel[i]);
+    //tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(ni,ni);//only affects the label
+        tabSpecial->ledLocation[i]->setText(QString(buf));
+        //tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(QString(buf));
         //tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->setText(QString(buf));
     }
     immediateUpdate=old_upd;
@@ -24243,13 +24498,16 @@ void frmAxis_Prop::redisplayContents(void)
     tabTickLabels->ledStop->setText(te);/// Formula-transformation???
     tabTickMarks->selMajTickWidth->setValue(tabTickMarks->selMajTickWidth->value());
     tabTickMarks->selMinTickWidth->setValue(tabTickMarks->selMinTickWidth->value());
-    for (int i = 0; i < tabSpecial->spreadSpecLabels->rows; i++)
+    //for (int i = 0; i < tabSpecial->spreadSpecLabels->rows; i++)
+    for (int i = 0; i < MAX_TICKS; i++)
     {
-        te=tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->text();
+        //te=tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->text();
+        te=tabSpecial->ledLocation[i]->text();
         if (!te.isEmpty())
         {
             te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
-            tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(te);
+            tabSpecial->ledLocation[i]->setText(te);
+            //tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(te);
         }
     }
 }

@@ -1,6 +1,6 @@
 # Grace project file
 #
-@version 50101
+@version 50122
 @page size 792, 612
 @page scroll 5%
 @page inout 5%
@@ -52,18 +52,18 @@
 @timestamp rot 0
 @timestamp font 0
 @timestamp char size 1.000000
-@timestamp def "Sun Sep 10 02:25:42 2000"
+@timestamp def "Wed Aug 14 22:58:01 2013"
 @with line
 @    line on
 @    line loctype view
-@    line 0.01, 0.54, 0.25, 0.75
+@    line 0.01, 0.425, 0.25, 0.75
 @    line linewidth 1.0
 @    line linestyle 1
 @    line color 1
 @    line arrow 1
 @    line arrow type 1
 @    line arrow length 2.000000
-@    line arrow layout 0.800000, 0.400000
+@    line arrow layout 0.700000, 0.300000
 @line def
 @with string
 @    string on
@@ -201,19 +201,13 @@
 @g0 fixedpoint format general general
 @g0 fixedpoint prec 6, 6
 @with g0
-@    world xmin 1970
-@    world xmax 1990
-@    world ymin 320
-@    world ymax 350
+@    world 1970, 320, 1990, 350
 @    stack world 1970, 1990, 320, 350
 @    stack world 1972, 1980, 325, 340
 @    stack world 1973, 1977, 326, 336
 @    stack world 1974, 1975.5, 326, 334
 @    znorm 1
-@    view xmin 0.227039
-@    view xmax 1.063836
-@    view ymin 0.155089
-@    view ymax 0.576737
+@    view 0.227039, 0.155089, 1.063836, 0.576737
 @    title ""
 @    title font 4
 @    title size 1.500000
@@ -235,7 +229,8 @@
 @    xaxis  bar linewidth 1.0
 @    xaxis  label ""
 @    xaxis  label layout para
-@    xaxis  label place auto
+@    xaxis  label place spec
+@    xaxis  label place 0.000000, 0.080000
 @    xaxis  label char size 1.000000
 @    xaxis  label font 4
 @    xaxis  label color 1
@@ -286,7 +281,8 @@
 @    yaxis  bar linewidth 1.0
 @    yaxis  label ""
 @    yaxis  label layout para
-@    yaxis  label place auto
+@    yaxis  label place spec
+@    yaxis  label place 0.000000, 0.080000
 @    yaxis  label char size 1.000000
 @    yaxis  label font 4
 @    yaxis  label color 1
@@ -549,6 +545,26 @@
 @    s3 errorbar riser clip length 0.100000
 @    s3 comment "tstack.dat"
 @    s3 legend  ""
+#QTGRACE_ADDITIONAL_PARAMETER: G 0 S 0 POLYGONEBASESET -1
+#QTGRACE_ADDITIONAL_PARAMETER: G 0 S 1 POLYGONEBASESET -1
+#QTGRACE_ADDITIONAL_PARAMETER: G 0 S 2 POLYGONEBASESET -1
+#QTGRACE_ADDITIONAL_PARAMETER: G 0 S 3 POLYGONEBASESET -1
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT_RESET 1
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Times,10,-1,5,50,0,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Times,10,-1,5,50,1,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Times,10,-1,5,75,0,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Times,10,-1,5,75,1,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Helvetica,10,-1,5,50,0,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Helvetica,10,-1,5,50,1,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Helvetica,10,-1,5,75,0,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Helvetica,10,-1,5,75,1,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Courier,10,-1,5,50,0,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Courier,10,-1,5,50,1,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Courier,10,-1,5,75,0,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Courier,10,-1,5,75,1,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Symbol,10,-1,5,50,0,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: QTFONT "Zapf Dingbats,10,-1,5,50,0,0,0,0,0"
+#QTGRACE_ADDITIONAL_PARAMETER: ENCODING "UTF-8"
 @target G0.S0
 @type xy
             1972              325

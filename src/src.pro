@@ -1,7 +1,6 @@
 # Target ../bin/qtgrace
 # For Windows Systems
 !unix:DEFINES += WINDOWS_SYSTEM
-
 # For Mac OS X Systems
 macx:DEFINES += MAC_SYSTEM
 
@@ -26,10 +25,10 @@ ICON = GraceIcon.icns
 # Activate the following options if you have the static libraries for fftw3 and libHaru (otherwise dynamic libraries are to be used)
 DEFINES += USE_STATIC_EXT_LIB_FFTW3
 unix:LIBS += -lfftw3
-#win32:LIBS += "C:\path\to\libfftw3.a"
+#win32:LIBS += F:\IntegrationRepPC\util\qtgrace\srcnew1\libfftw3.lib
 DEFINES += USE_STATIC_EXT_LIB_HARU
 unix:LIBS += -lhpdf
-#win32:LIBS += "C:\path\to\libhpdfs.a"
+#win32:LIBS +=  f:\IntegrationRepPC\util\qtgrace\libharu-install\lib\libhpdfsd.lib
 
 win32 {
 !contains(QMAKE_CC, gcc) {

@@ -60,7 +60,8 @@ static Device_entry dev_pdf = {
     TRUE,
     TRUE,
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72},
-    NULL
+    NULL,
+    1
 };
 
 int register_pdf_drv(void)
@@ -824,7 +825,8 @@ static Device_entry dev_haru_pdf = {DEVICE_FILE,
                                TRUE,
                                FALSE,
                                {792, 612, 72.0},
-                               NULL
+                               NULL,
+                               1
                               };
 //std-size changed from{3300, 2550, 300.0},
 

@@ -50,9 +50,7 @@
 #include "psdrv.h"
 #include "noxprotos.h"
 #include "globals.h"
-
 #include "cmath.h"
-// VC2008 needs it rint().
 
 /*#ifdef _MSC_VER
 #include "rint.h"
@@ -114,7 +112,8 @@ static Device_entry dev_ps = {DEVICE_PRINT,
           TRUE,
           FALSE,
           {3300, 2550, 300.0},
-          NULL
+          NULL,
+          1
          };
 
 static Device_entry dev_eps = {DEVICE_FILE,
@@ -126,7 +125,8 @@ static Device_entry dev_eps = {DEVICE_FILE,
           TRUE,
           FALSE,
           {2500, 2500, 300.0},
-          NULL
+          NULL,
+          1
          };
 
 VPoint CenterOfMass(int n,VPoint *p)
