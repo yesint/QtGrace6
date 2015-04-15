@@ -153,7 +153,7 @@ install: $(BIN)
 		cp -v ../bin/.QtGrace_Settings.ini $(HOME);\
 	fi
 	if [ $(ABI) == "WINDOWS64" ] ; then \
-		cp -v ../bin/QtGrace_Settings.ini $(INSTDIR)/bin;\
+		cp -v ../bin/QtGrace_Settings.ini "$(USERPROFILE)";\
 	fi
 
 	mv $(BIN) $(INSTDIR)/bin/qtgrace$(FEXT)
