@@ -485,8 +485,10 @@ void LocalSocketIpcServer::executeTaskFromClient()
             debugOut_m->flush();
         }
         update_all();
+        startupphase=1;
         xdrawgraph();
         doPlotFit();
+        startupphase=0;
 
         isWriteToTmpFile_m=true;
         countNoOfRead_m = 0;
