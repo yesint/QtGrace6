@@ -8297,6 +8297,7 @@ void frmDeviceSetup::doBrowse(void)
     Device_entry dev = get_device_props(seldevice);
     QString FileExtension(dev.fext);
     QString absPath=qf.absoluteDir().absolutePath();
+    cur_FileName=qf.completeBaseName()+QString(".")+FileExtension;
     FileExtension=QString("*.")+FileExtension;
     FormSelectOutputFile->selector->setFilterFromExtern(absPath,FileExtension);
 
@@ -8312,6 +8313,11 @@ void frmDeviceSetup::IOrequested(int type,QString file,bool exists,bool writeabl
 {
     QString nfile=file;
     nfile.replace(QString("/\\"),QDir::separator());
+    QFileInfo qf(nfile);
+    if (qf.completeBaseName().isEmpty())
+    {
+    nfile+=cur_FileName;
+    }
     printfile_item->setText(nfile);
     FormSelectOutputFile->hide();
 }
@@ -9762,24 +9768,25 @@ frmExtraPreferences::frmExtraPreferences(QWidget * parent):QWidget(parent)
 {
     //setWindowTitle(tr("QtGrace: Extra Preferences"));
 
-    actClose=new QAction(tr("&Close"),this);
+    /*actClose=new QAction(tr("&Close"),this);
     actClose->setShortcut(tr("Esc"));
     connect(actClose,SIGNAL(triggered()), this, SLOT(doClose()));
     actLoad=new QAction(tr("&Load"),this);
     connect(actLoad,SIGNAL(triggered()), this, SLOT(doLoad()));
     actSave=new QAction(tr("&Save"),this);
-    connect(actSave,SIGNAL(triggered()), this, SLOT(doSave()));
+    connect(actSave,SIGNAL(triggered()), this, SLOT(doSave()));*/
 
-    grp_Gui=new QGroupBox(tr("Gui-Settings"),this);
-    grp_Behavior=new QGroupBox(tr("Behavior"),this);
+    /*grp_Gui=new QGroupBox(tr("Gui-Settings"),this);
+    grp_Behavior=new QGroupBox(tr("Behavior"),this);*/
 
     int row_index=0;
-    layout0=new QGridLayout();
+    /*layout0=new QGridLayout();
     layout0->setSpacing(STD_SPACING);
     layout0->setMargin(STD_MARGIN);
+
     layout1=new QVBoxLayout();
     layout1->setSpacing(STD_SPACING);
-    layout1->setMargin(STD_MARGIN);
+    layout1->setMargin(STD_MARGIN);*/
 
 /*menuBar=new QMenuBar();
 mnuFile=new QMenu("&File",this);
@@ -9790,159 +9797,34 @@ mnuFile->addSeparator();
 mnuFile->addAction(actClose);
 menuBar->addMenu(mnuFile);*/
 
-    layout=new QVBoxLayout;
+    /*layout=new QVBoxLayout;
     layout->setMargin(STD_MARGIN);
-    layout->setSpacing(STD_SPACING);
+    layout->setSpacing(STD_SPACING);*/
     //layout->addWidget(menuBar);
     //lenHome=new stdLineEdit(this,tr("Grace Home directory:"));
     //layout1->addWidget(lenHome);
-    chkExternalHelpViewer=new QCheckBox(tr("Show help-files in external html-viewer"),this);
 
-    connect(chkExternalHelpViewer,SIGNAL(stateChanged(int)),SLOT(toggleHTMLviewer(int)));
-    lenHelpViewer=new stdLineEdit(this,tr("Help viewer:"));
-    lenHelpViewer->setEnabled(false);
-int nr=2;
-    QString entr[32];
-    layout1->addWidget(chkExternalHelpViewer);
-    layout1->addWidget(lenHelpViewer);
 
-    QString * entr3=new QString[avcod.length()];
-    for (int i=0;i<avcod.length();i++)
-    {
-        entr3[i]=QString(avcod.at(i));
-    }
-    selCodec=new StdSelector(this,tr("File encoding:"),avcod.length(),entr3);
-    layout0->addWidget(selCodec,row_index++,0,1,2);
-    delete[] entr3;
+//layout->addWidget(grp_Behavior);
+//layout->addWidget(grp_Gui);
 
-    chkShowHideException=new QCheckBox(tr("Show/Hide workaround"),this);
-    layout1->addWidget(chkShowHideException);
-    chkActivateLaTeXSupport=new QCheckBox(tr("Support simple LaTeX-commands"),this);
-    layout0->addWidget(chkActivateLaTeXSupport,row_index,1,1,1);
-    chkImmediateUpdate=new QCheckBox(tr("Immediate updates"),this);
-    layout1->addWidget(chkImmediateUpdate);
-    chkNewIcons=new QCheckBox(tr("Use new icons"),this);
-    layout1->addWidget(chkNewIcons);
-    //chkNewPrintDialog=new QCheckBox(tr("Use new printing procedure"),this);
-    //layout1->addWidget(chkNewPrintDialog);
-    chkQtFonts=new QCheckBox(tr("Use Qt Fonts"),this);
-    connect(chkQtFonts,SIGNAL(toggled(bool)),SLOT(toggleQtFonts(bool)));
-    layout0->addWidget(chkQtFonts,row_index++,0,1,1);
-    chkSymbolSpecial=new QCheckBox(tr("'Symbol'-font is special"),this);
-    layout0->addWidget(chkSymbolSpecial,row_index++,0,1,1);
-    nr=2;
-    entr[0]=QString(".");
-    entr[1]=QString(",");
-    selDecSep=new StdSelector(this,tr("Decimal separator:"),nr,entr);
-    layout0->addWidget(selDecSep,row_index++,0,1,2);
-    histSize=new stdIntSelector(this,tr("Maximum history size:"),0,MAX_HISTORY);
-    histSize->setValue(max_history);
-    layout1->addWidget(histSize);
-
-    chkUsePrintCommand=new QCheckBox(tr("Use Print command (if this is deselected the native printer dialog is used)"),this);
-    layout0->addWidget(chkUsePrintCommand,row_index++,0,1,2);
-    lenPrintCommand=new stdLineEdit(this,tr("Print command:"));
-    lenPrintCommand->setText("lpr");
-    layout0->addWidget(lenPrintCommand,row_index++,0,1,2);
-    chkHDPrinterOutput=new QCheckBox(tr("Use HD-output on physical printers"),this);
-    layout0->addWidget(chkHDPrinterOutput,row_index++,0,1,2);
-
-    chkAutoSetAgr=new QCheckBox(tr("Auto set .agr-file-extension"),this);
-    layout0->addWidget(chkAutoSetAgr,row_index,0,1,1);
-    chkAutoSetExport=new QCheckBox(tr("Auto set export-file-extension"),this);
-    layout0->addWidget(chkAutoSetExport,row_index++,1,1,1);
-
-    chkAutoSetCWD=new QCheckBox(tr("Auto set current working directory (CWD)"),this);
-    layout0->addWidget(chkAutoSetCWD,row_index,0,1,1);
-    chkWarnOnEncodingChange=new QCheckBox(tr("Display warning on encoding change"),this);
-    layout0->addWidget(chkWarnOnEncodingChange,row_index++,1,1,1);
-
-    //defaultFont=new FontSelector(this);
-    //defaultFont->lblText->setText(tr("Default font:"));
-    //layout0->addWidget(defaultFont);
-
-    selFontSize=new LineWidthSelector(this);
-    selFontSize->lblText->setText(tr("Global font size multiplicator:"));
-    selFontSize->spnLineWidth->setRange(0.0,1000.0);
-    selFontSize->spnLineWidth->setDecimals(2);
-    selFontSize->spnLineWidth->setValue(100.0);
-    selFontSize->spnLineWidth->setSingleStep(1.0);
-    selFontSize->spnLineWidth->setSuffix(tr(" %"));
-    layout1->addWidget(selFontSize);
-
-    cmdSelGuiFont=new QPushButton(tr("Select Gui Font"),this);
-    cmdResetGuiFont=new QPushButton(tr("Reset Gui Font"),this);
-    lblGuiFont=new QLabel(tr("Current Font"),this);
-
-    cmdSelGUIBGColor=new QPushButton(tr("Select Color"),this);
-    cmdSetGUIBGColor_to_PageBG=new QPushButton(tr("Set to Page-Background"),this);
-    cmdSetGUIBGColor_to_Std=new QPushButton(tr("Set to Gui-Background"),this);
-
-    QWidget * empty2=new QWidget(this);
-    QGridLayout * layout4=new QGridLayout();
-    layout4->setMargin(0);
-    layout4->setSpacing(STD_SPACING);
-    layout4->addWidget(lblGuiFont,0,0);
-    layout4->addWidget(cmdSelGuiFont,0,1);
-    layout4->addWidget(cmdResetGuiFont,0,2);
-    lblBackground_Color_Text=new QLabel(tr("Background color of Draw-Area:"),this);
-    layout4->addWidget(lblBackground_Color_Text,1,0,1,3);
-    layout4->addWidget(cmdSelGUIBGColor,2,0);
-    layout4->addWidget(cmdSetGUIBGColor_to_PageBG,2,1);
-    layout4->addWidget(cmdSetGUIBGColor_to_Std,2,2);
-    empty2->setLayout(layout4);
-    layout1->addWidget(empty2);
-
-    connect(cmdSelGuiFont,SIGNAL(clicked()),SLOT(changeGUIFont()));
-    connect(cmdResetGuiFont,SIGNAL(clicked()),SLOT(resetGUIFont()));
-
-    connect(cmdSelGUIBGColor,SIGNAL(clicked()),SLOT(select_BG_Color()));
-    connect(cmdSetGUIBGColor_to_Std,SIGNAL(clicked()),SLOT(set_BG_Color_to_Std()));
-    connect(cmdSetGUIBGColor_to_PageBG,SIGNAL(clicked()),SLOT(set_BG_Color_to_Page_BG()));
-
-    layout->addWidget(grp_Behavior);
-    layout->addWidget(grp_Gui);
-
-    buttonGroup=new stdButtonGroup(this,true,true,false);
+    /*buttonGroup=new stdButtonGroup(this,true,true,false);
     connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
     connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
-    connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
+    connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));*/
 
-    layout->addStretch(3);
-    layout->addWidget(buttonGroup);
-    //lenHome->setVisible(false);
-    setLayout(layout);
+//layout->addStretch(3);
+    //layout->addWidget(buttonGroup);
+//lenHome->setVisible(false);
+    //setLayout(layout);
 
-    grp_Behavior->setLayout(layout0);
-    grp_Gui->setLayout(layout1);
-
+    //grp_Behavior->setLayout(layout0);
+    //grp_Gui->setLayout(layout1);
 }
 
 void frmExtraPreferences::init(void)
 {
-    //lenHome->setText(QString(GRACE_HOME));
-    chkExternalHelpViewer->setChecked(display_help_externally);//ok
-    lenHelpViewer->setText(QString(GRACE_HELPVIEWER));
-    chkShowHideException->setChecked(showhideworkaround);//ok
-    histSize->setValue(max_history);//ok
-    chkActivateLaTeXSupport->setChecked(activateLaTeXsupport);
-    chkImmediateUpdate->setChecked(immediateUpdate);
-    selFontSize->setValue(universal_font_size_factor*100.0);
-    chkQtFonts->setChecked(useQtFonts);
-    chkSymbolSpecial->setChecked(symbol_font_is_special);
-        if (useQtFonts==true) chkSymbolSpecial->setEnabled(true);
-        else chkSymbolSpecial->setEnabled(false);
-    selDecSep->setCurrentIndex(DecimalPointToUse=='.'?0:1);
-    chkNewIcons->setChecked(use_new_icons);
-    QString font_descr=qApp->font().toString();
-    lblGuiFont->setText(tr("Gui Font=")+font_descr);
-    chkUsePrintCommand->setChecked(use_print_command);
-    lenPrintCommand->setText(get_print_cmd());
-    chkAutoSetAgr->setChecked(auto_set_agr_extension);
-    chkAutoSetCWD->setChecked(auto_set_cwd);
-    chkAutoSetExport->setChecked(auto_set_export_extensions);
-    chkWarnOnEncodingChange->setChecked(warn_on_encoding_change);
-    chkHDPrinterOutput->setChecked(useHDPrinterOutput);
+
 }
 
 void frmExtraPreferences::doLoad(void)
@@ -9959,62 +9841,13 @@ void frmExtraPreferences::doApply(void)
 {
     ApplyError=false;
     int save_dirty=dirtystate;
-    FileCodec=QTextCodec::codecForName(selCodec->cmbSelect->currentText().toLocal8Bit().constData());
+
+
 
     //cout << selCodec->cmbSelect->currentText().toLocal8Bit().constData() << endl;
     //cout << FileCodec->name().constData() << endl;
 
-    set_print_cmd(lenPrintCommand->text().toLatin1().constData());
-    use_print_command=chkUsePrintCommand->isChecked();
 
-    auto_set_agr_extension=chkAutoSetAgr->isChecked()==true?TRUE:FALSE;
-    auto_set_export_extensions=chkAutoSetExport->isChecked()==true?TRUE:FALSE;
-    auto_set_cwd=chkAutoSetCWD->isChecked()==true?TRUE:FALSE;
-    warn_on_encoding_change=chkWarnOnEncodingChange->isChecked()==true?TRUE:FALSE;
-    useHDPrinterOutput=chkHDPrinterOutput->isChecked()==true?TRUE:FALSE;
-
-    display_help_externally=chkExternalHelpViewer->isChecked();
-    showhideworkaround=chkShowHideException->isChecked();
-    activateLaTeXsupport=chkActivateLaTeXSupport->isChecked();
-    immediateUpdate=chkImmediateUpdate->isChecked();
-    universal_font_size_factor=selFontSize->value()*0.01;
-    bool oldQtFonts=useQtFonts;
-    bool old_symbol_special=symbol_font_is_special;
-    useQtFonts=chkQtFonts->isChecked();
-    symbol_font_is_special=chkSymbolSpecial->isChecked();
-    use_new_icons=chkNewIcons->isChecked();
-    mainWin->redisplayIcons();
-    //use_new_print_dialog=chkNewPrintDialog->isChecked();
-    //DefaultFont=defaultFont->currentIndex();
-    OldDecimalPoint=DecimalPointToUse;
-    DecimalPointToUse=(selDecSep->currentIndex()==0)?'.':',';
-    if (DecimalPointToUse!=OldDecimalPoint)
-    {
-        UpdateAllWindowContents();
-    }
-    max_history=histSize->value();
-    dirtystate=save_dirty;
-    mainWin->recreateHistory();
-    if (oldQtFonts!=useQtFonts || old_symbol_special!=symbol_font_is_special)//we change from old to new qt-fonts
-    {
-        update_font_selectors(true);
-        copy_LaTeX_to_Grace();
-        convert_Grace_Strings();
-    }
-    mainWin->mainArea->completeRedraw();
-}
-
-void frmExtraPreferences::toggleHTMLviewer(int entry)
-{
-    lenHelpViewer->setEnabled((bool)entry);
-}
-
-void frmExtraPreferences::toggleQtFonts(bool check)
-{
-    if (check==true)
-    chkSymbolSpecial->setEnabled(true);
-    else
-    chkSymbolSpecial->setEnabled(false);
 }
 
 void frmExtraPreferences::doAccept(void)
@@ -10035,7 +9868,723 @@ void frmExtraPreferences::toggleNewIcons(bool val)
 //At the moment we only act on Apply!
 }
 
-void frmExtraPreferences::changeGUIFont(void)
+
+frm_Preferences::frm_Preferences(QWidget * parent):QDialog(parent)
+{
+//setFont(*stdFont);
+    setWindowTitle(tr("QtGrace: Preferences"));
+    setWindowIcon(QIcon(*GraceIcon));
+
+    vbox=new QVBoxLayout();
+    vbox->setMargin(STD_MARGIN);
+    vbox->setSpacing(STD_SPACING);
+
+tabs=new QTabWidget(this);
+
+tab_prefs=new frmPreferences();
+tab_prefs->buttonGroup->hide();
+//tab_extra=new frmExtraPreferences();
+//tab_extra->buttonGroup->hide();
+//tab_qtgrace_prefs2=new frmQtGracePrefs2();
+//tab_qtgrace_prefs2->buttonGroup->hide();
+tab_linestyles=new tabLinestyles();
+tab_colors=new frmColorManagement();
+tab_defaults=new frmDefaults();
+
+tab_GUI=new QWidget(this);
+
+guiLayout=new QVBoxLayout(this);
+guiLayout->setMargin(STD_MARGIN);
+guiLayout->setSpacing(STD_SPACING);
+
+grp_tool_bar=new QGroupBox(tr("Customize interface"),this);
+lblToolBar=new QLabel(tr("Tool bar contents:"),this);
+lblStatusBar=new QLabel(tr("Status bar contents:"),this);
+layout2=new QGridLayout();
+layout2->setSpacing(STD_SPACING);
+layout2->setMargin(STD_MARGIN);
+
+chkShowNavi=new QCheckBox(tr("Show navigation buttons"),this);
+chkShowGraph=new QCheckBox(tr("Show graph list"),this);
+chkShowSpecZoom=new QCheckBox(tr("Show special zoom buttons"),this);
+chkShowViewp=new QCheckBox(tr("Show viewport stack"),this);
+chkShowPageZoom=new QCheckBox(tr("Show page zoom"),this);
+chkShowPrintB=new QCheckBox(tr("Show print button"),this);
+chkShowExportP=new QCheckBox(tr("Show export button"),this);
+
+chkShowHostName=new QCheckBox(tr("Show host name"),this);;
+chkShowDisplay=new QCheckBox(tr("Show display name"),this);
+int index=3;
+QString * entries=new QString[index];
+entries[0]=tr("None");
+entries[1]=tr("Complete path");
+entries[2]=tr("Filename only");
+selFileDisplay1=new StdSelector(this,tr("Show project file name:"),index,entries);
+selFileDisplay2=new StdSelector(this,tr("Show export file name:"),index,entries);
+delete[] entries;
+
+cmdGraceDefaults=new QPushButton(tr("Grace-defaults"),this);
+connect(cmdGraceDefaults,SIGNAL(clicked()),SLOT(doGraceDefaults()));
+cmdQtGraceDefaults=new QPushButton(tr("QtGrace-defaults"),this);
+connect(cmdQtGraceDefaults,SIGNAL(clicked()),SLOT(doQtGraceDefaults()));
+cmdActDevs=new QPushButton(tr("Enable/Disable export formats"),this);
+connect(cmdActDevs,SIGNAL(clicked()),SLOT(doActDevs()));
+diaDevAct=NULL;
+
+
+index=0;
+layout2->addWidget(lblToolBar,index++,0);
+chkNewIcons=new QCheckBox(tr("Use new icons"),this);
+layout2->addWidget(chkNewIcons,index++,0);
+layout2->addWidget(chkShowNavi,index++,0);
+layout2->addWidget(chkShowGraph,index++,0);
+layout2->addWidget(chkShowSpecZoom,index++,0);
+layout2->addWidget(chkShowViewp,index++,0);
+layout2->addWidget(chkShowPageZoom,index++,0);
+layout2->addWidget(chkShowExportP,index++,0);
+layout2->addWidget(chkShowPrintB,index++,0);
+index=0;
+layout2->addWidget(lblStatusBar,index++,1);
+layout2->addWidget(chkShowHostName,index++,1);
+layout2->addWidget(chkShowDisplay,index++,1);
+layout2->addWidget(selFileDisplay1,index++,1);
+layout2->addWidget(selFileDisplay2,index++,1);
+
+layout2->addWidget(cmdGraceDefaults,index++,1);
+layout2->addWidget(cmdQtGraceDefaults,index++,1);
+index++;
+index++;
+
+//lblAppearance=new QLabel(tr("Appearance"),this);
+
+cmdSelGuiFont=new QPushButton(tr("Select Gui Font"),this);
+cmdResetGuiFont=new QPushButton(tr("Reset Gui Font"),this);
+lblGuiFont=new QLabel(tr("Current Font"),this);
+
+cmdSelGUIBGColor=new QPushButton(tr("Select Color"),this);
+cmdSetGUIBGColor_to_PageBG=new QPushButton(tr("Set to Page-Background"),this);
+cmdSetGUIBGColor_to_Std=new QPushButton(tr("Set to Gui-Background"),this);
+
+QWidget * empty2=new QWidget(this);
+QGridLayout * layout4=new QGridLayout();
+layout4->setMargin(0);
+layout4->setSpacing(STD_SPACING);
+layout4->addWidget(lblGuiFont,0,0);
+layout4->addWidget(cmdSelGuiFont,0,1);
+layout4->addWidget(cmdResetGuiFont,0,2);
+lblBackground_Color_Text=new QLabel(tr("Background color of Draw-Area:"),this);
+layout4->addWidget(lblBackground_Color_Text,1,0,1,3);
+layout4->addWidget(cmdSelGUIBGColor,2,0);
+layout4->addWidget(cmdSetGUIBGColor_to_PageBG,2,1);
+layout4->addWidget(cmdSetGUIBGColor_to_Std,2,2);
+empty2->setLayout(layout4);
+//layout1->addWidget(empty2);
+
+connect(cmdSelGuiFont,SIGNAL(clicked()),SLOT(changeGUIFont()));
+connect(cmdResetGuiFont,SIGNAL(clicked()),SLOT(resetGUIFont()));
+
+connect(cmdSelGUIBGColor,SIGNAL(clicked()),SLOT(select_BG_Color()));
+connect(cmdSetGUIBGColor_to_Std,SIGNAL(clicked()),SLOT(set_BG_Color_to_Std()));
+connect(cmdSetGUIBGColor_to_PageBG,SIGNAL(clicked()),SLOT(set_BG_Color_to_Page_BG()));
+
+layout2->addWidget(empty2,index++,0,1,2);
+
+grp_tool_bar->setLayout(layout2);
+
+grp_Startup=new QGroupBox(tr("Startup-Settings"),this);
+layout3=new QVBoxLayout();
+layout3->setSpacing(STD_SPACING);
+layout3->setMargin(STD_MARGIN);
+QWidget * empty=new QWidget(this);
+QGridLayout * grid1=new QGridLayout(empty);
+grid1->setSpacing(STD_MARGIN);
+grid1->setMargin(0);
+
+QString * entr=new QString[8];
+int nr=2;
+entr[0]=QString("English");
+entr[1]=QString("German");
+selLanguage=new StdSelector(this,tr("Language:"),nr,entr);
+//layout1->addWidget(selLanguage);
+delete[] entr;
+
+nr=number_of_devices();
+entr=new QString[32+nr];
+int * i_entr=new int[32+nr];
+entr[0]=tr("Last selection");
+i_entr[0]=-1;
+for (int i=0;i<nr;i++)
+{
+    if (i!=DEVICE_SCREEN)
+    {
+    entr[i]=get_device_name(i);
+    i_entr[i]=i;
+    }
+}
+selDefaultPrintDevice=new StdSelector(this,tr("Default printing device:"),nr,entr);
+selDefaultPrintDevice->setValues(i_entr);
+
+lenDefaultFile=new stdLineEdit(this,tr("Default startup file:"));
+lenDefaultFile->setText(QString(default_grace_file));
+cmdBrowseForDefault=new QPushButton(tr("Select default file"),this);
+connect(cmdBrowseForDefault,SIGNAL(clicked()),SLOT(doBrowseStartup()));
+lblStartupWarning=new QLabel(tr("The settings in this group will take effect at the next restart of QtGrace."),this);
+QFont tfont=lblStartupWarning->font();
+tfont.setItalic(true);
+lblStartupWarning->setFont(tfont);
+grid1->addWidget(lblStartupWarning,0,0,1,3);
+grid1->addWidget(selLanguage,1,0,1,3);
+grid1->addWidget(selDefaultPrintDevice,2,0,1,3);
+grid1->addWidget(lenDefaultFile,3,0,1,2);
+grid1->addWidget(cmdBrowseForDefault,3,2,1,1);
+
+selStdDpi=new stdIntSelector(this,tr("DPI:"),72,720);
+lblSelStartup=new QLabel(tr("Select initial position/size:"),this);
+selStartupX=new stdIntSelector(this,tr("x:"),0,QApplication::desktop()->width());
+selStartupX->lblText->setAlignment(Qt::AlignRight);
+selStartupY=new stdIntSelector(this,tr("y:"),0,QApplication::desktop()->height());
+selStartupY->lblText->setAlignment(Qt::AlignRight);
+selStartupWidth=new stdIntSelector(this,tr("Width:"),0,QApplication::desktop()->width());
+selStartupWidth->lblText->setAlignment(Qt::AlignRight);
+selStartupHeight=new stdIntSelector(this,tr("Height:"),0,QApplication::desktop()->height());
+selStartupHeight->lblText->setAlignment(Qt::AlignRight);
+cmdStartupCurrent=new QPushButton(tr("Initial = current"),this);
+connect(cmdStartupCurrent,SIGNAL(clicked()),SLOT(doCurrentAsStartup()));
+grid1->addWidget(lblSelStartup,4,0,1,2);
+grid1->addWidget(cmdStartupCurrent,4,2,1,1);
+grid1->addWidget(selStdDpi,5,0,1,1);
+grid1->addWidget(selStartupX,5,1,1,1);
+grid1->addWidget(selStartupY,5,2,1,1);
+grid1->addWidget(selStartupWidth,6,1,1,1);
+grid1->addWidget(selStartupHeight,6,2,1,1);
+empty->setLayout(grid1);
+layout3->addWidget(empty);
+grp_Startup->setLayout(layout3);
+
+guiLayout->addWidget(grp_tool_bar);
+//guiLayout->addWidget(empty2);
+guiLayout->addWidget(grp_Startup);
+tab_GUI->setLayout(guiLayout);
+
+/// BEHAVIOR
+tab_Behaviour=new QWidget(this);
+behavLayout=new QGridLayout();
+behavLayout->setMargin(STD_MARGIN);
+behavLayout->setSpacing(STD_SPACING);
+QString * entr3=new QString[avcod.length()];
+for (int i=0;i<avcod.length();i++)
+{
+    entr3[i]=QString(avcod.at(i));
+}
+selCodec=new StdSelector(this,tr("File encoding:"),avcod.length(),entr3);
+delete[] entr3;
+chkActivateLaTeXSupport=new QCheckBox(tr("Support simple LaTeX-commands"),this);
+chkImmediateUpdate=new QCheckBox(tr("Immediate updates"),this);
+chkQtFonts=new QCheckBox(tr("Use Qt Fonts"),this);
+connect(chkQtFonts,SIGNAL(toggled(bool)),SLOT(toggleQtFonts(bool)));
+chkSymbolSpecial=new QCheckBox(tr("'Symbol'-font is special"),this);
+
+
+nr=2;
+entr[0]=QString(".");
+entr[1]=QString(",");
+selDecSep=new StdSelector(this,tr("Decimal separator:"),nr,entr);
+histSize=new stdIntSelector(this,tr("Maximum history size:"),0,MAX_HISTORY);
+histSize->setValue(max_history);
+chkAutoSetAgr=new QCheckBox(tr("Auto set .agr-file-extension"),this);
+chkAutoSetExport=new QCheckBox(tr("Auto set export-file-extension"),this);
+chkAutoSetCWD=new QCheckBox(tr("Auto set current working directory (CWD)"),this);
+chkWarnOnEncodingChange=new QCheckBox(tr("Display warning on encoding change"),this);
+selFontSize=new LineWidthSelector(this);
+selFontSize->lblText->setText(tr("Global font size multiplicator:"));
+selFontSize->spnLineWidth->setRange(0.0,1000.0);
+selFontSize->spnLineWidth->setDecimals(2);
+selFontSize->spnLineWidth->setValue(100.0);
+selFontSize->spnLineWidth->setSingleStep(1.0);
+selFontSize->spnLineWidth->setSuffix(tr(" %"));
+
+int r_index=0;
+behavLayout->addWidget(chkQtFonts,r_index,0);
+behavLayout->addWidget(chkActivateLaTeXSupport,r_index++,1);
+behavLayout->addWidget(chkSymbolSpecial,r_index++,0);
+behavLayout->addWidget(chkImmediateUpdate,r_index++,0);
+behavLayout->addWidget(selCodec,r_index++,0,1,2);
+behavLayout->addWidget(selDecSep,r_index++,0,1,2);
+behavLayout->addWidget(histSize,r_index++,0,1,2);
+behavLayout->addWidget(selFontSize,r_index++,0,1,2);
+behavLayout->addWidget(chkAutoSetAgr,r_index,0);
+behavLayout->addWidget(chkAutoSetExport,r_index++,1);
+behavLayout->addWidget(chkAutoSetCWD,r_index,0);
+behavLayout->addWidget(chkWarnOnEncodingChange,r_index++,1);
+behavLayout->addWidget(cmdActDevs,r_index++,0,1,2);
+QWidget * empty5=new QWidget(this);
+behavLayout->addWidget(empty5,r_index,0);
+behavLayout->setRowStretch(index,3);
+
+tab_Behaviour->setLayout(behavLayout);
+
+
+/// MISC
+tab_Misc=new QWidget(this);
+miscLayout=new QVBoxLayout(this);
+miscLayout->setMargin(STD_MARGIN);
+miscLayout->setSpacing(STD_SPACING);
+
+//lblExtLibs=new QLabel(tr("External Libraries:"),this);
+grp_libFFTW3=new QGroupBox(tr("libFFTW3 (for Fourier-transformations)"),this);
+chkUseFFTW3=new QCheckBox(tr("Use FFTW3"),this);
+lblFFTW3_found=new QLabel(tr("FFTW3 not usable"),this);
+lblfftw3_static=new QLabel(tr("FFTW3 linked as static library"),this);
+ledFFTW3_dll=new stdLineEdit(this,tr("Library:"));
+ledFFTW3_dll->setText(QString(""));
+cmdBrowseFFTW3=new QPushButton(tr("Browse"),this);
+connect(cmdBrowseFFTW3,SIGNAL(clicked()),SLOT(doBrowseFFTW3_dll()));
+layout_misc0=new QGridLayout();
+layout_misc0->setSpacing(STD_SPACING);
+layout_misc0->setMargin(STD_MARGIN);
+layout_misc0->addWidget(chkUseFFTW3,0,0,1,2);
+layout_misc0->addWidget(lblFFTW3_found,0,2,1,1);
+#ifndef USE_STATIC_EXT_LIB_FFTW3
+layout_misc0->addWidget(ledFFTW3_dll,1,0,1,2);
+layout_misc0->addWidget(cmdBrowseFFTW3,1,2,1,1);
+lblfftw3_static->hide();
+#else
+layout_misc0->addWidget(lblfftw3_static,1,0,1,3);
+ledFFTW3_dll->hide();
+cmdBrowseFFTW3->hide();
+#endif
+grp_libFFTW3->setLayout(layout_misc0);
+
+grp_libHaru=new QGroupBox(tr("libHaru (for pdf-export)"),this);
+chkUselibHaru=new QCheckBox(tr("Use libHaru"),this);
+lblHaru_found=new QLabel(tr("libHaru not usable"),this);
+lblHaru_static=new QLabel(tr("libHaru linked as static library"),this);
+ledHaru_dll=new stdLineEdit(this,tr("Library:"));
+ledHaru_dll->setText(QString(""));
+cmdBrowseHaru=new QPushButton(tr("Browse"),this);
+connect(cmdBrowseHaru,SIGNAL(clicked()),SLOT(doBrowseHaru_dll()));
+layout_misc1=new QGridLayout();
+layout_misc1->setSpacing(STD_SPACING);
+layout_misc1->setMargin(STD_MARGIN);
+layout_misc1->addWidget(chkUselibHaru,0,0,1,2);
+layout_misc1->addWidget(lblHaru_found,0,2,1,1);
+#ifndef USE_STATIC_EXT_LIB_HARU
+layout_misc1->addWidget(ledHaru_dll,1,0,1,2);
+layout_misc1->addWidget(cmdBrowseHaru,1,2,1,1);
+lblHaru_static->hide();
+#else
+layout_misc1->addWidget(lblHaru_static,1,0,1,3);
+ledHaru_dll->hide();
+cmdBrowseHaru->hide();
+#endif
+grp_libHaru->setLayout(layout_misc1);
+
+grpMiscMisc=new QGroupBox(tr("Misc"),this);
+misc2Layout=new QVBoxLayout();
+misc2Layout->setMargin(STD_MARGIN);
+misc2Layout->setSpacing(STD_SPACING);
+
+chkExternalHelpViewer=new QCheckBox(tr("Show help-files in external html-viewer"),this);
+lenHelpViewer=new stdLineEdit(this,tr("Help viewer:"));
+lenHelpViewer->setEnabled(false);
+chkShowHideException=new QCheckBox(tr("Show/Hide workaround"),this);
+chkUsePrintCommand=new QCheckBox(tr("Use Print command (if this is deselected the native printer dialog is used)"),this);
+lenPrintCommand=new stdLineEdit(this,tr("Print command:"));
+lenPrintCommand->setText("lpr");
+chkHDPrinterOutput=new QCheckBox(tr("Use HD-output on physical printers"),this);
+
+misc2Layout->addWidget(chkExternalHelpViewer);
+misc2Layout->addWidget(lenHelpViewer);
+misc2Layout->addWidget(chkShowHideException);
+misc2Layout->addWidget(chkUsePrintCommand);
+misc2Layout->addWidget(lenPrintCommand);
+misc2Layout->addWidget(chkHDPrinterOutput);
+
+grpMiscMisc->setLayout(misc2Layout);
+
+miscLayout->addWidget(grp_libFFTW3);
+miscLayout->addWidget(grp_libHaru);
+miscLayout->addWidget(grpMiscMisc);
+QWidget * empty6=new QWidget(this);
+miscLayout->addWidget(empty6);
+miscLayout->setStretch(3,3);
+
+tab_Misc->setLayout(miscLayout);
+
+
+tabs->addTab(tab_prefs,tr("Grace"));                    //0
+tabs->addTab(tab_GUI,tr("QtGrace-GUI"));
+tabs->addTab(tab_Behaviour,tr("QtGrace-Behavior"));
+tabs->addTab(tab_Misc,tr("Miscellaneous"));
+//tabs->addTab(tab_extra,tr("QtGrace (1)"));              //1
+//tabs->addTab(tab_qtgrace_prefs2,tr("QtGrace (2)"));     //2
+tabs->addTab(tab_defaults,tr("Defaults"));              //3
+tabs->addTab(tab_linestyles,tr("Linestyles"));          //4
+tabs->addTab(tab_colors,tr("Colors"));                  //5
+
+vbox->addWidget(tabs);
+
+buttons=new stdButtonGroup(this);
+
+connect(buttons->cmdApply,SIGNAL(clicked()),SLOT(doApply()));
+connect(buttons->cmdAccept,SIGNAL(clicked()),SLOT(doAccept()));
+connect(buttons->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
+
+vbox->addWidget(buttons);
+
+setLayout(vbox);
+
+connect(tab_prefs,SIGNAL(close_wish()),SLOT(doClose()));
+//connect(tab_extra,SIGNAL(close_wish()),SLOT(doClose()));
+//connect(tab_qtgrace_prefs2,SIGNAL(close_wish()),SLOT(doClose()));
+connect(tab_linestyles,SIGNAL(close_wish()),SLOT(doClose()));
+connect(tab_colors,SIGNAL(close_wish()),SLOT(doClose()));
+connect(tab_defaults,SIGNAL(close_wish()),SLOT(doClose()));
+connect(tabs,SIGNAL(currentChanged(int)),SLOT(tab_changed(int)));
+
+delete[] entr;
+delete[] i_entr;
+}
+
+void frm_Preferences::init(void)
+{
+tab_prefs->init();
+//tab_extra->init();
+//tab_qtgrace_prefs2->init();
+
+init_GUI();
+init_Behavior();
+init_Misc();
+
+tab_linestyles->init();
+tab_colors->init();
+tab_defaults->show_defaults=grdefaults;
+tab_defaults->show_view=grview;
+strcpy(tab_defaults->show_sformat,sformat);
+tab_defaults->init();
+redisplayContents();
+}
+
+void frm_Preferences::init_GUI(void)
+{
+
+    chkNewIcons->setChecked(use_new_icons);
+    QString font_descr=qApp->font().toString();
+    lblGuiFont->setText(tr("Gui Font=")+font_descr);
+
+    selStartupX->spnInt->setRange(0,qApp->desktop()->width()*0.9);
+    selStartupY->spnInt->setRange(0,qApp->desktop()->height()*0.9);
+    selStartupWidth->spnInt->setRange(100,qApp->desktop()->width());
+    selStartupHeight->spnInt->setRange(100,qApp->desktop()->width());
+
+    //Display the customization-Settings
+    chkShowNavi->setChecked(show_Navi_B);
+    chkShowGraph->setChecked(show_Graph_List);
+    chkShowSpecZoom->setChecked(show_special_Zoom);
+    chkShowViewp->setChecked(show_Viewport_Stack);
+    chkShowPageZoom->setChecked(show_Page_Zoom);
+    chkShowPrintB->setChecked(show_Print_B);
+    chkShowExportP->setChecked(show_Export_B);
+    chkShowHostName->setChecked(show_host_name);
+    chkShowDisplay->setChecked(show_display_name);
+    selFileDisplay1->setCurrentIndex(displ_project_filename);
+    selFileDisplay2->setCurrentIndex(displ_export_filename);
+
+    //Startup
+    selDefaultPrintDevice->setCurrentValue(default_Print_Device);
+    lenDefaultFile->setText(QString(default_grace_file));
+    selLanguage->setCurrentIndex(current_language);//ok
+    selStartupX->setValue(initial_x_pos);
+    selStartupY->setValue(initial_y_pos);
+    selStartupWidth->setValue(initial_width);
+    selStartupHeight->setValue(initial_height);
+    selStdDpi->setValue(start_dpi);
+
+    show_Navi_B=chkShowNavi->isChecked();
+    show_Graph_List=chkShowGraph->isChecked();
+    show_special_Zoom=chkShowSpecZoom->isChecked();
+    show_Viewport_Stack=chkShowViewp->isChecked();
+    show_Page_Zoom=chkShowPageZoom->isChecked();
+    show_Print_B=chkShowPrintB->isChecked();
+    show_Export_B=chkShowExportP->isChecked();
+    show_host_name=chkShowHostName->isChecked();
+    show_display_name=chkShowDisplay->isChecked();
+    displ_project_filename=selFileDisplay1->currentIndex();
+    displ_export_filename=selFileDisplay2->currentIndex();
+}
+
+void frm_Preferences::init_Behavior(void)
+{
+    histSize->setValue(max_history);//ok
+    chkActivateLaTeXSupport->setChecked(activateLaTeXsupport);
+    chkImmediateUpdate->setChecked(immediateUpdate);
+    selFontSize->setValue(universal_font_size_factor*100.0);
+    chkQtFonts->setChecked(useQtFonts);
+    chkSymbolSpecial->setChecked(symbol_font_is_special);
+        if (useQtFonts==true) chkSymbolSpecial->setEnabled(true);
+        else chkSymbolSpecial->setEnabled(false);
+    selDecSep->setCurrentIndex(DecimalPointToUse=='.'?0:1);
+
+    chkAutoSetAgr->setChecked(auto_set_agr_extension);
+    chkAutoSetCWD->setChecked(auto_set_cwd);
+    chkAutoSetExport->setChecked(auto_set_export_extensions);
+    chkWarnOnEncodingChange->setChecked(warn_on_encoding_change);
+}
+
+void frm_Preferences::init_Misc(void)
+{
+    QColor col_red(255,0,0);
+    QColor col_green(0,255,0);
+    QColor col_text;
+    QPalette Pal(mainWin->palette());
+    col_text=Pal.color(QPalette::Text);//tmp is the standard text color
+
+        chkUseFFTW3->setChecked(use_fftw3);
+        chkUselibHaru->setChecked(use_libHaru);
+        ledFFTW3_dll->setText(path_to_fftw3_lib.fileName());
+        ledHaru_dll->setText(path_to_libharu.fileName());
+        check_external_lib_usability();
+    /*#ifdef USE_STATIC_EXT_LIB_FFTW3
+        cout << "USING STATIC LIBRARY FFTW3" << endl;
+    #endif*/
+
+    QPalette Pal1(ledFFTW3_dll->lenText->palette());
+        if (path_to_fftw3_lib.exists()==true)
+        {
+        Pal1.setColor(QPalette::Text, col_text);
+        }
+        else
+        {
+        Pal1.setColor(QPalette::Text, col_red);
+        }
+    ledFFTW3_dll->lenText->setPalette(Pal1);
+
+    /*#ifdef USE_STATIC_EXT_LIB_HARU
+        cout << "USING STATIC LIBRARY HARU" << endl;
+    #endif*/
+
+    QPalette Pal2(ledHaru_dll->lenText->palette());
+        if (path_to_libharu.exists()==true)
+        {
+        Pal2.setColor(QPalette::Text, col_text);
+        }
+        else
+        {
+        Pal2.setColor(QPalette::Text, col_red);
+        }
+    ledHaru_dll->lenText->setPalette(Pal1);
+
+    QPalette Pal3(lblFFTW3_found->palette());
+        if (have_fftw3==TRUE)
+        {
+        lblFFTW3_found->setText(tr("FFTW3 usable"));
+        Pal3.setColor(QPalette::Background, col_green);
+        }
+        else//fftw3 not found
+        {
+        lblFFTW3_found->setText(tr("FFTW3 NOT usable"));
+        Pal3.setColor(QPalette::Background, col_red);
+        }
+    lblFFTW3_found->setPalette(Pal3);
+    lblFFTW3_found->setAlignment(Qt::AlignCenter);
+    lblFFTW3_found->setAutoFillBackground(true);
+
+    QPalette Pal4(lblHaru_found->palette());
+        if (have_libHaru==TRUE)
+        {
+        lblHaru_found->setText(tr("libHaru usable"));
+        Pal4.setColor(QPalette::Background, col_green);
+        }
+        else//libHaru not found
+        {
+        lblHaru_found->setText(tr("libHaru NOT usable"));
+        Pal4.setColor(QPalette::Background, col_red);
+        }
+    lblHaru_found->setPalette(Pal4);
+    lblHaru_found->setAlignment(Qt::AlignCenter);
+    lblHaru_found->setAutoFillBackground(true);
+
+    //lenHome->setText(QString(GRACE_HOME));
+    chkExternalHelpViewer->setChecked(display_help_externally);//ok
+    lenHelpViewer->setText(QString(GRACE_HELPVIEWER));
+    chkShowHideException->setChecked(showhideworkaround);//ok
+    chkUsePrintCommand->setChecked(use_print_command);
+    lenPrintCommand->setText(get_print_cmd());
+    chkHDPrinterOutput->setChecked(useHDPrinterOutput);
+}
+
+void frm_Preferences::read(void)
+{
+    read_GUI();
+    read_Behavior();
+    read_Misc();
+
+}
+
+void frm_Preferences::read_GUI(void)
+{
+
+    use_new_icons=chkNewIcons->isChecked();
+    mainWin->redisplayIcons();
+    default_Print_Device=selDefaultPrintDevice->currentValue();
+
+    int newlanguage=selLanguage->currentIndex();
+        if (newlanguage!=current_language)
+        {
+            current_language=newlanguage;
+            /*char dummy[512];
+            strcpy(dummy,"[Warning] Changing the language takes effekt after restart of QtGrace.");
+            stufftext(dummy);*/
+        }
+        strcpy(default_grace_file,lenDefaultFile->text().toLocal8Bit().constData());
+        initial_x_pos=selStartupX->value();
+        initial_y_pos=selStartupY->value();
+        initial_width=selStartupWidth->value();
+        initial_height=selStartupHeight->value();
+        start_dpi=selStdDpi->value();
+
+        init();
+        mainWin->ManageBars();
+        set_left_footer(NULL);
+        FormDeviceSetup->changeDeviceList(2);
+}
+
+void frm_Preferences::read_Behavior(void)
+{
+    FileCodec=QTextCodec::codecForName(selCodec->cmbSelect->currentText().toLocal8Bit().constData());
+    auto_set_agr_extension=chkAutoSetAgr->isChecked()==true?TRUE:FALSE;
+    auto_set_export_extensions=chkAutoSetExport->isChecked()==true?TRUE:FALSE;
+    auto_set_cwd=chkAutoSetCWD->isChecked()==true?TRUE:FALSE;
+    warn_on_encoding_change=chkWarnOnEncodingChange->isChecked()==true?TRUE:FALSE;
+
+    activateLaTeXsupport=chkActivateLaTeXSupport->isChecked();
+    immediateUpdate=chkImmediateUpdate->isChecked();
+    universal_font_size_factor=selFontSize->value()*0.01;
+    bool oldQtFonts=useQtFonts;
+    bool old_symbol_special=symbol_font_is_special;
+    useQtFonts=chkQtFonts->isChecked();
+    symbol_font_is_special=chkSymbolSpecial->isChecked();
+
+    //use_new_print_dialog=chkNewPrintDialog->isChecked();
+    //DefaultFont=defaultFont->currentIndex();
+    OldDecimalPoint=DecimalPointToUse;
+    DecimalPointToUse=(selDecSep->currentIndex()==0)?'.':',';
+    if (DecimalPointToUse!=OldDecimalPoint)
+    {
+        UpdateAllWindowContents();
+    }
+    max_history=histSize->value();
+//dirtystate=save_dirty;
+    mainWin->recreateHistory();
+    if (oldQtFonts!=useQtFonts || old_symbol_special!=symbol_font_is_special)//we change from old to new qt-fonts
+    {
+        update_font_selectors(true);
+        copy_LaTeX_to_Grace();
+        convert_Grace_Strings();
+    }
+}
+
+void frm_Preferences::read_Misc(void)
+{
+    use_fftw3=chkUseFFTW3->isChecked();
+    use_libHaru=chkUselibHaru->isChecked();
+    path_to_fftw3_lib.setFileName(ledFFTW3_dll->text());
+    path_to_libharu.setFileName(ledHaru_dll->text());
+
+    set_print_cmd(lenPrintCommand->text().toLatin1().constData());
+    use_print_command=chkUsePrintCommand->isChecked();
+    useHDPrinterOutput=chkHDPrinterOutput->isChecked()==true?TRUE:FALSE;
+    display_help_externally=chkExternalHelpViewer->isChecked();
+    showhideworkaround=chkShowHideException->isChecked();
+
+    mainWin->mainArea->completeRedraw();
+}
+
+void frm_Preferences::tab_changed(int nr)
+{
+    if (nr==4)
+    {
+    tab_linestyles->selStyles->setCurrentIndex(1);
+    tab_linestyles->currentStyleChanged(1);
+    }
+}
+
+void frm_Preferences::redisplayContents(void)
+{
+    QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
+    selFontSize->setLocale(newLocale);
+    selFontSize->setValue(Form_Preferences->selFontSize->value());
+    tab_defaults->selLineWidth->setLocale(newLocale);
+    tab_defaults->selLineWidth->setValue(Form_Preferences->tab_defaults->selLineWidth->value());
+    for (int i=0;i<4;i++)
+    tab_defaults->selviewp[i]->ReplaceNumberContents();
+
+    //tab_defaults->selviewp[i]->RedisplayContents();
+}
+
+void frm_Preferences::doClose(void)
+{
+hide();
+}
+
+void frm_Preferences::doApply(void)
+{
+/// Apply the different Applys --> do a special Apply for the new three tabs
+    read();
+}
+
+void frm_Preferences::doAccept(void)
+{
+ApplyError=false;
+doApply();
+    if (ApplyError==false)
+    hide();
+}
+
+void frm_Preferences::doGraceDefaults(void)
+{
+chkShowNavi->setChecked(true);
+chkShowGraph->setChecked(false);
+chkShowSpecZoom->setChecked(true);
+chkShowViewp->setChecked(true);
+chkShowPageZoom->setChecked(false);
+chkShowPrintB->setChecked(false);
+chkShowExportP->setChecked(false);
+chkShowHostName->setChecked(true);
+chkShowDisplay->setChecked(true);
+selFileDisplay1->setCurrentIndex(1);
+selFileDisplay2->setCurrentIndex(0);
+    read_GUI();
+}
+
+void frm_Preferences::doQtGraceDefaults(void)
+{
+chkShowNavi->setChecked(true);
+chkShowGraph->setChecked(true);
+chkShowSpecZoom->setChecked(true);
+chkShowViewp->setChecked(true);
+chkShowPageZoom->setChecked(true);
+chkShowPrintB->setChecked(false);
+chkShowExportP->setChecked(false);
+chkShowHostName->setChecked(true);
+chkShowDisplay->setChecked(false);
+selFileDisplay1->setCurrentIndex(2);
+selFileDisplay2->setCurrentIndex(2);
+    read_GUI();
+}
+
+void frm_Preferences::doActDevs(void)
+{
+    if (diaDevAct==NULL)
+    {
+    diaDevAct=new frmDeviceActivator(this);
+    }
+diaDevAct->init();
+diaDevAct->show();
+diaDevAct->activateWindow();
+}
+
+void frm_Preferences::changeGUIFont(void)
 {
 bool ok;
 QFont n_font=QFontDialog::getFont(&ok,*GuiFont,Form_Preferences,tr("Select Gui Font"));
@@ -10055,7 +10604,7 @@ if (ok==true)
 
 }
 
-void frmExtraPreferences::resetGUIFont(void)
+void frm_Preferences::resetGUIFont(void)
 {
     QString font_descr=stdGuiFont->toString();
     lblGuiFont->setText(tr("Gui Font=")+font_descr);
@@ -10065,7 +10614,7 @@ void frmExtraPreferences::resetGUIFont(void)
     GuiFont=new QFont(*stdGuiFont);
 }
 
-void frmExtraPreferences::select_BG_Color(void)
+void frm_Preferences::select_BG_Color(void)
 {
 //QColor tmp;
 //cout << "select a color" << endl;
@@ -10074,7 +10623,7 @@ void frmExtraPreferences::select_BG_Color(void)
     mainWin->mainArea->setBGtoColor(tmp);
 }
 
-void frmExtraPreferences::set_BG_Color_to_Std(void)
+void frm_Preferences::set_BG_Color_to_Std(void)
 {
     QColor tmp;
     QPalette Pal(mainWin->palette());
@@ -10082,7 +10631,7 @@ void frmExtraPreferences::set_BG_Color_to_Std(void)
     mainWin->mainArea->setBGtoColor(tmp);
 }
 
-void frmExtraPreferences::set_BG_Color_to_Page_BG(void)
+void frm_Preferences::set_BG_Color_to_Page_BG(void)
 {
     QColor tmp;
     tmp=get_Color(getbgcolor());
@@ -10092,84 +10641,84 @@ void frmExtraPreferences::set_BG_Color_to_Page_BG(void)
     mainWin->mainArea->setBGtoColor(tmp);
 }
 
-frm_Preferences::frm_Preferences(QWidget * parent):QDialog(parent)
+void frm_Preferences::doBrowseStartup(void)
 {
-//setFont(*stdFont);
-    setWindowTitle(tr("QtGrace: Preferences"));
-    setWindowIcon(QIcon(*GraceIcon));
-
-    vbox=new QVBoxLayout();
-    vbox->setMargin(STD_MARGIN);
-    vbox->setSpacing(STD_SPACING);
-
-tabs=new QTabWidget(this);
-
-tab_prefs=new frmPreferences();
-tab_extra=new frmExtraPreferences();
-tab_qtgrace_prefs2=new frmQtGracePrefs2();
-tab_linestyles=new tabLinestyles();
-tab_colors=new frmColorManagement();
-tab_defaults=new frmDefaults();
-
-tabs->addTab(tab_prefs,tr("Grace"));                    //0
-tabs->addTab(tab_extra,tr("QtGrace (1)"));              //1
-tabs->addTab(tab_qtgrace_prefs2,tr("QtGrace (2)"));     //2
-tabs->addTab(tab_defaults,tr("Defaults"));              //3
-tabs->addTab(tab_linestyles,tr("Linestyles"));          //4
-tabs->addTab(tab_colors,tr("Colors"));                  //5
-
-vbox->addWidget(tabs);
-
-setLayout(vbox);
-
-connect(tab_prefs,SIGNAL(close_wish()),SLOT(doClose()));
-connect(tab_extra,SIGNAL(close_wish()),SLOT(doClose()));
-connect(tab_qtgrace_prefs2,SIGNAL(close_wish()),SLOT(doClose()));
-connect(tab_linestyles,SIGNAL(close_wish()),SLOT(doClose()));
-connect(tab_colors,SIGNAL(close_wish()),SLOT(doClose()));
-connect(tab_defaults,SIGNAL(close_wish()),SLOT(doClose()));
-connect(tabs,SIGNAL(currentChanged(int)),SLOT(tab_changed(int)));
-}
-
-void frm_Preferences::init(void)
-{
-tab_prefs->init();
-tab_extra->init();
-tab_qtgrace_prefs2->init();
-tab_linestyles->init();
-tab_colors->init();
-tab_defaults->show_defaults=grdefaults;
-tab_defaults->show_view=grview;
-strcpy(tab_defaults->show_sformat,sformat);
-tab_defaults->init();
-redisplayContents();
-}
-
-void frm_Preferences::tab_changed(int nr)
-{
-    if (nr==4)
+    QString def=QFileDialog::getOpenFileName(this,tr("Select default startup file"),QString(qt_grace_exe_dir));
+    if (!def.isEmpty())
     {
-    tab_linestyles->selStyles->setCurrentIndex(1);
-    tab_linestyles->currentStyleChanged(1);
+        //QFileInfo fi(def);
+        //cout << "Absolute=" << fi.absoluteFilePath().toLocal8Bit().constData() << endl;
+        QDir di(qt_grace_exe_dir);
+        //cout << "Relative=" << relPath.toLocal8Bit().constData() << endl;
+        lenDefaultFile->setText(di.relativeFilePath(def));
     }
 }
 
-void frm_Preferences::redisplayContents(void)
+void frm_Preferences::doCurrentAsStartup(void)
 {
-    QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
-    tab_extra->selFontSize->setLocale(newLocale);
-    tab_extra->selFontSize->setValue(Form_Preferences->tab_extra->selFontSize->value());
-    tab_defaults->selLineWidth->setLocale(newLocale);
-    tab_defaults->selLineWidth->setValue(Form_Preferences->tab_defaults->selLineWidth->value());
-    for (int i=0;i<4;i++)
-    tab_defaults->selviewp[i]->ReplaceNumberContents();
-
-    //tab_defaults->selviewp[i]->RedisplayContents();
+    selStartupX->setValue(mainWin->x());
+    selStartupY->setValue(mainWin->y());
+    selStartupWidth->setValue(mainWin->width());
+    selStartupHeight->setValue(mainWin->height());
 }
 
-void frm_Preferences::doClose(void)
+void frm_Preferences::toggleHTMLviewer(int entry)
 {
-hide();
+    /// lenHelpViewer->setEnabled((bool)entry);/// reactivate!
+}
+
+void frm_Preferences::toggleQtFonts(bool check)
+{
+    if (check==true)
+    chkSymbolSpecial->setEnabled(true);
+    else
+    chkSymbolSpecial->setEnabled(false);
+}
+
+void frm_Preferences::doBrowseFFTW3_dll(void)
+{
+QFileInfo fi(path_to_fftw3_lib);
+QString old_path=fi.absolutePath();
+QString new_file;
+#ifdef WINDOWS_SYSTEM
+new_file=QFileDialog::getOpenFileName(this,tr("Select FFTW3-Library"),old_path,"*.dll");
+#endif
+#ifdef MAC_SYSTEM
+new_file=QFileDialog::getOpenFileName(this,tr("Select FFTW3-Library"),old_path,"*.dylib");
+#else
+    #ifdef LINUX_SYSTEM
+    new_file=QFileDialog::getOpenFileName(this,tr("Select FFTW3-Library"),old_path,"*.so");
+    #endif
+#endif
+if (!new_file.isEmpty())
+{
+ledFFTW3_dll->setText(new_file);
+path_to_fftw3_lib.setFileName(new_file);
+init();
+}
+}
+
+void frm_Preferences::doBrowseHaru_dll(void)
+{
+QFileInfo fi(path_to_libharu);
+QString old_path=fi.absolutePath();
+QString new_file;
+#ifdef WINDOWS_SYSTEM
+new_file=QFileDialog::getOpenFileName(this,tr("Select libHaru-PDF-Library"),old_path,"*.dll");
+#endif
+#ifdef MAC_SYSTEM
+new_file=QFileDialog::getOpenFileName(this,tr("Select libHaru-PDF-Library"),old_path,"*.dylib");
+#else
+    #ifdef LINUX_SYSTEM
+    new_file=QFileDialog::getOpenFileName(this,tr("Select libHaru-PDF-Library"),old_path,"*.so");
+    #endif
+#endif
+if (!new_file.isEmpty())
+{
+ledHaru_dll->setText(new_file);
+path_to_libharu.setFileName(new_file);
+init();
+}
 }
 
 int yesnowin(char * msg,char * s1,char * s2,char * help_anchor)
@@ -10241,181 +10790,10 @@ void get_tracking_props(int *setno, int *move_dir, int *add_at)
 
 frmQtGracePrefs2::frmQtGracePrefs2(QWidget * parent):QWidget(parent)
 {
-//lblExtLibs=new QLabel(tr("External Libraries:"),this);
-grp_libFFTW3=new QGroupBox(tr("libFFTW3 (for Fourier-transformations)"),this);
-chkUseFFTW3=new QCheckBox(tr("Use FFTW3"),this);
-lblFFTW3_found=new QLabel(tr("FFTW3 not usable"),this);
-lblfftw3_static=new QLabel(tr("FFTW3 linked as static library"),this);
-ledFFTW3_dll=new stdLineEdit(this,tr("Library:"));
-ledFFTW3_dll->setText(QString(""));
-cmdBrowseFFTW3=new QPushButton(tr("Browse"),this);
-connect(cmdBrowseFFTW3,SIGNAL(clicked()),SLOT(doBrowseFFTW3_dll()));
-layout0=new QGridLayout();
-layout0->setSpacing(STD_SPACING);
-layout0->setMargin(STD_MARGIN);
-layout0->addWidget(chkUseFFTW3,0,0,1,2);
-layout0->addWidget(lblFFTW3_found,0,2,1,1);
-#ifndef USE_STATIC_EXT_LIB_FFTW3
-layout0->addWidget(ledFFTW3_dll,1,0,1,2);
-layout0->addWidget(cmdBrowseFFTW3,1,2,1,1);
-lblfftw3_static->hide();
-#else
-layout0->addWidget(lblfftw3_static,1,0,1,3);
-ledFFTW3_dll->hide();
-cmdBrowseFFTW3->hide();
-#endif
-grp_libFFTW3->setLayout(layout0);
 
-grp_libHaru=new QGroupBox(tr("libHaru (for pdf-export)"),this);
-chkUselibHaru=new QCheckBox(tr("Use libHaru"),this);
-lblHaru_found=new QLabel(tr("libHaru not usable"),this);
-lblHaru_static=new QLabel(tr("libHaru linked as static library"),this);
-ledHaru_dll=new stdLineEdit(this,tr("Library:"));
-ledHaru_dll->setText(QString(""));
-cmdBrowseHaru=new QPushButton(tr("Browse"),this);
-connect(cmdBrowseHaru,SIGNAL(clicked()),SLOT(doBrowseHaru_dll()));
-layout1=new QGridLayout();
-layout1->setSpacing(STD_SPACING);
-layout1->setMargin(STD_MARGIN);
-layout1->addWidget(chkUselibHaru,0,0,1,2);
-layout1->addWidget(lblHaru_found,0,2,1,1);
-#ifndef USE_STATIC_EXT_LIB_HARU
-layout1->addWidget(ledHaru_dll,1,0,1,2);
-layout1->addWidget(cmdBrowseHaru,1,2,1,1);
-lblHaru_static->hide();
-#else
-layout1->addWidget(lblHaru_static,1,0,1,3);
-ledHaru_dll->hide();
-cmdBrowseHaru->hide();
-#endif
-grp_libHaru->setLayout(layout1);
 
-grp_tool_bar=new QGroupBox(tr("Customize interface"),this);
-lblToolBar=new QLabel(tr("Tool bar contents:"),this);
-lblStatusBar=new QLabel(tr("Status bar contents:"),this);
-layout2=new QGridLayout();
-layout2->setSpacing(STD_SPACING);
-layout2->setMargin(STD_MARGIN);
 
-chkShowNavi=new QCheckBox(tr("Show navigation buttons"),this);
-chkShowGraph=new QCheckBox(tr("Show graph list"),this);
-chkShowSpecZoom=new QCheckBox(tr("Show special zoom buttons"),this);
-chkShowViewp=new QCheckBox(tr("Show viewport stack"),this);
-chkShowPageZoom=new QCheckBox(tr("Show page zoom"),this);
-chkShowPrintB=new QCheckBox(tr("Show print button"),this);
-chkShowExportP=new QCheckBox(tr("Show export button"),this);
-
-chkShowHostName=new QCheckBox(tr("Show host name"),this);;
-chkShowDisplay=new QCheckBox(tr("Show display name"),this);
-int index=3;
-QString * entries=new QString[index];
-entries[0]=tr("None");
-entries[1]=tr("Complete path");
-entries[2]=tr("Filename only");
-selFileDisplay1=new StdSelector(this,tr("Show project file name:"),index,entries);
-selFileDisplay2=new StdSelector(this,tr("Show export file name:"),index,entries);
-delete[] entries;
-
-cmdGraceDefaults=new QPushButton(tr("Grace-defaults"),this);
-connect(cmdGraceDefaults,SIGNAL(clicked()),SLOT(doGraceDefaults()));
-cmdQtGraceDefaults=new QPushButton(tr("QtGrace-defaults"),this);
-connect(cmdQtGraceDefaults,SIGNAL(clicked()),SLOT(doQtGraceDefaults()));
-cmdActDevs=new QPushButton(tr("Enable/Disable export formats"),this);
-connect(cmdActDevs,SIGNAL(clicked()),SLOT(doActDevs()));
-diaDevAct=NULL;
-
-index=0;
-layout2->addWidget(lblToolBar,index++,0);
-layout2->addWidget(chkShowNavi,index++,0);
-layout2->addWidget(chkShowGraph,index++,0);
-layout2->addWidget(chkShowSpecZoom,index++,0);
-layout2->addWidget(chkShowViewp,index++,0);
-layout2->addWidget(chkShowPageZoom,index++,0);
-layout2->addWidget(chkShowExportP,index++,0);
-layout2->addWidget(chkShowPrintB,index++,0);
-index=0;
-layout2->addWidget(lblStatusBar,index++,1);
-layout2->addWidget(chkShowHostName,index++,1);
-layout2->addWidget(chkShowDisplay,index++,1);
-layout2->addWidget(selFileDisplay1,index++,1);
-layout2->addWidget(selFileDisplay2,index++,1);
-layout2->addWidget(cmdGraceDefaults,index++,1);
-layout2->addWidget(cmdQtGraceDefaults,index++,1);
-layout2->addWidget(cmdActDevs,index++,1);
-grp_tool_bar->setLayout(layout2);
-
-grp_Startup=new QGroupBox(tr("Gui-Startup-Settings"),this);
-layout3=new QVBoxLayout();
-layout3->setSpacing(STD_SPACING);
-layout3->setMargin(STD_MARGIN);
-QWidget * empty=new QWidget(this);
-QGridLayout * grid1=new QGridLayout(empty);
-grid1->setSpacing(STD_MARGIN);
-grid1->setMargin(0);
-
-QString * entr=new QString[8];
-int nr=2;
-entr[0]=QString("English");
-entr[1]=QString("German");
-selLanguage=new StdSelector(this,tr("Language:"),nr,entr);
-//layout1->addWidget(selLanguage);
-delete[] entr;
-
-nr=number_of_devices();
-entr=new QString[2+nr];
-int * i_entr=new int[2+nr];
-entr[0]=tr("Last selection");
-i_entr[0]=-1;
-for (int i=0;i<nr;i++)
-{
-    if (i!=DEVICE_SCREEN)
-    {
-    entr[i]=get_device_name(i);
-    i_entr[i]=i;
-    }
-}
-selDefaultPrintDevice=new StdSelector(this,tr("Default printing device:"),nr,entr);
-selDefaultPrintDevice->setValues(i_entr);
-delete[] entr;
-delete[] i_entr;
-
-lenDefaultFile=new stdLineEdit(this,tr("Default startup file:"));
-lenDefaultFile->setText(QString(default_grace_file));
-cmdBrowseForDefault=new QPushButton(tr("Select default file"),this);
-connect(cmdBrowseForDefault,SIGNAL(clicked()),SLOT(doBrowse()));
-lblStartupWarning=new QLabel(tr("The settings in this group will take effect at the next restart of QtGrace."),this);
-QFont tfont=lblStartupWarning->font();
-tfont.setItalic(true);
-lblStartupWarning->setFont(tfont);
-grid1->addWidget(lblStartupWarning,0,0,1,3);
-grid1->addWidget(selLanguage,1,0,1,3);
-grid1->addWidget(selDefaultPrintDevice,2,0,1,3);
-grid1->addWidget(lenDefaultFile,3,0,1,2);
-grid1->addWidget(cmdBrowseForDefault,3,2,1,1);
-
-selStdDpi=new stdIntSelector(this,tr("DPI:"),72,720);
-lblSelStartup=new QLabel(tr("Select initial position/size:"),this);
-selStartupX=new stdIntSelector(this,tr("x:"),0,QApplication::desktop()->width());
-selStartupX->lblText->setAlignment(Qt::AlignRight);
-selStartupY=new stdIntSelector(this,tr("y:"),0,QApplication::desktop()->height());
-selStartupY->lblText->setAlignment(Qt::AlignRight);
-selStartupWidth=new stdIntSelector(this,tr("Width:"),0,QApplication::desktop()->width());
-selStartupWidth->lblText->setAlignment(Qt::AlignRight);
-selStartupHeight=new stdIntSelector(this,tr("Height:"),0,QApplication::desktop()->height());
-selStartupHeight->lblText->setAlignment(Qt::AlignRight);
-cmdStartupCurrent=new QPushButton(tr("Initial = current"),this);
-connect(cmdStartupCurrent,SIGNAL(clicked()),SLOT(doCurrentAsStartup()));
-grid1->addWidget(lblSelStartup,4,0,1,2);
-grid1->addWidget(cmdStartupCurrent,4,2,1,1);
-grid1->addWidget(selStdDpi,5,0,1,1);
-grid1->addWidget(selStartupX,5,1,1,1);
-grid1->addWidget(selStartupY,5,2,1,1);
-grid1->addWidget(selStartupWidth,6,1,1,1);
-grid1->addWidget(selStartupHeight,6,2,1,1);
-empty->setLayout(grid1);
-layout3->addWidget(empty);
-grp_Startup->setLayout(layout3);
-
+/*
 buttonGroup=new stdButtonGroup(this);
 connect(buttonGroup->cmdApply,SIGNAL(clicked()),SLOT(doApply()));
 connect(buttonGroup->cmdAccept,SIGNAL(clicked()),SLOT(doAccept()));
@@ -10427,246 +10805,29 @@ layout->setMargin(STD_MARGIN);
 //layout->addWidget(lblExtLibs);
 layout->addWidget(grp_libFFTW3);
 layout->addWidget(grp_libHaru);
-layout->addWidget(grp_tool_bar);
-layout->addWidget(grp_Startup);
+//layout->addWidget(grp_tool_bar);
+//layout->addWidget(grp_Startup);
 layout->addStretch(5);
 layout->addWidget(buttonGroup);
-setLayout(layout);
+setLayout(layout);*/
 }
 
-void frmQtGracePrefs2::doBrowseFFTW3_dll(void)
-{
-QFileInfo fi(path_to_fftw3_lib);
-QString old_path=fi.absolutePath();
-QString new_file;
-#ifdef WINDOWS_SYSTEM
-new_file=QFileDialog::getOpenFileName(this,tr("Select FFTW3-Library"),old_path,"*.dll");
-#endif
-#ifdef MAC_SYSTEM
-new_file=QFileDialog::getOpenFileName(this,tr("Select FFTW3-Library"),old_path,"*.dylib");
-#else
-    #ifdef LINUX_SYSTEM
-    new_file=QFileDialog::getOpenFileName(this,tr("Select FFTW3-Library"),old_path,"*.so");
-    #endif
-#endif
-if (!new_file.isEmpty())
-{
-ledFFTW3_dll->setText(new_file);
-path_to_fftw3_lib.setFileName(new_file);
-init();
-}
-}
 
-void frmQtGracePrefs2::doBrowseHaru_dll(void)
-{
-QFileInfo fi(path_to_libharu);
-QString old_path=fi.absolutePath();
-QString new_file;
-#ifdef WINDOWS_SYSTEM
-new_file=QFileDialog::getOpenFileName(this,tr("Select libHaru-PDF-Library"),old_path,"*.dll");
-#endif
-#ifdef MAC_SYSTEM
-new_file=QFileDialog::getOpenFileName(this,tr("Select libHaru-PDF-Library"),old_path,"*.dylib");
-#else
-    #ifdef LINUX_SYSTEM
-    new_file=QFileDialog::getOpenFileName(this,tr("Select libHaru-PDF-Library"),old_path,"*.so");
-    #endif
-#endif
-if (!new_file.isEmpty())
-{
-ledHaru_dll->setText(new_file);
-path_to_libharu.setFileName(new_file);
-init();
-}
-}
 
 void frmQtGracePrefs2::init(void)
 {
-QColor col_red(255,0,0);
-QColor col_green(0,255,0);
-QColor col_text;
-QPalette Pal(mainWin->palette());
-col_text=Pal.color(QPalette::Text);//tmp is the standard text color
 
-selStartupX->spnInt->setRange(0,qApp->desktop()->width()*0.9);
-selStartupY->spnInt->setRange(0,qApp->desktop()->height()*0.9);
-selStartupWidth->spnInt->setRange(100,qApp->desktop()->width());
-selStartupHeight->spnInt->setRange(100,qApp->desktop()->width());
 
-    chkUseFFTW3->setChecked(use_fftw3);
-    chkUselibHaru->setChecked(use_libHaru);
-    ledFFTW3_dll->setText(path_to_fftw3_lib.fileName());
-    ledHaru_dll->setText(path_to_libharu.fileName());
-    check_external_lib_usability();
-/*#ifdef USE_STATIC_EXT_LIB_FFTW3
-    cout << "USING STATIC LIBRARY FFTW3" << endl;
-#endif*/
-
-QPalette Pal1(ledFFTW3_dll->lenText->palette());
-    if (path_to_fftw3_lib.exists()==true)
-    {
-    Pal1.setColor(QPalette::Text, col_text);
-    }
-    else
-    {
-    Pal1.setColor(QPalette::Text, col_red);
-    }
-ledFFTW3_dll->lenText->setPalette(Pal1);
-
-/*#ifdef USE_STATIC_EXT_LIB_HARU
-    cout << "USING STATIC LIBRARY HARU" << endl;
-#endif*/
-
-QPalette Pal2(ledHaru_dll->lenText->palette());
-    if (path_to_libharu.exists()==true)
-    {
-    Pal2.setColor(QPalette::Text, col_text);
-    }
-    else
-    {
-    Pal2.setColor(QPalette::Text, col_red);
-    }
-ledHaru_dll->lenText->setPalette(Pal1);
-
-QPalette Pal3(lblFFTW3_found->palette());
-    if (have_fftw3==TRUE)
-    {
-    lblFFTW3_found->setText(tr("FFTW3 usable"));
-    Pal3.setColor(QPalette::Background, col_green);
-    }
-    else//fftw3 not found
-    {
-    lblFFTW3_found->setText(tr("FFTW3 NOT usable"));
-    Pal3.setColor(QPalette::Background, col_red);
-    }
-lblFFTW3_found->setPalette(Pal3);
-lblFFTW3_found->setAlignment(Qt::AlignCenter);
-lblFFTW3_found->setAutoFillBackground(true);
-
-QPalette Pal4(lblHaru_found->palette());
-    if (have_libHaru==TRUE)
-    {
-    lblHaru_found->setText(tr("libHaru usable"));
-    Pal4.setColor(QPalette::Background, col_green);
-    }
-    else//libHaru not found
-    {
-    lblHaru_found->setText(tr("libHaru NOT usable"));
-    Pal4.setColor(QPalette::Background, col_red);
-    }
-lblHaru_found->setPalette(Pal4);
-lblHaru_found->setAlignment(Qt::AlignCenter);
-lblHaru_found->setAutoFillBackground(true);
-
-//Display the customization-Settings
-chkShowNavi->setChecked(show_Navi_B);
-chkShowGraph->setChecked(show_Graph_List);
-chkShowSpecZoom->setChecked(show_special_Zoom);
-chkShowViewp->setChecked(show_Viewport_Stack);
-chkShowPageZoom->setChecked(show_Page_Zoom);
-chkShowPrintB->setChecked(show_Print_B);
-chkShowExportP->setChecked(show_Export_B);
-chkShowHostName->setChecked(show_host_name);
-chkShowDisplay->setChecked(show_display_name);
-selFileDisplay1->setCurrentIndex(displ_project_filename);
-selFileDisplay2->setCurrentIndex(displ_export_filename);
-
-//Startup
-selDefaultPrintDevice->setCurrentValue(default_Print_Device);
-lenDefaultFile->setText(QString(default_grace_file));
-selLanguage->setCurrentIndex(current_language);//ok
-selStartupX->setValue(initial_x_pos);
-selStartupY->setValue(initial_y_pos);
-selStartupWidth->setValue(initial_width);
-selStartupHeight->setValue(initial_height);
-selStdDpi->setValue(start_dpi);
 }
 
 void frmQtGracePrefs2::read_settings(void)
 {
-show_Navi_B=chkShowNavi->isChecked();
-show_Graph_List=chkShowGraph->isChecked();
-show_special_Zoom=chkShowSpecZoom->isChecked();
-show_Viewport_Stack=chkShowViewp->isChecked();
-show_Page_Zoom=chkShowPageZoom->isChecked();
-show_Print_B=chkShowPrintB->isChecked();
-show_Export_B=chkShowExportP->isChecked();
-show_host_name=chkShowHostName->isChecked();
-show_display_name=chkShowDisplay->isChecked();
-displ_project_filename=selFileDisplay1->currentIndex();
-displ_export_filename=selFileDisplay2->currentIndex();
-}
 
-void frmQtGracePrefs2::doGraceDefaults(void)
-{
-chkShowNavi->setChecked(true);
-chkShowGraph->setChecked(false);
-chkShowSpecZoom->setChecked(true);
-chkShowViewp->setChecked(true);
-chkShowPageZoom->setChecked(false);
-chkShowPrintB->setChecked(false);
-chkShowExportP->setChecked(false);
-chkShowHostName->setChecked(true);
-chkShowDisplay->setChecked(true);
-selFileDisplay1->setCurrentIndex(1);
-selFileDisplay2->setCurrentIndex(0);
-    doApply();
-}
-
-void frmQtGracePrefs2::doQtGraceDefaults(void)
-{
-chkShowNavi->setChecked(true);
-chkShowGraph->setChecked(true);
-chkShowSpecZoom->setChecked(true);
-chkShowViewp->setChecked(true);
-chkShowPageZoom->setChecked(true);
-chkShowPrintB->setChecked(false);
-chkShowExportP->setChecked(false);
-chkShowHostName->setChecked(true);
-chkShowDisplay->setChecked(false);
-selFileDisplay1->setCurrentIndex(2);
-selFileDisplay2->setCurrentIndex(2);
-    doApply();
-}
-
-void frmQtGracePrefs2::doActDevs(void)
-{
-    if (diaDevAct==NULL)
-    {
-    diaDevAct=new frmDeviceActivator(this);
-    }
-diaDevAct->init();
-diaDevAct->show();
-diaDevAct->activateWindow();
 }
 
 void frmQtGracePrefs2::doApply(void)
 {
-int newlanguage=selLanguage->currentIndex();
-    if (newlanguage!=current_language)
-    {
-        current_language=newlanguage;
-        /*char dummy[512];
-        strcpy(dummy,"[Warning] Changing the language takes effekt after restart of QtGrace.");
-        stufftext(dummy);*/
-    }
-    strcpy(default_grace_file,lenDefaultFile->text().toLocal8Bit().constData());
-    initial_x_pos=selStartupX->value();
-    initial_y_pos=selStartupY->value();
-    initial_width=selStartupWidth->value();
-    initial_height=selStartupHeight->value();
-    start_dpi=selStdDpi->value();
-
-use_fftw3=chkUseFFTW3->isChecked();
-use_libHaru=chkUselibHaru->isChecked();
-path_to_fftw3_lib.setFileName(ledFFTW3_dll->text());
-path_to_libharu.setFileName(ledHaru_dll->text());
-default_Print_Device=selDefaultPrintDevice->currentValue();
-read_settings();
-init();
-mainWin->ManageBars();
-set_left_footer(NULL);
-FormDeviceSetup->changeDeviceList(2);
+//read_settings();
 }
 
 void frmQtGracePrefs2::doAccept(void)
@@ -10678,26 +10839,6 @@ doClose();
 void frmQtGracePrefs2::doClose(void)
 {
 emit(close_wish());
-}
-void frmQtGracePrefs2::doBrowse(void)
-{
-    QString def=QFileDialog::getOpenFileName(this,tr("Select default startup file"),QString(qt_grace_exe_dir));
-    if (!def.isEmpty())
-    {
-        //QFileInfo fi(def);
-        //cout << "Absolute=" << fi.absoluteFilePath().toLocal8Bit().constData() << endl;
-        QDir di(qt_grace_exe_dir);
-        //cout << "Relative=" << relPath.toLocal8Bit().constData() << endl;
-        lenDefaultFile->setText(di.relativeFilePath(def));
-    }
-}
-
-void frmQtGracePrefs2::doCurrentAsStartup(void)
-{
-    selStartupX->setValue(mainWin->x());
-    selStartupY->setValue(mainWin->y());
-    selStartupWidth->setValue(mainWin->width());
-    selStartupHeight->setValue(mainWin->height());
 }
 
 frmDefaults::frmDefaults(QWidget * parent):QWidget(parent)

@@ -2343,6 +2343,7 @@ int main( int argc, char **argv )
     // For Qt > 4.8 plugin search
         if (getenv("BEAST") && getenv("ABI"))
         {
+            qDebug()<<"START 1";
             string qt5DevDir = string(getenv("BEAST")) + "/lib/qt5/" + string(getenv("ABI")) + "/plugins";
             string qt4DevDir = string(getenv("BEAST")) + "/lib/qt4/" + string(getenv("ABI")) + "/plugins";
             string qtRunDir = string(getenv("BEAST")) + "/bin/" + string(getenv("ABI")) + "/plugins";
@@ -3243,14 +3244,14 @@ strcpy(tmp_sformat,sformat);
     allPrefs->beginGroup(QString("ExtraPreferences"));
     //Form_Preferences->tab_extra->lenHome->setText(allPrefs->value(QString("gracehomedirectory"),QVariant(qt_grace_exe_dir)).toString());
     display_help_externally=allPrefs->value(QString("showhelpexternally"),QVariant(false)).toBool();
-    Form_Preferences->tab_extra->lenHelpViewer->setText(allPrefs->value(QString("helpviewer"),QVariant("")).toString());
+    Form_Preferences->lenHelpViewer->setText(allPrefs->value(QString("helpviewer"),QVariant("")).toString());
     current_language=allPrefs->value(QString("language"),QVariant(0)).toInt();
     showhideworkaround=allPrefs->value(QString("showhideworkaround"),QVariant(false)).toBool();
     useQtFonts=allPrefs->value(QString("useQtFonts"),QVariant(false)).toBool();
     symbol_font_is_special=allPrefs->value(QString("SymbolFontIsSpecial"),QVariant(true)).toBool();
     strcpy(dummy,allPrefs->value(QString("DecimalSeparator"),QVariant(".")).toString().toLatin1().constData());
     DecimalPointToUse=dummy[0];
-    Form_Preferences->tab_extra->selDecSep->setCurrentIndex(DecimalPointToUse=='.'?0:1);
+    Form_Preferences->selDecSep->setCurrentIndex(DecimalPointToUse=='.'?0:1);
     set_print_cmd(allPrefs->value(QString("PrintCommand"),QVariant(get_print_cmd())).toString().toLatin1().constData());
     use_print_command=allPrefs->value(QString("UsePrintCommand"),QVariant(false)).toBool();
     auto_set_agr_extension=allPrefs->value(QString("AutoSetAgrExtension"),QVariant(TRUE)).toInt();
@@ -3283,7 +3284,7 @@ strcpy(tmp_sformat,sformat);
 
     allPrefs->beginGroup(QString("History"));
     max_history=allPrefs->value(QString("maxhistory"),QVariant(MAX_HISTORY)).toInt();
-    Form_Preferences->tab_extra->histSize->setValue(max_history);
+    Form_Preferences->histSize->setValue(max_history);
     current_history=allPrefs->value(QString("historysize"),QVariant(0)).toInt();
     for (int i=0;i<MAX_HISTORY;i++)//always save MAX_HISTORY entries (possibly empty ones)
     {
@@ -3296,11 +3297,11 @@ strcpy(tmp_sformat,sformat);
     lastPrintDevice=stdOutputFormat=allPrefs->value(QString("lastOutputFormat"),QVariant(1)).toInt();
     undo_active=allPrefs->value(QString("activateUndoRecords"),QVariant(false)).toBool();///undo deactivated as a default
     activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(false)).toBool();
-    Form_Preferences->tab_extra->chkActivateLaTeXSupport->setChecked(activateLaTeXsupport);
+    Form_Preferences->chkActivateLaTeXSupport->setChecked(activateLaTeXsupport);
     immediateUpdate=allPrefs->value(QString("ImmediateUpdates"),QVariant(false)).toBool();
-    Form_Preferences->tab_extra->chkImmediateUpdate->setChecked(immediateUpdate);
+    Form_Preferences->chkImmediateUpdate->setChecked(immediateUpdate);
     default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(DEVICE_PNG)).toInt();//changed from -1 to PNG
-    Form_Preferences->tab_qtgrace_prefs2->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);
+    Form_Preferences->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);
     //use_new_print_dialog=allPrefs->value(QString("UseNewPrintingDialog"),QVariant(false)).toBool();
     //no paint device yet --> we have to disconnect this, because redraw is inpossible now
     mainWin->disconnect(mainWin->sldPageZoom,SIGNAL(valueChanged(int)),mainWin,SLOT(doPageZoom(int)));
@@ -3324,7 +3325,7 @@ strcpy(tmp_sformat,sformat);
         cout << "Warning, invalid FileCodec! " << codName.toLocal8Bit().constData() << endl;
         FileCodec=QTextCodec::codecForLocale();//fallback is the systems usual codec
     }
-    Form_Preferences->tab_extra->selCodec->setCurrentIndex(index);
+    Form_Preferences->selCodec->setCurrentIndex(index);
     Form_Preferences->tab_extra->init();
     Form_Preferences->tab_prefs->doApply();
     Form_Preferences->tab_extra->doApply();
@@ -3355,7 +3356,7 @@ int nr_of_l_styles;
     DefaultFont=allPrefs->value(QString("DefaultFont"),QVariant(0)).toInt();
     strcpy(default_grace_file,allPrefs->value(QString("DefaultAgrFile"),QVariant(QString("Default.agr"))).toString().toLocal8Bit().constData());
     //Form_Preferences->tab_extra->defaultFont->setCurrentIndex(DefaultFont);
-    Form_Preferences->tab_qtgrace_prefs2->lenDefaultFile->setText(default_grace_file);
+    Form_Preferences->lenDefaultFile->setText(default_grace_file);
     warn_on_encoding_change=allPrefs->value(QString("Warn_On_Encoding_Change"),QVariant(TRUE)).toInt();
     SetToggleButtonState(FormDeviceSetup->dsync_item,allPrefs->value(QString("Sync_Page_Dimensions_On_Devices"),QVariant(true)).toBool());
     SetToggleButtonState(FormDeviceSetup->psync_item,
@@ -3384,11 +3385,11 @@ int col1,col2,col3;
     initial_width=allPrefs->value(QString("InitialWidth"),QVariant(872)).toInt();
     initial_height=allPrefs->value(QString("InitialHeight"),QVariant(670)).toInt();
     start_dpi=allPrefs->value(QString("StartDPI"),QVariant(qApp->desktop()->physicalDpiX())).toInt();
-    Form_Preferences->tab_qtgrace_prefs2->selStartupX->setValue(initial_x_pos);
-    Form_Preferences->tab_qtgrace_prefs2->selStartupY->setValue(initial_y_pos);
-    Form_Preferences->tab_qtgrace_prefs2->selStartupWidth->setValue(initial_width);
-    Form_Preferences->tab_qtgrace_prefs2->selStartupHeight->setValue(initial_height);
-    Form_Preferences->tab_qtgrace_prefs2->selStdDpi->setValue(start_dpi);
+    Form_Preferences->selStartupX->setValue(initial_x_pos);
+    Form_Preferences->selStartupY->setValue(initial_y_pos);
+    Form_Preferences->selStartupWidth->setValue(initial_width);
+    Form_Preferences->selStartupHeight->setValue(initial_height);
+    Form_Preferences->selStdDpi->setValue(start_dpi);
 
 device_table[DEVICE_X11].pg.dpi=start_dpi;
 mainWin->mainArea->completeRedraw();
@@ -3485,12 +3486,12 @@ strcpy(ini_sformat,sformat);
 
     allPrefs->beginGroup(QString("ExtraPreferences"));
     //allPrefs->setValue(QString("gracehomedirectory"),QVariant(Form_Preferences->tab_extra->lenHome->text()));
-    allPrefs->setValue(QString("showhelpexternally"),QVariant(Form_Preferences->tab_extra->chkExternalHelpViewer->isChecked()));
-    allPrefs->setValue(QString("helpviewer"),QVariant(Form_Preferences->tab_extra->lenHelpViewer->text()));
-    allPrefs->setValue(QString("language"),QVariant(Form_Preferences->tab_qtgrace_prefs2->selLanguage->currentIndex()));
-    allPrefs->setValue(QString("showhideworkaround"),QVariant(Form_Preferences->tab_extra->chkShowHideException->isChecked()));
-    allPrefs->setValue(QString("useQtFonts"),QVariant(Form_Preferences->tab_extra->chkQtFonts->isChecked()));
-    allPrefs->setValue(QString("SymbolFontIsSpecial"),QVariant(Form_Preferences->tab_extra->chkSymbolSpecial->isChecked()));
+    allPrefs->setValue(QString("showhelpexternally"),QVariant(Form_Preferences->chkExternalHelpViewer->isChecked()));
+    allPrefs->setValue(QString("helpviewer"),QVariant(Form_Preferences->lenHelpViewer->text()));
+    allPrefs->setValue(QString("language"),QVariant(Form_Preferences->selLanguage->currentIndex()));
+    allPrefs->setValue(QString("showhideworkaround"),QVariant(Form_Preferences->chkShowHideException->isChecked()));
+    allPrefs->setValue(QString("useQtFonts"),QVariant(Form_Preferences->chkQtFonts->isChecked()));
+    allPrefs->setValue(QString("SymbolFontIsSpecial"),QVariant(Form_Preferences->chkSymbolSpecial->isChecked()));
     allPrefs->setValue(QString("DecimalSeparator"),QVariant(QString(DecimalPointToUse)));
     allPrefs->setValue(QString("PrintCommand"),QVariant(get_print_cmd()));
     allPrefs->setValue(QString("UsePrintCommand"),QVariant(use_print_command));

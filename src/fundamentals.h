@@ -832,6 +832,7 @@ QString separator;
 QString currentDir;
 QString selectedFile;
 QString selectedDir;
+QString cur_FileName;
 
 QGridLayout * layout;
 public slots:

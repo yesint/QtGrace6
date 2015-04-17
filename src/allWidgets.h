@@ -887,6 +887,7 @@ public:
     QCheckBox * devfont_item;
 
     frmDeviceOptions * DevOptions[6];
+    QString cur_FileName;
     int cur_dev,cur_version;
     int parent_of_print_dialog;//0=this,1=MainWindow
     char * out_format;
@@ -1066,55 +1067,19 @@ class frmExtraPreferences:public QWidget
 public:
     frmExtraPreferences(QWidget * parent=0);
 
-    QMenu * mnuFile;
+    /*QMenu * mnuFile;
     QMenuBar * menuBar;
-    QAction * actClose,*actLoad,*actSave;
+    QAction * actClose,*actLoad,*actSave;*/
 
-    //General Behavior of QtGrace
-    QGroupBox * grp_Behavior;
-    QGridLayout * layout0;
-    StdSelector * selCodec;
-    QCheckBox * chkActivateLaTeXSupport;
-    QCheckBox * chkQtFonts;
-    QCheckBox * chkSymbolSpecial;
-    StdSelector * selDecSep;
-
-    QCheckBox * chkUsePrintCommand;
-    stdLineEdit * lenPrintCommand;
-    QCheckBox * chkAutoSetAgr;
-    QCheckBox * chkAutoSetExport;
-    QCheckBox * chkAutoSetCWD;
-    QCheckBox * chkWarnOnEncodingChange;
-    QCheckBox * chkHDPrinterOutput;
-    //FontSelector * defaultFont;
-    //stdLineEdit * lenHome;//-->deleted
 
     //Settings for the QtGrace-Gui
     QGroupBox * grp_Gui;
     QVBoxLayout * layout1;
-    QCheckBox * chkExternalHelpViewer;
-    stdLineEdit * lenHelpViewer;
-    QCheckBox * chkShowHideException;
-    QCheckBox * chkImmediateUpdate;
-    QCheckBox * chkNewIcons;
-    //QCheckBox * chkNewPrintDialog;
-    stdIntSelector * histSize;
-    LineWidthSelector * selFontSize;//actually just a double-value-selector to change the general font size
-    QLabel * lblGuiFont;
-    QPushButton * cmdSelGuiFont;
-    QPushButton * cmdResetGuiFont;
-    QLabel * lblBackground_Color_Text;
-    QPushButton * cmdSelGUIBGColor;
-    QPushButton * cmdSetGUIBGColor_to_PageBG;
-    QPushButton * cmdSetGUIBGColor_to_Std;
-
-    QVBoxLayout * layout;
-    stdButtonGroup * buttonGroup;
+    //stdButtonGroup * buttonGroup;
 
 public slots:
     void init(void);
-    void toggleHTMLviewer(int entry);
-    void toggleQtFonts(bool check);
+
     void doLoad(void);
     void doSave(void);
     void doApply(void);
@@ -1122,11 +1087,7 @@ public slots:
     void doClose(void);
 
     void toggleNewIcons(bool val);
-    void changeGUIFont(void);
-    void resetGUIFont(void);
-    void select_BG_Color(void);
-    void set_BG_Color_to_Std(void);
-    void set_BG_Color_to_Page_BG(void);
+
 signals:
     void close_wish(void);
 };
@@ -1137,74 +1098,18 @@ Q_OBJECT
 public:
 frmQtGracePrefs2(QWidget * parent=0);
 
-//QLabel * lblExtLibs;
-QGroupBox * grp_libFFTW3;
-QCheckBox * chkUseFFTW3;
-QLabel * lblFFTW3_found;
-QLabel * lblfftw3_static;
-stdLineEdit * ledFFTW3_dll;
-QPushButton * cmdBrowseFFTW3;
-QGridLayout * layout0;
 
-QGroupBox * grp_libHaru;
-QCheckBox * chkUselibHaru;
-QLabel * lblHaru_found;
-QLabel * lblHaru_static;
-stdLineEdit * ledHaru_dll;
-QPushButton * cmdBrowseHaru;
-QGridLayout * layout1;
-
-QGroupBox * grp_tool_bar;
-QLabel * lblToolBar;
-QCheckBox * chkShowNavi;
-QCheckBox * chkShowGraph;
-QCheckBox * chkShowSpecZoom;
-QCheckBox * chkShowViewp;
-QCheckBox * chkShowPageZoom;
-QCheckBox * chkShowPrintB;
-QCheckBox * chkShowExportP;
-QLabel * lblStatusBar;
-QCheckBox * chkShowHostName;
-QCheckBox * chkShowDisplay;
-StdSelector * selFileDisplay1;
-StdSelector * selFileDisplay2;
-QPushButton * cmdGraceDefaults;
-QPushButton * cmdQtGraceDefaults;
-QPushButton * cmdActDevs;
-frmDeviceActivator * diaDevAct;
-QGridLayout * layout2;
-
-//Startup-Settings
-QGroupBox * grp_Startup;
-QVBoxLayout * layout3;
-QLabel * lblSelStartup;
-QLabel * lblStartupWarning;
-StdSelector * selLanguage;
-stdIntSelector * selStdDpi;
-stdIntSelector * selStartupX;
-stdIntSelector * selStartupY;
-stdIntSelector * selStartupWidth;
-stdIntSelector * selStartupHeight;
-stdLineEdit * lenDefaultFile;
-StdSelector * selDefaultPrintDevice;
-QPushButton * cmdBrowseForDefault;
-QPushButton * cmdStartupCurrent;
 
 QVBoxLayout * layout;
 stdButtonGroup * buttonGroup;
 public slots:
-    void doBrowseFFTW3_dll(void);
-    void doBrowseHaru_dll(void);
+
     void init(void);
     void read_settings(void);
-    void doGraceDefaults(void);
-    void doQtGraceDefaults(void);
-    void doActDevs(void);
+
     void doApply(void);
     void doAccept(void);
     void doClose(void);
-    void doBrowse(void);
-    void doCurrentAsStartup(void);
 signals:
     void close_wish(void);
 };
@@ -1266,17 +1171,145 @@ public:
     QTabWidget * tabs;
 
     frmPreferences * tab_prefs;
+
     frmExtraPreferences * tab_extra;
     frmQtGracePrefs2 * tab_qtgrace_prefs2;
+    frmDefaults * tab_defaults;
     tabLinestyles * tab_linestyles;
     frmColorManagement * tab_colors;
-    frmDefaults * tab_defaults;
+
+    QWidget * tab_GUI;
+    QVBoxLayout * guiLayout;
+    //GUI
+    //customize Interface
+    QGroupBox * grp_tool_bar;
+    QLabel * lblToolBar;
+    QCheckBox * chkShowNavi;
+    QCheckBox * chkShowGraph;
+    QCheckBox * chkShowSpecZoom;
+    QCheckBox * chkShowViewp;
+    QCheckBox * chkShowPageZoom;
+    QCheckBox * chkShowPrintB;
+    QCheckBox * chkShowExportP;
+    QLabel * lblStatusBar;
+    QCheckBox * chkShowHostName;
+    QCheckBox * chkShowDisplay;
+    StdSelector * selFileDisplay1;
+    StdSelector * selFileDisplay2;
+    QPushButton * cmdGraceDefaults;
+    QPushButton * cmdQtGraceDefaults;
+    QPushButton * cmdActDevs;
+    frmDeviceActivator * diaDevAct;
+    QGridLayout * layout2;
+    //Startup-Settings
+    QGroupBox * grp_Startup;
+    QVBoxLayout * layout3;
+    QLabel * lblSelStartup;
+    QLabel * lblStartupWarning;
+    StdSelector * selLanguage;
+    stdIntSelector * selStdDpi;
+    stdIntSelector * selStartupX;
+    stdIntSelector * selStartupY;
+    stdIntSelector * selStartupWidth;
+    stdIntSelector * selStartupHeight;
+    stdLineEdit * lenDefaultFile;
+    StdSelector * selDefaultPrintDevice;
+    QPushButton * cmdBrowseForDefault;
+    QPushButton * cmdStartupCurrent;
+    //QLabel * lblAppearance;
+    QCheckBox * chkNewIcons;
+    //gui-font and background
+    QLabel * lblGuiFont;
+    QPushButton * cmdSelGuiFont;
+    QPushButton * cmdResetGuiFont;
+    QLabel * lblBackground_Color_Text;
+    QPushButton * cmdSelGUIBGColor;
+    QPushButton * cmdSetGUIBGColor_to_PageBG;
+    QPushButton * cmdSetGUIBGColor_to_Std;
+
+    //Behavoir
+    QWidget * tab_Behaviour;
+    QGridLayout * behavLayout;
+    //General Behavior of QtGrace
+    QGroupBox * grp_Behavior;
+    QGridLayout * layout0;
+    StdSelector * selCodec;
+    QCheckBox * chkActivateLaTeXSupport;
+    QCheckBox * chkQtFonts;
+    QCheckBox * chkSymbolSpecial;
+    StdSelector * selDecSep;
+
+    QCheckBox * chkAutoSetAgr;
+    QCheckBox * chkAutoSetExport;
+    QCheckBox * chkAutoSetCWD;
+    QCheckBox * chkWarnOnEncodingChange;
+
+    QCheckBox * chkImmediateUpdate;
+
+    stdIntSelector * histSize;
+    LineWidthSelector * selFontSize;//actually just a double-value-selector to change the general font size
+
+    //Misc
+    QWidget * tab_Misc;
+    QVBoxLayout * miscLayout;
+
+    //QLabel * lblExtLibs;
+    QGroupBox * grp_libFFTW3;
+    QCheckBox * chkUseFFTW3;
+    QLabel * lblFFTW3_found;
+    QLabel * lblfftw3_static;
+    stdLineEdit * ledFFTW3_dll;
+    QPushButton * cmdBrowseFFTW3;
+    QGridLayout * layout_misc0;
+
+    QGroupBox * grp_libHaru;
+    QCheckBox * chkUselibHaru;
+    QLabel * lblHaru_found;
+    QLabel * lblHaru_static;
+    stdLineEdit * ledHaru_dll;
+    QPushButton * cmdBrowseHaru;
+    QGridLayout * layout_misc1;
+
+    QGroupBox * grpMiscMisc;
+    QVBoxLayout * misc2Layout;
+    QCheckBox * chkUsePrintCommand;
+    stdLineEdit * lenPrintCommand;
+    QCheckBox * chkHDPrinterOutput;
+    QCheckBox * chkExternalHelpViewer;
+    stdLineEdit * lenHelpViewer;
+    QCheckBox * chkShowHideException;
+
+    stdButtonGroup * buttons;
+
     QVBoxLayout * vbox;
 public slots:
-    void init(void);
+    void init(void);//init sets the dialog to represent the variables
+    void init_GUI(void);
+    void init_Behavior(void);
+    void init_Misc(void);
+    void read(void);//read sets the variables to represent the dialog
+    void read_GUI(void);
+    void read_Behavior(void);
+    void read_Misc(void);
     void tab_changed(int nr);
     void redisplayContents(void);
     void doClose(void);
+    void doApply(void);
+    void doAccept(void);
+    void doGraceDefaults(void);
+    void doQtGraceDefaults(void);
+    void doActDevs(void);
+    void changeGUIFont(void);
+    void resetGUIFont(void);
+    void select_BG_Color(void);
+    void set_BG_Color_to_Std(void);
+    void set_BG_Color_to_Page_BG(void);
+    void doBrowseStartup(void);
+    void doCurrentAsStartup(void);
+    void toggleHTMLviewer(int entry);
+    void toggleQtFonts(bool check);
+    void doBrowseFFTW3_dll(void);
+    void doBrowseHaru_dll(void);
 };
 
 void showSetInSpreadSheet(int gno,int setno);
