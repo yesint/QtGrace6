@@ -104,7 +104,7 @@ class LocalSocketIpcServer: public QObject
 {
     Q_OBJECT
 public:
-    LocalSocketIpcServer(QString writeServerName,QString readServerName, QObject *parent);
+    LocalSocketIpcServer(QString receiveClientSocketName, QString sendServerSocketName, QObject *parent);
     ~LocalSocketIpcServer();
 
 
@@ -216,9 +216,11 @@ private:
     //! New local server to read data from client
     QLocalServer*       messageFromClienttPtr_m;
     //! New local socket to send data to client
-    QLocalSocket*       messageToClientPtr_;
+    QLocalSocket*       messageToServerPtr_;
     //! Name on the server (used to estabilish communication between Client and QtGrace
-    QString             readServer_m;
+    QString             sendServerSocketName_m;
+    //! Name on the client (used to estabilish communication between Server and QtGrace
+    QString             receiveClientSocketName_m;
     //! Save the numbers of data sets
     QList<int>          saveCountNoOfDataSets_m;
 

@@ -3257,6 +3257,7 @@ strcpy(tmp_sformat,sformat);
     auto_set_agr_extension=allPrefs->value(QString("AutoSetAgrExtension"),QVariant(TRUE)).toInt();
     auto_set_cwd=allPrefs->value(QString("AutoSetCWD"),QVariant(TRUE)).toInt();
     auto_set_export_extensions=allPrefs->value(QString("AutoSetExportExtensions"),QVariant(TRUE)).toInt();
+    autofit_on_load=allPrefs->value(QString("AutoFitPageOnLoad"),QVariant(FALSE)).toInt();
     useHDPrinterOutput=allPrefs->value(QString("UseHDPrinterOutput"),QVariant(FALSE)).toInt();
 
     use_fftw3=allPrefs->value(QString("UseLibFFTW3"),QVariant(FALSE)).toInt();
@@ -3294,6 +3295,7 @@ strcpy(tmp_sformat,sformat);
     allPrefs->endGroup();
 
     allPrefs->beginGroup(QString("General"));
+    general_behavior=allPrefs->value(QString("Behavior"),QVariant(0)).toInt();
     lastPrintDevice=stdOutputFormat=allPrefs->value(QString("lastOutputFormat"),QVariant(1)).toInt();
     undo_active=allPrefs->value(QString("activateUndoRecords"),QVariant(false)).toBool();///undo deactivated as a default
     activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(false)).toBool();
@@ -3498,6 +3500,7 @@ strcpy(ini_sformat,sformat);
     allPrefs->setValue(QString("AutoSetAgrExtension"),QVariant(auto_set_agr_extension));
     allPrefs->setValue(QString("AutoSetCWD"),QVariant(auto_set_cwd));
     allPrefs->setValue(QString("AutoSetExportExtensions"),QVariant(auto_set_export_extensions));
+    allPrefs->setValue(QString("AutoFitPageOnLoad"),QVariant(autofit_on_load));
     allPrefs->setValue(QString("UseHDPrinterOutput"),QVariant(useHDPrinterOutput));
 
     allPrefs->setValue(QString("UseLibFFTW3"),QVariant(use_fftw3));
@@ -3537,6 +3540,7 @@ strcpy(ini_sformat,sformat);
     allPrefs->endGroup();
 
     allPrefs->beginGroup(QString("General"));
+    allPrefs->setValue(QString("Behavior"),QVariant(general_behavior));
     allPrefs->setValue(QString("lastOutputFormat"),QVariant(stdOutputFormat));
     allPrefs->setValue(QString("activateUndoRecords"),QVariant(undo_active));
     allPrefs->setValue(QString("activateLaTeXSupport"),QVariant(activateLaTeXsupport));
@@ -3694,6 +3698,8 @@ void UpdateAllWindowContents(void)//a "repaint"-funktion for all widgets
         /// Encoding fuer Project description fehlt
         FormPlotAppearance->flp->ledStampCoords[0]->ReplaceNumberContents();
         FormPlotAppearance->flp->ledStampCoords[1]->ReplaceNumberContents();
+        FormPlotAppearance->flp->selFontSize->setLocale(newLocale);
+        FormPlotAppearance->flp->selFontSize->setValue(FormPlotAppearance->flp->selFontSize->value());
     }
     if (FormLocatorProps)
     {
@@ -5119,4 +5125,17 @@ void update_default_props(void)
     immediateUpdate=sav_imm_upd;
 }
 
+void set_docname_external(const char *s)//set docfilename and update the dialogs --> WARNING: this updates the exportfilename as well!
+{
+set_docname(s);
+set_left_footer(NULL);
+FormDeviceSetup->printfile_item->setText(QString(s));
+}
+
+void set_exportname_external(const char *s)//set exportfilename and update the dialogs
+{
+set_exportname(s);
+set_left_footer(NULL);
+FormDeviceSetup->printfile_item->setText(QString(s));
+}
 

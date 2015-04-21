@@ -1722,7 +1722,10 @@ int load_project_file(char *fn, int as_n_template)
 //cout << "AFTER LOAD: FONT=" << grdefaults.font << endl;
         //set_exportname(NULL);
         update_line_style_selectors();
-        mainWin->doPageZoom(mainWin->sldPageZoom->value());
+            if (autofit_on_load==TRUE)
+            mainWin->doFitPage();
+            else
+            mainWin->doPageZoom(mainWin->sldPageZoom->value());
         return retval;
     }
 }

@@ -205,7 +205,6 @@ GLOBAL(string_just, int, 0);
 GLOBAL(string_size, double, 1.0);
 GLOBAL(string_loctype, int, COORD_VIEW);
 
-
 /* used in the parser */
 GLOBAL(curtype, int, SET_XY);
 GLOBAL(cursource, int, SOURCE_DISK);
@@ -276,6 +275,8 @@ GLOBAL(show_host_name,int,FALSE);
 GLOBAL(show_display_name,int,FALSE);
 GLOBAL(displ_project_filename,int,1);
 GLOBAL(displ_export_filename,int,0);
+GLOBAL(general_behavior,int,0);
+GLOBAL(autofit_on_load,int,0);
 
 GLOBAL(win_h,unsigned int,0);
 GLOBAL(win_w,unsigned int,0);

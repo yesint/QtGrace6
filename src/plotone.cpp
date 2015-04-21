@@ -50,6 +50,7 @@
 #include "plotone.h"
 #include "noxprotos.h"
 #include <QPixmap>
+#include <QColor>
 #include <QtGui>
 #include <QPainter>
 #include <QSvgRenderer>
@@ -104,6 +105,27 @@ extern void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true);
 void doPlotFit(void)
 {
     mainWin->doFitPage();
+}
+
+QImage convertImageToGrayscale(QImage * img)
+{
+QImage g_img(*img);
+QColor col;
+uint gr;
+QPainter pa(&g_img);
+for (int i=0;i<g_img.width();i++)
+{
+    for (int j=0;j<g_img.height();j++)
+    {
+    col.setRgb(img->pixel(i,j));
+    gr=(col.red() * 11 + col.green() * 16 + col.blue() * 5)/32;
+    col.setRgb(gr,gr,gr);
+    pa.setPen(col);
+    pa.drawPoint(i,j);
+    }
+}
+pa.end();
+return g_img;
 }
 
 QString InternalTargetName(int targ)
@@ -218,7 +240,7 @@ printing_in_file=true;
     break;
     //case DEVICE_HD_PNG:
     case DEVICE_PDF:
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050300
         print_target=PRINT_TARGET_PDF_FILE;
         target_device=DEVICE_X11;
         return true;
@@ -366,7 +388,6 @@ if (print_target==PRINT_TARGET_SVG_FILE)
     stdGenerator->setTitle(QString("QtGrace: ")+QString::fromStdString(Str));
     //stdGenerator->setTitle(QString("QtGrace: ")+QString(get_docname()));
     stdGenerator->setDescription(QString(get_project_description()));
-
 }
 else if (target_device==DEVICE_PDF_HARU)
 {
@@ -522,18 +543,20 @@ truncated_out = FALSE;
        {
        if (GeneralPainter->isActive()==true)
        GeneralPainter->end();
-       cout << "monoMode=" << monomode << " OutputGrayScale=" << outputGrayscale << " Quality=" << outputQuality << endl;
+       //cout << "monoMode=" << monomode << " OutputGrayScale=" << outputGrayscale << " Quality=" << outputQuality << endl;
             if (monomode == FALSE && outputGrayscale==false)
             {
             pm=QPixmap::fromImage(*MainPixmap,Qt::AutoColor | Qt::DiffuseAlphaDither);
-            cout << "Color" << endl;
+            //cout << "Color" << endl;
             }
             else
             {
-            QImage con_img=MainPixmap->convertToFormat(QImage::Format_Mono,Qt::MonoOnly);
+            //QImage con_img=MainPixmap->convertToFormat(QImage::Format_Mono,Qt::MonoOnly);
+            QImage con_img=convertImageToGrayscale(MainPixmap);
             //pm=QPixmap::fromImage(*MainPixmap,Qt::MonoOnly);
-            pm=QPixmap::fromImage(con_img,Qt::MonoOnly);
-            cout << "MonoOnly" << endl;
+            //pm=QPixmap::fromImage(con_img,Qt::MonoOnly);
+            pm=QPixmap::fromImage(con_img);
+            //cout << "MonoOnly" << endl;
             }
             ret=false;
                 switch (c_dev)

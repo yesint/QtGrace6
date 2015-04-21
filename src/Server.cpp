@@ -30,10 +30,16 @@
 #include <QMessageBox>
 
 extern char startupphase;
+extern void set_docname_external(const char *s);
+extern void set_exportname_external(const char *s);
+
 
 // initialize server
-LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString readServerName, QObject *parent)    :QObject(parent)
-  ,isDebugFlagOn_m(false)
+LocalSocketIpcServer::LocalSocketIpcServer(QString receiveClientSocketName,
+                                           QString sendServerSocketName,
+                                           QObject *parent)
+   :QObject(parent)
+  ,isDebugFlagOn_m(true)
   ,messageSendGraphParam_m(NULL)
   ,messageParamGraphLength_m(0)
   ,messagePtr_m(NULL)
@@ -62,8 +68,9 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
   ,dataFromBuffer_m(" ")
   ,availableBytesFromSocket_m(0)
   ,messageFromClienttPtr_m(NULL)
-  ,messageToClientPtr_(NULL)
-  ,readServer_m("")
+  ,messageToServerPtr_(NULL)
+  ,sendServerSocketName_m(sendServerSocketName)
+  ,receiveClientSocketName_m(receiveClientSocketName)
   ,clientConnection(NULL)
 
 {
@@ -87,7 +94,7 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
     //Read from Beast
     messageFromClienttPtr_m = new QLocalServer(this);
 
-    bool listenOK=messageFromClienttPtr_m->listen(writeServerName);
+    bool listenOK=messageFromClienttPtr_m->listen(receiveClientSocketName_m);
     if(listenOK){
         if(isDebugFlagOn_m){
             *debugOut_m<< "Start the Server (listen OK)\n"<<endl;
@@ -109,11 +116,10 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
     buffer_m.open(QIODevice::Append);
 
     //Write to client
-    messageToClientPtr_ = new QLocalSocket(this);
-    readServer_m = readServerName;
-    connect(messageToClientPtr_, SIGNAL(connected()), this, SLOT(sendDataToClient()));
-    connect(messageToClientPtr_, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
-    connect(messageToClientPtr_, SIGNAL(error(QLocalSocket::LocalSocketError)),
+    messageToServerPtr_ = new QLocalSocket(this);
+    connect(messageToServerPtr_, SIGNAL(connected()), this, SLOT(sendDataToClient()));
+    connect(messageToServerPtr_, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
+    connect(messageToServerPtr_, SIGNAL(error(QLocalSocket::LocalSocketError)),
             this, SLOT(socketError(QLocalSocket::LocalSocketError)));
 
     if(isDebugFlagOn_m){
@@ -125,18 +131,18 @@ LocalSocketIpcServer::LocalSocketIpcServer(QString writeServerName, QString read
 
 void LocalSocketIpcServer::ConnectToClient( const char* sendParam, int sendLen) {
     if(isDebugFlagOn_m){
-        *debugOut_m<< "2) Connect to Server\n"+readServer_m;
+        *debugOut_m<< "2) Connect to Server\n"+sendServerSocketName_m;
         *debugOut_m<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
         debugOut_m->flush();
     }
 
 
     //Wait to write to QLocalSocket buffer until previous data has been analysed by client and sends a disconnect signal.
-    while(messageToClientPtr_->state()==QLocalSocket::ConnectedState)
+    while(messageToServerPtr_->state()==QLocalSocket::ConnectedState)
     {
-         if(!messageToClientPtr_->waitForDisconnected(60000)){
+         if(!messageToServerPtr_->waitForDisconnected(60000)){
              //We don't want to wait for a disconnect signal from client forever.
-            QMessageBox::information(0,"Communication Error",messageToClientPtr_->errorString() + ". Try to restart QtGrace");
+            QMessageBox::information(0,"Communication Error",messageToServerPtr_->errorString() + ". Try to restart QtGrace");
             exit(0);
           }
 
@@ -144,8 +150,8 @@ void LocalSocketIpcServer::ConnectToClient( const char* sendParam, int sendLen) 
 
     messageSendGraphParam_m = sendParam;
     messageParamGraphLength_m = sendLen;
-    messageToClientPtr_->abort();
-    messageToClientPtr_->connectToServer(readServer_m);
+    messageToServerPtr_->abort();
+    messageToServerPtr_->connectToServer(sendServerSocketName_m);
 
 }
 
@@ -158,8 +164,8 @@ LocalSocketIpcServer::~LocalSocketIpcServer() {
     delete messageFromClienttPtr_m;
     messageFromClienttPtr_m = NULL;
 
-    delete messageToClientPtr_;
-    messageToClientPtr_ = NULL;
+    delete messageToServerPtr_;
+    messageToServerPtr_ = NULL;
 
     if(isDebugFlagOn_m){
         debugFile_m->close();
@@ -358,13 +364,14 @@ void LocalSocketIpcServer::executeTaskFromClient()
             *debugOut_m<<"Run Command" << command_m<<"\n";
         }
 
-        set_page_dimensions(733,538,1);
+        //set_page_dimensions(733,538,1);
         //set_page_geometry()
 
         startupphase=1;
         oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
+        doPlotFit();
         setScalingMode();
         noask=oldNoask_m;
         startupphase=0;
@@ -492,6 +499,8 @@ void LocalSocketIpcServer::executeTaskFromClient()
 
         isWriteToTmpFile_m=true;
         countNoOfRead_m = 0;
+
+
         break;
     }
     case TEST_CONNECTION:
@@ -522,7 +531,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
 
 void LocalSocketIpcServer::sendDataToClient(){
 
-    messageToClientPtr_->write(messageSendGraphParam_m,messageParamGraphLength_m);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
+    messageToServerPtr_->write(messageSendGraphParam_m,messageParamGraphLength_m);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
 
 }
 
@@ -833,6 +842,8 @@ void LocalSocketIpcServer::readPsFileName(){
     if(dataSet1Ptr[0] != '\0'){
         qtGraceDocStrName_m = (string)dataSet1Ptr;
         set_docname(dataSet1Ptr);
+        set_docname_external(dataSet1Ptr);
+        set_exportname_external(dataSet1Ptr);
     }
 
     delete[]dataSet1Ptr;
@@ -906,12 +917,12 @@ void LocalSocketIpcServer::setLayoutMode(){
     graphNo_m = dataLength_m;
 
     //Set QtGrace plot viewport
-    view v;
+    /*view v;
     v.xv1 = 0.21;
     v.xv2 = 1.21;
     v.yv1 =0.15;
     v.yv2 = 0.85;
-
+*/
     //Update legend properties dialogue
     for(int iSetNo = 0; iSetNo < countNoOfDataSets_m; iSetNo++){
         set_legend_string(graphNo_m,iSetNo,get_legend_string(graphNo_m,iSetNo));
@@ -1030,8 +1041,8 @@ void LocalSocketIpcServer::socketError(QLocalSocket::LocalSocketError) {
     debugOut_m->flush();
     }
 
-    if(messageToClientPtr_->error()!=QAbstractSocket::RemoteHostClosedError)
-        QMessageBox::information(0,"Communication Error",messageToClientPtr_->errorString() + ". Try to restart QtGrace");
+    if(messageToServerPtr_->error()!=QAbstractSocket::RemoteHostClosedError)
+        QMessageBox::information(0,"Communication Error",messageToServerPtr_->errorString() + ". Try to restart QtGrace");
 
 }
 

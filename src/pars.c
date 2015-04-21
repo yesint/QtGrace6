@@ -1,21 +1,24 @@
-/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
-/* Bison implementation for Yacc-like parsers in C
-   
-      Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
-   
-   This program is free software: you can redistribute it and/or modify
+/* Skeleton implementation for Bison's Yacc-like parsers in C
+
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-   
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -26,7 +29,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -44,7 +47,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.7.12-4996"
+#define YYBISON_VERSION "2.3"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -52,191 +55,10 @@
 /* Pure parsers.  */
 #define YYPURE 0
 
-/* Push parsers.  */
-#define YYPUSH 0
-
-/* Pull parsers.  */
-#define YYPULL 1
+/* Using locations.  */
+#define YYLSP_NEEDED 0
 
 
-
-
-/* Copy the first part of user declarations.  */
-
-
-/*
- * Grace - GRaphing, Advanced Computation and Exploration of data
- * 
- * Home page: http://plasma-gate.weizmann.ac.il/Grace/
- * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
- * 
- * Maintained by Evgeny Stambulchik
- * 
- * 
- *                           All Rights Reserved
- * 
- *    This program is free software; you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
- * 
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- * 
- *    You should have received a copy of the GNU General Public License
- *    along with this program; if not, write to the Free Software
- *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
-
-/*  
- * 
- * evaluate expressions, commands, parameter files
- * 
- */
-
-
-#include "cmath.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-/*#include <unistd.h>*/
-#include <string.h>
-#include <ctype.h>
-#if defined(HAVE_SYS_PARAM_H)
-#  include <sys/param.h>
-#endif
-
-/* bison not always handles it well itself */
-#if defined(HAVE_ALLOCA_H)
-#  include <alloca.h>
-#endif
-
-#include "defines.h"
-#include "globals.h"
-#include "cephes.h"
-#include "device.h"
-#include "utils.h"
-#include "files.h"
-#include "graphs.h"
-#include "graphutils.h"
-#include "plotone.h"
-#include "dlmodule.h"
-#include "t1fonts.h"
-#include "ssdata.h"
-#include "noxprotos.h"
-#define PURE_C_PARSER 1
-#include "parser.h"
-#undef PURE_C_PARSER
-#include "mathstuff.h"
-
-#define MAX_PARS_STRING_LENGTH  4096
-
-#define CAST_DBL_TO_BOOL(x) (fabs(x) < 0.5 ? 0:1)
-
-typedef double (*ParserFnc)();
-
-extern graph *g;
-
-static double  s_result;    /* return value if a scalar expression is scanned*/
-static grarr *v_result;    /* return value if a vector expression is scanned*/
-
-static int expr_parsed, vexpr_parsed;
-
-static int interr;
-
-static grarr freelist[100]; 	/* temporary vectors */
-static int fcnt = 0;		/* number of the temporary vectors allocated */
-
-static target trgt_pool[100]; 	/* pool of temporary targets */
-static int tgtn = 0;		/* number of the temporary targets used */
-
-int naxis = 0;	/* current axis */
-static int curline, curbox, curellipse, curstring;
-/* these guys attempt to avoid reentrancy problems */
-static int gotparams = FALSE, gotread = FALSE, gotnlfit = FALSE; 
-int readxformat;
-static int nlfit_gno, nlfit_setno, nlfit_nsteps;
-static double *nlfit_warray = NULL;
-
-char batchfile[GR_MAXPATHLEN] = "",
-     paramfile[GR_MAXPATHLEN] = "",
-     readfile[GR_MAXPATHLEN] = "";
-
-static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
-static int pos;
-
-/* the graph, set, and its length of the parser's current state */
-static int whichgraph;
-static int whichset;
-
-/* the graph and set of the left part of a vector assignment */
-static int vasgn_gno;
-static int vasgn_setno;
-
-static int alias_force = FALSE; /* controls whether aliases can override existing keywords */
-extern int error_count;
-extern int qtspecial_scanner(char * command,int * errors);
-extern int current_origin_graph,current_origin_set;
-extern int current_target_graph,current_target_set;
-extern void prepare_strings_for_saving(void);
-extern void resume_strings_after_load_or_save(void);
-
-extern char print_file[];
-extern char *close_input;
-
-static int filltype_obs;
-
-static int index_shift = 0;     /* 0 for C, 1 for F77 index notation */
-
-static void free_tmpvrbl(grarr *vrbl);
-static void copy_vrbl(grarr *dest, grarr *src);
-static int find_set_bydata(double *data, target *tgt);
-
-static int getcharstr(void);
-static void ungetchstr(void);
-static int follow(int expect, int ifyes, int ifno);
-
-static int yylex(void);
-static int yyparse(void);
-static void yyerror(char *s);
-
-static int findf(symtab_entry *keytable, char *s);
-static double rint_2(double v);
-
-/* Total (intrinsic + user-defined) list of functions and keywords */
-symtab_entry *key;
-
-
-
-
-# ifndef YY_NULL
-#  if defined __cplusplus && 201103L <= __cplusplus
-#   define YY_NULL nullptr
-#  else
-#   define YY_NULL 0
-#  endif
-# endif
-
-/* Enabling verbose error messages.  */
-#ifdef YYERROR_VERBOSE
-# undef YYERROR_VERBOSE
-# define YYERROR_VERBOSE 1
-#else
-# define YYERROR_VERBOSE 0
-#endif
-
-
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-#if YYDEBUG
-extern int yydebug;
-#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -1012,47 +834,202 @@ extern int yydebug;
 
 
 
+
+/* Copy the first part of user declarations.  */
+#line 1 "pars.yacc"
+
+/*
+ * Grace - GRaphing, Advanced Computation and Exploration of data
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2003 Grace Development Team
+ * 
+ * Maintained by Evgeny Stambulchik
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/*  
+ * 
+ * evaluate expressions, commands, parameter files
+ * 
+ */
+
+
+#include "cmath.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+/*#include <unistd.h>*/
+#include <string.h>
+#include <ctype.h>
+#if defined(HAVE_SYS_PARAM_H)
+#  include <sys/param.h>
+#endif
+
+/* bison not always handles it well itself */
+#if defined(HAVE_ALLOCA_H)
+#  include <alloca.h>
+#endif
+
+#include "defines.h"
+#include "globals.h"
+#include "cephes.h"
+#include "device.h"
+#include "utils.h"
+#include "files.h"
+#include "graphs.h"
+#include "graphutils.h"
+#include "plotone.h"
+#include "dlmodule.h"
+#include "t1fonts.h"
+#include "ssdata.h"
+#include "noxprotos.h"
+#define PURE_C_PARSER 1
+#include "parser.h"
+#undef PURE_C_PARSER
+#include "mathstuff.h"
+
+#define MAX_PARS_STRING_LENGTH  4096
+
+#define CAST_DBL_TO_BOOL(x) (fabs(x) < 0.5 ? 0:1)
+
+typedef double (*ParserFnc)();
+
+extern graph *g;
+
+static double  s_result;    /* return value if a scalar expression is scanned*/
+static grarr *v_result;    /* return value if a vector expression is scanned*/
+
+static int expr_parsed, vexpr_parsed;
+
+static int interr;
+
+static grarr freelist[100]; 	/* temporary vectors */
+static int fcnt = 0;		/* number of the temporary vectors allocated */
+
+static target trgt_pool[100]; 	/* pool of temporary targets */
+static int tgtn = 0;		/* number of the temporary targets used */
+
+int naxis = 0;	/* current axis */
+static int curline, curbox, curellipse, curstring;
+/* these guys attempt to avoid reentrancy problems */
+static int gotparams = FALSE, gotread = FALSE, gotnlfit = FALSE; 
+int readxformat;
+static int nlfit_gno, nlfit_setno, nlfit_nsteps;
+static double *nlfit_warray = NULL;
+
+char batchfile[GR_MAXPATHLEN] = "",
+     paramfile[GR_MAXPATHLEN] = "",
+     readfile[GR_MAXPATHLEN] = "";
+
+static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
+static int pos;
+
+/* the graph, set, and its length of the parser's current state */
+static int whichgraph;
+static int whichset;
+
+/* the graph and set of the left part of a vector assignment */
+static int vasgn_gno;
+static int vasgn_setno;
+
+static int alias_force = FALSE; /* controls whether aliases can override existing keywords */
+extern int error_count;
+extern int qtspecial_scanner(char * command,int * errors);
+extern int current_origin_graph,current_origin_set;
+extern int current_target_graph,current_target_set;
+extern void prepare_strings_for_saving(void);
+extern void resume_strings_after_load_or_save(void);
+
+extern char print_file[];
+extern char *close_input;
+
+static int filltype_obs;
+
+static int index_shift = 0;     /* 0 for C, 1 for F77 index notation */
+
+static void free_tmpvrbl(grarr *vrbl);
+static void copy_vrbl(grarr *dest, grarr *src);
+static int find_set_bydata(double *data, target *tgt);
+
+static int getcharstr(void);
+static void ungetchstr(void);
+static int follow(int expect, int ifyes, int ifno);
+
+static int yylex(void);
+static int yyparse(void);
+static void yyerror(char *s);
+
+static int findf(symtab_entry *keytable, char *s);
+static double rint_2(double v);
+
+/* Total (intrinsic + user-defined) list of functions and keywords */
+symtab_entry *key;
+
+
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+
+/* Enabling verbose error messages.  */
+#ifdef YYERROR_VERBOSE
+# undef YYERROR_VERBOSE
+# define YYERROR_VERBOSE 1
+#else
+# define YYERROR_VERBOSE 0
+#endif
+
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
+#endif
+
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
+#line 150 "pars.yacc"
 {
-
-
     int     ival;
     double  dval;
     char   *sval;
     double *dptr;
     target *trgt;
     grarr  *vrbl;
-
-
-
-} YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
+}
+/* Line 193 of yacc.c.  */
+#line 1020 "pars.tab.cacc"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
-
-extern YYSTYPE yylval;
-
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void *YYPARSE_PARAM);
-#else
-int yyparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void);
-#else
-int yyparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
 
 
 
 /* Copy the second part of user declarations.  */
 
 
+/* Line 216 of yacc.c.  */
+#line 1033 "pars.tab.cacc"
 
 #ifdef short
 # undef short
@@ -1105,45 +1082,36 @@ typedef short int yytype_int16;
 # if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
-#   define YY_(Msgid) dgettext ("bison-runtime", Msgid)
+#   define YY_(msgid) dgettext ("bison-runtime", msgid)
 #  endif
 # endif
 # ifndef YY_
-#  define YY_(Msgid) Msgid
-# endif
-#endif
-
-#ifndef __attribute__
-/* This feature is available in gcc versions 2.5 and later.  */
-# if (! defined __GNUC__ || __GNUC__ < 2 \
-      || (__GNUC__ == 2 && __GNUC_MINOR__ < 5))
-#  define __attribute__(Spec) /* empty */
+#  define YY_(msgid) msgid
 # endif
 #endif
 
 /* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
-# define YYUSE(E) ((void) (E))
+# define YYUSE(e) ((void) (e))
 #else
-# define YYUSE(E) /* empty */
+# define YYUSE(e) /* empty */
 #endif
-
 
 /* Identity function, used to suppress warnings about constant conditions.  */
 #ifndef lint
-# define YYID(N) (N)
+# define YYID(n) (n)
 #else
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static int
-YYID (int yyi)
+YYID (int i)
 #else
 static int
-YYID (yyi)
-    int yyi;
+YYID (i)
+    int i;
 #endif
 {
-  return yyi;
+  return i;
 }
 #endif
 
@@ -1164,12 +1132,11 @@ YYID (yyi)
 #    define alloca _alloca
 #   else
 #    define YYSTACK_ALLOC alloca
-#    if ! defined _ALLOCA_H && ! defined EXIT_SUCCESS && (defined __STDC__ || defined __C99__FUNC__ \
+#    if ! defined _ALLOCA_H && ! defined _STDLIB_H && (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 #     include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
-      /* Use EXIT_SUCCESS as a witness for stdlib.h.  */
-#     ifndef EXIT_SUCCESS
-#      define EXIT_SUCCESS 0
+#     ifndef _STDLIB_H
+#      define _STDLIB_H 1
 #     endif
 #    endif
 #   endif
@@ -1192,24 +1159,24 @@ YYID (yyi)
 #  ifndef YYSTACK_ALLOC_MAXIMUM
 #   define YYSTACK_ALLOC_MAXIMUM YYSIZE_MAXIMUM
 #  endif
-#  if (defined __cplusplus && ! defined EXIT_SUCCESS \
+#  if (defined __cplusplus && ! defined _STDLIB_H \
        && ! ((defined YYMALLOC || defined malloc) \
 	     && (defined YYFREE || defined free)))
 #   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
-#   ifndef EXIT_SUCCESS
-#    define EXIT_SUCCESS 0
+#   ifndef _STDLIB_H
+#    define _STDLIB_H 1
 #   endif
 #  endif
 #  ifndef YYMALLOC
 #   define YYMALLOC malloc
-#   if ! defined malloc && ! defined EXIT_SUCCESS && (defined __STDC__ || defined __C99__FUNC__ \
+#   if ! defined malloc && ! defined _STDLIB_H && (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 void *malloc (YYSIZE_T); /* INFRINGES ON USER NAME SPACE */
 #   endif
 #  endif
 #  ifndef YYFREE
 #   define YYFREE free
-#   if ! defined free && ! defined EXIT_SUCCESS && (defined __STDC__ || defined __C99__FUNC__ \
+#   if ! defined free && ! defined _STDLIB_H && (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 void free (void *); /* INFRINGES ON USER NAME SPACE */
 #   endif
@@ -1225,9 +1192,9 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  yytype_int16 yyss_alloc;
-  YYSTYPE yyvs_alloc;
-};
+  yytype_int16 yyss;
+  YYSTYPE yyvs;
+  };
 
 /* The size of the maximum gap between one aligned stack and the next.  */
 # define YYSTACK_GAP_MAXIMUM (sizeof (union yyalloc) - 1)
@@ -1238,45 +1205,41 @@ union yyalloc
      ((N) * (sizeof (yytype_int16) + sizeof (YYSTYPE)) \
       + YYSTACK_GAP_MAXIMUM)
 
-# define YYCOPY_NEEDED 1
+/* Copy COUNT objects from FROM to TO.  The source and destination do
+   not overlap.  */
+# ifndef YYCOPY
+#  if defined __GNUC__ && 1 < __GNUC__
+#   define YYCOPY(To, From, Count) \
+      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
+#  else
+#   define YYCOPY(To, From, Count)		\
+      do					\
+	{					\
+	  YYSIZE_T yyi;				\
+	  for (yyi = 0; yyi < (Count); yyi++)	\
+	    (To)[yyi] = (From)[yyi];		\
+	}					\
+      while (YYID (0))
+#  endif
+# endif
 
 /* Relocate STACK from its old location to the new one.  The
    local variables YYSIZE and YYSTACKSIZE give the old and new number of
    elements in the stack, and YYPTR gives the new location of the
    stack.  Advance YYPTR to a properly aligned location for the next
    stack.  */
-# define YYSTACK_RELOCATE(Stack_alloc, Stack)				\
+# define YYSTACK_RELOCATE(Stack)					\
     do									\
       {									\
 	YYSIZE_T yynewbytes;						\
-	YYCOPY (&yyptr->Stack_alloc, Stack, yysize);			\
-	Stack = &yyptr->Stack_alloc;					\
+	YYCOPY (&yyptr->Stack, Stack, yysize);				\
+	Stack = &yyptr->Stack;						\
 	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
 	yyptr += yynewbytes / sizeof (*yyptr);				\
       }									\
     while (YYID (0))
 
 #endif
-
-#if defined YYCOPY_NEEDED && YYCOPY_NEEDED
-/* Copy COUNT objects from SRC to DST.  The source and destination do
-   not overlap.  */
-# ifndef YYCOPY
-#  if defined __GNUC__ && 1 < __GNUC__
-#   define YYCOPY(Dst, Src, Count) \
-      __builtin_memcpy (Dst, Src, (Count) * sizeof (*(Src)))
-#  else
-#   define YYCOPY(Dst, Src, Count)              \
-      do                                        \
-        {                                       \
-          YYSIZE_T yyi;                         \
-          for (yyi = 0; yyi < (Count); yyi++)   \
-            (Dst)[yyi] = (Src)[yyi];            \
-        }                                       \
-      while (YYID (0))
-#  endif
-# endif
-#endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  523
@@ -1863,7 +1826,7 @@ static const yytype_uint16 yyrline[] =
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || 0
+#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
@@ -1940,7 +1903,7 @@ static const char *const yytname[] =
   "pattern_select", "color_select", "linew_select", "opchoice_sel",
   "opchoice", "parmset_obs", "axislabeldesc_obs", "setprop_obs",
   "tickattr_obs", "ticklabelattr_obs", "colpat_obs", "opchoice_sel_obs",
-  "opchoice_obs", YY_NULL
+  "opchoice_obs", 0
 };
 #endif
 
@@ -2170,8 +2133,8 @@ static const yytype_uint8 yyr2[] =
        2,     1,     1,     1,     2,     1,     1,     1,     1,     1
 };
 
-/* YYDEFACT[STATE-NAME] -- Default reduction number in state STATE-NUM.
-   Performed when YYTABLE doesn't specify something else to do.  Zero
+/* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
+   STATE-NUM when YYTABLE doesn't specify something else to do.  Zero
    means the default is an error.  */
 static const yytype_uint16 yydefact[] =
 {
@@ -2548,7 +2511,8 @@ static const yytype_int16 yypgoto[] =
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule which
-   number is the opposite.  If YYTABLE_NINF, syntax error.  */
+   number is the opposite.  If zero, do what YYDEFACT says.
+   If YYTABLE_NINF, syntax error.  */
 #define YYTABLE_NINF -171
 static const yytype_int16 yytable[] =
 {
@@ -3740,12 +3704,6 @@ static const yytype_int16 yytable[] =
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,   342,   343
 };
-
-#define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-900)))
-
-#define yytable_value_is_error(Yytable_value) \
-  (!!((Yytable_value) == (-171)))
 
 static const yytype_int16 yycheck[] =
 {
@@ -5124,50 +5082,78 @@ static const yytype_uint16 yystos[] =
 
 /* Like YYERROR except do call yyerror.  This remains here temporarily
    to ease the transition to the new meaning of YYERROR, for GCC.
-   Once GCC version 2 has supplanted version 1, this can go.  However,
-   YYFAIL appears to be in use.  Nevertheless, it is formally deprecated
-   in Bison 2.4.2's NEWS entry, where a plan to phase it out is
-   discussed.  */
+   Once GCC version 2 has supplanted version 1, this can go.  */
 
 #define YYFAIL		goto yyerrlab
-#if defined YYFAIL
-  /* This is here to suppress warnings from the GCC cpp's
-     -Wunused-macros.  Normally we don't worry about that warning, but
-     some users do, and we want to make it easy for users to remove
-     YYFAIL uses, which will produce warnings from Bison 2.5.  */
-#endif
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)                                  \
-do                                                              \
-  if (yychar == YYEMPTY)                                        \
-    {                                                           \
-      yychar = (Token);                                         \
-      yylval = (Value);                                         \
-      YYPOPSTACK (yylen);                                       \
-      yystate = *yyssp;                                         \
-      goto yybackup;                                            \
-    }                                                           \
-  else                                                          \
-    {                                                           \
+#define YYBACKUP(Token, Value)					\
+do								\
+  if (yychar == YYEMPTY && yylen == 1)				\
+    {								\
+      yychar = (Token);						\
+      yylval = (Value);						\
+      yytoken = YYTRANSLATE (yychar);				\
+      YYPOPSTACK (1);						\
+      goto yybackup;						\
+    }								\
+  else								\
+    {								\
       yyerror (YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
 while (YYID (0))
 
-/* Error token number */
+
 #define YYTERROR	1
 #define YYERRCODE	256
 
 
-/* This macro is provided for backward compatibility. */
+/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
+   If N is 0, then set CURRENT to the empty location which ends
+   the previous symbol: RHS[0] (always defined).  */
+
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
+#ifndef YYLLOC_DEFAULT
+# define YYLLOC_DEFAULT(Current, Rhs, N)				\
+    do									\
+      if (YYID (N))                                                    \
+	{								\
+	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
+	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
+	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
+	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
+	}								\
+      else								\
+	{								\
+	  (Current).first_line   = (Current).last_line   =		\
+	    YYRHSLOC (Rhs, 0).last_line;				\
+	  (Current).first_column = (Current).last_column =		\
+	    YYRHSLOC (Rhs, 0).last_column;				\
+	}								\
+    while (YYID (0))
+#endif
+
+
+/* YY_LOCATION_PRINT -- Print the location on the stream.
+   This macro was not mandated originally: define only if we know
+   we won't break user code: when these are the locations we know.  */
+
 #ifndef YY_LOCATION_PRINT
-# define YY_LOCATION_PRINT(File, Loc) ((void) 0)
+# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+#  define YY_LOCATION_PRINT(File, Loc)			\
+     fprintf (File, "%d.%d-%d.%d",			\
+	      (Loc).first_line, (Loc).first_column,	\
+	      (Loc).last_line,  (Loc).last_column)
+# else
+#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
+# endif
 #endif
 
 
 /* YYLEX -- calling `yylex' with the right arguments.  */
+
 #ifdef YYLEX_PARAM
 # define YYLEX yylex (YYLEX_PARAM)
 #else
@@ -5217,8 +5203,6 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep)
     YYSTYPE const * const yyvaluep;
 #endif
 {
-  FILE *yyo = yyoutput;
-  YYUSE (yyo);
   if (!yyvaluep)
     return;
 # ifdef YYPRINT
@@ -5227,7 +5211,11 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep)
 # else
   YYUSE (yyoutput);
 # endif
-  YYUSE (yytype);
+  switch (yytype)
+    {
+      default:
+	break;
+    }
 }
 
 
@@ -5264,20 +5252,17 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
+yy_stack_print (yytype_int16 *bottom, yytype_int16 *top)
 #else
 static void
-yy_stack_print (yybottom, yytop)
-    yytype_int16 *yybottom;
-    yytype_int16 *yytop;
+yy_stack_print (bottom, top)
+    yytype_int16 *bottom;
+    yytype_int16 *top;
 #endif
 {
   YYFPRINTF (stderr, "Stack now");
-  for (; yybottom <= yytop; yybottom++)
-    {
-      int yybot = *yybottom;
-      YYFPRINTF (stderr, " %d", yybot);
-    }
+  for (; bottom <= top; ++bottom)
+    YYFPRINTF (stderr, " %d", *bottom);
   YYFPRINTF (stderr, "\n");
 }
 
@@ -5311,11 +5296,11 @@ yy_reduce_print (yyvsp, yyrule)
   /* The symbols being reduced.  */
   for (yyi = 0; yyi < yynrhs; yyi++)
     {
-      YYFPRINTF (stderr, "   $%d = ", yyi + 1);
+      fprintf (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
 		       		       );
-      YYFPRINTF (stderr, "\n");
+      fprintf (stderr, "\n");
     }
 }
 
@@ -5352,6 +5337,7 @@ int yydebug;
 # define YYMAXDEPTH 10000
 #endif
 
+
 
 #if YYERROR_VERBOSE
 
@@ -5454,145 +5440,115 @@ yytnamerr (char *yyres, const char *yystr)
 }
 # endif
 
-/* Copy into *YYMSG, which is of size *YYMSG_ALLOC, an error message
-   about the unexpected token YYTOKEN for the state stack whose top is
-   YYSSP.
-
-   Return 0 if *YYMSG was successfully written.  Return 1 if *YYMSG is
-   not large enough to hold the message.  In that case, also set
-   *YYMSG_ALLOC to the required number of bytes.  Return 2 if the
-   required number of bytes is too large to store.  */
-static int
-yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
-                yytype_int16 *yyssp, int yytoken)
+/* Copy into YYRESULT an error message about the unexpected token
+   YYCHAR while in state YYSTATE.  Return the number of bytes copied,
+   including the terminating null byte.  If YYRESULT is null, do not
+   copy anything; just return the number of bytes that would be
+   copied.  As a special case, return 0 if an ordinary "syntax error"
+   message will do.  Return YYSIZE_MAXIMUM if overflow occurs during
+   size calculation.  */
+static YYSIZE_T
+yysyntax_error (char *yyresult, int yystate, int yychar)
 {
-  YYSIZE_T yysize0 = yytnamerr (YY_NULL, yytname[yytoken]);
-  YYSIZE_T yysize = yysize0;
-  enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
-  /* Internationalized format string. */
-  const char *yyformat = YY_NULL;
-  /* Arguments of yyformat. */
-  char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
-  /* Number of reported tokens (one for the "unexpected", one per
-     "expected"). */
-  int yycount = 0;
+  int yyn = yypact[yystate];
 
-  /* There are many possibilities here to consider:
-     - Assume YYFAIL is not used.  It's too flawed to consider.  See
-       <http://lists.gnu.org/archive/html/bison-patches/2009-12/msg00024.html>
-       for details.  YYERROR is fine as it does not invoke this
-       function.
-     - If this state is a consistent state with a default action, then
-       the only way this function was invoked is if the default action
-       is an error action.  In that case, don't check for expected
-       tokens because there are none.
-     - The only way there can be no lookahead present (in yychar) is if
-       this state is a consistent state with a default action.  Thus,
-       detecting the absence of a lookahead is sufficient to determine
-       that there is no unexpected or expected token to report.  In that
-       case, just report a simple "syntax error".
-     - Don't assume there isn't a lookahead just because this state is a
-       consistent state with a default action.  There might have been a
-       previous inconsistent state, consistent state with a non-default
-       action, or user semantic action that manipulated yychar.
-     - Of course, the expected token list depends on states to have
-       correct lookahead information, and it depends on the parser not
-       to perform extra reductions after fetching a lookahead from the
-       scanner and before detecting a syntax error.  Thus, state merging
-       (from LALR or IELR) and default reductions corrupt the expected
-       token list.  However, the list is correct for canonical LR with
-       one exception: it will still contain any token that will not be
-       accepted due to an error action in a later state.
-  */
-  if (yytoken != YYEMPTY)
+  if (! (YYPACT_NINF < yyn && yyn <= YYLAST))
+    return 0;
+  else
     {
-      int yyn = yypact[*yyssp];
-      yyarg[yycount++] = yytname[yytoken];
-      if (!yypact_value_is_default (yyn))
-        {
-          /* Start YYX at -YYN if negative to avoid negative indexes in
-             YYCHECK.  In other words, skip the first -YYN actions for
-             this state because they are default actions.  */
-          int yyxbegin = yyn < 0 ? -yyn : 0;
-          /* Stay within bounds of both yycheck and yytname.  */
-          int yychecklim = YYLAST - yyn + 1;
-          int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
-          int yyx;
+      int yytype = YYTRANSLATE (yychar);
+      YYSIZE_T yysize0 = yytnamerr (0, yytname[yytype]);
+      YYSIZE_T yysize = yysize0;
+      YYSIZE_T yysize1;
+      int yysize_overflow = 0;
+      enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
+      char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
+      int yyx;
 
-          for (yyx = yyxbegin; yyx < yyxend; ++yyx)
-            if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR
-                && !yytable_value_is_error (yytable[yyx + yyn]))
-              {
-                if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
-                  {
-                    yycount = 1;
-                    yysize = yysize0;
-                    break;
-                  }
-                yyarg[yycount++] = yytname[yyx];
-                {
-                  YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
-                  if (! (yysize <= yysize1
-                         && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
-                    return 2;
-                  yysize = yysize1;
-                }
-              }
-        }
+# if 0
+      /* This is so xgettext sees the translatable formats that are
+	 constructed on the fly.  */
+      YY_("syntax error, unexpected %s");
+      YY_("syntax error, unexpected %s, expecting %s");
+      YY_("syntax error, unexpected %s, expecting %s or %s");
+      YY_("syntax error, unexpected %s, expecting %s or %s or %s");
+      YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s");
+# endif
+      char *yyfmt;
+      char const *yyf;
+      static char const yyunexpected[] = "syntax error, unexpected %s";
+      static char const yyexpecting[] = ", expecting %s";
+      static char const yyor[] = " or %s";
+      char yyformat[sizeof yyunexpected
+		    + sizeof yyexpecting - 1
+		    + ((YYERROR_VERBOSE_ARGS_MAXIMUM - 2)
+		       * (sizeof yyor - 1))];
+      char const *yyprefix = yyexpecting;
+
+      /* Start YYX at -YYN if negative to avoid negative indexes in
+	 YYCHECK.  */
+      int yyxbegin = yyn < 0 ? -yyn : 0;
+
+      /* Stay within bounds of both yycheck and yytname.  */
+      int yychecklim = YYLAST - yyn + 1;
+      int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
+      int yycount = 1;
+
+      yyarg[0] = yytname[yytype];
+      yyfmt = yystpcpy (yyformat, yyunexpected);
+
+      for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+	if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
+	  {
+	    if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
+	      {
+		yycount = 1;
+		yysize = yysize0;
+		yyformat[sizeof yyunexpected - 1] = '\0';
+		break;
+	      }
+	    yyarg[yycount++] = yytname[yyx];
+	    yysize1 = yysize + yytnamerr (0, yytname[yyx]);
+	    yysize_overflow |= (yysize1 < yysize);
+	    yysize = yysize1;
+	    yyfmt = yystpcpy (yyfmt, yyprefix);
+	    yyprefix = yyor;
+	  }
+
+      yyf = YY_(yyformat);
+      yysize1 = yysize + yystrlen (yyf);
+      yysize_overflow |= (yysize1 < yysize);
+      yysize = yysize1;
+
+      if (yysize_overflow)
+	return YYSIZE_MAXIMUM;
+
+      if (yyresult)
+	{
+	  /* Avoid sprintf, as that infringes on the user's name space.
+	     Don't have undefined behavior even if the translation
+	     produced a string with the wrong number of "%s"s.  */
+	  char *yyp = yyresult;
+	  int yyi = 0;
+	  while ((*yyp = *yyf) != '\0')
+	    {
+	      if (*yyp == '%' && yyf[1] == 's' && yyi < yycount)
+		{
+		  yyp += yytnamerr (yyp, yyarg[yyi++]);
+		  yyf += 2;
+		}
+	      else
+		{
+		  yyp++;
+		  yyf++;
+		}
+	    }
+	}
+      return yysize;
     }
-
-  switch (yycount)
-    {
-# define YYCASE_(N, S)                      \
-      case N:                               \
-        yyformat = S;                       \
-      break
-      YYCASE_(0, YY_("syntax error"));
-      YYCASE_(1, YY_("syntax error, unexpected %s"));
-      YYCASE_(2, YY_("syntax error, unexpected %s, expecting %s"));
-      YYCASE_(3, YY_("syntax error, unexpected %s, expecting %s or %s"));
-      YYCASE_(4, YY_("syntax error, unexpected %s, expecting %s or %s or %s"));
-      YYCASE_(5, YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
-# undef YYCASE_
-    }
-
-  {
-    YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
-    if (! (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
-      return 2;
-    yysize = yysize1;
-  }
-
-  if (*yymsg_alloc < yysize)
-    {
-      *yymsg_alloc = 2 * yysize;
-      if (! (yysize <= *yymsg_alloc
-             && *yymsg_alloc <= YYSTACK_ALLOC_MAXIMUM))
-        *yymsg_alloc = YYSTACK_ALLOC_MAXIMUM;
-      return 1;
-    }
-
-  /* Avoid sprintf, as that infringes on the user's name space.
-     Don't have undefined behavior even if the translation
-     produced a string with the wrong number of "%s"s.  */
-  {
-    char *yyp = *yymsg;
-    int yyi = 0;
-    while ((*yyp = *yyformat) != '\0')
-      if (*yyp == '%' && yyformat[1] == 's' && yyi < yycount)
-        {
-          yyp += yytnamerr (yyp, yyarg[yyi++]);
-          yyformat += 2;
-        }
-      else
-        {
-          yyp++;
-          yyformat++;
-        }
-  }
-  return 0;
 }
 #endif /* YYERROR_VERBOSE */
+
 
 /*-----------------------------------------------.
 | Release the memory associated to this symbol.  |
@@ -5617,29 +5573,42 @@ yydestruct (yymsg, yytype, yyvaluep)
     yymsg = "Deleting";
   YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
 
-  YYUSE (yytype);
+  switch (yytype)
+    {
+
+      default:
+	break;
+    }
 }
+
+
+/* Prevent warnings from -Wmissing-prototypes.  */
+
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
 
 
-
-/* The lookahead symbol.  */
+/* The look-ahead symbol.  */
 int yychar;
 
-
-#ifndef YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-# define YY_IGNORE_MAYBE_UNINITIALIZED_END
-#endif
-#ifndef YY_INITIAL_VALUE
-# define YY_INITIAL_VALUE(Value) /* Nothing. */
-#endif
-
-/* The semantic value of the lookahead symbol.  */
-YYSTYPE yylval YY_INITIAL_VALUE(yyval_default);
+/* The semantic value of the look-ahead symbol.  */
+YYSTYPE yylval;
 
 /* Number of syntax errors so far.  */
 int yynerrs;
+
 
 
 /*----------.
@@ -5668,37 +5637,14 @@ yyparse ()
 #endif
 #endif
 {
-    int yystate;
-    /* Number of tokens to shift before error messages enabled.  */
-    int yyerrstatus;
-
-    /* The stacks and their tools:
-       `yyss': related to states.
-       `yyvs': related to semantic values.
-
-       Refer to the stacks through separate pointers, to allow yyoverflow
-       to reallocate them elsewhere.  */
-
-    /* The state stack.  */
-    yytype_int16 yyssa[YYINITDEPTH];
-    yytype_int16 *yyss;
-    yytype_int16 *yyssp;
-
-    /* The semantic value stack.  */
-    YYSTYPE yyvsa[YYINITDEPTH];
-    YYSTYPE *yyvs;
-    YYSTYPE *yyvsp;
-
-    YYSIZE_T yystacksize;
-
+  
+  int yystate;
   int yyn;
   int yyresult;
-  /* Lookahead token as an internal (translated) token number.  */
+  /* Number of tokens to shift before error messages enabled.  */
+  int yyerrstatus;
+  /* Look-ahead token as an internal (translated) token number.  */
   int yytoken = 0;
-  /* The variables used to return semantic value and location from the
-     action routines.  */
-  YYSTYPE yyval;
-
 #if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
@@ -5706,22 +5652,54 @@ yyparse ()
   YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
+  /* Three stacks and their tools:
+     `yyss': related to states,
+     `yyvs': related to semantic values,
+     `yyls': related to locations.
+
+     Refer to the stacks thru separate pointers, to allow yyoverflow
+     to reallocate them elsewhere.  */
+
+  /* The state stack.  */
+  yytype_int16 yyssa[YYINITDEPTH];
+  yytype_int16 *yyss = yyssa;
+  yytype_int16 *yyssp;
+
+  /* The semantic value stack.  */
+  YYSTYPE yyvsa[YYINITDEPTH];
+  YYSTYPE *yyvs = yyvsa;
+  YYSTYPE *yyvsp;
+
+
+
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
+
+  YYSIZE_T yystacksize = YYINITDEPTH;
+
+  /* The variables used to return semantic value and location from the
+     action routines.  */
+  YYSTYPE yyval;
+
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
-
-  yyssp = yyss = yyssa;
-  yyvsp = yyvs = yyvsa;
-  yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yystate = 0;
   yyerrstatus = 0;
   yynerrs = 0;
-  yychar = YYEMPTY; /* Cause a token to be read.  */
+  yychar = YYEMPTY;		/* Cause a token to be read.  */
+
+  /* Initialize stack pointers.
+     Waste one element of value and location stack
+     so that they stay on the same level as the state stack.
+     The wasted elements are never initialized.  */
+
+  yyssp = yyss;
+  yyvsp = yyvs;
+
   goto yysetstate;
 
 /*------------------------------------------------------------.
@@ -5748,6 +5726,7 @@ yyparse ()
 	YYSTYPE *yyvs1 = yyvs;
 	yytype_int16 *yyss1 = yyss;
 
+
 	/* Each stack pointer address is followed by the size of the
 	   data in use in that stack, in bytes.  This used to be a
 	   conditional around just the two extra args, but that might
@@ -5755,6 +5734,7 @@ yyparse ()
 	yyoverflow (YY_("memory exhausted"),
 		    &yyss1, yysize * sizeof (*yyssp),
 		    &yyvs1, yysize * sizeof (*yyvsp),
+
 		    &yystacksize);
 
 	yyss = yyss1;
@@ -5777,8 +5757,9 @@ yyparse ()
 	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
 	if (! yyptr)
 	  goto yyexhaustedlab;
-	YYSTACK_RELOCATE (yyss_alloc, yyss);
-	YYSTACK_RELOCATE (yyvs_alloc, yyvs);
+	YYSTACK_RELOCATE (yyss);
+	YYSTACK_RELOCATE (yyvs);
+
 #  undef YYSTACK_RELOCATE
 	if (yyss1 != yyssa)
 	  YYSTACK_FREE (yyss1);
@@ -5789,6 +5770,7 @@ yyparse ()
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
 
+
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
 		  (unsigned long int) yystacksize));
 
@@ -5798,9 +5780,6 @@ yyparse ()
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
-  if (yystate == YYFINAL)
-    YYACCEPT;
-
   goto yybackup;
 
 /*-----------.
@@ -5809,16 +5788,16 @@ yyparse ()
 yybackup:
 
   /* Do appropriate processing given the current state.  Read a
-     lookahead token if we need one and don't already have one.  */
+     look-ahead token if we need one and don't already have one.  */
 
-  /* First try to decide what to do without reference to lookahead token.  */
+  /* First try to decide what to do without reference to look-ahead token.  */
   yyn = yypact[yystate];
-  if (yypact_value_is_default (yyn))
+  if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a lookahead token if don't already have one.  */
+  /* Not known => get a look-ahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
@@ -5844,27 +5823,29 @@ yybackup:
   yyn = yytable[yyn];
   if (yyn <= 0)
     {
-      if (yytable_value_is_error (yyn))
-        goto yyerrlab;
+      if (yyn == 0 || yyn == YYTABLE_NINF)
+	goto yyerrlab;
       yyn = -yyn;
       goto yyreduce;
     }
+
+  if (yyn == YYFINAL)
+    YYACCEPT;
 
   /* Count tokens shifted since error; after three, turn off error
      status.  */
   if (yyerrstatus)
     yyerrstatus--;
 
-  /* Shift the lookahead token.  */
+  /* Shift the look-ahead token.  */
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
-  /* Discard the shifted token.  */
-  yychar = YYEMPTY;
+  /* Discard the shifted token unless it is eof.  */
+  if (yychar != YYEOF)
+    yychar = YYEMPTY;
 
   yystate = yyn;
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
 
   goto yynewstate;
 
@@ -5901,126 +5882,126 @@ yyreduce:
   switch (yyn)
     {
         case 3:
-
+#line 632 "pars.yacc"
     {
             expr_parsed = TRUE;
             s_result = (yyvsp[(1) - (1)].dval);
-        }
+        ;}
     break;
 
   case 4:
-
+#line 636 "pars.yacc"
     {
             vexpr_parsed = TRUE;
             v_result = (yyvsp[(1) - (1)].vrbl);
-        }
+        ;}
     break;
 
   case 8:
-
-    {}
+#line 649 "pars.yacc"
+    {;}
     break;
 
   case 9:
-
-    {}
+#line 650 "pars.yacc"
+    {;}
     break;
 
   case 10:
-
-    {}
+#line 651 "pars.yacc"
+    {;}
     break;
 
   case 11:
-
-    {}
+#line 652 "pars.yacc"
+    {;}
     break;
 
   case 12:
-
-    {}
+#line 653 "pars.yacc"
+    {;}
     break;
 
   case 13:
-
-    {}
+#line 654 "pars.yacc"
+    {;}
     break;
 
   case 14:
-
-    {}
+#line 655 "pars.yacc"
+    {;}
     break;
 
   case 15:
-
-    {}
+#line 656 "pars.yacc"
+    {;}
     break;
 
   case 16:
-
-    {}
+#line 657 "pars.yacc"
+    {;}
     break;
 
   case 17:
-
-    {}
+#line 658 "pars.yacc"
+    {;}
     break;
 
   case 18:
-
+#line 659 "pars.yacc"
     {
 	    return 1;
-	}
+	;}
     break;
 
   case 19:
-
+#line 666 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (1)].dval);
-	}
+	;}
     break;
 
   case 20:
-
+#line 669 "pars.yacc"
     {
 	    (yyval.dval) = *((yyvsp[(1) - (1)].dptr));
-	}
+	;}
     break;
 
   case 21:
-
+#line 672 "pars.yacc"
     {
 	    (yyval.dval) = nonl_parms[(yyvsp[(1) - (1)].ival)].value;
-	}
+	;}
     break;
 
   case 22:
-
+#line 675 "pars.yacc"
     {
 	    (yyval.dval) = nonl_parms[(yyvsp[(1) - (1)].ival)].max;
-	}
+	;}
     break;
 
   case 23:
-
+#line 678 "pars.yacc"
     {
 	    (yyval.dval) = nonl_parms[(yyvsp[(1) - (1)].ival)].min;
-	}
+	;}
     break;
 
   case 24:
-
+#line 681 "pars.yacc"
     {
             if ((yyvsp[(2) - (2)].ival) >= (yyvsp[(1) - (2)].vrbl)->length) {
                 errmsg("Access beyond array bounds");
                 return 1;
             }
             (yyval.dval) = (yyvsp[(1) - (2)].vrbl)->data[(yyvsp[(2) - (2)].ival)];
-	}
+	;}
     break;
 
   case 25:
-
+#line 688 "pars.yacc"
     {
 	    double dummy, dummy2;
             int idummy, ind, length = (yyvsp[(3) - (4)].vrbl)->length;
@@ -6054,11 +6035,11 @@ yyreduce:
                 (yyval.dval) = (double) ind;
                 break;
 	    }
-	}
+	;}
     break;
 
   case 26:
-
+#line 722 "pars.yacc"
     {
 	    if ((yyvsp[(3) - (6)].vrbl)->length != (yyvsp[(5) - (6)].vrbl)->length) {
 		yyerror("X and Y are of different length");
@@ -6066,355 +6047,355 @@ yyreduce:
             } else {
                 (yyval.dval) = trapint((yyvsp[(3) - (6)].vrbl)->data, (yyvsp[(5) - (6)].vrbl)->data, NULL, NULL, (yyvsp[(3) - (6)].vrbl)->length);
             }
-	}
+	;}
     break;
 
   case 27:
-
+#line 730 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (3)].vrbl)->length;
-	}
+	;}
     break;
 
   case 28:
-
+#line 733 "pars.yacc"
     {
 	    (yyval.dval) = getsetlength((yyvsp[(1) - (3)].trgt)->gno, (yyvsp[(1) - (3)].trgt)->setno);
-	}
+	;}
     break;
 
   case 29:
-
+#line 736 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (3)].trgt)->setno;
-	}
+	;}
     break;
 
   case 30:
-
+#line 739 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (3)].ival);
-	}
+	;}
     break;
 
   case 31:
-
+#line 743 "pars.yacc"
     {
             (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (1)].ival)].data)) ();
-	}
+	;}
     break;
 
   case 32:
-
+#line 747 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (2)].dval) * ((ParserFnc) (key[(yyvsp[(2) - (2)].ival)].data)) ();
-	}
+	;}
     break;
 
   case 33:
-
+#line 751 "pars.yacc"
     {
         (yyval.dval) = (((double)rand())/((double)RAND_MAX));//drand48();
-	}
+	;}
     break;
 
   case 34:
-
+#line 755 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (4)].ival)].data)) ((yyvsp[(3) - (4)].ival));
-	}
+	;}
     break;
 
   case 35:
-
+#line 759 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (4)].ival)].data)) ((yyvsp[(3) - (4)].dval));
-	}
+	;}
     break;
 
   case 36:
-
+#line 763 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (6)].ival)].data)) ((yyvsp[(3) - (6)].ival), (yyvsp[(5) - (6)].dval));
-	}
+	;}
     break;
 
   case 37:
-
+#line 767 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (6)].ival)].data)) ((yyvsp[(3) - (6)].ival), (yyvsp[(5) - (6)].ival));
-	}
+	;}
     break;
 
   case 38:
-
+#line 771 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (6)].ival)].data)) ((yyvsp[(3) - (6)].dval), (yyvsp[(5) - (6)].dval));
-	}
+	;}
     break;
 
   case 39:
-
+#line 775 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (8)].ival)].data)) ((yyvsp[(3) - (8)].ival), (yyvsp[(5) - (8)].ival), (yyvsp[(7) - (8)].dval));
-	}
+	;}
     break;
 
   case 40:
-
+#line 779 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (8)].ival)].data)) ((yyvsp[(3) - (8)].dval), (yyvsp[(5) - (8)].dval), (yyvsp[(7) - (8)].dval));
-	}
+	;}
     break;
 
   case 41:
-
+#line 783 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (10)].ival)].data)) ((yyvsp[(3) - (10)].dval), (yyvsp[(5) - (10)].dval), (yyvsp[(7) - (10)].dval), (yyvsp[(9) - (10)].dval));
-	}
+	;}
     break;
 
   case 42:
-
+#line 787 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (12)].ival)].data)) ((yyvsp[(3) - (12)].dval), (yyvsp[(5) - (12)].dval), (yyvsp[(7) - (12)].dval), (yyvsp[(9) - (12)].dval), (yyvsp[(11) - (12)].dval));
-	}
+	;}
     break;
 
   case 43:
-
+#line 791 "pars.yacc"
     {
 	    (yyval.dval) = ((ParserFnc) (key[(yyvsp[(1) - (14)].ival)].data)) ((yyvsp[(3) - (14)].dval), (yyvsp[(5) - (14)].dval), (yyvsp[(7) - (14)].dval), (yyvsp[(9) - (14)].dval), (yyvsp[(11) - (14)].dval), (yyvsp[(13) - (14)].dval));
-	}
+	;}
     break;
 
   case 44:
-
+#line 794 "pars.yacc"
     {
 	    (yyval.dval) = g[(yyvsp[(1) - (3)].ival)].v.xv1;
-	}
+	;}
     break;
 
   case 45:
-
+#line 797 "pars.yacc"
     {
 	    (yyval.dval) = g[(yyvsp[(1) - (3)].ival)].v.xv2;
-	}
+	;}
     break;
 
   case 46:
-
+#line 800 "pars.yacc"
     {
 	    (yyval.dval) = g[(yyvsp[(1) - (3)].ival)].v.yv1;
-	}
+	;}
     break;
 
   case 47:
-
+#line 803 "pars.yacc"
     {
 	    (yyval.dval) = g[(yyvsp[(1) - (3)].ival)].v.yv2;
-	}
+	;}
     break;
 
   case 48:
-
+#line 806 "pars.yacc"
     {
 	    (yyval.dval) = g[(yyvsp[(1) - (3)].ival)].w.xg1;
-	}
+	;}
     break;
 
   case 49:
-
+#line 809 "pars.yacc"
     {
 	    (yyval.dval) = g[(yyvsp[(1) - (3)].ival)].w.xg2;
-	}
+	;}
     break;
 
   case 50:
-
+#line 812 "pars.yacc"
     {
 	    (yyval.dval) = g[(yyvsp[(1) - (3)].ival)].w.yg1;
-	}
+	;}
     break;
 
   case 51:
-
+#line 815 "pars.yacc"
     {
 	    (yyval.dval) = g[(yyvsp[(1) - (3)].ival)].w.yg2;
-	}
+	;}
     break;
 
   case 52:
-
+#line 818 "pars.yacc"
     {
             (yyval.dval) = (yyvsp[(3) - (4)].dval);
-	}
+	;}
     break;
 
   case 53:
-
+#line 821 "pars.yacc"
     { /* yr, mo, day */
 	    (yyval.dval) = cal_and_time_to_jul((yyvsp[(3) - (8)].ival), (yyvsp[(5) - (8)].ival), (yyvsp[(7) - (8)].ival), 12, 0, 0.0);
-	}
+	;}
     break;
 
   case 54:
-
+#line 825 "pars.yacc"
     { /* yr, mo, day, hr, min, sec */
 	    (yyval.dval) = cal_and_time_to_jul((yyvsp[(3) - (14)].ival), (yyvsp[(5) - (14)].ival), (yyvsp[(7) - (14)].ival), (yyvsp[(9) - (14)].ival), (yyvsp[(11) - (14)].ival), (yyvsp[(13) - (14)].dval));
-	}
+	;}
     break;
 
   case 55:
-
+#line 828 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
             (yyval.dval) = g[whichgraph].v.xv1;
-	}
+	;}
     break;
 
   case 56:
-
+#line 835 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    (yyval.dval) = g[whichgraph].v.xv2;
-	}
+	;}
     break;
 
   case 57:
-
+#line 842 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    (yyval.dval) = g[whichgraph].v.yv1;
-	}
+	;}
     break;
 
   case 58:
-
+#line 849 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    (yyval.dval) = g[whichgraph].v.yv2;
-	}
+	;}
     break;
 
   case 59:
-
+#line 856 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    (yyval.dval) = g[whichgraph].w.xg1;
-	}
+	;}
     break;
 
   case 60:
-
+#line 863 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    (yyval.dval) = g[whichgraph].w.xg2;
-	}
+	;}
     break;
 
   case 61:
-
+#line 870 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    (yyval.dval) = g[whichgraph].w.yg1;
-	}
+	;}
     break;
 
   case 62:
-
+#line 877 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    (yyval.dval) = g[whichgraph].w.yg2;
-	}
+	;}
     break;
 
   case 63:
-
+#line 884 "pars.yacc"
     {
 	    double vx, vy;
             get_page_viewport(&vx, &vy);
             (yyval.dval) = vx;
-	}
+	;}
     break;
 
   case 64:
-
+#line 889 "pars.yacc"
     {
 	    double vx, vy;
             get_page_viewport(&vx, &vy);
             (yyval.dval) = vy;
-	}
+	;}
     break;
 
   case 65:
-
+#line 894 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(2) - (3)].dval);
-	}
+	;}
     break;
 
   case 66:
-
+#line 897 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (3)].dval) + (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 67:
-
+#line 900 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (3)].dval) - (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 68:
-
+#line 903 "pars.yacc"
     {
 	    (yyval.dval) = -(yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 69:
-
+#line 906 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 70:
-
+#line 909 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (3)].dval) * (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 71:
-
+#line 913 "pars.yacc"
     {
 	    if ((yyvsp[(3) - (3)].dval) != 0.0) {
 		(yyval.dval) = (yyvsp[(1) - (3)].dval) / (yyvsp[(3) - (3)].dval);
@@ -6422,11 +6403,11 @@ yyreduce:
 		yyerror("Divide by zero");
 		return 1;
 	    }
-	}
+	;}
     break;
 
   case 72:
-
+#line 921 "pars.yacc"
     {
 	    if ((yyvsp[(3) - (3)].dval) != 0.0) {
 		(yyval.dval) = fmod((yyvsp[(1) - (3)].dval), (yyvsp[(3) - (3)].dval));
@@ -6434,11 +6415,11 @@ yyreduce:
 		yyerror("Divide by zero");
 		return 1;
 	    }
-	}
+	;}
     break;
 
   case 73:
-
+#line 929 "pars.yacc"
     {
         if ((yyvsp[(1) - (3)].dval) < 0 && rint_2((yyvsp[(3) - (3)].dval)) != (yyvsp[(3) - (3)].dval)) {
 		yyerror("Negative value raised to non-integer power");
@@ -6449,107 +6430,107 @@ yyreduce:
             } else {
                 (yyval.dval) = pow((yyvsp[(1) - (3)].dval), (yyvsp[(3) - (3)].dval));
             }
-	}
+	;}
     break;
 
   case 74:
-
+#line 940 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (5)].dval) ? (yyvsp[(3) - (5)].dval) : (yyvsp[(5) - (5)].dval);
-	}
+	;}
     break;
 
   case 75:
-
+#line 943 "pars.yacc"
     {
 	   (yyval.dval) = ((yyvsp[(1) - (3)].dval) > (yyvsp[(3) - (3)].dval));
-	}
+	;}
     break;
 
   case 76:
-
+#line 946 "pars.yacc"
     {
 	   (yyval.dval) = ((yyvsp[(1) - (3)].dval) < (yyvsp[(3) - (3)].dval));
-	}
+	;}
     break;
 
   case 77:
-
+#line 949 "pars.yacc"
     {
 	   (yyval.dval) = ((yyvsp[(1) - (3)].dval) <= (yyvsp[(3) - (3)].dval));
-	}
+	;}
     break;
 
   case 78:
-
+#line 952 "pars.yacc"
     {
 	   (yyval.dval) = ((yyvsp[(1) - (3)].dval) >= (yyvsp[(3) - (3)].dval));
-	}
+	;}
     break;
 
   case 79:
-
+#line 955 "pars.yacc"
     {
 	   (yyval.dval) = ((yyvsp[(1) - (3)].dval) == (yyvsp[(3) - (3)].dval));
-	}
+	;}
     break;
 
   case 80:
-
+#line 958 "pars.yacc"
     {
 	    (yyval.dval) = ((yyvsp[(1) - (3)].dval) != (yyvsp[(3) - (3)].dval));
-	}
+	;}
     break;
 
   case 81:
-
+#line 961 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (3)].dval) && (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 82:
-
+#line 964 "pars.yacc"
     {
 	    (yyval.dval) = (yyvsp[(1) - (3)].dval) || (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 83:
-
+#line 967 "pars.yacc"
     {
 	    (yyval.dval) = !((yyvsp[(2) - (2)].dval));
-	}
+	;}
     break;
 
   case 84:
-
+#line 972 "pars.yacc"
     {
             (yyval.sval) = (yyvsp[(1) - (1)].sval);
-	}
+	;}
     break;
 
   case 85:
-
+#line 975 "pars.yacc"
     {
             (yyval.sval) = concat_strings((yyvsp[(1) - (3)].sval), (yyvsp[(3) - (3)].sval));
             xfree((yyvsp[(3) - (3)].sval));
-        }
+        ;}
     break;
 
   case 86:
-
+#line 979 "pars.yacc"
     {
             char buf[32];
             set_locale_num(TRUE);
             sprintf(buf, "%g", (yyvsp[(3) - (3)].dval));
             set_locale_num(FALSE);
             (yyval.sval) = concat_strings((yyvsp[(1) - (3)].sval), buf);
-        }
+        ;}
     break;
 
   case 87:
-
+#line 988 "pars.yacc"
     {
         int itmp = rint_2((yyvsp[(1) - (1)].dval));
             if (fabs(itmp - (yyvsp[(1) - (1)].dval)) > 1.e-6) {
@@ -6557,22 +6538,22 @@ yyreduce:
 		return 1;
             }
             (yyval.ival) = itmp;
-        }
+        ;}
     break;
 
   case 88:
-
+#line 998 "pars.yacc"
     {
             if ((yyvsp[(1) - (1)].ival) < 0) {
 		yyerror("Negative value supplied for non-negative");
 		return 1;
             }
             (yyval.ival) = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 89:
-
+#line 1007 "pars.yacc"
     {
 	    int itmp = (yyvsp[(2) - (3)].ival) - index_shift;
             if (itmp < 0) {
@@ -6580,18 +6561,18 @@ yyreduce:
 		return 1;
             }
             (yyval.ival) = itmp;
-	}
+	;}
     break;
 
   case 90:
-
+#line 1017 "pars.yacc"
     {
             (yyval.dval) = (yyvsp[(1) - (1)].dval);
-        }
+        ;}
     break;
 
   case 91:
-
+#line 1020 "pars.yacc"
     {
             double jul;
             Dates_format dummy;
@@ -6604,18 +6585,18 @@ yyreduce:
 		yyerror("Invalid date");
 		return 1;
             }
-        }
+        ;}
     break;
 
   case 92:
-
+#line 1035 "pars.yacc"
     {
             (yyval.dval) = (yyvsp[(1) - (1)].dval);
-        }
+        ;}
     break;
 
   case 93:
-
+#line 1038 "pars.yacc"
     {
             double jul;
             Dates_format dummy;
@@ -6628,18 +6609,18 @@ yyreduce:
 		yyerror("Invalid date");
 		return 1;
             }
-        }
+        ;}
     break;
 
   case 94:
-
+#line 1055 "pars.yacc"
     {
             (yyval.vrbl) = (yyvsp[(1) - (1)].vrbl);
-	}
+	;}
     break;
 
   case 95:
-
+#line 1059 "pars.yacc"
     {
 	    double *ptr = getcol(vasgn_gno, vasgn_setno, (yyvsp[(1) - (1)].ival));
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6651,11 +6632,11 @@ yyreduce:
             } else {
                 (yyval.vrbl)->length = getsetlength(vasgn_gno, vasgn_setno);
             }
-	}
+	;}
     break;
 
   case 96:
-
+#line 1072 "pars.yacc"
     {
 	    double *ptr = getcol((yyvsp[(1) - (3)].trgt)->gno, (yyvsp[(1) - (3)].trgt)->setno, (yyvsp[(3) - (3)].ival));
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6667,18 +6648,18 @@ yyreduce:
             } else {
                 (yyval.vrbl)->length = getsetlength((yyvsp[(1) - (3)].trgt)->gno, (yyvsp[(1) - (3)].trgt)->setno);
             }
-	}
+	;}
     break;
 
   case 97:
-
+#line 1088 "pars.yacc"
     {
             (yyval.vrbl) = (yyvsp[(1) - (1)].vrbl);
-	}
+	;}
     break;
 
   case 98:
-
+#line 1092 "pars.yacc"
     {
             int start = (yyvsp[(3) - (6)].ival) - index_shift, stop = (yyvsp[(5) - (6)].ival) - index_shift;
             if (start < 0 || stop < start || stop >= (yyvsp[(1) - (6)].vrbl)->length) {
@@ -6699,11 +6680,11 @@ yyreduce:
                     }
                 }
             }
-	}
+	;}
     break;
 
   case 99:
-
+#line 1114 "pars.yacc"
     {
             int len = (yyvsp[(3) - (4)].ival);
             if (len < 1) {
@@ -6720,11 +6701,11 @@ yyreduce:
                     (yyval.vrbl)->length = len;
                 }
             }
-	}
+	;}
     break;
 
   case 100:
-
+#line 1132 "pars.yacc"
     {
             int len = (yyvsp[(7) - (8)].ival);
             if (len < 2) {
@@ -6741,11 +6722,11 @@ yyreduce:
                     (yyval.vrbl)->length = len;
                 }
             }
-	}
+	;}
     break;
 
   case 101:
-
+#line 1150 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6760,11 +6741,11 @@ yyreduce:
             for (i = 0; i < (yyval.vrbl)->length; i++) {
         (yyval.vrbl)->data[i] = (((double)rand())/((double)RAND_MAX));//drand48();
 	    }
-	}
+	;}
     break;
 
   case 102:
-
+#line 1166 "pars.yacc"
     {
 	    int rtype, i, len;
             char *rarray;
@@ -6792,11 +6773,11 @@ yyreduce:
 	    }
             
             xfree(rarray);
-	}
+	;}
     break;
 
   case 103:
-
+#line 1195 "pars.yacc"
     {
             int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6805,11 +6786,11 @@ yyreduce:
             for (i = 1; i < (yyval.vrbl)->length; i++) {
                 (yyval.vrbl)->data[i] += (yyval.vrbl)->data[i - 1];
             }
-	}
+	;}
     break;
 
   case 104:
-
+#line 1205 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6818,11 +6799,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (4)].ival)].data)) ((int) ((yyvsp[(3) - (4)].vrbl)->data[i]));
 	    }
-	}
+	;}
     break;
 
   case 105:
-
+#line 1215 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6831,11 +6812,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (4)].ival)].data)) (((yyvsp[(3) - (4)].vrbl)->data[i]));
 	    }
-	}
+	;}
     break;
 
   case 106:
-
+#line 1225 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(3) - (6)].vrbl)->length != (yyvsp[(5) - (6)].vrbl)->length) {
@@ -6849,11 +6830,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (6)].ival)].data)) ((yyvsp[(3) - (6)].vrbl)->data[i], (yyvsp[(5) - (6)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 107:
-
+#line 1240 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6863,11 +6844,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (6)].ival)].data)) ((yyvsp[(3) - (6)].dval), (yyvsp[(5) - (6)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 108:
-
+#line 1251 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6877,11 +6858,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (6)].ival)].data)) ((yyvsp[(3) - (6)].vrbl)->data[i], (yyvsp[(5) - (6)].dval));
 	    }
-	}
+	;}
     break;
 
   case 109:
-
+#line 1262 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6891,11 +6872,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (6)].ival)].data)) ((yyvsp[(3) - (6)].ival), (yyvsp[(5) - (6)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 110:
-
+#line 1273 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6905,11 +6886,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (8)].ival)].data)) ((yyvsp[(3) - (8)].ival), (yyvsp[(5) - (8)].ival), (yyvsp[(7) - (8)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 111:
-
+#line 1284 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6919,11 +6900,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (8)].ival)].data)) ((yyvsp[(3) - (8)].dval), (yyvsp[(5) - (8)].dval), (yyvsp[(7) - (8)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 112:
-
+#line 1295 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6933,11 +6914,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (10)].ival)].data)) ((yyvsp[(3) - (10)].dval), (yyvsp[(5) - (10)].dval), (yyvsp[(7) - (10)].dval), (yyvsp[(9) - (10)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 113:
-
+#line 1306 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6947,11 +6928,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (12)].ival)].data)) ((yyvsp[(3) - (12)].dval), (yyvsp[(5) - (12)].dval), (yyvsp[(7) - (12)].dval), (yyvsp[(9) - (12)].dval), (yyvsp[(11) - (12)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 114:
-
+#line 1317 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6961,11 +6942,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((ParserFnc) (key[(yyvsp[(1) - (14)].ival)].data)) ((yyvsp[(3) - (14)].dval), (yyvsp[(5) - (14)].dval), (yyvsp[(7) - (14)].dval), (yyvsp[(9) - (14)].dval), (yyvsp[(11) - (14)].dval), (yyvsp[(13) - (14)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 115:
-
+#line 1328 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -6979,11 +6960,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] + (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 116:
-
+#line 1343 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -6993,11 +6974,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] + (yyvsp[(3) - (3)].dval);
 	    }
-	}
+	;}
     break;
 
   case 117:
-
+#line 1354 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7007,11 +6988,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].dval) + (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 118:
-
+#line 1365 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7025,11 +7006,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] - (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 119:
-
+#line 1380 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7039,11 +7020,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] - (yyvsp[(3) - (3)].dval);
 	    }
-	}
+	;}
     break;
 
   case 120:
-
+#line 1391 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7053,11 +7034,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].dval) - (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 121:
-
+#line 1402 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7071,11 +7052,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] * (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 122:
-
+#line 1417 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7085,11 +7066,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] * (yyvsp[(3) - (3)].dval);
 	    }
-	}
+	;}
     break;
 
   case 123:
-
+#line 1428 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7099,11 +7080,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].dval) * (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 124:
-
+#line 1439 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7121,11 +7102,11 @@ yyreduce:
                 }
                 (yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] / (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 125:
-
+#line 1458 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(3) - (3)].dval) == 0.0) {
@@ -7139,11 +7120,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] / (yyvsp[(3) - (3)].dval);
 	    }
-	}
+	;}
     break;
 
   case 126:
-
+#line 1473 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7157,11 +7138,11 @@ yyreduce:
                 }
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].dval) / (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 127:
-
+#line 1488 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7180,11 +7161,11 @@ yyreduce:
                     (yyval.vrbl)->data[i] = fmod((yyvsp[(1) - (3)].vrbl)->data[i], (yyvsp[(3) - (3)].vrbl)->data[i]);
                 }
 	    }
-	}
+	;}
     break;
 
   case 128:
-
+#line 1508 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(3) - (3)].dval) == 0.0) {
@@ -7198,11 +7179,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = fmod((yyvsp[(1) - (3)].vrbl)->data[i], (yyvsp[(3) - (3)].dval));
 	    }
-	}
+	;}
     break;
 
   case 129:
-
+#line 1523 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7217,11 +7198,11 @@ yyreduce:
 		    (yyval.vrbl)->data[i] = fmod((yyvsp[(1) - (3)].dval), (yyvsp[(3) - (3)].vrbl)->data[i]);
                 }
 	    }
-	}
+	;}
     break;
 
   case 130:
-
+#line 1539 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7243,11 +7224,11 @@ yyreduce:
                     (yyval.vrbl)->data[i] = pow((yyvsp[(1) - (3)].vrbl)->data[i], (yyvsp[(3) - (3)].vrbl)->data[i]);
                 }
 	    }
-	}
+	;}
     break;
 
   case 131:
-
+#line 1562 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7265,11 +7246,11 @@ yyreduce:
                     (yyval.vrbl)->data[i] = pow((yyvsp[(1) - (3)].vrbl)->data[i], (yyvsp[(3) - (3)].dval));
                 }
 	    }
-	}
+	;}
     break;
 
   case 132:
-
+#line 1581 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7287,11 +7268,11 @@ yyreduce:
                     (yyval.vrbl)->data[i] = pow((yyvsp[(1) - (3)].dval), (yyvsp[(3) - (3)].vrbl)->data[i]);
                 }
 	    }
-	}
+	;}
     break;
 
   case 133:
-
+#line 1600 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7300,11 +7281,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (2)].vrbl)->data[i] * ((ParserFnc) (key[(yyvsp[(2) - (2)].ival)].data)) ();
 	    }
-	}
+	;}
     break;
 
   case 134:
-
+#line 1609 "pars.yacc"
     {
             int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7313,11 +7294,11 @@ yyreduce:
             for (i = 0; i < (yyval.vrbl)->length; i++) { 
                 (yyval.vrbl)->data[i] = CAST_DBL_TO_BOOL((yyvsp[(1) - (5)].vrbl)->data[i]) ? (yyvsp[(3) - (5)].dval) : (yyvsp[(5) - (5)].dval);
             }
-	}
+	;}
     break;
 
   case 135:
-
+#line 1618 "pars.yacc"
     {
             int i;
 	    if ((yyvsp[(1) - (5)].vrbl)->length != (yyvsp[(5) - (5)].vrbl)->length) {
@@ -7330,11 +7311,11 @@ yyreduce:
             for (i = 0; i < (yyval.vrbl)->length; i++) { 
                 (yyval.vrbl)->data[i] = CAST_DBL_TO_BOOL((yyvsp[(1) - (5)].vrbl)->data[i]) ? (yyvsp[(3) - (5)].dval) : (yyvsp[(5) - (5)].vrbl)->data[i];
             }
-	}
+	;}
     break;
 
   case 136:
-
+#line 1631 "pars.yacc"
     {
             int i;
 	    if ((yyvsp[(1) - (5)].vrbl)->length != (yyvsp[(3) - (5)].vrbl)->length) {
@@ -7347,11 +7328,11 @@ yyreduce:
             for (i = 0; i < (yyval.vrbl)->length; i++) { 
                 (yyval.vrbl)->data[i] = CAST_DBL_TO_BOOL((yyvsp[(1) - (5)].vrbl)->data[i]) ? (yyvsp[(3) - (5)].vrbl)->data[i] : (yyvsp[(5) - (5)].dval);
             }
-	}
+	;}
     break;
 
   case 137:
-
+#line 1644 "pars.yacc"
     {
             int i;
 	    if ((yyvsp[(1) - (5)].vrbl)->length != (yyvsp[(5) - (5)].vrbl)->length || (yyvsp[(1) - (5)].vrbl)->length != (yyvsp[(3) - (5)].vrbl)->length) {
@@ -7364,11 +7345,11 @@ yyreduce:
             for (i = 0; i < (yyval.vrbl)->length; i++) { 
                 (yyval.vrbl)->data[i] = CAST_DBL_TO_BOOL((yyvsp[(1) - (5)].vrbl)->data[i]) ? (yyvsp[(3) - (5)].vrbl)->data[i] : (yyvsp[(5) - (5)].vrbl)->data[i];
             }
-	}
+	;}
     break;
 
   case 138:
-
+#line 1658 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7382,11 +7363,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] || (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 139:
-
+#line 1673 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7396,11 +7377,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] || (yyvsp[(3) - (3)].dval);
 	    }
-	}
+	;}
     break;
 
   case 140:
-
+#line 1684 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7410,11 +7391,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].dval) || (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 141:
-
+#line 1695 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7428,11 +7409,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] && (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 142:
-
+#line 1710 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7442,11 +7423,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].vrbl)->data[i] && (yyvsp[(3) - (3)].dval);
 	    }
-	}
+	;}
     break;
 
   case 143:
-
+#line 1721 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7456,11 +7437,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = (yyvsp[(1) - (3)].dval) && (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 144:
-
+#line 1732 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7474,11 +7455,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] > (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 145:
-
+#line 1747 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7488,11 +7469,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] > (yyvsp[(3) - (3)].dval));
 	    }
-	}
+	;}
     break;
 
   case 146:
-
+#line 1758 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7502,11 +7483,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].dval) > (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 147:
-
+#line 1769 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7520,11 +7501,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] < (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 148:
-
+#line 1784 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7534,11 +7515,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] < (yyvsp[(3) - (3)].dval));
 	    }
-	}
+	;}
     break;
 
   case 149:
-
+#line 1795 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7548,11 +7529,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].dval) < (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 150:
-
+#line 1806 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7566,11 +7547,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] >= (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 151:
-
+#line 1821 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7580,11 +7561,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] >= (yyvsp[(3) - (3)].dval));
 	    }
-	}
+	;}
     break;
 
   case 152:
-
+#line 1832 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7594,11 +7575,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].dval) >= (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 153:
-
+#line 1843 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7612,11 +7593,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] <= (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 154:
-
+#line 1858 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7626,11 +7607,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] <= (yyvsp[(3) - (3)].dval));
 	    }
-	}
+	;}
     break;
 
   case 155:
-
+#line 1869 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7640,11 +7621,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].dval) <= (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 156:
-
+#line 1880 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7658,11 +7639,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] == (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 157:
-
+#line 1895 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7672,11 +7653,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] == (yyvsp[(3) - (3)].dval));
 	    }
-	}
+	;}
     break;
 
   case 158:
-
+#line 1906 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7686,11 +7667,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].dval) == (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 159:
-
+#line 1917 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7704,11 +7685,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] != (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 160:
-
+#line 1932 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7718,11 +7699,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].vrbl)->data[i] != (yyvsp[(3) - (3)].dval));
 	    }
-	}
+	;}
     break;
 
   case 161:
-
+#line 1943 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7732,11 +7713,11 @@ yyreduce:
 	    for (i = 0; i < (yyval.vrbl)->length; i++) {
 		(yyval.vrbl)->data[i] = ((yyvsp[(1) - (3)].dval) != (yyvsp[(3) - (3)].vrbl)->data[i]);
 	    }
-	}
+	;}
     break;
 
   case 162:
-
+#line 1954 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7745,11 +7726,11 @@ yyreduce:
             for (i = 0; i < (yyval.vrbl)->length; i++) { 
                 (yyval.vrbl)->data[i] = !(yyvsp[(2) - (2)].vrbl)->data[i];
             }
-	}
+	;}
     break;
 
   case 163:
-
+#line 1964 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7758,11 +7739,11 @@ yyreduce:
             for (i = 0; i < (yyval.vrbl)->length; i++) { 
                 (yyval.vrbl)->data[i] = (yyvsp[(2) - (3)].vrbl)->data[i];
             }
-	}
+	;}
     break;
 
   case 164:
-
+#line 1973 "pars.yacc"
     {
 	    int i;
             (yyval.vrbl) = &freelist[fcnt++];
@@ -7771,50 +7752,50 @@ yyreduce:
             for (i = 0; i < (yyval.vrbl)->length; i++) { 
                 (yyval.vrbl)->data[i] = - (yyvsp[(2) - (2)].vrbl)->data[i];
             }
-	}
+	;}
     break;
 
   case 165:
-
+#line 1987 "pars.yacc"
     {
 	    *((yyvsp[(1) - (3)].dptr)) = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 166:
-
+#line 1991 "pars.yacc"
     {
 	    nonl_parms[(yyvsp[(1) - (3)].ival)].value = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 167:
-
+#line 1995 "pars.yacc"
     {
 	    nonl_parms[(yyvsp[(1) - (3)].ival)].max = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 168:
-
+#line 1999 "pars.yacc"
     {
 	    nonl_parms[(yyvsp[(1) - (3)].ival)].min = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 169:
-
+#line 2003 "pars.yacc"
     {
 	    if ((yyvsp[(2) - (4)].ival) >= (yyvsp[(1) - (4)].vrbl)->length) {
 		yyerror("Access beyond array bounds");
 		return 1;
             }
             (yyvsp[(1) - (4)].vrbl)->data[(yyvsp[(2) - (4)].ival)] = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 170:
-
+#line 2014 "pars.yacc"
     {
             target tgt;
             switch ((yyvsp[(1) - (1)].vrbl)->type) {
@@ -7837,11 +7818,11 @@ yyreduce:
 	        return 1;
             }
             (yyval.vrbl) = (yyvsp[(1) - (1)].vrbl);
-        }
+        ;}
     break;
 
   case 171:
-
+#line 2041 "pars.yacc"
     {
 	    int i;
 	    if ((yyvsp[(1) - (3)].vrbl)->length != (yyvsp[(3) - (3)].vrbl)->length) {
@@ -7851,21 +7832,21 @@ yyreduce:
 	    for (i = 0; i < (yyvsp[(1) - (3)].vrbl)->length; i++) {
 	        (yyvsp[(1) - (3)].vrbl)->data[i] = (yyvsp[(3) - (3)].vrbl)->data[i];
 	    }
-	}
+	;}
     break;
 
   case 172:
-
+#line 2052 "pars.yacc"
     {
 	    int i;
 	    for (i = 0; i < (yyvsp[(1) - (3)].vrbl)->length; i++) {
 	        (yyvsp[(1) - (3)].vrbl)->data[i] = (yyvsp[(3) - (3)].dval);
 	    }
-	}
+	;}
     break;
 
   case 173:
-
+#line 2062 "pars.yacc"
     {
 	    symtab_entry tmpkey;
             double *var;
@@ -7881,22 +7862,22 @@ yyreduce:
 	    }
 
             xfree((yyvsp[(2) - (2)].sval));
-        }
+        ;}
     break;
 
   case 174:
-
+#line 2079 "pars.yacc"
     {
 	    if (define_parser_arr((yyvsp[(2) - (4)].sval)) == NULL) {
 	        yyerror("Adding new symbol failed");
 	    }
 
             xfree((yyvsp[(2) - (4)].sval));
-        }
+        ;}
     break;
 
   case 175:
-
+#line 2087 "pars.yacc"
     {
 	    grarr *var;
             if ((var = define_parser_arr((yyvsp[(2) - (5)].sval))) == NULL) {
@@ -7906,42 +7887,42 @@ yyreduce:
             }
 
             xfree((yyvsp[(2) - (5)].sval));
-        }
+        ;}
     break;
 
   case 176:
-
+#line 2098 "pars.yacc"
     {
             yyerror("Keyword already exists");
-        }
+        ;}
     break;
 
   case 177:
-
+#line 2102 "pars.yacc"
     {
             yyerror("Keyword already exists");
-        }
+        ;}
     break;
 
   case 178:
-
+#line 2106 "pars.yacc"
     {
             undefine_parser_var((void *) (yyvsp[(2) - (2)].dptr));
             xfree((yyvsp[(2) - (2)].dptr));
-        }
+        ;}
     break;
 
   case 179:
-
+#line 2111 "pars.yacc"
     {
             realloc_vrbl((yyvsp[(2) - (2)].vrbl), 0);
             undefine_parser_var((void *) (yyvsp[(2) - (2)].vrbl));
             xfree((yyvsp[(2) - (2)].vrbl));
-        }
+        ;}
     break;
 
   case 180:
-
+#line 2116 "pars.yacc"
     {
 	    int position;
 
@@ -7959,29 +7940,29 @@ yyreduce:
 	    }
 	    xfree((yyvsp[(2) - (3)].sval));
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 181:
-
+#line 2134 "pars.yacc"
     {
 	    alias_force = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 182:
-
+#line 2137 "pars.yacc"
     {
 	    if (load_module((yyvsp[(6) - (6)].sval), (yyvsp[(2) - (6)].sval), (yyvsp[(2) - (6)].sval), (yyvsp[(4) - (6)].ival)) != 0) {
 	        yyerror("DL module load failed");
 	    }
 	    xfree((yyvsp[(2) - (6)].sval));
 	    xfree((yyvsp[(6) - (6)].sval));
-	}
+	;}
     break;
 
   case 183:
-
+#line 2144 "pars.yacc"
     {
 	    if (load_module((yyvsp[(6) - (8)].sval), (yyvsp[(2) - (8)].sval), (yyvsp[(8) - (8)].sval), (yyvsp[(4) - (8)].ival)) != 0) {
 	        yyerror("DL module load failed");
@@ -7989,74 +7970,74 @@ yyreduce:
 	    xfree((yyvsp[(2) - (8)].sval));
 	    xfree((yyvsp[(6) - (8)].sval));
 	    xfree((yyvsp[(8) - (8)].sval));
-	}
+	;}
     break;
 
   case 184:
-
+#line 2155 "pars.yacc"
     {
 	    rg[(yyvsp[(1) - (2)].ival)].active = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 185:
-
+#line 2158 "pars.yacc"
     {
 	    rg[(yyvsp[(1) - (3)].ival)].type = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 186:
-
+#line 2161 "pars.yacc"
     {
 	    rg[(yyvsp[(1) - (2)].ival)].color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 187:
-
+#line 2164 "pars.yacc"
     {
 	    rg[(yyvsp[(1) - (2)].ival)].lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 188:
-
+#line 2167 "pars.yacc"
     {
 	    rg[(yyvsp[(1) - (2)].ival)].linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 189:
-
+#line 2171 "pars.yacc"
     {
 	    rg[(yyvsp[(1) - (9)].ival)].x1 = (yyvsp[(3) - (9)].dval);
 	    rg[(yyvsp[(1) - (9)].ival)].y1 = (yyvsp[(5) - (9)].dval);
 	    rg[(yyvsp[(1) - (9)].ival)].x2 = (yyvsp[(7) - (9)].dval);
 	    rg[(yyvsp[(1) - (9)].ival)].y2 = (yyvsp[(9) - (9)].dval);
-	}
+	;}
     break;
 
   case 190:
-
+#line 2178 "pars.yacc"
     {
 	    rg[(yyvsp[(1) - (5)].ival)].x = (double*)xrealloc(rg[(yyvsp[(1) - (5)].ival)].x, (rg[(yyvsp[(1) - (5)].ival)].n + 1) * sizeof(double));
 	    rg[(yyvsp[(1) - (5)].ival)].y = (double*)xrealloc(rg[(yyvsp[(1) - (5)].ival)].y, (rg[(yyvsp[(1) - (5)].ival)].n + 1) * sizeof(double));
 	    rg[(yyvsp[(1) - (5)].ival)].x[rg[(yyvsp[(1) - (5)].ival)].n] = (yyvsp[(3) - (5)].dval);
 	    rg[(yyvsp[(1) - (5)].ival)].y[rg[(yyvsp[(1) - (5)].ival)].n] = (yyvsp[(5) - (5)].dval);
 	    rg[(yyvsp[(1) - (5)].ival)].n++;
-	}
+	;}
     break;
 
   case 191:
-
+#line 2185 "pars.yacc"
     {
 	    rg[(yyvsp[(2) - (4)].ival)].linkto = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 192:
-
+#line 2192 "pars.yacc"
     {
             if (set_project_version((yyvsp[(2) - (2)].ival)) != RETURN_SUCCESS) {
                 errmsg("Project version is newer than software!");
@@ -8066,25 +8047,25 @@ yyreduce:
             } else {
                 map_fonts(FONT_MAP_DEFAULT);
             }
-        }
+        ;}
     break;
 
   case 193:
-
+#line 2202 "pars.yacc"
     {
             set_page_dimensions((yyvsp[(3) - (5)].ival), (yyvsp[(5) - (5)].ival), TRUE);
-        }
+        ;}
     break;
 
   case 194:
-
+#line 2205 "pars.yacc"
     {
             set_page_dimensions((yyvsp[(3) - (5)].ival), (yyvsp[(5) - (5)].ival), FALSE);
-        }
+        ;}
     break;
 
   case 195:
-
+#line 2208 "pars.yacc"
     {
             int device_id;
             Device_entry dev;
@@ -8099,11 +8080,11 @@ yyreduce:
                 dev.pg.height = (long) ((yyvsp[(7) - (7)].ival)*dev.pg.dpi/72);
                 set_device_props(device_id, dev);
             }
-        }
+        ;}
     break;
 
   case 196:
-
+#line 2223 "pars.yacc"
     {
             int device_id;
             Device_entry dev;
@@ -8117,11 +8098,11 @@ yyreduce:
                 set_device_props(device_id, dev);
             }
             xfree((yyvsp[(2) - (4)].sval));
-        }
+        ;}
     break;
 
   case 197:
-
+#line 2237 "pars.yacc"
     {
             int device_id;
             Device_entry dev;
@@ -8135,11 +8116,11 @@ yyreduce:
                 set_device_props(device_id, dev);
             }
             xfree((yyvsp[(2) - (5)].sval));
-        }
+        ;}
     break;
 
   case 198:
-
+#line 2251 "pars.yacc"
     {
             int device_id;
             Device_entry dev;
@@ -8153,11 +8134,11 @@ yyreduce:
                 set_device_props(device_id, dev);
             }
             xfree((yyvsp[(2) - (4)].sval));
-        }
+        ;}
     break;
 
   case 199:
-
+#line 2265 "pars.yacc"
     {
             int device_id;
             
@@ -8172,166 +8153,166 @@ yyreduce:
             }
             xfree((yyvsp[(2) - (4)].sval));
             xfree((yyvsp[(4) - (4)].sval));
-        }
+        ;}
     break;
 
   case 200:
-
+#line 2280 "pars.yacc"
     {
             set_printer_by_name((yyvsp[(3) - (3)].sval));
             xfree((yyvsp[(3) - (3)].sval));
-        }
+        ;}
     break;
 
   case 201:
-
+#line 2284 "pars.yacc"
     {
             set_ref_date((yyvsp[(3) - (3)].dval));
-	}
+	;}
     break;
 
   case 202:
-
+#line 2287 "pars.yacc"
     {
             allow_two_digits_years((yyvsp[(3) - (3)].ival));
-	}
+	;}
     break;
 
   case 203:
-
+#line 2290 "pars.yacc"
     {
             set_wrap_year((yyvsp[(4) - (4)].ival));
-	}
+	;}
     break;
 
   case 204:
-
+#line 2293 "pars.yacc"
     {
 	    setbgcolor((yyvsp[(2) - (2)].ival));
-	}
+	;}
     break;
 
   case 205:
-
+#line 2296 "pars.yacc"
     {
 	    setbgfill((yyvsp[(4) - (4)].ival));
-	}
+	;}
     break;
 
   case 206:
-
+#line 2299 "pars.yacc"
     {
 	    scroll_proc((int) (yyvsp[(3) - (4)].dval));
-	}
+	;}
     break;
 
   case 207:
-
+#line 2302 "pars.yacc"
     {
 	    scrollinout_proc((int) (yyvsp[(3) - (4)].dval));
-	}
+	;}
     break;
 
   case 208:
-
+#line 2305 "pars.yacc"
     {
 	    scrolling_islinked = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 209:
-
+#line 2310 "pars.yacc"
     {
 	    add_world(whichgraph, (yyvsp[(3) - (9)].dval), (yyvsp[(5) - (9)].dval), (yyvsp[(7) - (9)].dval), (yyvsp[(9) - (9)].dval));
-	}
+	;}
     break;
 
   case 210:
-
+#line 2314 "pars.yacc"
     {
             timer_delay = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 211:
-
+#line 2318 "pars.yacc"
     {
 	    target_set = *((yyvsp[(2) - (2)].trgt));
 	    set_parser_setno(target_set.gno, target_set.setno);
-	}
+	;}
     break;
 
   case 212:
-
+#line 2322 "pars.yacc"
     {
 	    set_parser_gno((yyvsp[(2) - (2)].ival));
-	}
+	;}
     break;
 
   case 213:
-
+#line 2325 "pars.yacc"
     {
 	    set_parser_setno((yyvsp[(2) - (2)].trgt)->gno, (yyvsp[(2) - (2)].trgt)->setno);
-	}
+	;}
     break;
 
   case 214:
-
+#line 2330 "pars.yacc"
     {
 	    set_hotlink((yyvsp[(1) - (4)].trgt)->gno, (yyvsp[(1) - (4)].trgt)->setno, 1, (yyvsp[(4) - (4)].sval), (yyvsp[(3) - (4)].ival));
 	    xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 215:
-
+#line 2334 "pars.yacc"
     {
 	    set_hotlink((yyvsp[(1) - (3)].trgt)->gno, (yyvsp[(1) - (3)].trgt)->setno, (yyvsp[(3) - (3)].ival), NULL, 0);
-	}
+	;}
     break;
 
   case 216:
-
+#line 2339 "pars.yacc"
     {
 	    curbox = next_box();
-	}
+	;}
     break;
 
   case 217:
-
+#line 2342 "pars.yacc"
     {
             int no = (yyvsp[(3) - (3)].ival);
             if (is_valid_box(no) ||
                 realloc_boxes(no + 1) == RETURN_SUCCESS) {
                 curbox = no;
             }
-	}
+	;}
     break;
 
   case 218:
-
+#line 2349 "pars.yacc"
     {
 	    if (!is_valid_box(curbox)) {
                 yyerror("Box not active");
 	    } else {
 	        boxes[curbox].active = (yyvsp[(2) - (2)].ival);
             }
-	}
+	;}
     break;
 
   case 219:
-
+#line 2356 "pars.yacc"
     {
 	    if (!is_valid_box(curbox)) {
                 yyerror("Box not active");
 	    } else {
 	        boxes[curbox].gno = (yyvsp[(2) - (2)].ival);
             }
-	}
+	;}
     break;
 
   case 220:
-
+#line 2363 "pars.yacc"
     {
 	    if (!is_valid_box(curbox)) {
                 yyerror("Box not active");
@@ -8341,53 +8322,53 @@ yyreduce:
 		boxes[curbox].x2 = (yyvsp[(6) - (8)].dval);
 		boxes[curbox].y2 = (yyvsp[(8) - (8)].dval);
 	    }
-	}
+	;}
     break;
 
   case 221:
-
+#line 2373 "pars.yacc"
     {
 	    box_loctype = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 222:
-
+#line 2376 "pars.yacc"
     {
 	    box_lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 223:
-
+#line 2379 "pars.yacc"
     {
 	    box_linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 224:
-
+#line 2382 "pars.yacc"
     {
 	    box_color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 225:
-
+#line 2385 "pars.yacc"
     {
 	    box_fillcolor = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 226:
-
+#line 2388 "pars.yacc"
     {
 	    box_fillpat = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 227:
-
+#line 2391 "pars.yacc"
     {
 	    if (!is_valid_box(curbox)) {
                 yyerror("Box not active");
@@ -8416,51 +8397,51 @@ yyreduce:
                 }
                 boxes[curbox].loctype = box_loctype;
 	    }
-	}
+	;}
     break;
 
   case 228:
-
+#line 2422 "pars.yacc"
     {
 		curellipse = next_ellipse();
-	}
+	;}
     break;
 
   case 229:
-
+#line 2425 "pars.yacc"
     {
             int no = (yyvsp[(3) - (3)].ival);
             if (is_valid_ellipse(no) ||
                 realloc_ellipses(no + 1) == RETURN_SUCCESS) {
                 curellipse = no;
             }
-	}
+	;}
     break;
 
   case 230:
-
+#line 2432 "pars.yacc"
     {
 	    if (!is_valid_ellipse(curellipse)) {
                 yyerror("Ellipse not active");
 	    } else {
 	        ellip[curellipse].active = (yyvsp[(2) - (2)].ival);
             }
-	}
+	;}
     break;
 
   case 231:
-
+#line 2439 "pars.yacc"
     {
 	    if (!is_valid_ellipse(curellipse)) {
                 yyerror("Ellipse not active");
 	    } else {
 	        ellip[curellipse].gno = (yyvsp[(2) - (2)].ival);
             }
-	}
+	;}
     break;
 
   case 232:
-
+#line 2446 "pars.yacc"
     {
 	    if (!is_valid_ellipse(curellipse)) {
                 yyerror("Ellipse not active");
@@ -8470,53 +8451,53 @@ yyreduce:
 		ellip[curellipse].x2 = (yyvsp[(6) - (8)].dval);
 		ellip[curellipse].y2 = (yyvsp[(8) - (8)].dval);
 	    }
-	}
+	;}
     break;
 
   case 233:
-
+#line 2456 "pars.yacc"
     {
 	    ellipse_loctype = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 234:
-
+#line 2459 "pars.yacc"
     {
 	    ellipse_lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 235:
-
+#line 2462 "pars.yacc"
     {
 	    ellipse_linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 236:
-
+#line 2465 "pars.yacc"
     {
 	    ellipse_color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 237:
-
+#line 2468 "pars.yacc"
     {
 	    ellipse_fillcolor = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 238:
-
+#line 2471 "pars.yacc"
     {
 	    ellipse_fillpat = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 239:
-
+#line 2474 "pars.yacc"
     {
 	    if (!is_valid_ellipse(curellipse)) {
                 yyerror("Ellipse not active");
@@ -8545,51 +8526,51 @@ yyreduce:
                 }
 		ellip[curellipse].loctype = ellipse_loctype;
 	    }
-	}
+	;}
     break;
 
   case 240:
-
+#line 2505 "pars.yacc"
     {
 	    curline = next_line();
-	}
+	;}
     break;
 
   case 241:
-
+#line 2508 "pars.yacc"
     {
             int no = (yyvsp[(3) - (3)].ival);
             if (is_valid_line(no) ||
                 realloc_lines(no + 1) == RETURN_SUCCESS) {
                 curline = no;
             }
-	}
+	;}
     break;
 
   case 242:
-
+#line 2515 "pars.yacc"
     {
 	    if (!is_valid_line(curline)) {
                 yyerror("Line not active");
 	    } else {
 	        lines[curline].active = (yyvsp[(2) - (2)].ival);
             }
-	}
+	;}
     break;
 
   case 243:
-
+#line 2522 "pars.yacc"
     {
 	    if (!is_valid_line(curline)) {
                 yyerror("Line not active");
 	    } else {
 	        lines[curline].gno = (yyvsp[(2) - (2)].ival);
             }
-	}
+	;}
     break;
 
   case 244:
-
+#line 2529 "pars.yacc"
     {
 	    if (!is_valid_line(curline)) {
                 yyerror("Line not active");
@@ -8599,68 +8580,68 @@ yyreduce:
 	        lines[curline].x2 = (yyvsp[(6) - (8)].dval);
 	        lines[curline].y2 = (yyvsp[(8) - (8)].dval);
             }
-	}
+	;}
     break;
 
   case 245:
-
+#line 2539 "pars.yacc"
     {
 	    line_loctype = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 246:
-
+#line 2542 "pars.yacc"
     {
 	    line_linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 247:
-
+#line 2545 "pars.yacc"
     {
 	    line_lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 248:
-
+#line 2548 "pars.yacc"
     {
 	    line_color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 249:
-
+#line 2551 "pars.yacc"
     {
 	    line_arrow_end = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 250:
-
+#line 2554 "pars.yacc"
     {
 	    line_asize = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 251:
-
+#line 2557 "pars.yacc"
     {
 	    line_atype = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 252:
-
+#line 2560 "pars.yacc"
     {
 	    line_a_dL_ff = (yyvsp[(4) - (6)].dval);
 	    line_a_lL_ff = (yyvsp[(6) - (6)].dval);
-	}
+	;}
     break;
 
   case 253:
-
+#line 2564 "pars.yacc"
     {
 	    if (!is_valid_line(curline)) {
                 yyerror("Line not active");
@@ -8675,51 +8656,51 @@ yyreduce:
 	        lines[curline].arrow.lL_ff = line_a_lL_ff;
 	        lines[curline].loctype = line_loctype;
             }
-	}
+	;}
     break;
 
   case 254:
-
+#line 2581 "pars.yacc"
     {
             curstring = next_string();
-        }
+        ;}
     break;
 
   case 255:
-
+#line 2584 "pars.yacc"
     {
             int no = (yyvsp[(3) - (3)].ival);
             if (is_valid_string(no) ||
                 realloc_strings(no + 1) == RETURN_SUCCESS) {
                 curstring = no;
             }
-        }
+        ;}
     break;
 
   case 256:
-
+#line 2591 "pars.yacc"
     {
 	    if (!is_valid_string(curstring)) {
                 yyerror("String not active");
 	    } else {
                 pstr[curstring].active = (yyvsp[(2) - (2)].ival);
             }
-        }
+        ;}
     break;
 
   case 257:
-
+#line 2598 "pars.yacc"
     {
 	    if (!is_valid_string(curstring)) {
                 yyerror("String not active");
 	    } else {
                 pstr[curstring].gno = (yyvsp[(2) - (2)].ival);
             }
-        }
+        ;}
     break;
 
   case 258:
-
+#line 2605 "pars.yacc"
     {
 	    if (!is_valid_string(curstring)) {
                 yyerror("String not active");
@@ -8727,53 +8708,53 @@ yyreduce:
 	        pstr[curstring].x = (yyvsp[(2) - (4)].dval);
 	        pstr[curstring].y = (yyvsp[(4) - (4)].dval);
             }
-	}
+	;}
     break;
 
   case 259:
-
+#line 2613 "pars.yacc"
     {
             string_loctype = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 260:
-
+#line 2616 "pars.yacc"
     {
             string_color = (yyvsp[(2) - (2)].ival);
-        }
+        ;}
     break;
 
   case 261:
-
+#line 2619 "pars.yacc"
     {
             string_rot = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 262:
-
+#line 2622 "pars.yacc"
     {
             string_font = (yyvsp[(2) - (2)].ival);
-        }
+        ;}
     break;
 
   case 263:
-
+#line 2625 "pars.yacc"
     {
             string_just = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 264:
-
+#line 2628 "pars.yacc"
     {
             string_size = (yyvsp[(4) - (4)].dval);
-        }
+        ;}
     break;
 
   case 265:
-
+#line 2631 "pars.yacc"
     {
 	    if (!is_valid_string(curstring)) {
                 yyerror("String not active");
@@ -8787,124 +8768,124 @@ yyreduce:
 	        pstr[curstring].charsize = string_size;
             }
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 266:
-
+#line 2647 "pars.yacc"
     {
             timestamp.active = (yyvsp[(2) - (2)].ival);
-        }
+        ;}
     break;
 
   case 267:
-
+#line 2650 "pars.yacc"
     {
             timestamp.font = (yyvsp[(2) - (2)].ival);
-        }
+        ;}
     break;
 
   case 268:
-
+#line 2653 "pars.yacc"
     {
             timestamp.charsize = (yyvsp[(4) - (4)].dval);
-        }
+        ;}
     break;
 
   case 269:
-
+#line 2656 "pars.yacc"
     {
             timestamp.rot = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 270:
-
+#line 2659 "pars.yacc"
     {
             timestamp.color = (yyvsp[(2) - (2)].ival);
-        }
+        ;}
     break;
 
   case 271:
-
+#line 2662 "pars.yacc"
     {
 	    timestamp.x = (yyvsp[(2) - (4)].dval);
 	    timestamp.y = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 272:
-
+#line 2666 "pars.yacc"
     {
 	  set_plotstr_string(&timestamp, (yyvsp[(3) - (3)].sval));
 	  xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 273:
-
+#line 2672 "pars.yacc"
     {
 	    grdefaults.lines = (yyvsp[(2) - (2)].ival);
 	    box_lines = ellipse_lines = line_lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 274:
-
+#line 2676 "pars.yacc"
     {
 	    grdefaults.linew = (yyvsp[(2) - (2)].dval);
 	    box_linew = ellipse_linew = line_linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 275:
-
+#line 2680 "pars.yacc"
     {
 	    grdefaults.color = (yyvsp[(2) - (2)].ival);
 	    box_color = ellipse_color = line_color = string_color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 276:
-
+#line 2684 "pars.yacc"
     {
 	    grdefaults.pattern = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 277:
-
+#line 2687 "pars.yacc"
     {
 	    grdefaults.charsize = (yyvsp[(4) - (4)].dval);
 	    string_size = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 278:
-
+#line 2691 "pars.yacc"
     {
 	    grdefaults.font = (yyvsp[(2) - (2)].ival);
 	    string_font = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 279:
-
+#line 2695 "pars.yacc"
     {
 	    grdefaults.symsize = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 280:
-
+#line 2698 "pars.yacc"
     {
 	    strcpy(sformat, (yyvsp[(3) - (3)].sval));
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 281:
-
+#line 2702 "pars.yacc"
     {
 	    if ((map_font_by_name((yyvsp[(5) - (7)].sval), (yyvsp[(3) - (7)].ival)) != RETURN_SUCCESS) && 
                 (map_font_by_name((yyvsp[(7) - (7)].sval), (yyvsp[(3) - (7)].ival)) != RETURN_SUCCESS)) {
@@ -8912,11 +8893,11 @@ yyreduce:
             }
             xfree((yyvsp[(5) - (7)].sval));
 	    xfree((yyvsp[(7) - (7)].sval));
-	}
+	;}
     break;
 
   case 282:
-
+#line 2710 "pars.yacc"
     {
 	    CMap_entry cmap;
             cmap.rgb.red   = (yyvsp[(6) - (13)].ival);
@@ -8928,11 +8909,11 @@ yyreduce:
                 errmsg("Failed mapping a color");
             }
 	    xfree((yyvsp[(13) - (13)].sval));
-        }
+        ;}
     break;
 
   case 283:
-
+#line 2723 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
@@ -8942,18 +8923,18 @@ yyreduce:
 	    g[whichgraph].w.yg1 = (yyvsp[(4) - (8)].dval);
 	    g[whichgraph].w.xg2 = (yyvsp[(6) - (8)].dval);
 	    g[whichgraph].w.yg2 = (yyvsp[(8) - (8)].dval);
-	}
+	;}
     break;
 
   case 284:
-
+#line 2733 "pars.yacc"
     {
 	    set_graph_znorm(whichgraph, (yyvsp[(2) - (2)].dval));
-	}
+	;}
     break;
 
   case 285:
-
+#line 2736 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
@@ -8963,11 +8944,11 @@ yyreduce:
 	    g[whichgraph].v.yv1 = (yyvsp[(4) - (8)].dval);
 	    g[whichgraph].v.xv2 = (yyvsp[(6) - (8)].dval);
 	    g[whichgraph].v.yv2 = (yyvsp[(8) - (8)].dval);
-	}
+	;}
     break;
 
   case 286:
-
+#line 2746 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
@@ -8975,44 +8956,44 @@ yyreduce:
             }
 	    set_plotstr_string(&g[whichgraph].labs.title, (yyvsp[(2) - (2)].sval));
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 287:
-
+#line 2754 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].labs.title.font = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 288:
-
+#line 2761 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].labs.title.charsize = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 289:
-
+#line 2768 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].labs.title.color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 290:
-
+#line 2775 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
@@ -9020,116 +9001,116 @@ yyreduce:
             }
 	    set_plotstr_string(&g[whichgraph].labs.stitle, (yyvsp[(2) - (2)].sval));
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 291:
-
+#line 2783 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].labs.stitle.font = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 292:
-
+#line 2790 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].labs.stitle.charsize = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 293:
-
+#line 2797 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].labs.stitle.color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 294:
-
+#line 2805 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].xscale = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 295:
-
+#line 2812 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].yscale = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 296:
-
+#line 2819 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].xinvert = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 297:
-
+#line 2826 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].yinvert = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 298:
-
+#line 2833 "pars.yacc"
     {
             autoscale_onread = AUTOSCALE_NONE;
-        }
+        ;}
     break;
 
   case 299:
-
+#line 2836 "pars.yacc"
     {
             autoscale_onread = AUTOSCALE_X;
-        }
+        ;}
     break;
 
   case 300:
-
+#line 2839 "pars.yacc"
     {
             autoscale_onread = AUTOSCALE_Y;
-        }
+        ;}
     break;
 
   case 301:
-
+#line 2842 "pars.yacc"
     {
             autoscale_onread = AUTOSCALE_XY;
-        }
+        ;}
     break;
 
   case 302:
-
+#line 2846 "pars.yacc"
     {
             char *s;
             s = copy_string(NULL, get_project_description());
@@ -9138,150 +9119,150 @@ yyreduce:
             s = concat_strings(s, "\n");
             set_project_description(s);
             xfree(s);
-	}
+	;}
     break;
 
   case 303:
-
+#line 2855 "pars.yacc"
     {
             set_project_description(NULL);
-        }
+        ;}
     break;
 
   case 304:
-
+#line 2859 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.active = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 305:
-
+#line 2866 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.loctype = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 306:
-
+#line 2873 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
             g[whichgraph].l.vgap = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 307:
-
+#line 2880 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.hgap = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 308:
-
+#line 2887 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.len = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 309:
-
+#line 2894 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.invert = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 310:
-
+#line 2901 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.boxfillpen.color = (yyvsp[(4) - (4)].ival);
-        }
+        ;}
     break;
 
   case 311:
-
+#line 2908 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.boxfillpen.pattern = (yyvsp[(4) - (4)].ival);
-        }
+        ;}
     break;
 
   case 312:
-
+#line 2915 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.boxpen.color = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 313:
-
+#line 2922 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.boxpen.pattern = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 314:
-
+#line 2929 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.boxlines = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 315:
-
+#line 2936 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.boxlinew = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 316:
-
+#line 2943 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
@@ -9289,356 +9270,356 @@ yyreduce:
             }
 	    g[whichgraph].l.legx = (yyvsp[(2) - (4)].dval);
 	    g[whichgraph].l.legy = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 317:
-
+#line 2951 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.charsize = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 318:
-
+#line 2958 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.font = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 319:
-
+#line 2965 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 320:
-
+#line 2973 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
             g[whichgraph].f.pen.pattern = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 321:
-
+#line 2980 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].f.type = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 322:
-
+#line 2987 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].f.lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 323:
-
+#line 2994 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].f.linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 324:
-
+#line 3001 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].f.pen.color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 325:
-
+#line 3008 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].f.pen.pattern = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 326:
-
+#line 3016 "pars.yacc"
     { 
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
             g[whichgraph].f.fillpen.color = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 327:
-
+#line 3024 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
             g[whichgraph].f.fillpen.pattern = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 328:
-
+#line 3032 "pars.yacc"
     {
             set_graph_hidden((yyvsp[(1) - (2)].ival), !(yyvsp[(2) - (2)].ival));
-        }
+        ;}
     break;
 
   case 329:
-
+#line 3035 "pars.yacc"
     {
             set_graph_hidden((yyvsp[(1) - (3)].ival), (yyvsp[(3) - (3)].ival));
-        }
+        ;}
     break;
 
   case 330:
-
+#line 3038 "pars.yacc"
     {
             set_graph_type((yyvsp[(1) - (3)].ival), (yyvsp[(3) - (3)].ival));
-        }
+        ;}
     break;
 
   case 331:
-
+#line 3041 "pars.yacc"
     {
             set_graph_stacked((yyvsp[(1) - (3)].ival), (yyvsp[(3) - (3)].ival));
-        }
+        ;}
     break;
 
   case 332:
-
+#line 3045 "pars.yacc"
     {
 	    set_graph_bargap((yyvsp[(1) - (4)].ival), (yyvsp[(4) - (4)].dval));
-	}
+	;}
     break;
 
   case 333:
-
+#line 3049 "pars.yacc"
     {
             g[(yyvsp[(1) - (3)].ival)].locator.pointset = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 334:
-
+#line 3052 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (5)].ival)].locator.fx = (yyvsp[(4) - (5)].ival);
 	    g[(yyvsp[(1) - (5)].ival)].locator.fy = (yyvsp[(5) - (5)].ival);
-	}
+	;}
     break;
 
   case 335:
-
+#line 3056 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (6)].ival)].locator.px = (yyvsp[(4) - (6)].dval);
 	    g[(yyvsp[(1) - (6)].ival)].locator.py = (yyvsp[(6) - (6)].dval);
-	}
+	;}
     break;
 
   case 336:
-
+#line 3060 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (6)].ival)].locator.dsx = (yyvsp[(4) - (6)].dval);
 	    g[(yyvsp[(1) - (6)].ival)].locator.dsy = (yyvsp[(6) - (6)].dval);
-	}
+	;}
     break;
 
   case 337:
-
+#line 3064 "pars.yacc"
     {
             g[(yyvsp[(1) - (4)].ival)].locator.pt_type = (yyvsp[(4) - (4)].ival);
-        }
+        ;}
     break;
 
   case 338:
-
+#line 3068 "pars.yacc"
     {
 	    curtype = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 339:
-
+#line 3073 "pars.yacc"
     {
 	    if (add_io_filter((yyvsp[(2) - (5)].ival), (yyvsp[(4) - (5)].ival), (yyvsp[(5) - (5)].sval), (yyvsp[(3) - (5)].sval)) != 0) {
 	        yyerror("Failed adding i/o filter");
 	    }
 	    xfree((yyvsp[(3) - (5)].sval));
 	    xfree((yyvsp[(5) - (5)].sval));
-	}
+	;}
     break;
 
   case 340:
-
+#line 3080 "pars.yacc"
     {
 	    clear_io_filters((yyvsp[(2) - (2)].ival));
-	}
+	;}
     break;
 
   case 341:
-
+#line 3084 "pars.yacc"
     {
 	    cursource = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 342:
-
+#line 3087 "pars.yacc"
     {
 	    readxformat = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 343:
-
-    { }
+#line 3090 "pars.yacc"
+    { ;}
     break;
 
   case 344:
-
+#line 3091 "pars.yacc"
     {
 	    nonl_parms[(yyvsp[(1) - (3)].ival)].constr = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 345:
-
+#line 3097 "pars.yacc"
     {
 	    drawgraph();
-	}
+	;}
     break;
 
   case 346:
-
+#line 3100 "pars.yacc"
     {
 #ifndef NONE_GUI
             if (inwin) {
                 update_all();
             }
 #endif
-        }
+        ;}
     break;
 
   case 347:
-
+#line 3107 "pars.yacc"
     {
 	    set_workingdir((yyvsp[(2) - (2)].sval));
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 348:
-
+#line 3111 "pars.yacc"
     {
 	    echomsg((yyvsp[(2) - (2)].sval));
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 349:
-
+#line 3115 "pars.yacc"
     {
 	    char buf[32];
             set_locale_num(TRUE);
             sprintf(buf, "%g", (yyvsp[(2) - (2)].dval));
             set_locale_num(FALSE);
             echomsg(buf);
-	}
+	;}
     break;
 
   case 350:
-
+#line 3122 "pars.yacc"
     {
 	    close_input = copy_string(close_input, "");
-	}
+	;}
     break;
 
   case 351:
-
+#line 3125 "pars.yacc"
     {
 	    close_input = copy_string(close_input, (yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 352:
-
+#line 3128 "pars.yacc"
     {
 	    exit(0);
-	}
+	;}
     break;
 
   case 353:
-
+#line 3131 "pars.yacc"
     {
 	    exit((yyvsp[(3) - (4)].ival));
-	}
+	;}
     break;
 
   case 354:
-
+#line 3134 "pars.yacc"
     {
 	    if (!safe_mode) {
                 do_hardcopy();
             } else {
                 yyerror("File modifications are disabled in safe mode");
             }
-	}
+	;}
     break;
 
   case 355:
-
+#line 3141 "pars.yacc"
     {
             set_ptofile(FALSE);
-	}
+	;}
     break;
 
   case 356:
-
+#line 3144 "pars.yacc"
     {
             set_ptofile(TRUE);
 	    strcpy(print_file, (yyvsp[(3) - (3)].sval));
             xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 357:
-
+#line 3149 "pars.yacc"
     {
 	    switch ((yyvsp[(2) - (2)].ival)) {
 	    case UP:
@@ -9660,20 +9641,20 @@ yyreduce:
 		graph_zoom(GZOOM_EXPAND);
 		break;
 	    }
-	}
+	;}
     break;
 
   case 358:
-
+#line 3171 "pars.yacc"
     {
 	    if ((yyvsp[(2) - (2)].dval) > 0) {
 	        msleep_wrap((unsigned int) (1000 * (yyvsp[(2) - (2)].dval)));
 	    }
-	}
+	;}
     break;
 
   case 359:
-
+#line 3176 "pars.yacc"
     {
 #ifndef NONE_GUI
             if (inwin) {
@@ -9681,31 +9662,31 @@ yyreduce:
             }
             xfree((yyvsp[(2) - (2)].sval));
 #endif
-	}
+	;}
     break;
 
   case 360:
-
+#line 3184 "pars.yacc"
     {
 #ifndef NONE_GUI
             if (inwin) {
                 HelpCB("doc/UsersGuide.html");
             }
 #endif
-	}
+	;}
     break;
 
   case 361:
-
+#line 3191 "pars.yacc"
     {
 	    gotparams = TRUE;
 	    strcpy(paramfile, (yyvsp[(2) - (2)].sval));
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 362:
-
+#line 3196 "pars.yacc"
     {
 	    if (!safe_mode) {
                 FILE *pp = grace_openw((yyvsp[(2) - (2)].sval));
@@ -9717,64 +9698,64 @@ yyreduce:
                 yyerror("File modifications are disabled in safe mode");
             }
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 363:
-
+#line 3208 "pars.yacc"
     {
 	    set_set_hidden((yyvsp[(1) - (3)].trgt)->gno, (yyvsp[(1) - (3)].trgt)->setno, (yyvsp[(3) - (3)].ival));
-	}
+	;}
     break;
 
   case 364:
-
+#line 3211 "pars.yacc"
     {
 	    setlength((yyvsp[(1) - (3)].trgt)->gno, (yyvsp[(1) - (3)].trgt)->setno, (yyvsp[(3) - (3)].ival));
-	}
+	;}
     break;
 
   case 365:
-
+#line 3214 "pars.yacc"
     {
 	    realloc_vrbl((yyvsp[(1) - (3)].vrbl), (yyvsp[(3) - (3)].ival));
-	}
+	;}
     break;
 
   case 366:
-
+#line 3217 "pars.yacc"
     {
 	    add_point((yyvsp[(1) - (5)].trgt)->gno, (yyvsp[(1) - (5)].trgt)->setno, (yyvsp[(3) - (5)].dval), (yyvsp[(5) - (5)].dval));
-	}
+	;}
     break;
 
   case 367:
-
+#line 3221 "pars.yacc"
     {
 	    int start = (yyvsp[(3) - (5)].ival) - index_shift;
 	    int stop = (yyvsp[(5) - (5)].ival) - index_shift;
 	    droppoints((yyvsp[(1) - (5)].trgt)->gno, (yyvsp[(1) - (5)].trgt)->setno, start, stop);
-	}
+	;}
     break;
 
   case 368:
-
+#line 3226 "pars.yacc"
     {
 	    if (is_set_active((yyvsp[(2) - (4)].trgt)->gno, (yyvsp[(2) - (4)].trgt)->setno)) {
 	        sortset((yyvsp[(2) - (4)].trgt)->gno, (yyvsp[(2) - (4)].trgt)->setno, (yyvsp[(3) - (4)].ival), (yyvsp[(4) - (4)].ival) == ASCENDING ? 0 : 1);
 	    }
-	}
+	;}
     break;
 
   case 369:
-
+#line 3231 "pars.yacc"
     {
 	    do_copyset((yyvsp[(2) - (4)].trgt)->gno, (yyvsp[(2) - (4)].trgt)->setno, (yyvsp[(4) - (4)].trgt)->gno, (yyvsp[(4) - (4)].trgt)->setno);
-	}
+	;}
     break;
 
   case 370:
-
+#line 3234 "pars.yacc"
     {
 	    if ((yyvsp[(2) - (4)].trgt)->gno != (yyvsp[(4) - (4)].trgt)->gno) {
                 errmsg("Can't append sets from different graphs");
@@ -9784,112 +9765,112 @@ yyreduce:
 	        sets[1] = (yyvsp[(2) - (4)].trgt)->setno;
 	        join_sets((yyvsp[(2) - (4)].trgt)->gno, sets, 2);
             }
-	}
+	;}
     break;
 
   case 371:
-
+#line 3244 "pars.yacc"
     {
             reverse_set((yyvsp[(2) - (2)].trgt)->gno, (yyvsp[(2) - (2)].trgt)->setno);
-	}
+	;}
     break;
 
   case 372:
-
+#line 3247 "pars.yacc"
     {
             do_splitsets((yyvsp[(2) - (3)].trgt)->gno, (yyvsp[(2) - (3)].trgt)->setno, (yyvsp[(3) - (3)].ival));
-	}
+	;}
     break;
 
   case 373:
-
+#line 3250 "pars.yacc"
     {
 	    do_moveset((yyvsp[(2) - (4)].trgt)->gno, (yyvsp[(2) - (4)].trgt)->setno, (yyvsp[(4) - (4)].trgt)->gno, (yyvsp[(4) - (4)].trgt)->setno);
-	}
+	;}
     break;
 
   case 374:
-
+#line 3253 "pars.yacc"
     {
 	    do_swapset((yyvsp[(2) - (4)].trgt)->gno, (yyvsp[(2) - (4)].trgt)->setno, (yyvsp[(4) - (4)].trgt)->gno, (yyvsp[(4) - (4)].trgt)->setno);
-	}
+	;}
     break;
 
   case 375:
-
+#line 3256 "pars.yacc"
     {
 	    killset((yyvsp[(2) - (2)].trgt)->gno, (yyvsp[(2) - (2)].trgt)->setno);
-	}
+	;}
     break;
 
   case 376:
-
+#line 3259 "pars.yacc"
     {
             killsetdata((yyvsp[(2) - (3)].trgt)->gno, (yyvsp[(2) - (3)].trgt)->setno);
-        }
+        ;}
     break;
 
   case 377:
-
+#line 3262 "pars.yacc"
     {
             kill_graph((yyvsp[(2) - (2)].ival));
-        }
+        ;}
     break;
 
   case 378:
-
+#line 3265 "pars.yacc"
     {
             kill_region((yyvsp[(2) - (2)].ival));
-        }
+        ;}
     break;
 
   case 379:
-
+#line 3268 "pars.yacc"
     {
             wipeout();
-        }
+        ;}
     break;
 
   case 380:
-
+#line 3271 "pars.yacc"
     {
             arrange_graphs_simple((yyvsp[(3) - (12)].ival), (yyvsp[(5) - (12)].ival), 0, FALSE, (yyvsp[(7) - (12)].dval), (yyvsp[(9) - (12)].dval), (yyvsp[(11) - (12)].dval));
-        }
+        ;}
     break;
 
   case 381:
-
+#line 3274 "pars.yacc"
     {
             int order = ((yyvsp[(13) - (18)].ival) * GA_ORDER_HV_INV) |
                         ((yyvsp[(15) - (18)].ival) * GA_ORDER_H_INV ) |
                         ((yyvsp[(17) - (18)].ival) * GA_ORDER_V_INV );
             arrange_graphs_simple((yyvsp[(3) - (18)].ival), (yyvsp[(5) - (18)].ival), order, FALSE, (yyvsp[(7) - (18)].dval), (yyvsp[(9) - (18)].dval), (yyvsp[(11) - (18)].dval));
-        }
+        ;}
     break;
 
   case 382:
-
+#line 3280 "pars.yacc"
     {
             int order = ((yyvsp[(13) - (20)].ival) * GA_ORDER_HV_INV) |
                         ((yyvsp[(15) - (20)].ival) * GA_ORDER_H_INV ) |
                         ((yyvsp[(17) - (20)].ival) * GA_ORDER_V_INV );
             arrange_graphs_simple((yyvsp[(3) - (20)].ival), (yyvsp[(5) - (20)].ival), order, (yyvsp[(19) - (20)].ival), (yyvsp[(7) - (20)].dval), (yyvsp[(9) - (20)].dval), (yyvsp[(11) - (20)].dval));
-        }
+        ;}
     break;
 
   case 383:
-
+#line 3286 "pars.yacc"
     {
 	    gotnlfit = TRUE;
 	    nlfit_gno = (yyvsp[(3) - (6)].trgt)->gno;
 	    nlfit_setno = (yyvsp[(3) - (6)].trgt)->setno;
 	    nlfit_nsteps = (yyvsp[(5) - (6)].ival);
 	    nlfit_warray = NULL;
-	}
+	;}
     break;
 
   case 384:
-
+#line 3293 "pars.yacc"
     {
 	    if (getsetlength((yyvsp[(3) - (8)].trgt)->gno, (yyvsp[(3) - (8)].trgt)->setno) != (yyvsp[(5) - (8)].vrbl)->length) {
                 errmsg("Data and weight arrays are of different lengths");
@@ -9901,32 +9882,32 @@ yyreduce:
 	        nlfit_nsteps = (yyvsp[(7) - (8)].ival);
 	        nlfit_warray = copy_data_column((yyvsp[(5) - (8)].vrbl)->data, (yyvsp[(5) - (8)].vrbl)->length);
             }
-	}
+	;}
     break;
 
   case 385:
-
+#line 3305 "pars.yacc"
     {
 	    do_regress((yyvsp[(3) - (6)].trgt)->gno, (yyvsp[(3) - (6)].trgt)->setno, (yyvsp[(5) - (6)].ival), 0, -1, 0, -1);
-	}
+	;}
     break;
 
   case 386:
-
+#line 3308 "pars.yacc"
     {
 	    do_runavg((yyvsp[(3) - (6)].trgt)->gno, (yyvsp[(3) - (6)].trgt)->setno, (yyvsp[(5) - (6)].ival), (yyvsp[(1) - (6)].ival), -1, 0);
-	}
+	;}
     break;
 
   case 387:
-
+#line 3311 "pars.yacc"
     {
 	    do_fourier_command((yyvsp[(3) - (6)].trgt)->gno, (yyvsp[(3) - (6)].trgt)->setno, (yyvsp[(1) - (6)].ival), (yyvsp[(5) - (6)].ival));
-	}
+	;}
     break;
 
   case 388:
-
+#line 3315 "pars.yacc"
     {
 	    switch ((yyvsp[(1) - (12)].ival)) {
 	    case FFT_DFT:
@@ -9945,55 +9926,55 @@ yyreduce:
                 errmsg("Internal error");
 	        break;
 	    }
-        }
+        ;}
     break;
 
   case 389:
-
+#line 3334 "pars.yacc"
     {
             do_interp((yyvsp[(3) - (10)].trgt)->gno, (yyvsp[(3) - (10)].trgt)->setno, get_cg(), SET_SELECT_NEXT,
                 (yyvsp[(5) - (10)].vrbl)->data, (yyvsp[(5) - (10)].vrbl)->length, (yyvsp[(7) - (10)].ival), (yyvsp[(9) - (10)].ival));
-	}
+	;}
     break;
 
   case 390:
-
+#line 3338 "pars.yacc"
     {
             do_histo((yyvsp[(3) - (10)].trgt)->gno, (yyvsp[(3) - (10)].trgt)->setno, get_cg(), SET_SELECT_NEXT,
                 (yyvsp[(5) - (10)].vrbl)->data, (yyvsp[(5) - (10)].vrbl)->length - 1, (yyvsp[(7) - (10)].ival), (yyvsp[(9) - (10)].ival));
-	}
+	;}
     break;
 
   case 391:
-
+#line 3342 "pars.yacc"
     {
 	    do_differ((yyvsp[(3) - (6)].trgt)->gno, (yyvsp[(3) - (6)].trgt)->setno, (yyvsp[(5) - (6)].ival));
-	}
+	;}
     break;
 
   case 392:
-
+#line 3345 "pars.yacc"
     {
 	    do_int((yyvsp[(3) - (4)].trgt)->gno, (yyvsp[(3) - (4)].trgt)->setno, 0);
-	}
+	;}
     break;
 
   case 393:
-
+#line 3348 "pars.yacc"
     {
 	    do_xcor((yyvsp[(3) - (10)].trgt)->gno, (yyvsp[(3) - (10)].trgt)->setno, (yyvsp[(5) - (10)].trgt)->gno, (yyvsp[(5) - (10)].trgt)->setno, (yyvsp[(7) - (10)].ival), (yyvsp[(9) - (10)].ival));
-	}
+	;}
     break;
 
   case 394:
-
+#line 3351 "pars.yacc"
     {
 	    do_linearc((yyvsp[(3) - (6)].trgt)->gno, (yyvsp[(3) - (6)].trgt)->setno, (yyvsp[(5) - (6)].trgt)->gno, (yyvsp[(5) - (6)].trgt)->setno);
-	}
+	;}
     break;
 
   case 395:
-
+#line 3354 "pars.yacc"
     {
             int len = getsetlength((yyvsp[(3) - (6)].trgt)->gno, (yyvsp[(3) - (6)].trgt)->setno);
             if (len != (yyvsp[(5) - (6)].vrbl)->length) {
@@ -10010,11 +9991,11 @@ yyreduce:
                     xfree(rarray);
                 }
             }
-	}
+	;}
     break;
 
   case 396:
-
+#line 3371 "pars.yacc"
     {
             int rtype;
             char *rarray;
@@ -10029,52 +10010,52 @@ yyreduce:
                 filter_set((yyvsp[(3) - (8)].trgt)->gno, (yyvsp[(3) - (8)].trgt)->setno, rarray);
                 xfree(rarray);
             }
-	}
+	;}
     break;
 
   case 397:
-
+#line 3386 "pars.yacc"
     {
 	    if (autoscale_graph(whichgraph, AUTOSCALE_XY) != RETURN_SUCCESS) {
 		errmsg("Can't autoscale (no active sets?)");
 	    }
-	}
+	;}
     break;
 
   case 398:
-
+#line 3391 "pars.yacc"
     {
 	    if (autoscale_graph(whichgraph, AUTOSCALE_X) != RETURN_SUCCESS) {
 		errmsg("Can't autoscale (no active sets?)");
 	    }
-	}
+	;}
     break;
 
   case 399:
-
+#line 3396 "pars.yacc"
     {
 	    if (autoscale_graph(whichgraph, AUTOSCALE_Y) != RETURN_SUCCESS) {
 		errmsg("Can't autoscale (no active sets?)");
 	    }
-	}
+	;}
     break;
 
   case 400:
-
+#line 3401 "pars.yacc"
     {
 	    autoscale_byset((yyvsp[(2) - (2)].trgt)->gno, (yyvsp[(2) - (2)].trgt)->setno, AUTOSCALE_XY);
-	}
+	;}
     break;
 
   case 401:
-
+#line 3404 "pars.yacc"
     {
             autotick_axis(whichgraph, ALL_AXES);
-        }
+        ;}
     break;
 
   case 402:
-
+#line 3407 "pars.yacc"
     {
 	    int gno = (yyvsp[(2) - (2)].ival);
             if (is_graph_hidden(gno) == FALSE) {
@@ -10082,44 +10063,44 @@ yyreduce:
             } else {
 		errmsg("Graph is not active");
             }
-	}
+	;}
     break;
 
   case 403:
-
+#line 3415 "pars.yacc"
     {
 	    gotread = TRUE;
 	    strcpy(readfile, (yyvsp[(2) - (2)].sval));
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 404:
-
+#line 3420 "pars.yacc"
     {
 	    strcpy(batchfile, (yyvsp[(3) - (3)].sval));
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 405:
-
+#line 3424 "pars.yacc"
     {
 	    getdata(whichgraph, (yyvsp[(3) - (3)].sval), SOURCE_DISK, LOAD_BLOCK);
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 406:
-
+#line 3428 "pars.yacc"
     {
 	    getdata(whichgraph, (yyvsp[(4) - (4)].sval), (yyvsp[(3) - (4)].ival), LOAD_BLOCK);
 	    xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 407:
-
+#line 3432 "pars.yacc"
     {
             int nc, *cols, scol;
             if (field_string_to_cols((yyvsp[(3) - (3)].sval), &nc, &cols, &scol) != RETURN_SUCCESS) {
@@ -10132,66 +10113,66 @@ yyreduce:
                     (yyvsp[(2) - (3)].ival), nc, cols, scol, autoscale_onread);
                 xfree(cols);
             }
-	}
+	;}
     break;
 
   case 408:
-
+#line 3445 "pars.yacc"
     {
 	    set_blockdata(NULL);
-	}
+	;}
     break;
 
   case 409:
-
+#line 3448 "pars.yacc"
     {
 	    gotread = TRUE;
 	    curtype = (yyvsp[(2) - (3)].ival);
 	    strcpy(readfile, (yyvsp[(3) - (3)].sval));
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 410:
-
+#line 3454 "pars.yacc"
     {
 	    gotread = TRUE;
 	    strcpy(readfile, (yyvsp[(4) - (4)].sval));
 	    curtype = (yyvsp[(2) - (4)].ival);
 	    cursource = (yyvsp[(3) - (4)].ival);
 	    xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 411:
-
+#line 3461 "pars.yacc"
     {
 	    getdata(whichgraph, (yyvsp[(3) - (3)].sval), SOURCE_DISK, LOAD_NXY);
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 412:
-
+#line 3465 "pars.yacc"
     {
 	    getdata(whichgraph, (yyvsp[(4) - (4)].sval), (yyvsp[(3) - (4)].ival), LOAD_NXY);
 	    xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 413:
-
+#line 3469 "pars.yacc"
     {
 	    if (!safe_mode) {
                 outputset((yyvsp[(2) - (2)].trgt)->gno, (yyvsp[(2) - (2)].trgt)->setno, "stdout", NULL);
             } else {
                 yyerror("File modifications are disabled in safe mode");
             }
-	}
+	;}
     break;
 
   case 414:
-
+#line 3476 "pars.yacc"
     {
 	    if (!safe_mode) {
 	        outputset((yyvsp[(2) - (4)].trgt)->gno, (yyvsp[(2) - (4)].trgt)->setno, "stdout", (yyvsp[(4) - (4)].sval));
@@ -10199,11 +10180,11 @@ yyreduce:
                 yyerror("File modifications are disabled in safe mode");
             }
 	    xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 415:
-
+#line 3484 "pars.yacc"
     {
 	    if (!safe_mode) {
 	        outputset((yyvsp[(2) - (4)].trgt)->gno, (yyvsp[(2) - (4)].trgt)->setno, (yyvsp[(4) - (4)].sval), NULL);
@@ -10211,11 +10192,11 @@ yyreduce:
                 yyerror("File modifications are disabled in safe mode");
             }
 	    xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 416:
-
+#line 3492 "pars.yacc"
     {
 	    if (!safe_mode) {
 	        outputset((yyvsp[(2) - (6)].trgt)->gno, (yyvsp[(2) - (6)].trgt)->setno, (yyvsp[(4) - (6)].sval), (yyvsp[(6) - (6)].sval));
@@ -10224,11 +10205,11 @@ yyreduce:
             }
 	    xfree((yyvsp[(4) - (6)].sval));
 	    xfree((yyvsp[(6) - (6)].sval));
-	}
+	;}
     break;
 
   case 417:
-
+#line 3501 "pars.yacc"
     {
             if (!safe_mode) {
                 save_project((yyvsp[(2) - (2)].sval));
@@ -10236,292 +10217,292 @@ yyreduce:
                 yyerror("File modifications are disabled in safe mode");
             }
             xfree((yyvsp[(2) - (2)].sval));
-        }
+        ;}
     break;
 
   case 418:
-
+#line 3509 "pars.yacc"
     {
             load_project((yyvsp[(2) - (2)].sval));
             xfree((yyvsp[(2) - (2)].sval));
-        }
+        ;}
     break;
 
   case 419:
-
+#line 3513 "pars.yacc"
     {
             new_project(NULL);
-        }
+        ;}
     break;
 
   case 420:
-
+#line 3516 "pars.yacc"
     {
             new_project((yyvsp[(3) - (3)].sval));
             xfree((yyvsp[(3) - (3)].sval));
-        }
+        ;}
     break;
 
   case 421:
-
+#line 3520 "pars.yacc"
     {
 	    push_world();
-	}
+	;}
     break;
 
   case 422:
-
+#line 3523 "pars.yacc"
     {
 	    pop_world();
-	}
+	;}
     break;
 
   case 423:
-
+#line 3526 "pars.yacc"
     {
 	    cycle_world_stack();
-	}
+	;}
     break;
 
   case 424:
-
+#line 3529 "pars.yacc"
     {
 	    if ((yyvsp[(2) - (2)].ival) > 0)
 		show_world_stack((yyvsp[(2) - (2)].ival) - 1);
-	}
+	;}
     break;
 
   case 425:
-
+#line 3533 "pars.yacc"
     {
 	    clear_world_stack();
-	}
+	;}
     break;
 
   case 426:
-
+#line 3536 "pars.yacc"
     {
 	    do_clear_boxes();
-	}
+	;}
     break;
 
   case 427:
-
+#line 3539 "pars.yacc"
     {
 	    do_clear_ellipses();
-	}
+	;}
     break;
 
   case 428:
-
+#line 3542 "pars.yacc"
     {
 	    do_clear_lines();
-	}
+	;}
     break;
 
   case 429:
-
+#line 3545 "pars.yacc"
     {
 	    do_clear_text();
-	}
+	;}
     break;
 
   case 430:
-
+#line 3552 "pars.yacc"
     {
 #ifndef NONE_GUI
             set_pagelayout((yyvsp[(3) - (3)].ival));
 #endif
-        }
+        ;}
     break;
 
   case 431:
-
+#line 3557 "pars.yacc"
     {
 	    auto_redraw = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 432:
-
+#line 3560 "pars.yacc"
     {
 	    draw_focus_flag = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 433:
-
+#line 3563 "pars.yacc"
     {
 	    focus_policy = FOCUS_SET;
-	}
+	;}
     break;
 
   case 434:
-
+#line 3566 "pars.yacc"
     {
 	    focus_policy = FOCUS_FOLLOWS;
-	}
+	;}
     break;
 
   case 435:
-
+#line 3569 "pars.yacc"
     {
 	    focus_policy = FOCUS_CLICK;
-	}
+	;}
     break;
 
   case 436:
-
-    {}
+#line 3576 "pars.yacc"
+    {;}
     break;
 
   case 437:
-
-    {}
+#line 3577 "pars.yacc"
+    {;}
     break;
 
   case 438:
-
+#line 3581 "pars.yacc"
     {
 	    set_set_hidden((yyvsp[(1) - (2)].trgt)->gno, (yyvsp[(1) - (2)].trgt)->setno, !(yyvsp[(2) - (2)].ival));
-	}
+	;}
     break;
 
   case 439:
-
+#line 3584 "pars.yacc"
     {
 	    set_dataset_type((yyvsp[(1) - (3)].trgt)->gno, (yyvsp[(1) - (3)].trgt)->setno, (yyvsp[(3) - (3)].ival));
-	}
+	;}
     break;
 
   case 440:
-
+#line 3588 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].sym = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 441:
-
+#line 3591 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].sympen.color = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 442:
-
+#line 3594 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].sympen.pattern = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 443:
-
+#line 3597 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].symlinew = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 444:
-
+#line 3600 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].symlines = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 445:
-
+#line 3603 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].symfillpen.color = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 446:
-
+#line 3606 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].symfillpen.pattern = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 447:
-
+#line 3609 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].symsize = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 448:
-
+#line 3612 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].symchar = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 449:
-
+#line 3615 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].charfont = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 450:
-
+#line 3618 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].symskip = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 451:
-
+#line 3623 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].linet = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 452:
-
+#line 3627 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].lines = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 453:
-
+#line 3631 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].linew = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 454:
-
+#line 3635 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].linepen.color = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 455:
-
+#line 3639 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].linepen.pattern = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 456:
-
+#line 3644 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].filltype = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 457:
-
+#line 3648 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].fillrule = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 458:
-
+#line 3652 "pars.yacc"
     {
 	    int prop = (yyvsp[(3) - (3)].ival);
 
@@ -10538,11 +10519,11 @@ yyreduce:
                 }
 	    }
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].setfillpen.color = prop;
-	}
+	;}
     break;
 
   case 459:
-
+#line 3670 "pars.yacc"
     {
 	    int prop = (yyvsp[(3) - (3)].ival);
 
@@ -10559,262 +10540,262 @@ yyreduce:
                 }
 	    }
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].setfillpen.pattern = prop;
-	}
+	;}
     break;
 
   case 460:
-
+#line 3690 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].baseline = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 461:
-
+#line 3694 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].baseline_type = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 462:
-
+#line 3699 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].dropline = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 463:
-
+#line 3704 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].avalue.active = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 464:
-
+#line 3708 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].avalue.type = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 465:
-
+#line 3712 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (5)].trgt)->gno].p[(yyvsp[(1) - (5)].trgt)->setno].avalue.size = (yyvsp[(5) - (5)].dval);
-	}
+	;}
     break;
 
   case 466:
-
+#line 3716 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].avalue.font = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 467:
-
+#line 3720 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].avalue.color = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 468:
-
+#line 3724 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].avalue.angle = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 469:
-
+#line 3728 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].avalue.format = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 470:
-
+#line 3732 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].avalue.prec = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 471:
-
+#line 3735 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (6)].trgt)->gno].p[(yyvsp[(1) - (6)].trgt)->setno].avalue.offset.x = (yyvsp[(4) - (6)].dval);
 	    g[(yyvsp[(1) - (6)].trgt)->gno].p[(yyvsp[(1) - (6)].trgt)->setno].avalue.offset.y = (yyvsp[(6) - (6)].dval);
-	}
+	;}
     break;
 
   case 472:
-
+#line 3740 "pars.yacc"
     {
 	    strcpy(g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].avalue.prestr, (yyvsp[(4) - (4)].sval));
 	    xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 473:
-
+#line 3745 "pars.yacc"
     {
 	    strcpy(g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].avalue.appstr, (yyvsp[(4) - (4)].sval));
 	    xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 474:
-
+#line 3750 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].errbar.active = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 475:
-
+#line 3753 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].errbar.ptype = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 476:
-
+#line 3756 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].errbar.pen.color = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 477:
-
+#line 3759 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].errbar.pen.pattern = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 478:
-
+#line 3762 "pars.yacc"
     {
             g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].errbar.barsize = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 479:
-
+#line 3765 "pars.yacc"
     {
             g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].errbar.linew = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 480:
-
+#line 3768 "pars.yacc"
     {
             g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].errbar.lines = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 481:
-
+#line 3771 "pars.yacc"
     {
             g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].errbar.riser_linew = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 482:
-
+#line 3774 "pars.yacc"
     {
             g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].errbar.riser_lines = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 483:
-
+#line 3777 "pars.yacc"
     {
             g[(yyvsp[(1) - (5)].trgt)->gno].p[(yyvsp[(1) - (5)].trgt)->setno].errbar.arrow_clip = (yyvsp[(5) - (5)].ival);
-	}
+	;}
     break;
 
   case 484:
-
+#line 3780 "pars.yacc"
     {
             g[(yyvsp[(1) - (6)].trgt)->gno].p[(yyvsp[(1) - (6)].trgt)->setno].errbar.cliplen = (yyvsp[(6) - (6)].dval);
-	}
+	;}
     break;
 
   case 485:
-
+#line 3784 "pars.yacc"
     {
 	    strncpy(g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].comments, (yyvsp[(3) - (3)].sval), MAX_STRING_LENGTH - 1);
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 486:
-
+#line 3789 "pars.yacc"
     {
 	    strncpy(g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].lstr, (yyvsp[(3) - (3)].sval), MAX_STRING_LENGTH - 1);
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 487:
-
+#line 3797 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->active = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 488:
-
+#line 3804 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->zero = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 489:
-
-    {}
+#line 3811 "pars.yacc"
+    {;}
     break;
 
   case 490:
-
-    {}
+#line 3812 "pars.yacc"
+    {;}
     break;
 
   case 491:
-
-    {}
+#line 3813 "pars.yacc"
+    {;}
     break;
 
   case 492:
-
-    {}
+#line 3814 "pars.yacc"
+    {;}
     break;
 
   case 493:
-
-    {}
+#line 3815 "pars.yacc"
+    {;}
     break;
 
   case 494:
-
-    {}
+#line 3816 "pars.yacc"
+    {;}
     break;
 
   case 495:
-
-    {}
+#line 3817 "pars.yacc"
+    {;}
     break;
 
   case 496:
-
+#line 3818 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -10822,264 +10803,264 @@ yyreduce:
             }
             g[whichgraph].t[naxis]->offsx = (yyvsp[(2) - (4)].dval);
 	    g[whichgraph].t[naxis]->offsy = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 497:
-
+#line 3829 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_flag = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 498:
-
+#line 3836 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
             g[whichgraph].t[naxis]->tmajor = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 499:
-
+#line 3843 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->nminor = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 500:
-
+#line 3850 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_round = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 501:
-
+#line 3858 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
             g[whichgraph].t[naxis]->offsx = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 502:
-
+#line 3865 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
             g[whichgraph].t[naxis]->offsy = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 503:
-
+#line 3872 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_autonum = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 504:
-
+#line 3879 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_inout = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 505:
-
+#line 3886 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->props.size = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 506:
-
+#line 3893 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->mprops.size = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 507:
-
+#line 3900 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->props.color = g[whichgraph].t[naxis]->mprops.color = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 508:
-
+#line 3907 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->props.color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 509:
-
+#line 3914 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->mprops.color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 510:
-
+#line 3921 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->props.linew = g[whichgraph].t[naxis]->mprops.linew = (yyvsp[(1) - (1)].dval);
-	}
+	;}
     break;
 
   case 511:
-
+#line 3928 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->props.linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 512:
-
+#line 3935 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->mprops.linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 513:
-
+#line 3942 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->props.lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 514:
-
+#line 3949 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->mprops.lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 515:
-
+#line 3956 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->props.gridflag = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 516:
-
+#line 3963 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->mprops.gridflag = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 517:
-
+#line 3970 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_op = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 518:
-
+#line 3977 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_spec = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 519:
-
+#line 3984 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->nticks = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 520:
-
+#line 3991 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11087,11 +11068,11 @@ yyreduce:
             }
 	    g[whichgraph].t[naxis]->tloc[(yyvsp[(2) - (4)].ival)].wtpos = (yyvsp[(4) - (4)].dval);
 	    g[whichgraph].t[naxis]->tloc[(yyvsp[(2) - (4)].ival)].type = TICK_TYPE_MAJOR;
-	}
+	;}
     break;
 
   case 521:
-
+#line 3999 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11099,55 +11080,55 @@ yyreduce:
             }
 	    g[whichgraph].t[naxis]->tloc[(yyvsp[(2) - (4)].ival)].wtpos = (yyvsp[(4) - (4)].dval);
 	    g[whichgraph].t[naxis]->tloc[(yyvsp[(2) - (4)].ival)].type = TICK_TYPE_MINOR;
-	}
+	;}
     break;
 
   case 522:
-
+#line 4010 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_flag = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 523:
-
+#line 4017 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_prec = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 524:
-
+#line 4024 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_format = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 525:
-
+#line 4031 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_format = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 526:
-
+#line 4038 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11156,11 +11137,11 @@ yyreduce:
 	    strcpy(g[whichgraph].t[naxis]->tl_appstr, (yyvsp[(2) - (2)].sval));
         strcpy(g[whichgraph].t[naxis]->orig_tl_appstr, (yyvsp[(2) - (2)].sval));
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 527:
-
+#line 4047 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11169,55 +11150,55 @@ yyreduce:
 	    strcpy(g[whichgraph].t[naxis]->tl_prestr, (yyvsp[(2) - (2)].sval));
         strcpy(g[whichgraph].t[naxis]->orig_tl_prestr, (yyvsp[(2) - (2)].sval));
 	    xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 528:
-
+#line 4056 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_angle = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 529:
-
+#line 4063 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_skip = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 530:
-
+#line 4070 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_staggered = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 531:
-
+#line 4077 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_op = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 532:
-
+#line 4084 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11226,110 +11207,110 @@ yyreduce:
             g[whichgraph].t[naxis]->tl_formula =
                 copy_string(g[whichgraph].t[naxis]->tl_formula, (yyvsp[(2) - (2)].sval));
             xfree((yyvsp[(2) - (2)].sval));
-	}
+	;}
     break;
 
   case 533:
-
+#line 4093 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_start = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 534:
-
+#line 4100 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_stop = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 535:
-
+#line 4107 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_starttype = TYPE_SPEC;
-	}
+	;}
     break;
 
   case 536:
-
+#line 4114 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_starttype = TYPE_AUTO;
-	}
+	;}
     break;
 
   case 537:
-
+#line 4121 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_stoptype = TYPE_SPEC;
-	}
+	;}
     break;
 
   case 538:
-
+#line 4128 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_stoptype = TYPE_AUTO;
-	}
+	;}
     break;
 
   case 539:
-
+#line 4135 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_charsize = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 540:
-
+#line 4142 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_font = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 541:
-
+#line 4149 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_color = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 542:
-
+#line 4156 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11346,33 +11327,33 @@ yyreduce:
         g[whichgraph].t[naxis]->tloc[(yyvsp[(1) - (3)].ival)].orig_label =
                 copy_string(g[whichgraph].t[naxis]->tloc[(yyvsp[(1) - (3)].ival)].orig_label, (yyvsp[(3) - (3)].sval));
 	    xfree((yyvsp[(3) - (3)].sval));
-	}
+	;}
     break;
 
   case 543:
-
+#line 4173 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_gaptype = TYPE_AUTO;
-	}
+	;}
     break;
 
   case 544:
-
+#line 4180 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_gaptype = TYPE_SPEC;
-	}
+	;}
     break;
 
   case 545:
-
+#line 4187 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11380,11 +11361,11 @@ yyreduce:
             }
 	    g[whichgraph].t[naxis]->tl_gap.x = (yyvsp[(2) - (4)].dval);
 	    g[whichgraph].t[naxis]->tl_gap.y = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 546:
-
+#line 4198 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11392,55 +11373,55 @@ yyreduce:
             }
 	    set_plotstr_string(&g[whichgraph].t[naxis]->label, (yyvsp[(1) - (1)].sval));
 	    xfree((yyvsp[(1) - (1)].sval));
-	}
+	;}
     break;
 
   case 547:
-
+#line 4206 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label_layout = LAYOUT_PERPENDICULAR;
-	}
+	;}
     break;
 
   case 548:
-
+#line 4213 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label_layout = LAYOUT_PARALLEL;
-	}
+	;}
     break;
 
   case 549:
-
+#line 4220 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label_place = TYPE_AUTO;
-	}
+	;}
     break;
 
   case 550:
-
+#line 4227 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label_place = TYPE_SPEC;
-	}
+	;}
     break;
 
   case 551:
-
+#line 4234 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -11448,154 +11429,154 @@ yyreduce:
             }
 	    g[whichgraph].t[naxis]->label.x = (yyvsp[(2) - (4)].dval);
 	    g[whichgraph].t[naxis]->label.y = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 552:
-
+#line 4242 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label.just = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 553:
-
+#line 4249 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label.charsize = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 554:
-
+#line 4256 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label.font = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 555:
-
+#line 4263 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label.color = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 556:
-
+#line 4270 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label_op = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 557:
-
+#line 4280 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_drawbar = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 558:
-
+#line 4287 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_drawbarcolor = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 559:
-
+#line 4294 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_drawbarlines = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 560:
-
+#line 4301 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_drawbarlinew = (yyvsp[(1) - (1)].dval);
-	}
+	;}
     break;
 
   case 561:
-
+#line 4311 "pars.yacc"
     { 
           nonl_opts.title = copy_string(nonl_opts.title, (yyvsp[(2) - (2)].sval));
 	  xfree((yyvsp[(2) - (2)].sval));
-        }
+        ;}
     break;
 
   case 562:
-
+#line 4315 "pars.yacc"
     { 
           nonl_opts.formula = copy_string(nonl_opts.formula, (yyvsp[(2) - (2)].sval));
 	  xfree((yyvsp[(2) - (2)].sval));
-        }
+        ;}
     break;
 
   case 563:
-
+#line 4319 "pars.yacc"
     { 
             nonl_opts.parnum = (yyvsp[(2) - (3)].ival); 
-        }
+        ;}
     break;
 
   case 564:
-
+#line 4322 "pars.yacc"
     { 
             nonl_opts.tolerance = (yyvsp[(2) - (2)].dval); 
-        }
+        ;}
     break;
 
   case 565:
-
+#line 4329 "pars.yacc"
     {
             (yyval.ival) = (yyvsp[(1) - (1)].ival);
-        }
+        ;}
     break;
 
   case 566:
-
+#line 4333 "pars.yacc"
     {
             (yyval.ival) = (yyvsp[(2) - (2)].ival);
-        }
+        ;}
     break;
 
   case 567:
-
+#line 4340 "pars.yacc"
     {
 	    int gno = (yyvsp[(1) - (3)].ival), setno = (yyvsp[(3) - (3)].ival);
             if (allocate_set(gno, setno) == RETURN_SUCCESS) {
@@ -11607,11 +11588,11 @@ yyreduce:
                 errmsg("Can't allocate referred set");
                 return 1;
             }
-	}
+	;}
     break;
 
   case 568:
-
+#line 4353 "pars.yacc"
     {
 	    int gno = (yyvsp[(1) - (4)].ival), setno = (yyvsp[(4) - (4)].ival);
             if (allocate_set(gno, setno) == RETURN_SUCCESS) {
@@ -11623,11 +11604,11 @@ yyreduce:
                 errmsg("Can't allocate referred set");
                 return 1;
             }
-	}
+	;}
     break;
 
   case 569:
-
+#line 4366 "pars.yacc"
     {
 	    int gno = whichgraph, setno = (yyvsp[(1) - (1)].ival);
             if (allocate_set(gno, setno) == RETURN_SUCCESS) {
@@ -11639,11 +11620,11 @@ yyreduce:
                 errmsg("Can't allocate referred set");
                 return 1;
             }
-	}
+	;}
     break;
 
   case 570:
-
+#line 4379 "pars.yacc"
     {
 	    int gno = whichgraph, setno = (yyvsp[(2) - (2)].ival);
             if (allocate_set(gno, setno) == RETURN_SUCCESS) {
@@ -11655,391 +11636,391 @@ yyreduce:
                 errmsg("Can't allocate referred set");
                 return 1;
             }
-	}
+	;}
     break;
 
   case 571:
-
-    {}
+#line 4394 "pars.yacc"
+    {;}
     break;
 
   case 572:
-
-    {}
+#line 4395 "pars.yacc"
+    {;}
     break;
 
   case 573:
-
-    { naxis =  X_AXIS; }
+#line 4399 "pars.yacc"
+    { naxis =  X_AXIS; ;}
     break;
 
   case 574:
-
-    { naxis = Y_AXIS; }
+#line 4400 "pars.yacc"
+    { naxis = Y_AXIS; ;}
     break;
 
   case 575:
-
-    { naxis = ZX_AXIS; }
+#line 4401 "pars.yacc"
+    { naxis = ZX_AXIS; ;}
     break;
 
   case 576:
-
-    { naxis = ZY_AXIS; }
+#line 4402 "pars.yacc"
+    { naxis = ZY_AXIS; ;}
     break;
 
   case 577:
-
-    { (yyval.ival) = CONSTANT;  }
+#line 4406 "pars.yacc"
+    { (yyval.ival) = CONSTANT;  ;}
     break;
 
   case 578:
-
-    { (yyval.ival) = UCONSTANT; }
+#line 4407 "pars.yacc"
+    { (yyval.ival) = UCONSTANT; ;}
     break;
 
   case 579:
-
-    { (yyval.ival) = FUNC_I;    }
+#line 4408 "pars.yacc"
+    { (yyval.ival) = FUNC_I;    ;}
     break;
 
   case 580:
-
-    { (yyval.ival) = FUNC_D;    }
+#line 4409 "pars.yacc"
+    { (yyval.ival) = FUNC_D;    ;}
     break;
 
   case 581:
-
-    { (yyval.ival) = FUNC_ND;   }
+#line 4410 "pars.yacc"
+    { (yyval.ival) = FUNC_ND;   ;}
     break;
 
   case 582:
-
-    { (yyval.ival) = FUNC_NN;   }
+#line 4411 "pars.yacc"
+    { (yyval.ival) = FUNC_NN;   ;}
     break;
 
   case 583:
-
-    { (yyval.ival) = FUNC_DD;   }
+#line 4412 "pars.yacc"
+    { (yyval.ival) = FUNC_DD;   ;}
     break;
 
   case 584:
-
-    { (yyval.ival) = FUNC_NND;  }
+#line 4413 "pars.yacc"
+    { (yyval.ival) = FUNC_NND;  ;}
     break;
 
   case 585:
-
-    { (yyval.ival) = FUNC_PPD;  }
+#line 4414 "pars.yacc"
+    { (yyval.ival) = FUNC_PPD;  ;}
     break;
 
   case 586:
-
-    { (yyval.ival) = FUNC_PPPD; }
+#line 4415 "pars.yacc"
+    { (yyval.ival) = FUNC_PPPD; ;}
     break;
 
   case 587:
-
-    { (yyval.ival) = FUNC_PPPPD; }
+#line 4416 "pars.yacc"
+    { (yyval.ival) = FUNC_PPPPD; ;}
     break;
 
   case 588:
-
-    { (yyval.ival) = FUNC_PPPPPD; }
+#line 4417 "pars.yacc"
+    { (yyval.ival) = FUNC_PPPPPD; ;}
     break;
 
   case 589:
-
-    { (yyval.ival) =  TICKS_SPEC_NONE; }
+#line 4421 "pars.yacc"
+    { (yyval.ival) =  TICKS_SPEC_NONE; ;}
     break;
 
   case 590:
-
-    { (yyval.ival) = TICKS_SPEC_MARKS; }
+#line 4422 "pars.yacc"
+    { (yyval.ival) = TICKS_SPEC_MARKS; ;}
     break;
 
   case 591:
-
-    { (yyval.ival) = TICKS_SPEC_BOTH; }
+#line 4423 "pars.yacc"
+    { (yyval.ival) = TICKS_SPEC_BOTH; ;}
     break;
 
   case 592:
-
-    { (yyval.ival) = FILTER_INPUT; }
+#line 4427 "pars.yacc"
+    { (yyval.ival) = FILTER_INPUT; ;}
     break;
 
   case 593:
-
-    { (yyval.ival) = FILTER_OUTPUT; }
+#line 4428 "pars.yacc"
+    { (yyval.ival) = FILTER_OUTPUT; ;}
     break;
 
   case 594:
-
-    { (yyval.ival) = FILTER_MAGIC; }
+#line 4432 "pars.yacc"
+    { (yyval.ival) = FILTER_MAGIC; ;}
     break;
 
   case 595:
-
-    { (yyval.ival) = FILTER_PATTERN; }
+#line 4433 "pars.yacc"
+    { (yyval.ival) = FILTER_PATTERN; ;}
     break;
 
   case 596:
-
-    { (yyval.ival) = SET_XY; }
+#line 4437 "pars.yacc"
+    { (yyval.ival) = SET_XY; ;}
     break;
 
   case 597:
-
-    { (yyval.ival) = SET_BAR; }
+#line 4438 "pars.yacc"
+    { (yyval.ival) = SET_BAR; ;}
     break;
 
   case 598:
-
-    { (yyval.ival) = SET_BARDY; }
+#line 4439 "pars.yacc"
+    { (yyval.ival) = SET_BARDY; ;}
     break;
 
   case 599:
-
-    { (yyval.ival) = SET_BARDYDY; }
+#line 4440 "pars.yacc"
+    { (yyval.ival) = SET_BARDYDY; ;}
     break;
 
   case 600:
-
-    { (yyval.ival) = SET_XYZ; }
+#line 4441 "pars.yacc"
+    { (yyval.ival) = SET_XYZ; ;}
     break;
 
   case 601:
-
-    { (yyval.ival) = SET_XYDX; }
+#line 4442 "pars.yacc"
+    { (yyval.ival) = SET_XYDX; ;}
     break;
 
   case 602:
-
-    { (yyval.ival) = SET_XYDY; }
+#line 4443 "pars.yacc"
+    { (yyval.ival) = SET_XYDY; ;}
     break;
 
   case 603:
-
-    { (yyval.ival) = SET_XYDXDX; }
+#line 4444 "pars.yacc"
+    { (yyval.ival) = SET_XYDXDX; ;}
     break;
 
   case 604:
-
-    { (yyval.ival) = SET_XYDYDY; }
+#line 4445 "pars.yacc"
+    { (yyval.ival) = SET_XYDYDY; ;}
     break;
 
   case 605:
-
-    { (yyval.ival) = SET_XYDXDY; }
+#line 4446 "pars.yacc"
+    { (yyval.ival) = SET_XYDXDY; ;}
     break;
 
   case 606:
-
-    { (yyval.ival) = SET_XYDXDXDYDY; }
+#line 4447 "pars.yacc"
+    { (yyval.ival) = SET_XYDXDXDYDY; ;}
     break;
 
   case 607:
-
-    { (yyval.ival) = SET_XYHILO; }
+#line 4448 "pars.yacc"
+    { (yyval.ival) = SET_XYHILO; ;}
     break;
 
   case 608:
-
-    { (yyval.ival) = SET_XYR; }
+#line 4449 "pars.yacc"
+    { (yyval.ival) = SET_XYR; ;}
     break;
 
   case 609:
-
-    { (yyval.ival) = SET_XYSIZE; }
+#line 4450 "pars.yacc"
+    { (yyval.ival) = SET_XYSIZE; ;}
     break;
 
   case 610:
-
-    { (yyval.ival) = SET_XYCOLOR; }
+#line 4451 "pars.yacc"
+    { (yyval.ival) = SET_XYCOLOR; ;}
     break;
 
   case 611:
-
-    { (yyval.ival) = SET_XYCOLPAT; }
+#line 4452 "pars.yacc"
+    { (yyval.ival) = SET_XYCOLPAT; ;}
     break;
 
   case 612:
-
-    { (yyval.ival) = SET_XYVMAP; }
+#line 4453 "pars.yacc"
+    { (yyval.ival) = SET_XYVMAP; ;}
     break;
 
   case 613:
-
-    { (yyval.ival) = SET_BOXPLOT; }
+#line 4454 "pars.yacc"
+    { (yyval.ival) = SET_BOXPLOT; ;}
     break;
 
   case 614:
-
-    { (yyval.ival) = SET_XY; }
+#line 4455 "pars.yacc"
+    { (yyval.ival) = SET_XY; ;}
     break;
 
   case 615:
-
-    { (yyval.ival) = GRAPH_XY; }
+#line 4459 "pars.yacc"
+    { (yyval.ival) = GRAPH_XY; ;}
     break;
 
   case 616:
-
-    { (yyval.ival) = GRAPH_CHART; }
+#line 4460 "pars.yacc"
+    { (yyval.ival) = GRAPH_CHART; ;}
     break;
 
   case 617:
-
-    { (yyval.ival) = GRAPH_POLAR; }
+#line 4461 "pars.yacc"
+    { (yyval.ival) = GRAPH_POLAR; ;}
     break;
 
   case 618:
-
-    { (yyval.ival) = GRAPH_SMITH; }
+#line 4462 "pars.yacc"
+    { (yyval.ival) = GRAPH_SMITH; ;}
     break;
 
   case 619:
-
-    { (yyval.ival) = GRAPH_FIXED; }
+#line 4463 "pars.yacc"
+    { (yyval.ival) = GRAPH_FIXED; ;}
     break;
 
   case 620:
-
-    { (yyval.ival) = GRAPH_PIE;   }
+#line 4464 "pars.yacc"
+    { (yyval.ival) = GRAPH_PIE;   ;}
     break;
 
   case 621:
-
-    { (yyval.ival) = PAGE_FREE; }
+#line 4468 "pars.yacc"
+    { (yyval.ival) = PAGE_FREE; ;}
     break;
 
   case 622:
-
-    { (yyval.ival) = PAGE_FIXED; }
+#line 4469 "pars.yacc"
+    { (yyval.ival) = PAGE_FIXED; ;}
     break;
 
   case 623:
-
-    { (yyval.ival) = PAGE_ORIENT_LANDSCAPE; }
+#line 4473 "pars.yacc"
+    { (yyval.ival) = PAGE_ORIENT_LANDSCAPE; ;}
     break;
 
   case 624:
-
-    { (yyval.ival) = PAGE_ORIENT_PORTRAIT;  }
+#line 4474 "pars.yacc"
+    { (yyval.ival) = PAGE_ORIENT_PORTRAIT;  ;}
     break;
 
   case 625:
-
-    { (yyval.ival) = REGION_ABOVE; }
+#line 4478 "pars.yacc"
+    { (yyval.ival) = REGION_ABOVE; ;}
     break;
 
   case 626:
-
-    { (yyval.ival) = REGION_BELOW; }
+#line 4479 "pars.yacc"
+    { (yyval.ival) = REGION_BELOW; ;}
     break;
 
   case 627:
-
-    { (yyval.ival) = REGION_TOLEFT; }
+#line 4480 "pars.yacc"
+    { (yyval.ival) = REGION_TOLEFT; ;}
     break;
 
   case 628:
-
-    { (yyval.ival) = REGION_TORIGHT; }
+#line 4481 "pars.yacc"
+    { (yyval.ival) = REGION_TORIGHT; ;}
     break;
 
   case 629:
-
-    { (yyval.ival) = REGION_POLYI; }
+#line 4482 "pars.yacc"
+    { (yyval.ival) = REGION_POLYI; ;}
     break;
 
   case 630:
-
-    { (yyval.ival) = REGION_POLYO; }
+#line 4483 "pars.yacc"
+    { (yyval.ival) = REGION_POLYO; ;}
     break;
 
   case 631:
-
-    { (yyval.ival) = REGION_HORIZI; }
+#line 4484 "pars.yacc"
+    { (yyval.ival) = REGION_HORIZI; ;}
     break;
 
   case 632:
-
-    { (yyval.ival) = REGION_VERTI; }
+#line 4485 "pars.yacc"
+    { (yyval.ival) = REGION_VERTI; ;}
     break;
 
   case 633:
-
-    { (yyval.ival) = REGION_HORIZO; }
+#line 4486 "pars.yacc"
+    { (yyval.ival) = REGION_HORIZO; ;}
     break;
 
   case 634:
-
-    { (yyval.ival) = REGION_VERTO; }
+#line 4487 "pars.yacc"
+    { (yyval.ival) = REGION_VERTO; ;}
     break;
 
   case 635:
-
-    { (yyval.ival) = SCALE_NORMAL; }
+#line 4490 "pars.yacc"
+    { (yyval.ival) = SCALE_NORMAL; ;}
     break;
 
   case 636:
-
-    { (yyval.ival) = SCALE_LOG; }
+#line 4491 "pars.yacc"
+    { (yyval.ival) = SCALE_LOG; ;}
     break;
 
   case 637:
-
-    { (yyval.ival) = SCALE_REC; }
+#line 4492 "pars.yacc"
+    { (yyval.ival) = SCALE_REC; ;}
     break;
 
   case 638:
-
-    { (yyval.ival) = SCALE_LOGIT; }
+#line 4493 "pars.yacc"
+    { (yyval.ival) = SCALE_LOGIT; ;}
     break;
 
   case 639:
-
-    { (yyval.ival) = TRUE; }
+#line 4496 "pars.yacc"
+    { (yyval.ival) = TRUE; ;}
     break;
 
   case 640:
-
-    { (yyval.ival) = FALSE; }
+#line 4497 "pars.yacc"
+    { (yyval.ival) = FALSE; ;}
     break;
 
   case 641:
-
-    { (yyval.ival) = RUN_AVG; }
+#line 4500 "pars.yacc"
+    { (yyval.ival) = RUN_AVG; ;}
     break;
 
   case 642:
-
-    { (yyval.ival) = RUN_STD; }
+#line 4501 "pars.yacc"
+    { (yyval.ival) = RUN_STD; ;}
     break;
 
   case 643:
-
-    { (yyval.ival) = RUN_MED; }
+#line 4502 "pars.yacc"
+    { (yyval.ival) = RUN_MED; ;}
     break;
 
   case 644:
-
-    { (yyval.ival) = RUN_MAX; }
+#line 4503 "pars.yacc"
+    { (yyval.ival) = RUN_MAX; ;}
     break;
 
   case 645:
-
-    { (yyval.ival) = RUN_MIN; }
+#line 4504 "pars.yacc"
+    { (yyval.ival) = RUN_MIN; ;}
     break;
 
   case 646:
-
-    { (yyval.ival) = SOURCE_DISK; }
+#line 4508 "pars.yacc"
+    { (yyval.ival) = SOURCE_DISK; ;}
     break;
 
   case 647:
-
+#line 4509 "pars.yacc"
     {
             if (!safe_mode) {
                 (yyval.ival) = SOURCE_PIPE;
@@ -12047,476 +12028,476 @@ yyreduce:
                 yyerror("Pipe inputs are disabled in safe mode");
                 (yyval.ival) = SOURCE_DISK;
             }
-        }
+        ;}
     break;
 
   case 648:
-
-    { (yyval.ival) = JUST_RIGHT; }
+#line 4519 "pars.yacc"
+    { (yyval.ival) = JUST_RIGHT; ;}
     break;
 
   case 649:
-
-    { (yyval.ival) = JUST_LEFT; }
+#line 4520 "pars.yacc"
+    { (yyval.ival) = JUST_LEFT; ;}
     break;
 
   case 650:
-
-    { (yyval.ival) = JUST_CENTER; }
+#line 4521 "pars.yacc"
+    { (yyval.ival) = JUST_CENTER; ;}
     break;
 
   case 651:
-
-    { (yyval.ival) = TICKS_IN; }
+#line 4524 "pars.yacc"
+    { (yyval.ival) = TICKS_IN; ;}
     break;
 
   case 652:
-
-    { (yyval.ival) = TICKS_OUT; }
+#line 4525 "pars.yacc"
+    { (yyval.ival) = TICKS_OUT; ;}
     break;
 
   case 653:
-
-    { (yyval.ival) = TICKS_BOTH; }
+#line 4526 "pars.yacc"
+    { (yyval.ival) = TICKS_BOTH; ;}
     break;
 
   case 654:
-
-    { (yyval.ival) = FORMAT_DECIMAL; }
+#line 4529 "pars.yacc"
+    { (yyval.ival) = FORMAT_DECIMAL; ;}
     break;
 
   case 655:
-
-    { (yyval.ival) = FORMAT_EXPONENTIAL; }
+#line 4530 "pars.yacc"
+    { (yyval.ival) = FORMAT_EXPONENTIAL; ;}
     break;
 
   case 656:
-
-    { (yyval.ival) = FORMAT_GENERAL; }
+#line 4531 "pars.yacc"
+    { (yyval.ival) = FORMAT_GENERAL; ;}
     break;
 
   case 657:
-
-    { (yyval.ival) = FORMAT_SCIENTIFIC; }
+#line 4532 "pars.yacc"
+    { (yyval.ival) = FORMAT_SCIENTIFIC; ;}
     break;
 
   case 658:
-
-    { (yyval.ival) = FORMAT_ENGINEERING; }
+#line 4533 "pars.yacc"
+    { (yyval.ival) = FORMAT_ENGINEERING; ;}
     break;
 
   case 659:
-
-    { (yyval.ival) = FORMAT_COMPUTING; }
+#line 4534 "pars.yacc"
+    { (yyval.ival) = FORMAT_COMPUTING; ;}
     break;
 
   case 660:
-
-    { (yyval.ival) = FORMAT_POWER; }
+#line 4535 "pars.yacc"
+    { (yyval.ival) = FORMAT_POWER; ;}
     break;
 
   case 661:
-
-    { (yyval.ival) = FORMAT_DDMMYY; }
+#line 4536 "pars.yacc"
+    { (yyval.ival) = FORMAT_DDMMYY; ;}
     break;
 
   case 662:
-
-    { (yyval.ival) = FORMAT_MMDDYY; }
+#line 4537 "pars.yacc"
+    { (yyval.ival) = FORMAT_MMDDYY; ;}
     break;
 
   case 663:
-
-    { (yyval.ival) = FORMAT_YYMMDD; }
+#line 4538 "pars.yacc"
+    { (yyval.ival) = FORMAT_YYMMDD; ;}
     break;
 
   case 664:
-
-    { (yyval.ival) = FORMAT_MMYY; }
+#line 4539 "pars.yacc"
+    { (yyval.ival) = FORMAT_MMYY; ;}
     break;
 
   case 665:
-
-    { (yyval.ival) = FORMAT_MMDD; }
+#line 4540 "pars.yacc"
+    { (yyval.ival) = FORMAT_MMDD; ;}
     break;
 
   case 666:
-
-    { (yyval.ival) = FORMAT_MONTHDAY; }
+#line 4541 "pars.yacc"
+    { (yyval.ival) = FORMAT_MONTHDAY; ;}
     break;
 
   case 667:
-
-    { (yyval.ival) = FORMAT_DAYMONTH; }
+#line 4542 "pars.yacc"
+    { (yyval.ival) = FORMAT_DAYMONTH; ;}
     break;
 
   case 668:
-
-    { (yyval.ival) = FORMAT_MONTHS; }
+#line 4543 "pars.yacc"
+    { (yyval.ival) = FORMAT_MONTHS; ;}
     break;
 
   case 669:
-
-    { (yyval.ival) = FORMAT_MONTHSY; }
+#line 4544 "pars.yacc"
+    { (yyval.ival) = FORMAT_MONTHSY; ;}
     break;
 
   case 670:
-
-    { (yyval.ival) = FORMAT_MONTHL; }
+#line 4545 "pars.yacc"
+    { (yyval.ival) = FORMAT_MONTHL; ;}
     break;
 
   case 671:
-
-    { (yyval.ival) = FORMAT_DAYOFWEEKS; }
+#line 4546 "pars.yacc"
+    { (yyval.ival) = FORMAT_DAYOFWEEKS; ;}
     break;
 
   case 672:
-
-    { (yyval.ival) = FORMAT_DAYOFWEEKL; }
+#line 4547 "pars.yacc"
+    { (yyval.ival) = FORMAT_DAYOFWEEKL; ;}
     break;
 
   case 673:
-
-    { (yyval.ival) = FORMAT_DAYOFYEAR; }
+#line 4548 "pars.yacc"
+    { (yyval.ival) = FORMAT_DAYOFYEAR; ;}
     break;
 
   case 674:
-
-    { (yyval.ival) = FORMAT_HMS; }
+#line 4549 "pars.yacc"
+    { (yyval.ival) = FORMAT_HMS; ;}
     break;
 
   case 675:
-
-    { (yyval.ival) = FORMAT_MMDDHMS; }
+#line 4550 "pars.yacc"
+    { (yyval.ival) = FORMAT_MMDDHMS; ;}
     break;
 
   case 676:
-
-    { (yyval.ival) = FORMAT_MMDDYYHMS; }
+#line 4551 "pars.yacc"
+    { (yyval.ival) = FORMAT_MMDDYYHMS; ;}
     break;
 
   case 677:
-
-    { (yyval.ival) = FORMAT_YYMMDDHMS; }
+#line 4552 "pars.yacc"
+    { (yyval.ival) = FORMAT_YYMMDDHMS; ;}
     break;
 
   case 678:
-
-    { (yyval.ival) = FORMAT_DEGREESLON; }
+#line 4553 "pars.yacc"
+    { (yyval.ival) = FORMAT_DEGREESLON; ;}
     break;
 
   case 679:
-
-    { (yyval.ival) = FORMAT_DEGREESMMLON; }
+#line 4554 "pars.yacc"
+    { (yyval.ival) = FORMAT_DEGREESMMLON; ;}
     break;
 
   case 680:
-
-    { (yyval.ival) = FORMAT_DEGREESMMSSLON; }
+#line 4555 "pars.yacc"
+    { (yyval.ival) = FORMAT_DEGREESMMSSLON; ;}
     break;
 
   case 681:
-
-    { (yyval.ival) = FORMAT_MMSSLON; }
+#line 4556 "pars.yacc"
+    { (yyval.ival) = FORMAT_MMSSLON; ;}
     break;
 
   case 682:
-
-    { (yyval.ival) = FORMAT_DEGREESLAT; }
+#line 4557 "pars.yacc"
+    { (yyval.ival) = FORMAT_DEGREESLAT; ;}
     break;
 
   case 683:
-
-    { (yyval.ival) = FORMAT_DEGREESMMLAT; }
+#line 4558 "pars.yacc"
+    { (yyval.ival) = FORMAT_DEGREESMMLAT; ;}
     break;
 
   case 684:
-
-    { (yyval.ival) = FORMAT_DEGREESMMSSLAT; }
+#line 4559 "pars.yacc"
+    { (yyval.ival) = FORMAT_DEGREESMMSSLAT; ;}
     break;
 
   case 685:
-
-    { (yyval.ival) = FORMAT_MMSSLAT; }
+#line 4560 "pars.yacc"
+    { (yyval.ival) = FORMAT_MMSSLAT; ;}
     break;
 
   case 686:
-
-    { (yyval.ival) = SIGN_NORMAL; }
+#line 4563 "pars.yacc"
+    { (yyval.ival) = SIGN_NORMAL; ;}
     break;
 
   case 687:
-
-    { (yyval.ival) = SIGN_ABSOLUTE; }
+#line 4564 "pars.yacc"
+    { (yyval.ival) = SIGN_ABSOLUTE; ;}
     break;
 
   case 688:
-
-    { (yyval.ival) = SIGN_NEGATE; }
+#line 4565 "pars.yacc"
+    { (yyval.ival) = SIGN_NEGATE; ;}
     break;
 
   case 689:
-
-    { (yyval.ival) = UP; }
+#line 4568 "pars.yacc"
+    { (yyval.ival) = UP; ;}
     break;
 
   case 690:
-
-    { (yyval.ival) = DOWN; }
+#line 4569 "pars.yacc"
+    { (yyval.ival) = DOWN; ;}
     break;
 
   case 691:
-
-    { (yyval.ival) = RIGHT; }
+#line 4570 "pars.yacc"
+    { (yyval.ival) = RIGHT; ;}
     break;
 
   case 692:
-
-    { (yyval.ival) = LEFT; }
+#line 4571 "pars.yacc"
+    { (yyval.ival) = LEFT; ;}
     break;
 
   case 693:
-
-    { (yyval.ival) = IN; }
+#line 4572 "pars.yacc"
+    { (yyval.ival) = IN; ;}
     break;
 
   case 694:
-
-    { (yyval.ival) = OUT; }
+#line 4573 "pars.yacc"
+    { (yyval.ival) = OUT; ;}
     break;
 
   case 695:
-
-    { (yyval.ival) = COORD_WORLD; }
+#line 4576 "pars.yacc"
+    { (yyval.ival) = COORD_WORLD; ;}
     break;
 
   case 696:
-
-    { (yyval.ival) = COORD_VIEW; }
+#line 4577 "pars.yacc"
+    { (yyval.ival) = COORD_VIEW; ;}
     break;
 
   case 697:
-
-    { (yyval.ival) = DATA_X; }
+#line 4580 "pars.yacc"
+    { (yyval.ival) = DATA_X; ;}
     break;
 
   case 698:
-
-    { (yyval.ival) = DATA_Y; }
+#line 4581 "pars.yacc"
+    { (yyval.ival) = DATA_Y; ;}
     break;
 
   case 699:
-
-    { (yyval.ival) = DATA_X; }
+#line 4582 "pars.yacc"
+    { (yyval.ival) = DATA_X; ;}
     break;
 
   case 700:
-
-    { (yyval.ival) = DATA_Y; }
+#line 4583 "pars.yacc"
+    { (yyval.ival) = DATA_Y; ;}
     break;
 
   case 701:
-
-    { (yyval.ival) = DATA_Y1; }
+#line 4584 "pars.yacc"
+    { (yyval.ival) = DATA_Y1; ;}
     break;
 
   case 702:
-
-    { (yyval.ival) = DATA_Y2; }
+#line 4585 "pars.yacc"
+    { (yyval.ival) = DATA_Y2; ;}
     break;
 
   case 703:
-
-    { (yyval.ival) = DATA_Y3; }
+#line 4586 "pars.yacc"
+    { (yyval.ival) = DATA_Y3; ;}
     break;
 
   case 704:
-
-    { (yyval.ival) = DATA_Y4; }
+#line 4587 "pars.yacc"
+    { (yyval.ival) = DATA_Y4; ;}
     break;
 
   case 705:
-
-    { (yyval.ival) = ASCENDING; }
+#line 4590 "pars.yacc"
+    { (yyval.ival) = ASCENDING; ;}
     break;
 
   case 706:
-
-    { (yyval.ival) = DESCENDING; }
+#line 4591 "pars.yacc"
+    { (yyval.ival) = DESCENDING; ;}
     break;
 
   case 707:
-
-    { (yyval.ival) = DATA_X; }
+#line 4594 "pars.yacc"
+    { (yyval.ival) = DATA_X; ;}
     break;
 
   case 708:
-
-    { (yyval.ival) = DATA_Y; }
+#line 4595 "pars.yacc"
+    { (yyval.ival) = DATA_Y; ;}
     break;
 
   case 709:
-
-    { (yyval.ival) = FFT_DFT; }
+#line 4598 "pars.yacc"
+    { (yyval.ival) = FFT_DFT; ;}
     break;
 
   case 710:
-
-    { (yyval.ival) = FFT_FFT; }
+#line 4599 "pars.yacc"
+    { (yyval.ival) = FFT_FFT; ;}
     break;
 
   case 711:
-
-    { (yyval.ival) = FFT_INVDFT; }
+#line 4600 "pars.yacc"
+    { (yyval.ival) = FFT_INVDFT; ;}
     break;
 
   case 712:
-
-    { (yyval.ival) = FFT_INVFFT; }
+#line 4601 "pars.yacc"
+    { (yyval.ival) = FFT_INVFFT; ;}
     break;
 
   case 713:
-
-    {(yyval.ival)=0;}
+#line 4605 "pars.yacc"
+    {(yyval.ival)=0;;}
     break;
 
   case 714:
-
-    {(yyval.ival)=1;}
+#line 4606 "pars.yacc"
+    {(yyval.ival)=1;;}
     break;
 
   case 715:
-
-    {(yyval.ival)=0;}
+#line 4610 "pars.yacc"
+    {(yyval.ival)=0;;}
     break;
 
   case 716:
-
-    {(yyval.ival)=1;}
+#line 4611 "pars.yacc"
+    {(yyval.ival)=1;;}
     break;
 
   case 717:
-
-    {(yyval.ival)=2;}
+#line 4612 "pars.yacc"
+    {(yyval.ival)=2;;}
     break;
 
   case 718:
-
-    {(yyval.ival)=0;}
+#line 4616 "pars.yacc"
+    {(yyval.ival)=0;;}
     break;
 
   case 719:
-
-    {(yyval.ival)=1;}
+#line 4617 "pars.yacc"
+    {(yyval.ival)=1;;}
     break;
 
   case 720:
-
-    {(yyval.ival)=2;}
+#line 4618 "pars.yacc"
+    {(yyval.ival)=2;;}
     break;
 
   case 721:
-
-    {(yyval.ival)=0;}
+#line 4622 "pars.yacc"
+    {(yyval.ival)=0;;}
     break;
 
   case 722:
-
-    {(yyval.ival)=1;}
+#line 4623 "pars.yacc"
+    {(yyval.ival)=1;;}
     break;
 
   case 723:
-
-    {(yyval.ival)=2;}
+#line 4624 "pars.yacc"
+    {(yyval.ival)=2;;}
     break;
 
   case 724:
-
-    {(yyval.ival)=3;}
+#line 4625 "pars.yacc"
+    {(yyval.ival)=3;;}
     break;
 
   case 725:
-
-    {(yyval.ival)=4;}
+#line 4626 "pars.yacc"
+    {(yyval.ival)=4;;}
     break;
 
   case 726:
-
-    {(yyval.ival)=5;}
+#line 4627 "pars.yacc"
+    {(yyval.ival)=5;;}
     break;
 
   case 727:
-
-    {(yyval.ival)=6;}
+#line 4628 "pars.yacc"
+    {(yyval.ival)=6;;}
     break;
 
   case 728:
-
-    { (yyval.ival) = INTERP_LINEAR; }
+#line 4632 "pars.yacc"
+    { (yyval.ival) = INTERP_LINEAR; ;}
     break;
 
   case 729:
-
-    { (yyval.ival) = INTERP_SPLINE; }
+#line 4633 "pars.yacc"
+    { (yyval.ival) = INTERP_SPLINE; ;}
     break;
 
   case 730:
-
-    { (yyval.ival) = INTERP_ASPLINE; }
+#line 4634 "pars.yacc"
+    { (yyval.ival) = INTERP_ASPLINE; ;}
     break;
 
   case 731:
-
-    { (yyval.ival) = MINP; }
+#line 4637 "pars.yacc"
+    { (yyval.ival) = MINP; ;}
     break;
 
   case 732:
-
-    { (yyval.ival) = MAXP; }
+#line 4638 "pars.yacc"
+    { (yyval.ival) = MAXP; ;}
     break;
 
   case 733:
-
-    { (yyval.ival) = AVG; }
+#line 4639 "pars.yacc"
+    { (yyval.ival) = AVG; ;}
     break;
 
   case 734:
-
-    { (yyval.ival) = SD; }
+#line 4640 "pars.yacc"
+    { (yyval.ival) = SD; ;}
     break;
 
   case 735:
-
-    { (yyval.ival) = SUM; }
+#line 4641 "pars.yacc"
+    { (yyval.ival) = SUM; ;}
     break;
 
   case 736:
-
-    { (yyval.ival) = IMIN; }
+#line 4642 "pars.yacc"
+    { (yyval.ival) = IMIN; ;}
     break;
 
   case 737:
-
-    { (yyval.ival) = IMAX; }
+#line 4643 "pars.yacc"
+    { (yyval.ival) = IMAX; ;}
     break;
 
   case 738:
-
+#line 4648 "pars.yacc"
     {
             (yyval.ival) = get_mapped_font((yyvsp[(2) - (2)].ival));
-        }
+        ;}
     break;
 
   case 739:
-
+#line 4652 "pars.yacc"
     {
             (yyval.ival) = get_font_by_name((yyvsp[(2) - (2)].sval));
             xfree((yyvsp[(2) - (2)].sval));
-        }
+        ;}
     break;
 
   case 740:
-
+#line 4660 "pars.yacc"
     {
 	    int lines = (yyvsp[(2) - (2)].ival);
             if (lines >= 0 && lines < number_of_linestyles()) {
@@ -12525,11 +12506,11 @@ yyreduce:
 	        errmsg("invalid linestyle");
 	        (yyval.ival) = 1;
 	    }
-        }
+        ;}
     break;
 
   case 741:
-
+#line 4673 "pars.yacc"
     {
 	    int patno = (yyvsp[(2) - (2)].ival);
             if (patno >= 0 && patno < number_of_patterns()) {
@@ -12538,11 +12519,11 @@ yyreduce:
 	        errmsg("invalid pattern number");
 	        (yyval.ival) = 1;
 	    }
-        }
+        ;}
     break;
 
   case 742:
-
+#line 4686 "pars.yacc"
     {
             int c = (yyvsp[(2) - (2)].ival);
             if (c >= 0 && c < number_of_colors()) {
@@ -12551,11 +12532,11 @@ yyreduce:
                 errmsg("Invalid color ID");
                 (yyval.ival) = 1;
             }
-        }
+        ;}
     break;
 
   case 743:
-
+#line 4696 "pars.yacc"
     {
             int c = get_color_by_name((yyvsp[(2) - (2)].sval));
             if (c == BAD_COLOR) {
@@ -12564,11 +12545,11 @@ yyreduce:
             }
             xfree((yyvsp[(2) - (2)].sval));
             (yyval.ival) = c;
-        }
+        ;}
     break;
 
   case 744:
-
+#line 4706 "pars.yacc"
     {
             int c;
             CMap_entry cmap;
@@ -12583,11 +12564,11 @@ yyreduce:
                 c = 1;
             }
             (yyval.ival) = c;
-        }
+        ;}
     break;
 
   case 745:
-
+#line 4725 "pars.yacc"
     {
             double linew;
             linew = (yyvsp[(2) - (2)].dval);
@@ -12599,33 +12580,33 @@ yyreduce:
                 linew = MAX_LINEWIDTH;
             }
             (yyval.dval) = linew;
-        }
+        ;}
     break;
 
   case 746:
-
+#line 4740 "pars.yacc"
     {
             (yyval.ival) = (yyvsp[(2) - (2)].ival);
-        }
+        ;}
     break;
 
   case 747:
-
-    { (yyval.ival) = PLACEMENT_NORMAL; }
+#line 4745 "pars.yacc"
+    { (yyval.ival) = PLACEMENT_NORMAL; ;}
     break;
 
   case 748:
-
-    { (yyval.ival) = PLACEMENT_OPPOSITE; }
+#line 4746 "pars.yacc"
+    { (yyval.ival) = PLACEMENT_OPPOSITE; ;}
     break;
 
   case 749:
-
-    { (yyval.ival) = PLACEMENT_BOTH; }
+#line 4747 "pars.yacc"
+    { (yyval.ival) = PLACEMENT_BOTH; ;}
     break;
 
   case 750:
-
+#line 4753 "pars.yacc"
     {
             int wpp, hpp;
             if ((yyvsp[(3) - (3)].ival) == PAGE_ORIENT_LANDSCAPE) {
@@ -12636,75 +12617,75 @@ yyreduce:
                 hpp = 792;
             }
             set_page_dimensions(wpp, hpp, FALSE);
-        }
+        ;}
     break;
 
   case 751:
-
+#line 4764 "pars.yacc"
     {
             set_page_dimensions((int) (yyvsp[(3) - (4)].dval), (int) (yyvsp[(4) - (4)].dval), FALSE);
-        }
+        ;}
     break;
 
   case 752:
-
+#line 4767 "pars.yacc"
     {
 	    scroll_proc((yyvsp[(2) - (2)].ival));
-	}
+	;}
     break;
 
   case 753:
-
+#line 4770 "pars.yacc"
     {
 	    scrollinout_proc((yyvsp[(3) - (3)].ival));
-	}
+	;}
     break;
 
   case 754:
-
+#line 4774 "pars.yacc"
     {
-	}
+	;}
     break;
 
   case 755:
-
+#line 4778 "pars.yacc"
     {
 	    add_world(whichgraph, (yyvsp[(3) - (17)].dval), (yyvsp[(5) - (17)].dval), (yyvsp[(7) - (17)].dval), (yyvsp[(9) - (17)].dval));
-	}
+	;}
     break;
 
   case 756:
-
-    {filltype_obs = (yyvsp[(3) - (3)].ival);}
+#line 4782 "pars.yacc"
+    {filltype_obs = (yyvsp[(3) - (3)].ival);;}
     break;
 
   case 757:
-
-    {filltype_obs = (yyvsp[(3) - (3)].ival);}
+#line 4784 "pars.yacc"
+    {filltype_obs = (yyvsp[(3) - (3)].ival);;}
     break;
 
   case 758:
-
-    { }
+#line 4786 "pars.yacc"
+    { ;}
     break;
 
   case 759:
-
-    { }
+#line 4788 "pars.yacc"
+    { ;}
     break;
 
   case 760:
-
-    { }
+#line 4790 "pars.yacc"
+    { ;}
     break;
 
   case 761:
-
-    { }
+#line 4791 "pars.yacc"
+    { ;}
     break;
 
   case 762:
-
+#line 4793 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
@@ -12713,33 +12694,33 @@ yyreduce:
 	    if ((yyvsp[(3) - (3)].ival) == FALSE && get_project_version() <= 40102) {
                 g[whichgraph].l.boxpen.pattern = 0;
             }
-	}
+	;}
     break;
 
   case 763:
-
+#line 4802 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.legx = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 764:
-
+#line 4809 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].l.legy = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 765:
-
+#line 4816 "pars.yacc"
     {
 	    if (is_valid_setno(whichgraph, (yyvsp[(3) - (4)].ival))) {
                 strncpy(g[whichgraph].p[(yyvsp[(3) - (4)].ival)].lstr, (yyvsp[(4) - (4)].sval), MAX_STRING_LENGTH - 1);
@@ -12747,255 +12728,255 @@ yyreduce:
                 yyerror("Unallocated set");
             }
             xfree((yyvsp[(4) - (4)].sval));
-	}
+	;}
     break;
 
   case 766:
-
-    { }
+#line 4824 "pars.yacc"
+    { ;}
     break;
 
   case 767:
-
-    {filltype_obs = (yyvsp[(5) - (5)].ival);}
+#line 4825 "pars.yacc"
+    {filltype_obs = (yyvsp[(5) - (5)].ival);;}
     break;
 
   case 768:
-
-    { }
+#line 4826 "pars.yacc"
+    { ;}
     break;
 
   case 769:
-
-    { }
+#line 4827 "pars.yacc"
+    { ;}
     break;
 
   case 770:
-
-    { }
+#line 4829 "pars.yacc"
+    { ;}
     break;
 
   case 771:
-
+#line 4831 "pars.yacc"
     { 
 	    g[(yyvsp[(1) - (3)].ival)].type = GRAPH_XY;
 	    g[(yyvsp[(1) - (3)].ival)].xscale = SCALE_LOG;
-	}
+	;}
     break;
 
   case 772:
-
+#line 4835 "pars.yacc"
     { 
 	    g[(yyvsp[(1) - (3)].ival)].type = GRAPH_XY;
 	    g[(yyvsp[(1) - (3)].ival)].yscale = SCALE_LOG;
-	}
+	;}
     break;
 
   case 773:
-
+#line 4840 "pars.yacc"
     { 
 	    g[(yyvsp[(1) - (3)].ival)].type = GRAPH_XY;
 	    g[(yyvsp[(1) - (3)].ival)].xscale = SCALE_LOG;
 	    g[(yyvsp[(1) - (3)].ival)].yscale = SCALE_LOG;
-	}
+	;}
     break;
 
   case 774:
-
+#line 4846 "pars.yacc"
     { 
 	    g[(yyvsp[(1) - (3)].ival)].type = GRAPH_CHART;
 	    g[(yyvsp[(1) - (3)].ival)].xyflip = FALSE;
 	    g[(yyvsp[(1) - (3)].ival)].stacked = FALSE;
-	}
+	;}
     break;
 
   case 775:
-
+#line 4852 "pars.yacc"
     { 
 	    g[(yyvsp[(1) - (3)].ival)].type = GRAPH_CHART;
 	    g[(yyvsp[(1) - (3)].ival)].xyflip = TRUE;
-	}
+	;}
     break;
 
   case 776:
-
+#line 4857 "pars.yacc"
     { 
 	    g[(yyvsp[(1) - (3)].ival)].type = GRAPH_CHART;
 	    g[(yyvsp[(1) - (3)].ival)].stacked = TRUE;
-	}
+	;}
     break;
 
   case 777:
-
+#line 4862 "pars.yacc"
     { 
 	    g[(yyvsp[(1) - (3)].ival)].type = GRAPH_CHART;
 	    g[(yyvsp[(1) - (3)].ival)].stacked = TRUE;
 	    g[(yyvsp[(1) - (3)].ival)].xyflip = TRUE;
-	}
+	;}
     break;
 
   case 778:
-
+#line 4868 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].w.xg1 = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 779:
-
+#line 4875 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].w.xg2 = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 780:
-
+#line 4882 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].w.yg1 = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 781:
-
+#line 4889 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].w.yg2 = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 782:
-
+#line 4897 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].v.xv1 = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 783:
-
+#line 4904 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].v.xv2 = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 784:
-
+#line 4911 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].v.yv1 = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 785:
-
+#line 4918 "pars.yacc"
     {
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
 	    g[whichgraph].v.yv2 = (yyvsp[(3) - (3)].dval);
-	}
+	;}
     break;
 
   case 786:
-
+#line 4926 "pars.yacc"
     {
-	}
+	;}
     break;
 
   case 787:
-
+#line 4929 "pars.yacc"
     { 
 	    if (!is_valid_gno(whichgraph)) {
                 yyerror("No valid graph selected");
                 return 1;
             }
             g[whichgraph].f.fillpen.pattern = (yyvsp[(3) - (3)].ival);
-        }
+        ;}
     break;
 
   case 788:
-
+#line 4937 "pars.yacc"
     {
-        }
+        ;}
     break;
 
   case 789:
-
+#line 4939 "pars.yacc"
     {
-        }
+        ;}
     break;
 
   case 790:
-
+#line 4942 "pars.yacc"
     {
 	    line_asize = 2.0*(yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 791:
-
-    { }
+#line 4946 "pars.yacc"
+    { ;}
     break;
 
   case 792:
-
-    { }
+#line 4947 "pars.yacc"
+    { ;}
     break;
 
   case 793:
-
-    { }
+#line 4948 "pars.yacc"
+    { ;}
     break;
 
   case 794:
-
-    { }
+#line 4949 "pars.yacc"
+    { ;}
     break;
 
   case 795:
-
-    { }
+#line 4954 "pars.yacc"
+    { ;}
     break;
 
   case 796:
-
+#line 4955 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->label_op = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 797:
-
+#line 4965 "pars.yacc"
     {
 	    switch ((yyvsp[(4) - (4)].ival)){
 	    case 0:
@@ -13009,18 +12990,18 @@ yyreduce:
 	        g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].symfillpen.color = getbgcolor();
 	        break;
 	    }
-	}
+	;}
     break;
 
   case 798:
-
+#line 4980 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].symskip = (yyvsp[(3) - (3)].ival);
-	}
+	;}
     break;
 
   case 799:
-
+#line 4984 "pars.yacc"
     {
 	    switch ((yyvsp[(3) - (3)].ival)) {
             case 0:
@@ -13042,66 +13023,66 @@ yyreduce:
                 g[(yyvsp[(1) - (3)].trgt)->gno].p[(yyvsp[(1) - (3)].trgt)->setno].baseline_type = BASELINE_TYPE_GMAX;
                 break;
             }
-	}
+	;}
     break;
 
   case 800:
-
+#line 5006 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].errbar.ptype = (yyvsp[(4) - (4)].ival);
-	}
+	;}
     break;
 
   case 801:
-
-    { }
+#line 5014 "pars.yacc"
+    { ;}
     break;
 
   case 802:
-
+#line 5015 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (2)].trgt)->gno].p[(yyvsp[(1) - (2)].trgt)->setno].lines = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 803:
-
+#line 5018 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (2)].trgt)->gno].p[(yyvsp[(1) - (2)].trgt)->setno].linew = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 804:
-
+#line 5021 "pars.yacc"
     {
 	    g[(yyvsp[(1) - (2)].trgt)->gno].p[(yyvsp[(1) - (2)].trgt)->setno].linepen.color = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 805:
-
-    {filltype_obs = (yyvsp[(4) - (4)].ival);}
+#line 5024 "pars.yacc"
+    {filltype_obs = (yyvsp[(4) - (4)].ival);;}
     break;
 
   case 806:
-
-    { }
+#line 5025 "pars.yacc"
+    { ;}
     break;
 
   case 807:
-
+#line 5026 "pars.yacc"
     {
             g[(yyvsp[(1) - (4)].trgt)->gno].p[(yyvsp[(1) - (4)].trgt)->setno].errbar.barsize = (yyvsp[(4) - (4)].dval);
-	}
+	;}
     break;
 
   case 808:
-
-    { }
+#line 5029 "pars.yacc"
+    { ;}
     break;
 
   case 809:
-
+#line 5034 "pars.yacc"
     {
 	    /* <= xmgr-4.1 */
 	    if (!is_valid_axis(whichgraph, naxis)) {
@@ -13109,47 +13090,47 @@ yyreduce:
                 return 1;
             }
 	    g[whichgraph].t[naxis]->active = (yyvsp[(2) - (2)].ival);
-	}
+	;}
     break;
 
   case 810:
-
-    { }
+#line 5042 "pars.yacc"
+    { ;}
     break;
 
   case 811:
-
-    { }
+#line 5043 "pars.yacc"
+    { ;}
     break;
 
   case 812:
-
-    { }
+#line 5044 "pars.yacc"
+    { ;}
     break;
 
   case 813:
-
-    { }
+#line 5045 "pars.yacc"
+    { ;}
     break;
 
   case 814:
-
-    { }
+#line 5046 "pars.yacc"
+    { ;}
     break;
 
   case 815:
-
+#line 5047 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_NONE;
-	}
+	;}
     break;
 
   case 816:
-
+#line 5054 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -13158,11 +13139,11 @@ yyreduce:
 	    if (g[whichgraph].t[naxis]->t_spec != TICKS_SPEC_BOTH) {
                 g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_MARKS;
             }
-	}
+	;}
     break;
 
   case 817:
-
+#line 5063 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -13174,22 +13155,22 @@ yyreduce:
             } else {
                 g[whichgraph].t[naxis]->nminor = 0;
             }
-	}
+	;}
     break;
 
   case 818:
-
+#line 5075 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->props.size = (yyvsp[(2) - (2)].dval);
-	}
+	;}
     break;
 
   case 819:
-
+#line 5082 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -13197,27 +13178,27 @@ yyreduce:
             }
 	    g[whichgraph].t[naxis]->tloc[(yyvsp[(1) - (3)].ival)].wtpos = (yyvsp[(3) - (3)].dval);
 	    g[whichgraph].t[naxis]->tloc[(yyvsp[(1) - (3)].ival)].type = TICK_TYPE_MAJOR;
-	}
+	;}
     break;
 
   case 820:
-
+#line 5090 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_op = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 821:
-
-    { }
+#line 5100 "pars.yacc"
+    { ;}
     break;
 
   case 822:
-
+#line 5101 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -13226,70 +13207,70 @@ yyreduce:
 	    if (g[whichgraph].t[naxis]->t_spec == TICKS_SPEC_BOTH) {
                 g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_MARKS;
             }
-	}
+	;}
     break;
 
   case 823:
-
+#line 5110 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_BOTH;
-	}
+	;}
     break;
 
   case 824:
-
-    { }
+#line 5117 "pars.yacc"
+    { ;}
     break;
 
   case 825:
-
+#line 5119 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_angle = 0;
-	}
+	;}
     break;
 
   case 826:
-
+#line 5126 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_angle = 90;
-	}
+	;}
     break;
 
   case 827:
-
-    { }
+#line 5133 "pars.yacc"
+    { ;}
     break;
 
   case 828:
-
-    { }
+#line 5134 "pars.yacc"
+    { ;}
     break;
 
   case 829:
-
+#line 5135 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
                 return 1;
             }
 	    g[whichgraph].t[naxis]->tl_op = (yyvsp[(1) - (1)].ival);
-	}
+	;}
     break;
 
   case 830:
-
+#line 5142 "pars.yacc"
     {
 	    if (!is_valid_axis(whichgraph, naxis)) {
                 yyerror("No valid axis selected");
@@ -13309,56 +13290,46 @@ yyreduce:
                     copy_string(g[whichgraph].t[naxis]->tl_formula, NULL);
                 break;
             }
-	}
+	;}
     break;
 
   case 834:
-
+#line 5170 "pars.yacc"
     {
             (yyval.ival) = (yyvsp[(2) - (2)].ival);
-        }
+        ;}
     break;
 
   case 835:
-
-    { (yyval.ival) = PLACEMENT_OPPOSITE; }
+#line 5175 "pars.yacc"
+    { (yyval.ival) = PLACEMENT_OPPOSITE; ;}
     break;
 
   case 836:
-
-    { (yyval.ival) = PLACEMENT_NORMAL; }
+#line 5176 "pars.yacc"
+    { (yyval.ival) = PLACEMENT_NORMAL; ;}
     break;
 
   case 837:
-
-    { (yyval.ival) = PLACEMENT_NORMAL; }
+#line 5177 "pars.yacc"
+    { (yyval.ival) = PLACEMENT_NORMAL; ;}
     break;
 
   case 838:
-
-    { (yyval.ival) = PLACEMENT_OPPOSITE; }
+#line 5178 "pars.yacc"
+    { (yyval.ival) = PLACEMENT_OPPOSITE; ;}
     break;
 
   case 839:
-
-    { (yyval.ival) = PLACEMENT_BOTH; }
+#line 5179 "pars.yacc"
+    { (yyval.ival) = PLACEMENT_BOTH; ;}
     break;
 
 
-
+/* Line 1267 of yacc.c.  */
+#line 13331 "pars.tab.cacc"
       default: break;
     }
-  /* User semantic actions sometimes alter yychar, and that requires
-     that yytoken be updated with the new translation.  We take the
-     approach of translating immediately before every use of yytoken.
-     One alternative is translating here after every semantic action,
-     but that translation would be missed if the semantic action invokes
-     YYABORT, YYACCEPT, or YYERROR immediately after altering yychar or
-     if it invokes YYBACKUP.  In the case of YYABORT or YYACCEPT, an
-     incorrect destructor might then be invoked immediately.  In the
-     case of YYERROR or YYBACKUP, subsequent parser actions might lead
-     to an incorrect destructor call or verbose syntax error message
-     before the lookahead is translated.  */
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
 
   YYPOPSTACK (yylen);
@@ -13366,6 +13337,7 @@ yyreduce:
   YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
+
 
   /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -13386,10 +13358,6 @@ yyreduce:
 | yyerrlab -- here on detecting error |
 `------------------------------------*/
 yyerrlab:
-  /* Make sure we have latest lookahead translation.  See comments at
-     user semantic actions for why this is necessary.  */
-  yytoken = yychar == YYEMPTY ? YYEMPTY : YYTRANSLATE (yychar);
-
   /* If not already recovering from an error, report this error.  */
   if (!yyerrstatus)
     {
@@ -13397,36 +13365,37 @@ yyerrlab:
 #if ! YYERROR_VERBOSE
       yyerror (YY_("syntax error"));
 #else
-# define YYSYNTAX_ERROR yysyntax_error (&yymsg_alloc, &yymsg, \
-                                        yyssp, yytoken)
       {
-        char const *yymsgp = YY_("syntax error");
-        int yysyntax_error_status;
-        yysyntax_error_status = YYSYNTAX_ERROR;
-        if (yysyntax_error_status == 0)
-          yymsgp = yymsg;
-        else if (yysyntax_error_status == 1)
-          {
-            if (yymsg != yymsgbuf)
-              YYSTACK_FREE (yymsg);
-            yymsg = (char *) YYSTACK_ALLOC (yymsg_alloc);
-            if (!yymsg)
-              {
-                yymsg = yymsgbuf;
-                yymsg_alloc = sizeof yymsgbuf;
-                yysyntax_error_status = 2;
-              }
-            else
-              {
-                yysyntax_error_status = YYSYNTAX_ERROR;
-                yymsgp = yymsg;
-              }
-          }
-        yyerror (yymsgp);
-        if (yysyntax_error_status == 2)
-          goto yyexhaustedlab;
+	YYSIZE_T yysize = yysyntax_error (0, yystate, yychar);
+	if (yymsg_alloc < yysize && yymsg_alloc < YYSTACK_ALLOC_MAXIMUM)
+	  {
+	    YYSIZE_T yyalloc = 2 * yysize;
+	    if (! (yysize <= yyalloc && yyalloc <= YYSTACK_ALLOC_MAXIMUM))
+	      yyalloc = YYSTACK_ALLOC_MAXIMUM;
+	    if (yymsg != yymsgbuf)
+	      YYSTACK_FREE (yymsg);
+	    yymsg = (char *) YYSTACK_ALLOC (yyalloc);
+	    if (yymsg)
+	      yymsg_alloc = yyalloc;
+	    else
+	      {
+		yymsg = yymsgbuf;
+		yymsg_alloc = sizeof yymsgbuf;
+	      }
+	  }
+
+	if (0 < yysize && yysize <= yymsg_alloc)
+	  {
+	    (void) yysyntax_error (yymsg, yystate, yychar);
+	    yyerror (yymsg);
+	  }
+	else
+	  {
+	    yyerror (YY_("syntax error"));
+	    if (yysize != 0)
+	      goto yyexhaustedlab;
+	  }
       }
-# undef YYSYNTAX_ERROR
 #endif
     }
 
@@ -13434,7 +13403,7 @@ yyerrlab:
 
   if (yyerrstatus == 3)
     {
-      /* If just tried and failed to reuse lookahead token after an
+      /* If just tried and failed to reuse look-ahead token after an
 	 error, discard it.  */
 
       if (yychar <= YYEOF)
@@ -13451,7 +13420,7 @@ yyerrlab:
 	}
     }
 
-  /* Else will try to reuse lookahead token after shifting the error
+  /* Else will try to reuse look-ahead token after shifting the error
      token.  */
   goto yyerrlab1;
 
@@ -13485,7 +13454,7 @@ yyerrlab1:
   for (;;)
     {
       yyn = yypact[yystate];
-      if (!yypact_value_is_default (yyn))
+      if (yyn != YYPACT_NINF)
 	{
 	  yyn += YYTERROR;
 	  if (0 <= yyn && yyn <= YYLAST && yycheck[yyn] == YYTERROR)
@@ -13508,9 +13477,10 @@ yyerrlab1:
       YY_STACK_PRINT (yyss, yyssp);
     }
 
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
+  if (yyn == YYFINAL)
+    YYACCEPT;
+
   *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
 
 
   /* Shift the error token.  */
@@ -13534,7 +13504,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-#if !defined yyoverflow || YYERROR_VERBOSE
+#ifndef yyoverflow
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -13545,14 +13515,9 @@ yyexhaustedlab:
 #endif
 
 yyreturn:
-  if (yychar != YYEMPTY)
-    {
-      /* Make sure we have latest lookahead translation.  See comments at
-         user semantic actions for why this is necessary.  */
-      yytoken = YYTRANSLATE (yychar);
-      yydestruct ("Cleanup: discarding lookahead",
-                  yytoken, &yylval);
-    }
+  if (yychar != YYEOF && yychar != YYEMPTY)
+     yydestruct ("Cleanup: discarding lookahead",
+		 yytoken, &yylval);
   /* Do not reclaim the symbols of the rule which action triggered
      this YYABORT or YYACCEPT.  */
   YYPOPSTACK (yylen);
@@ -13576,7 +13541,7 @@ yyreturn:
 }
 
 
-
+#line 5182 "pars.yacc"
 
 
 /* list of intrinsic functions and keywords */
@@ -14312,10 +14277,9 @@ if (buffer[i]=='=') state=1;
 int scanner(char *s)
 {
 char * buffer=(char*)malloc(sizeof(char)*(64+2*strlen(s)));
-int retval;
 strcpy(buffer,s);
 replace_graph_set_index(buffer);
-retval = parser(buffer, PARSER_TYPE_EXPR/*PARSER_TYPE_VOID*/);
+    int retval = parser(buffer, PARSER_TYPE_VOID);
     if (retval != RETURN_SUCCESS) {
         free(buffer);
         return RETURN_FAILURE;
@@ -14809,4 +14773,5 @@ static double rint_2(double v)
 {
 return (double)( (int)( (v>=0.0) ? (v+0.5) : (v-0.5) ) );
 }
+
 

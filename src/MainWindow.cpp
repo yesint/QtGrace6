@@ -2361,7 +2361,10 @@ void MainWindow::HelpOpenExample(int i)
     }
     initNodes();
     stop_repaint=FALSE;
-    mainArea->completeRedraw();
+        if (autofit_on_load==TRUE)
+        doFitPage();
+        else
+        mainArea->completeRedraw();
 /*mainArea->setGeometry(mainArea->x(),mainArea->y(),mainArea->width(),mainArea->height());*/
     //update_all();
 }
@@ -2910,7 +2913,10 @@ mainArea->completeRedraw();
 mainArea->setGeometry(mainArea->x(),mainArea->y(),mainArea->width(),mainArea->height());
 */
 stop_repaint=FALSE;
-    mainArea->completeRedraw();
+        if (autofit_on_load==TRUE)
+        doFitPage();
+        else
+        mainArea->completeRedraw();
     clear_dirtystate();
 }
 
@@ -3164,7 +3170,10 @@ void MainWindow::load_example(char *data)
     //load_project_file(buf, FALSE);
     //update_default_props();
     load_project(buf);
-    mainArea->completeRedraw();//xdrawgraph();
+        if (autofit_on_load==TRUE)
+        doFitPage();
+        else
+        mainArea->completeRedraw();//xdrawgraph();
     unset_wait_cursor();
 }
 

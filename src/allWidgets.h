@@ -560,6 +560,7 @@ public:
     frmPlot_Appearance(QWidget * parent=0);
     ~frmPlot_Appearance();
 
+    QGroupBox * fraFont;
     QGroupBox * fraPageBackgr;
     QGroupBox * fraTimeStamp;
     QGroupBox * fraDescription;
@@ -573,17 +574,20 @@ public:
     stdLineEdit * ledStampCoords[2];
     stdSlider * timestamp_rotate_item;
     stdSlider * timestamp_size_item;
+    LineWidthSelector * selFontSize;//actually just a double-value-selector to change the general font size
     stdButtonGroup * buttonGroup;
 
     QVBoxLayout * layout;
     QHBoxLayout * layout1;
     QVBoxLayout * layout2;
     QVBoxLayout * layout3;
+    QVBoxLayout * layout4;
 public slots:
     void update0(void);
     void update1(int v);
     void update2(QString v);
     void update3(bool v);
+    void update4(double v);
 
     void doApply(void);
     void doAccept(void);
@@ -1227,9 +1231,16 @@ public:
     QPushButton * cmdSetGUIBGColor_to_PageBG;
     QPushButton * cmdSetGUIBGColor_to_Std;
 
-    //Behavoir
+    //Behavior
     QWidget * tab_Behaviour;
     QGridLayout * behavLayout;
+    StdSelector * selGeneral;
+    QGroupBox * grpLoadSave;
+    QGridLayout * layoutLoadSave;
+    QGroupBox * grpInput;
+    QGridLayout * layoutInput;
+    QGroupBox * grpResponse;
+    QGridLayout * layoutResponse;
     //General Behavior of QtGrace
     QGroupBox * grp_Behavior;
     QGridLayout * layout0;
@@ -1239,6 +1250,7 @@ public:
     QCheckBox * chkSymbolSpecial;
     StdSelector * selDecSep;
 
+    QCheckBox * chkAutoFitLoad;
     QCheckBox * chkAutoSetAgr;
     QCheckBox * chkAutoSetExport;
     QCheckBox * chkAutoSetCWD;
@@ -1247,7 +1259,7 @@ public:
     QCheckBox * chkImmediateUpdate;
 
     stdIntSelector * histSize;
-    LineWidthSelector * selFontSize;//actually just a double-value-selector to change the general font size
+    //LineWidthSelector * selFontSize;//actually just a double-value-selector to change the general font size
 
     //Misc
     QWidget * tab_Misc;
@@ -1271,7 +1283,9 @@ public:
     QGridLayout * layout_misc1;
 
     QGroupBox * grpMiscMisc;
+    QGroupBox * grpPrinting;
     QVBoxLayout * misc2Layout;
+    QVBoxLayout * misc3Layout;
     QCheckBox * chkUsePrintCommand;
     stdLineEdit * lenPrintCommand;
     QCheckBox * chkHDPrinterOutput;
@@ -1307,6 +1321,7 @@ public slots:
     void doBrowseStartup(void);
     void doCurrentAsStartup(void);
     void toggleHTMLviewer(int entry);
+    void togglePrintCommand(int entry);
     void toggleQtFonts(bool check);
     void doBrowseFFTW3_dll(void);
     void doBrowseHaru_dll(void);
