@@ -111,6 +111,7 @@ using namespace std;
 class frmEditBlockData;
 class MainWindow;
 class frmIOForm;
+class TestDialog;
 
 class grpSelect:public QGroupBox
 {
@@ -1220,6 +1221,10 @@ public:
     StdSelector * selDefaultPrintDevice;
     QPushButton * cmdBrowseForDefault;
     QPushButton * cmdStartupCurrent;
+
+    QPushButton * cmdTest;
+    TestDialog * frmTest;
+
     //QLabel * lblAppearance;
     QCheckBox * chkNewIcons;
     //gui-font and background
@@ -1325,6 +1330,8 @@ public slots:
     void toggleQtFonts(bool check);
     void doBrowseFFTW3_dll(void);
     void doBrowseHaru_dll(void);
+
+    void doTest(void);
 };
 
 void showSetInSpreadSheet(int gno,int setno);
@@ -3576,5 +3583,35 @@ void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_s
 int containsSpecialCommand(char * com,char ** parameters);
 int ParseExtractCommand(char * com,char * arg);
 int ParseSpecialFormula(char * com,char * arg);
+
+
+class TestDialog:public QWidget
+{
+Q_OBJECT
+public:
+TestDialog(QWidget * parent=0);
+QGridLayout * layout;
+QPushButton * cmdSetExportName;
+QPushButton * cmdSetDocName;
+QPushButton * cmdhardcopy;
+QPushButton * cmdLoad;
+QPushButton * cmdImportSin;
+stdLineEdit * lenFile;
+stdLineEdit * lenExport;
+stdLineEdit * lenDoc;
+
+StdSelector * devices_item;
+
+stdLineEdit * lenDPI;
+stdLineEdit * lenSizeX;
+stdLineEdit * lenSizeY;
+
+public slots:
+    void doLoad(void);
+    void doImportSin(void);
+    void doExport(void);
+    void doDocname(void);
+    void doHardcopy(void);
+};
 
 #endif

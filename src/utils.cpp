@@ -420,8 +420,8 @@ ret=FormQuestion->exec();//ret=1 heißt exit, ret=0 heißt kein exit
     else//like QtGrace
     {
     ret2=QMessageBox::question(mainWin,QObject::tr("Exit QtGrace"),QObject::tr("Content of current project changed!\nSave project?"),QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel);
-    cout << "ret2=" << ret2 << endl;
-    /*cout << "QMessageBox::Cancel=" << QMessageBox::Cancel << endl;
+    /*cout << "ret2=" << ret2 << endl;
+    cout << "QMessageBox::Cancel=" << QMessageBox::Cancel << endl;
     cout << "QMessageBox::Discard=" << QMessageBox::Discard << endl;
     cout << "QMessageBox::Save=" << QMessageBox::Save << endl;*/
         if (ret2==int(QMessageBox::Cancel))
@@ -1260,6 +1260,7 @@ void set_exportname(const char *s)
     } else {
         strcpy(exportname, NONAME);
     }
+    strcpy(print_file,exportname);
 }
 
 char *get_docname(void)

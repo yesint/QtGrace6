@@ -298,16 +298,6 @@ void LocalSocketIpcServer::readFromClient() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
 void LocalSocketIpcServer::executeTaskFromClient()
 {
     switch (command_m){
@@ -438,6 +428,15 @@ void LocalSocketIpcServer::executeTaskFromClient()
             *debugOut_m<<"fileName" <<   get_docname()<<"\n";
             debugOut_m->flush();
         }
+
+
+
+        qDebug()<< get_docname();
+        qDebug()<<get_exportname();
+          qDebug()<<get_exportbname();
+                  qDebug()<<get_exportfilename();
+
+
         /* force a hardcopy */
         set_pagelayout(PAGE_FIXED);
         update_all();
@@ -841,9 +840,14 @@ void LocalSocketIpcServer::readPsFileName(){
     // set the document name
     if(dataSet1Ptr[0] != '\0'){
         qtGraceDocStrName_m = (string)dataSet1Ptr;
-        set_docname(dataSet1Ptr);
-        set_docname_external(dataSet1Ptr);
-        set_exportname_external(dataSet1Ptr);
+        QString docNameWithFullPath = QDir::currentPath()+ QString("/") +QString::fromStdString(qtGraceDocStrName_m);
+        QString exportNameWithFullPath = QDir::currentPath()+ QString("/") +QString::fromStdString(qtGraceDocStrName_m);
+
+
+       // set_docname(dataSet1Ptr);
+        set_docname_external(docNameWithFullPath.toStdString().c_str());
+        set_exportname_external(exportNameWithFullPath.toStdString().c_str());
+
     }
 
     delete[]dataSet1Ptr;

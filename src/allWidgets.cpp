@@ -819,7 +819,7 @@ void prependAllSetID(QString * text,int sno,int gno)
         return;
         }
     }
-    for (int i=0;i<2;i++)//find replacements for all substrings (Y0...Y4 are automatically replaced during the search for Y)
+    for (int i=0;i<2;i++)//find replacements for all sus (Y0...Y4 are automatically replaced during the search for Y)
     {
         pos=0;
         while (pos<str.length())
@@ -9959,6 +9959,11 @@ cmdActDevs->setToolTip(tr("Disable unwanted export formats to simplify the expor
 connect(cmdActDevs,SIGNAL(clicked()),SLOT(doActDevs()));
 diaDevAct=NULL;
 
+cmdTest=new QPushButton(tr("DEBUG: TestDialog"),this);
+connect(cmdTest,SIGNAL(clicked()),SLOT(doTest()));
+frmTest=new TestDialog(0);
+frmTest->hide();
+
 index=0;
 layout2->addWidget(lblToolBar,index++,0);
 chkNewIcons=new QCheckBox(tr("Use new icons"),this);
@@ -9979,6 +9984,7 @@ layout2->addWidget(selFileDisplay2,index++,1);
 
 layout2->addWidget(cmdGraceDefaults,index++,1);
 layout2->addWidget(cmdQtGraceDefaults,index++,1);
+layout2->addWidget(cmdTest,index++,1);
 index++;
 index++;
 
@@ -10845,6 +10851,11 @@ ledHaru_dll->setText(new_file);
 path_to_libharu.setFileName(new_file);
 init();
 }
+}
+
+void frm_Preferences::doTest(void)
+{
+frmTest->show();
 }
 
 int yesnowin(char * msg,char * s1,char * s2,char * help_anchor)
@@ -32921,6 +32932,138 @@ void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,in
     limits[1]=d2;
     orders[0]=o1;
     orders[1]=o2;
+}
+
+
+TestDialog::TestDialog(QWidget * parent):QWidget(parent)
+{
+QString home=QString(user_home_dir)+QDir::separator();
+
+layout=new QGridLayout();
+layout->setMargin(STD_MARGIN);
+layout->setSpacing(STD_SPACING);
+
+int number=number_of_devices();
+QString entr[32];
+    for (int i=0;i<number;i++)
+    {
+    entr[i]=get_device_name(i);
+    }
+devices_item=new StdSelector(this,tr("Output format:"),number,entr);
+
+cmdSetExportName=new QPushButton(tr("set_exportname_external()"),this);
+cmdSetDocName=new QPushButton(tr("set_docname_external()"),this);
+cmdhardcopy=new QPushButton(tr("do_hardcopy()"),this);
+cmdLoad=new QPushButton(tr("load_project_file()"),this);
+cmdImportSin=new QPushButton(tr("Import Sinus via readDataFromClient()"),this);
+lenFile=new stdLineEdit(this,tr("FileName="));
+lenExport=new stdLineEdit(this,tr("ExportName="));
+lenDoc=new stdLineEdit(this,tr("DocName="));
+
+lenFile->setText(home+QString("project.agr"));
+lenDoc->setText(home+QString("project2.agr"));
+lenExport->setText(home+QString("project3.png"));
+lenDPI=new stdLineEdit(this,tr("DPI="));
+lenDPI->setText("72");
+lenSizeX=new stdLineEdit(this,tr("Width="));
+lenSizeX->setText("792");
+lenSizeY=new stdLineEdit(this,tr("Height="));
+lenSizeY->setText("612");
+
+int line=0;
+layout->addWidget(cmdImportSin,line++,1);
+layout->addWidget(lenFile,line,0);
+layout->addWidget(cmdLoad,line++,1);
+layout->addWidget(lenDoc,line,0);
+layout->addWidget(cmdSetDocName,line++,1);
+layout->addWidget(lenExport,line,0);
+layout->addWidget(cmdSetExportName,line++,1);
+layout->addWidget(devices_item,line++,0);
+layout->addWidget(lenSizeX,line,0);
+layout->addWidget(lenSizeY,line++,1);
+layout->addWidget(lenDPI,line,0);
+layout->addWidget(cmdhardcopy,line++,1);
+
+setLayout(layout);
+
+connect(cmdLoad,SIGNAL(clicked()),SLOT(doLoad()));
+connect(cmdSetDocName,SIGNAL(clicked()),SLOT(doDocname()));
+connect(cmdSetExportName,SIGNAL(clicked()),SLOT(doExport()));
+connect(cmdhardcopy,SIGNAL(clicked()),SLOT(doHardcopy()));
+connect(cmdImportSin,SIGNAL(clicked()),SLOT(doImportSin()));
+}
+
+void TestDialog::doExport(void)
+{
+QString text=lenExport->text();
+set_exportname_external(text.toLocal8Bit().constData());
+}
+
+void TestDialog::doDocname(void)
+{
+QString text=lenDoc->text();
+set_docname_external(text.toLocal8Bit().constData());
+}
+
+void TestDialog::doHardcopy(void)
+{
+unsigned long w,h;
+float dpi;
+int dev_nr=devices_item->currentValue();
+int sav_cur_file=curdevice;
+int sav_hdevice=hdevice;
+int sav_ptofile=get_ptofile();
+set_ptofile(TRUE);
+
+dpi=lenDPI->getDoubleValue();
+w=lenSizeX->getIntValue();
+h=lenSizeY->getIntValue();
+
+Page_geometry pg,sav_pg;
+sav_pg=get_page_geometry();
+pg.dpi=dpi;
+pg.height=h;
+pg.width=w;
+
+hdevice=dev_nr;
+select_device(hdevice);
+set_page_geometry(pg);
+
+do_hardcopy();
+
+hdevice=sav_hdevice;
+select_device(sav_cur_file);
+set_page_geometry(sav_pg);
+set_ptofile(sav_ptofile);
+}
+
+void TestDialog::doLoad(void)
+{
+QString text=lenFile->text();
+int ret=load_project(text.toLocal8Bit().data());
+    if (ret==RETURN_SUCCESS)
+    QMessageBox::information(this,tr("Success"),tr("Project file loaded successfully."));
+    else
+    QMessageBox::information(this,tr("Failure"),tr("Failed to load project file. Sorry!"));
+}
+
+void TestDialog::doImportSin(void)
+{
+char * dataIn=new char[2048*64];
+double x;
+int offset=0;
+
+for (int i=0;i<200;i++)
+{
+x=i/100.0;
+sprintf(dataIn+offset,"%.5f %.5f\n",x,3.5*sin(2.0*3.1415927*x+0.2));
+offset=strlen(dataIn);
+}
+
+int ret=readDataFromClient(dataIn,LOAD_NXY,"Y=3.5*sin(2*PI*x+0.2)");
+
+delete[] dataIn;
+mainWin->mainArea->completeRedraw();
 }
 
 

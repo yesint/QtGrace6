@@ -2555,6 +2555,7 @@ create_line_Patterns();
 */
 /*END LINESTYLES*/
     allPrefs->beginGroup(QString("ExtraPreferences"));
+    autofit_on_load=allPrefs->value(QString("AutoFitPageOnLoad"),QVariant(FALSE)).toInt();
     int sellang=allPrefs->value(QString("language"),QVariant(0)).toInt();
 
     use_fftw3=allPrefs->value(QString("UseLibFFTW3"),QVariant(FALSE)).toInt();
@@ -3304,12 +3305,15 @@ strcpy(tmp_sformat,sformat);
     Form_Preferences->chkImmediateUpdate->setChecked(immediateUpdate);
     default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(DEVICE_PNG)).toInt();//changed from -1 to PNG
     Form_Preferences->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);
+    if (autofit_on_load==0)
+    {
     //use_new_print_dialog=allPrefs->value(QString("UseNewPrintingDialog"),QVariant(false)).toBool();
     //no paint device yet --> we have to disconnect this, because redraw is inpossible now
     mainWin->disconnect(mainWin->sldPageZoom,SIGNAL(valueChanged(int)),mainWin,SLOT(doPageZoom(int)));
     mainWin->sldPageZoom->setValue(allPrefs->value(QString("PageViewZoom"),QVariant(0)).toInt());
     mainWin->connect(mainWin->sldPageZoom,SIGNAL(valueChanged(int)),mainWin,SLOT(doPageZoom(int)));
     GeneralPageZoomFactor=pow(10.0,mainWin->sldPageZoom->value()*mainWin->sldPageZoom->ScalingFactor);
+    }
     QString codName=allPrefs->value(QString("FileCodec"),QVariant("System")).toString();
     int index=0;
     for (int i=0;i<avcod.length();i++)
@@ -5029,13 +5033,13 @@ void resume_strings_after_load_or_save(void)
 
 void save_default_states(void)
 {
-    if (default_line!=NULL) delete[] default_line;
+    if (default_line!=NULL) delete default_line;
     default_line=new linetype;
-    if (default_box!=NULL) delete[] default_box;
+    if (default_box!=NULL) delete default_box;
     default_box=new boxtype;
-    if (default_ellipse!=NULL) delete[] default_ellipse;
+    if (default_ellipse!=NULL) delete default_ellipse;
     default_ellipse=new ellipsetype;
-    if (default_string!=NULL) delete[] default_string;
+    if (default_string!=NULL) delete default_string;
     default_string=new plotstr;
 
     set_default_line(default_line);

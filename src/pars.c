@@ -14300,6 +14300,7 @@ replace_graph_set_index(buffer);
         do_nonlfit(nlfit_gno, nlfit_setno, nlfit_warray, NULL, nlfit_nsteps);
         XCFREE(nlfit_warray);
     }
+    free(buffer);
     return retval;
 }
 

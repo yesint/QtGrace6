@@ -86,11 +86,11 @@ typedef struct {
 
 typedef struct {
     int type;
-    char *name;		    /* name of device */
+    char *name;             /* name of device */
     int (*init)(void);	    /* function to initialize device */
     int (*parser)(char *);  /* function to parse device-specific commands */
     void (*setup)(void);    /* function (GUI interface) to setup device */
-    char *fext;		    /* filename extension */
+    char *fext;             /* filename extension */
     int devfonts;           /* device has its own fonts */
     int fontaa;             /* font antialiasing */
     Page_geometry pg;       /* device defaults */
@@ -115,7 +115,7 @@ extern void (*devputpixmap) (VPoint vp, int width, int height, char *databits,in
 /* device text typesetting */
 extern void (*devputtext) (VPoint vp, char *s, int len, int font,TextMatrix *tm, int underline, int overline, int kerning);
 /* update color map */
-extern void (*devupdatecmap)(void);	
+extern void (*devupdatecmap) (void);
 
 int register_device(Device_entry device);
 int select_device(int dindex);
