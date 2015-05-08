@@ -1066,59 +1066,6 @@ signals:
     void close_wish(void);
 };
 
-class frmExtraPreferences:public QWidget
-{
-    Q_OBJECT
-public:
-    frmExtraPreferences(QWidget * parent=0);
-
-    /*QMenu * mnuFile;
-    QMenuBar * menuBar;
-    QAction * actClose,*actLoad,*actSave;*/
-
-
-    //Settings for the QtGrace-Gui
-    QGroupBox * grp_Gui;
-    QVBoxLayout * layout1;
-    //stdButtonGroup * buttonGroup;
-
-public slots:
-    void init(void);
-
-    void doLoad(void);
-    void doSave(void);
-    void doApply(void);
-    void doAccept(void);
-    void doClose(void);
-
-    void toggleNewIcons(bool val);
-
-signals:
-    void close_wish(void);
-};
-
-class frmQtGracePrefs2:public QWidget
-{
-Q_OBJECT
-public:
-frmQtGracePrefs2(QWidget * parent=0);
-
-
-
-QVBoxLayout * layout;
-stdButtonGroup * buttonGroup;
-public slots:
-
-    void init(void);
-    void read_settings(void);
-
-    void doApply(void);
-    void doAccept(void);
-    void doClose(void);
-signals:
-    void close_wish(void);
-};
-
 class frmDefaults:public QWidget
 {
 Q_OBJECT
@@ -1177,8 +1124,6 @@ public:
 
     frmPreferences * tab_prefs;
 
-    frmExtraPreferences * tab_extra;
-    frmQtGracePrefs2 * tab_qtgrace_prefs2;
     frmDefaults * tab_defaults;
     tabLinestyles * tab_linestyles;
     frmColorManagement * tab_colors;
@@ -1188,7 +1133,17 @@ public:
     //GUI
     //customize Interface
     QGroupBox * grp_tool_bar;
-    QLabel * lblToolBar;
+
+    QGroupBox * grpToolBar;
+    QGridLayout * layoutToolBar;
+    QGroupBox * grpStatusBar;
+    QGridLayout * layoutStatusBar;
+    QGroupBox * grpAppFont;
+    QGridLayout * layoutAppFont;
+    QGroupBox * grpBackgroundColor;
+    QGridLayout * layoutBackgroundColor;
+
+    //QLabel * lblToolBar;
     QCheckBox * chkShowNavi;
     QCheckBox * chkShowGraph;
     QCheckBox * chkShowSpecZoom;
@@ -1196,7 +1151,7 @@ public:
     QCheckBox * chkShowPageZoom;
     QCheckBox * chkShowPrintB;
     QCheckBox * chkShowExportP;
-    QLabel * lblStatusBar;
+    //QLabel * lblStatusBar;
     QCheckBox * chkShowHostName;
     QCheckBox * chkShowDisplay;
     StdSelector * selFileDisplay1;
@@ -1209,9 +1164,11 @@ public:
     //Startup-Settings
     QGroupBox * grp_Startup;
     QVBoxLayout * layout3;
-    QLabel * lblSelStartup;
+    //QLabel * lblSelStartup;
     QLabel * lblStartupWarning;
     StdSelector * selLanguage;
+    QGroupBox * grpIniPos;
+    QGridLayout * layoutIniPos;
     stdIntSelector * selStdDpi;
     stdIntSelector * selStartupX;
     stdIntSelector * selStartupY;
@@ -1231,7 +1188,7 @@ public:
     QLabel * lblGuiFont;
     QPushButton * cmdSelGuiFont;
     QPushButton * cmdResetGuiFont;
-    QLabel * lblBackground_Color_Text;
+    //QLabel * lblBackground_Color_Text;
     QPushButton * cmdSelGUIBGColor;
     QPushButton * cmdSetGUIBGColor_to_PageBG;
     QPushButton * cmdSetGUIBGColor_to_Std;
@@ -1692,6 +1649,7 @@ public:
     QPushButton * cmdOpenSetImport;
 
     QString selectedFile;
+    QFileInfo selFileInfo;
     bool FileExists;
     bool isWriteable;
     bool isReadable;
@@ -1699,7 +1657,7 @@ public:
 public slots:
     void gotNewSelection(QString selection);
     void gotNewSelectionDoubleClick(QString selection);
-    void init(void);
+    void init(char * f_name=NULL);
     void doOK(void);
     void doFilter(void);
     void doCancel(void);

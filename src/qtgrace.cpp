@@ -2329,6 +2329,11 @@ int main( int argc, char **argv )
     grdefaults=ini_defaults=file_defaults=d_d;//at the beginning the grace-defaults are to be used for all defaults
     grview=ini_view=file_view=d_v;
     stop_repaint=TRUE;
+
+/*cout << endl;
+cout << "Default at start:       autofit_on_load=" << autofit_on_load << endl;
+cout << "                warn_on_encoding_change=" << warn_on_encoding_change << endl;*/
+
 /*
 #ifdef WINDOWS_SYSTEM
     cout << "Windows" << endl;
@@ -2565,6 +2570,7 @@ create_line_Patterns();
 
     allPrefs->endGroup();
     allPrefs->beginGroup(QString("General"));
+    warn_on_encoding_change=allPrefs->value(QString("Warn_On_Encoding_Change"),QVariant(TRUE)).toInt();
     DefaultFont=allPrefs->value(QString("DefaultFont"),QVariant(0)).toInt();
     strcpy(default_grace_file,allPrefs->value(QString("DefaultAgrFile"),QVariant(QString("Default.agr"))).toString().toLocal8Bit().constData());
     allPrefs->endGroup();
@@ -2650,7 +2656,15 @@ stdFontMetrics=new QFontMetrics(*stdFont);
     FormQuestion=new frmQuestionDialog(mainWin);
     FormQuestion->hide();
 
+/*cout << "Before read_settings(): autofit_on_load=" << autofit_on_load << endl;
+cout << "                warn_on_encoding_change=" << warn_on_encoding_change << endl;*/
+
+cout << "Before read_settings(): hdevice="<< hdevice << endl;
     read_settings();
+cout << "After  read_settings(): hdevice="<< hdevice << endl;
+
+/*cout << "After read_settings():  autofit_on_load=" << autofit_on_load << endl;
+cout << "                warn_on_encoding_change=" << warn_on_encoding_change << endl;*/
 
     if (default_line!=NULL) delete[] default_line;
     default_line=new linetype;
@@ -2681,18 +2695,27 @@ stdFontMetrics=new QFontMetrics(*stdFont);
     QApplication::setFont(*GuiFont);//change the Gui-Font
     }
 
+    if (hdeviceFlag==true)//overwrite hdevice
+    {
+    set_printer(hardCopyDeviceNr);
+    stdOutputFormat=hardCopyDeviceNr;
+    //FormDeviceSetup->devices_item->setCurrentValue(hardCopyDeviceNr);
+    }
+
+cout << "After overwrite: hdevice=" << hdevice << endl;
+
 int maxwi,maxhi;
 maxwi=qApp->desktop()->width()*0.9;
 maxhi=qApp->desktop()->height()*0.9;
 if (initial_x_pos>maxwi)
 {
 initial_x_pos=0;
-errwin(QObject::tr("Initial x-position to great for screen, x-position reset to 0.").toLocal8Bit().constData());
+errwin(QObject::tr("Initial x-position too great for screen, x-position reset to 0.").toLocal8Bit().constData());
 }
 if (initial_y_pos>maxhi)
 {
 initial_y_pos=0;
-errwin(QObject::tr("Initial y-position to great for screen, y-position reset to 0.").toLocal8Bit().constData());
+errwin(QObject::tr("Initial y-position too great for screen, y-position reset to 0.").toLocal8Bit().constData());
 }
 
     mainWin->setGeometry(initial_x_pos, initial_y_pos, initial_width, initial_height );
@@ -2925,9 +2948,10 @@ getSetIDFromText(text,gno,sno,column);
     stop_repaint=FALSE;
 mainWin->mainArea->completeRedraw();
 
-   /* int execVal=a->exec();
-    return execVal;*/
-return a->exec();
+int execVal=a->exec();
+delete a;
+return execVal;
+/// return a->exec();
 }
 
 int object_edit_popup(int type, int id)
@@ -3332,9 +3356,9 @@ strcpy(tmp_sformat,sformat);
         FileCodec=QTextCodec::codecForLocale();//fallback is the systems usual codec
     }
     Form_Preferences->selCodec->setCurrentIndex(index);
-    Form_Preferences->tab_extra->init();
+    //Form_Preferences->tab_extra->init();
     Form_Preferences->tab_prefs->doApply();
-    Form_Preferences->tab_extra->doApply();
+    //Form_Preferences->tab_extra->doApply();
 
     mainWin->recreateHistory();
     bool res_undo=undo_active;
@@ -3415,7 +3439,7 @@ mainWin->mainArea->completeRedraw();
     displ_project_filename=allPrefs->value(QString("Show_Project_File"),QVariant(1)).toInt();
     displ_export_filename=allPrefs->value(QString("Show_Export_File"),QVariant(0)).toInt();
 
-    Form_Preferences->tab_qtgrace_prefs2->init();
+    //Form_Preferences->tab_qtgrace_prefs2->init();
 
     allPrefs->endGroup();
 
@@ -3456,6 +3480,7 @@ ini_defaults=grdefaults;
 ini_view=grview;
 strcpy(ini_sformat,sformat);
 mainWin->ManageBars();
+Form_Preferences->init();
 //if the ini file is read, the defaults are to be used forthwith as standard
 }
 

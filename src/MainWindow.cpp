@@ -1192,7 +1192,7 @@ void MainWindow::SaveAs(void)
         FormSaveProject=new frmIOForm(WRITE_PROJECT_FORM,this);
         connect(FormSaveProject,SIGNAL(newFileSelectedForIO(int,QString,bool,bool,bool)),SLOT(IOrequested(int,QString,bool,bool,bool)));
     }
-    FormSaveProject->init();
+    FormSaveProject->init(get_docname());
     FormSaveProject->show();
     FormSaveProject->raise();
     FormSaveProject->activateWindow();
@@ -2495,6 +2495,8 @@ void MainWindow::doFitPage(void)
     if (zoomLevel<0) zoomLevel--;
     zoomLevel = zoomLevel > 100 ? 100 : (zoomLevel < -100 ? -100 : zoomLevel);
 
+//cout << "In doFitPage: w=" << mainArea->scroll->width() << " h=" << mainArea->scroll->height() << endl;
+
     //cout << "x-factor=" << factorX << " y_factor=" << factorY << " zoomLevel=" << zoomLevel << " Umrechnung=" << (log(fact) / (sldPageZoom->ScalingFactor * log(10.))) << endl;
 
     // b) reset position sliders to 0
@@ -2859,12 +2861,36 @@ void MainWindow::CreateActions(void)
     connect(historyMapper, SIGNAL(mapped(int)),this, SLOT(HistoryClicked(int)));
 }
 
+void MainWindow::showEvent( QShowEvent * e )
+{
+e->accept();
+/*
+cout << "ShowEvent: w=" << this->width() << " h=" << this->height() << endl;
+cout << "mainArea:  w=" << mainArea->scroll->width() << " h=" << mainArea->scroll->height() << endl;
+*/
+if (autofit_pending)
+{
+autofit_pending=0;
+doFitPage();
+//cout << "autofit_pending in showEvent" << endl;
+}
+//else
+//cout << "No autofit_pending in showEvent" << endl;
+
+setExportTypeDescription(device_table[hdevice].fext);
+
+}
+
 void MainWindow::resizeEvent( QResizeEvent * e)
 {
     windowWidth=e->size().width();
     windowHeight=e->size().height();
     if (get_pagelayout() != PAGE_FIXED)
         mainArea->completeRedraw();
+/*
+cout << "ResizeEvent: w=" << windowWidth << " h=" << windowHeight << endl;
+cout << "mainArea:    w=" << mainArea->scroll->width() << " h=" << mainArea->scroll->height() << endl;
+*/
 }
 
 void MainWindow::LoadProject(char * filename)

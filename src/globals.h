@@ -277,6 +277,7 @@ GLOBAL(displ_project_filename,int,1);
 GLOBAL(displ_export_filename,int,0);
 GLOBAL(general_behavior,int,0);
 GLOBAL(autofit_on_load,int,0);
+GLOBAL(autofit_pending,int,0);
 
 GLOBAL(win_h,unsigned int,0);
 GLOBAL(win_w,unsigned int,0);

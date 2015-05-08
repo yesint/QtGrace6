@@ -318,6 +318,11 @@ void CopySetAxis(int f_gno,int f_sno,int f_axis,int t_gno,int t_sno,int t_axis);
 
 #ifdef __cplusplus
 }
+
+void do_hardcopy_external(char * target_file,char * target_device,float dpi,unsigned long w,unsigned long h);
+void do_hardcopy_external(char * target_file,int dev_nr,float dpi,unsigned long w,unsigned long h);
+
 #endif
+
 
 #endif /* __NOXPROTOS_H_ */

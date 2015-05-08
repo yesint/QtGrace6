@@ -8829,6 +8829,20 @@ connect(selLen,SIGNAL(currentValueChanged(int)),SLOT(currentLengthChanged(int)))
 
 empty->setLayout(hbox);
 
+selShowLinestyles->setToolTip(tr("Select which set of linestyles is to be displayed here"));
+selStyles->setToolTip(tr("Select the linestyle to be edited"));
+lblExample->setToolTip(tr("Examples of how the currently selected linestyle looks like"));
+selLen->setToolTip(tr("Edit the number of black/white tiles that define the linestyle"));
+selPos->setToolTip(tr("Edit the linestyle at this position in the list\nWarning: Pressing Edit will overwrite the linestyle in this position!"));
+cmdEdit->setToolTip(tr("Take the black and white patterns and generate a linestyle at the currently selected position (overwriting the existing one)"));
+cmdAppend->setToolTip(tr("Append a new linestyle at the end of the list"));
+cmdInsert->setToolTip(tr("Insert a new linestyle at the currently selected position in the list (move the other ones down)"));
+cmdDelete->setToolTip(tr("Delete the linestyle at the current position from the list"));
+cmdUp->setToolTip(tr("Swap the position of the currently selected linestyle with the one above it"));
+cmdDown->setToolTip(tr("Swap the position of the currently selected linestyle with the one below it"));
+cmdUseAsCurrent->setToolTip(tr("Use the set of linestyles that is currently displayed as the standard for the current project."));
+cmdUseForIni->setToolTip(tr("Use the set of linestyles that is currently displayed as the default set of linestyles for the current project and store it in the ini-file"));
+
 int line=0;
 int col=0;
 
@@ -9150,6 +9164,7 @@ int index=0;
             panels[index]=new Panel(whitepanel,this);
         panels[index]->setFrameShape(QFrame::Panel);
         panels[index]->setFrameStyle(QFrame::Raised | QFrame::WinPanel);
+        panels[index]->setToolTip(tr("Press here to toggle between a black or white segment"));
         if (selShowLinestyles->currentIndex()==3) panels[index]->setEnabled(false);
         hbox->addWidget(panels[index]);
         connect(panels[index], SIGNAL(mouseClicked()), mapper, SLOT(map()));
@@ -9565,6 +9580,23 @@ entr[i]=QString(translator_languages[i]);
 selLanguage=new StdSelector(this,tr("Language:"),nr_of_translations,entr);
 chkExternalHelpViewer=new QCheckBox(tr("Show help-files in external html-Viewer"),this);
 */
+
+noask_item->setToolTip(tr("If this is activated, then every question is automatically answered by \"yes\"."));
+dc_item->setToolTip(tr("Open dialogs on context when double clicking on the plot-area (sensitive to the graph currently selected)"));
+graph_focus_choice_item->setToolTip(tr("How to switch between graphs"));
+graph_drawfocus_choice_item->setToolTip(tr("Draw small squares on the graph edges to inidcate which graph is currently selected"));
+autoredraw_type_item->setToolTip(tr("This option is currently useless in QtGrace! AutoRedraw is always on!"));
+cursor_type_item->setToolTip(tr("Draw a crosshair over the whole plot on the cursor"));
+max_path_item->setToolTip(tr("Maximum number of points plotted in a row (larger sets are plotted in a simplified representation)"));
+safe_mode_item->setToolTip(tr("File modifications are disabled in safe mode when using parser-commands (GUI-operations are unaffected)."));
+scrollper_item->setToolTip(tr("How far to move the axis if scoll buttons are pressed"));
+shexper_item->setToolTip(tr("How far to zoom in and out on clicking a zoom button"));
+linkscroll_item->setToolTip(tr("This option is currently useless in QtGrace! Use the Graph-selector in the toolbar for this!"));
+hint_item->setToolTip(tr("Used as a default date format setting for cells where dates have to be entered"));
+date_item->setToolTip(tr("Used internally to convert double-values to dates"));
+wrap_year_item->setToolTip(tr("Year to be used to convert two-digit-years into four-digit years (and vice versa)"));
+two_digits_years_item->setToolTip(tr("Use this to allow display of years in two-digit-format (instead of four digits)"));
+
     layout0=new QVBoxLayout();
     layout0->setMargin(STD_MARGIN);
     layout0->addWidget(noask_item);
@@ -9788,111 +9820,6 @@ void frmPreferences::doClose(void)
     //hide();
 }
 
-frmExtraPreferences::frmExtraPreferences(QWidget * parent):QWidget(parent)
-{
-    //setWindowTitle(tr("QtGrace: Extra Preferences"));
-
-    /*actClose=new QAction(tr("&Close"),this);
-    actClose->setShortcut(tr("Esc"));
-    connect(actClose,SIGNAL(triggered()), this, SLOT(doClose()));
-    actLoad=new QAction(tr("&Load"),this);
-    connect(actLoad,SIGNAL(triggered()), this, SLOT(doLoad()));
-    actSave=new QAction(tr("&Save"),this);
-    connect(actSave,SIGNAL(triggered()), this, SLOT(doSave()));*/
-
-    /*grp_Gui=new QGroupBox(tr("Gui-Settings"),this);
-    grp_Behavior=new QGroupBox(tr("Behavior"),this);*/
-
-    int row_index=0;
-    /*layout0=new QGridLayout();
-    layout0->setSpacing(STD_SPACING);
-    layout0->setMargin(STD_MARGIN);
-
-    layout1=new QVBoxLayout();
-    layout1->setSpacing(STD_SPACING);
-    layout1->setMargin(STD_MARGIN);*/
-
-/*menuBar=new QMenuBar();
-mnuFile=new QMenu("&File",this);
-mnuFile->setTearOffEnabled(TRUE);
-mnuFile->addAction(actLoad);
-mnuFile->addAction(actSave);
-mnuFile->addSeparator();
-mnuFile->addAction(actClose);
-menuBar->addMenu(mnuFile);*/
-
-    /*layout=new QVBoxLayout;
-    layout->setMargin(STD_MARGIN);
-    layout->setSpacing(STD_SPACING);*/
-    //layout->addWidget(menuBar);
-    //lenHome=new stdLineEdit(this,tr("Grace Home directory:"));
-    //layout1->addWidget(lenHome);
-
-
-//layout->addWidget(grp_Behavior);
-//layout->addWidget(grp_Gui);
-
-    /*buttonGroup=new stdButtonGroup(this,true,true,false);
-    connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
-    connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
-    connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));*/
-
-//layout->addStretch(3);
-    //layout->addWidget(buttonGroup);
-//lenHome->setVisible(false);
-    //setLayout(layout);
-
-    //grp_Behavior->setLayout(layout0);
-    //grp_Gui->setLayout(layout1);
-}
-
-void frmExtraPreferences::init(void)
-{
-
-}
-
-void frmExtraPreferences::doLoad(void)
-{
-    //cout << "load parameters" << endl;
-}
-
-void frmExtraPreferences::doSave(void)
-{
-    //cout << "save parameters" << endl;
-}
-
-void frmExtraPreferences::doApply(void)
-{
-    ApplyError=false;
-    int save_dirty=dirtystate;
-
-
-
-    //cout << selCodec->cmbSelect->currentText().toLocal8Bit().constData() << endl;
-    //cout << FileCodec->name().constData() << endl;
-
-
-}
-
-void frmExtraPreferences::doAccept(void)
-{
-    doApply();
-    if (ApplyError==false)
-        doClose();
-}
-
-void frmExtraPreferences::doClose(void)
-{
-    emit(close_wish());
-    //hide();
-}
-
-void frmExtraPreferences::toggleNewIcons(bool val)
-{
-//At the moment we only act on Apply!
-}
-
-
 frm_Preferences::frm_Preferences(QWidget * parent):QDialog(parent)
 {
 QFont fntPref;
@@ -9908,14 +9835,11 @@ tabs=new QTabWidget(this);
 
 tab_prefs=new frmPreferences();
 tab_prefs->buttonGroup->hide();
-//tab_extra=new frmExtraPreferences();
-//tab_extra->buttonGroup->hide();
-//tab_qtgrace_prefs2=new frmQtGracePrefs2();
-//tab_qtgrace_prefs2->buttonGroup->hide();
 tab_linestyles=new tabLinestyles();
 tab_colors=new frmColorManagement();
 tab_defaults=new frmDefaults();
 
+///GUI
 tab_GUI=new QWidget(this);
 
 guiLayout=new QVBoxLayout(this);
@@ -9923,12 +9847,36 @@ guiLayout->setMargin(STD_MARGIN);
 guiLayout->setSpacing(STD_SPACING);
 
 grp_tool_bar=new QGroupBox(tr("Customize interface"),this);
-lblToolBar=new QLabel(tr("Tool bar contents:"),this);
-lblStatusBar=new QLabel(tr("Status bar contents:"),this);
+//lblToolBar=new QLabel(tr("Tool bar contents:"),this);
+//lblStatusBar=new QLabel(tr("Status bar contents:"),this);
 layout2=new QGridLayout();
 layout2->setSpacing(STD_SPACING);
 layout2->setMargin(STD_MARGIN);
 
+grpToolBar=new QGroupBox(tr("Tool bar contents"));
+layoutToolBar=new QGridLayout();
+layoutToolBar->setSpacing(STD_SPACING);
+layoutToolBar->setMargin(STD_MARGIN);
+grpToolBar->setLayout(layoutToolBar);
+grpStatusBar=new QGroupBox(tr("Status bar contents"));
+layoutStatusBar=new QGridLayout();
+layoutStatusBar->setSpacing(STD_SPACING);
+layoutStatusBar->setMargin(STD_MARGIN);
+grpStatusBar->setLayout(layoutStatusBar);
+grpAppFont=new QGroupBox(tr("Gui font"));
+layoutAppFont=new QGridLayout();
+layoutAppFont->setSpacing(STD_SPACING);
+layoutAppFont->setMargin(STD_MARGIN);
+grpAppFont->setLayout(layoutAppFont);
+grpBackgroundColor=new QGroupBox(tr("Background Color of Draw Area"));
+grpBackgroundColor->setToolTip(tr("Select color for widget background behind plot area"));
+layoutBackgroundColor=new QGridLayout();
+layoutBackgroundColor->setSpacing(STD_SPACING);
+layoutBackgroundColor->setMargin(STD_MARGIN);
+grpBackgroundColor->setLayout(layoutBackgroundColor);
+
+chkNewIcons=new QCheckBox(tr("Use new icons"),this);
+chkNewIcons->setToolTip(tr("Use new PNG-icons for navigaion buttons"));
 chkShowNavi=new QCheckBox(tr("Show navigation buttons"),this);
 chkShowGraph=new QCheckBox(tr("Show graph list"),this);
 chkShowSpecZoom=new QCheckBox(tr("Show special zoom buttons"),this);
@@ -9937,23 +9885,30 @@ chkShowPageZoom=new QCheckBox(tr("Show page zoom"),this);
 chkShowPrintB=new QCheckBox(tr("Show print button"),this);
 chkShowExportP=new QCheckBox(tr("Show export button"),this);
 
-chkShowHostName=new QCheckBox(tr("Show host name"),this);;
+chkShowHostName=new QCheckBox(tr("Show host name"),this);
+chkShowHostName->setToolTip(tr("Display the name of the current host"));
 chkShowDisplay=new QCheckBox(tr("Show display name"),this);
+chkShowDisplay->setToolTip(tr("Display the name of the display"));
 int index=3;
 QString * entries=new QString[index];
 entries[0]=tr("None");
 entries[1]=tr("Complete path");
 entries[2]=tr("Filename only");
 selFileDisplay1=new StdSelector(this,tr("Show project file name:"),index,entries);
+selFileDisplay1->setToolTip(tr("How to display the name of the current project"));
 selFileDisplay2=new StdSelector(this,tr("Show export file name:"),index,entries);
+selFileDisplay2->setToolTip(tr("How to display the name used for file-export"));
+
 delete[] entries;
 
 cmdGraceDefaults=new QPushButton(tr("Grace-default-GUI"),this);
-cmdGraceDefaults->setToolTip(tr("Reset GUI to be like Grace"));
+cmdGraceDefaults->setToolTip(tr("Reset GUI to be like Grace (immediate effect)"));
 connect(cmdGraceDefaults,SIGNAL(clicked()),SLOT(doGraceDefaults()));
+
 cmdQtGraceDefaults=new QPushButton(tr("QtGrace-default-GUI"),this);
-cmdQtGraceDefaults->setToolTip(tr("Reset GUI to QtGrace-default-style"));
+cmdQtGraceDefaults->setToolTip(tr("Reset GUI to QtGrace-default-style (immediate effect)"));
 connect(cmdQtGraceDefaults,SIGNAL(clicked()),SLOT(doQtGraceDefaults()));
+
 cmdActDevs=new QPushButton(tr("Enable/Disable export formats"),this);
 cmdActDevs->setToolTip(tr("Disable unwanted export formats to simplify the export dialog"));
 connect(cmdActDevs,SIGNAL(clicked()),SLOT(doActDevs()));
@@ -9965,39 +9920,72 @@ frmTest=new TestDialog(0);
 frmTest->hide();
 
 index=0;
-layout2->addWidget(lblToolBar,index++,0);
-chkNewIcons=new QCheckBox(tr("Use new icons"),this);
-layout2->addWidget(chkNewIcons,index++,0);
+layoutToolBar->addWidget(chkNewIcons,0,0);
+layoutToolBar->addWidget(chkShowNavi,1,0);
+layoutToolBar->addWidget(chkShowGraph,2,0);
+layoutToolBar->addWidget(chkShowSpecZoom,0,1);
+layoutToolBar->addWidget(chkShowViewp,1,1);
+layoutToolBar->addWidget(chkShowPageZoom,2,1);
+layoutToolBar->addWidget(chkShowExportP,0,2);
+layoutToolBar->addWidget(chkShowPrintB,1,2);
+
+layoutStatusBar->addWidget(chkShowHostName,0,0);
+layoutStatusBar->addWidget(chkShowDisplay,0,1);
+layoutStatusBar->addWidget(selFileDisplay1,1,0);
+layoutStatusBar->addWidget(selFileDisplay2,1,1);
+
+layout2->addWidget(grpToolBar,index++,0,1,3);
+layout2->addWidget(grpStatusBar,index++,0,1,3);
+
+cmdSelGuiFont=new QPushButton(tr("Select Gui Font"),this);
+cmdSelGuiFont->setToolTip(tr("Select a new font to be used for the whole GUI"));
+cmdResetGuiFont=new QPushButton(tr("Reset Gui Font"),this);
+cmdResetGuiFont->setToolTip(tr("Reset the GUI-Font to the system-default"));
+lblGuiFont=new QLabel(tr("Current Font"),this);
+lblGuiFont->setToolTip(tr("Font name and font parameters used for GUI-font"));
+
+layoutAppFont->addWidget(lblGuiFont,0,0,1,2);
+layoutAppFont->addWidget(cmdSelGuiFont,1,0,1,1);
+layoutAppFont->addWidget(cmdResetGuiFont,1,1,1,1);
+
+cmdSelGUIBGColor=new QPushButton(tr("Select Color"),this);
+cmdSelGUIBGColor->setToolTip(tr("Select a new color for the background of the drawing area"));
+cmdSetGUIBGColor_to_PageBG=new QPushButton(tr("Set to Page-Background"),this);
+cmdSetGUIBGColor_to_PageBG->setToolTip(tr("Set the background color of the drawing area to the background color of the plot"));
+cmdSetGUIBGColor_to_Std=new QPushButton(tr("Set to GUI-Background"),this);
+cmdSetGUIBGColor_to_Std->setToolTip(tr("Reset the background color of the drawing area to the system-default"));
+
+layoutBackgroundColor->addWidget(cmdSelGUIBGColor,0,0);
+layoutBackgroundColor->addWidget(cmdSetGUIBGColor_to_PageBG,0,1);
+layoutBackgroundColor->addWidget(cmdSetGUIBGColor_to_Std,0,2);
+
+//layout2->addWidget(lblToolBar,index++,0);
+/*layout2->addWidget(chkNewIcons,index++,0);
 layout2->addWidget(chkShowNavi,index++,0);
 layout2->addWidget(chkShowGraph,index++,0);
 layout2->addWidget(chkShowSpecZoom,index++,0);
 layout2->addWidget(chkShowViewp,index++,0);
 layout2->addWidget(chkShowPageZoom,index++,0);
 layout2->addWidget(chkShowExportP,index++,0);
-layout2->addWidget(chkShowPrintB,index++,0);
-index=0;
-layout2->addWidget(lblStatusBar,index++,1);
-layout2->addWidget(chkShowHostName,index++,1);
+layout2->addWidget(chkShowPrintB,index++,0);*/
+
+//layout2->addWidget(lblStatusBar,index++,1);
+/*layout2->addWidget(chkShowHostName,index++,1);
 layout2->addWidget(chkShowDisplay,index++,1);
 layout2->addWidget(selFileDisplay1,index++,1);
-layout2->addWidget(selFileDisplay2,index++,1);
+layout2->addWidget(selFileDisplay2,index++,1);*/
 
-layout2->addWidget(cmdGraceDefaults,index++,1);
-layout2->addWidget(cmdQtGraceDefaults,index++,1);
-layout2->addWidget(cmdTest,index++,1);
+layout2->addWidget(cmdGraceDefaults,index,0);
+layout2->addWidget(cmdQtGraceDefaults,index,1);
+layout2->addWidget(cmdActDevs,index++,2);
+layout2->addWidget(grpAppFont,index++,0,1,3);
+layout2->addWidget(grpBackgroundColor,index++,0,1,3);
 index++;
 index++;
 
 //lblAppearance=new QLabel(tr("Appearance"),this);
 
-cmdSelGuiFont=new QPushButton(tr("Select Gui Font"),this);
-cmdResetGuiFont=new QPushButton(tr("Reset Gui Font"),this);
-lblGuiFont=new QLabel(tr("Current Font"),this);
-
-cmdSelGUIBGColor=new QPushButton(tr("Select Color"),this);
-cmdSetGUIBGColor_to_PageBG=new QPushButton(tr("Set to Page-Background"),this);
-cmdSetGUIBGColor_to_Std=new QPushButton(tr("Set to Gui-Background"),this);
-
+/*
 QWidget * empty2=new QWidget(this);
 QGridLayout * layout4=new QGridLayout();
 layout4->setMargin(0);
@@ -10005,14 +9993,15 @@ layout4->setSpacing(STD_SPACING);
 layout4->addWidget(lblGuiFont,0,0);
 layout4->addWidget(cmdSelGuiFont,0,1);
 layout4->addWidget(cmdResetGuiFont,0,2);
-lblBackground_Color_Text=new QLabel(tr("Background color of Draw-Area:"),this);
-layout4->addWidget(lblBackground_Color_Text,1,0,1,3);
+//lblBackground_Color_Text=new QLabel(tr("Background color of Draw-Area:"),this);
+//layout4->addWidget(lblBackground_Color_Text,1,0,1,3);
 layout4->addWidget(cmdSelGUIBGColor,2,0);
 layout4->addWidget(cmdSetGUIBGColor_to_PageBG,2,1);
 layout4->addWidget(cmdSetGUIBGColor_to_Std,2,2);
 layout4->addWidget(cmdActDevs,3,0,1,3);
 empty2->setLayout(layout4);
 //layout1->addWidget(empty2);
+*/
 
 connect(cmdSelGuiFont,SIGNAL(clicked()),SLOT(changeGUIFont()));
 connect(cmdResetGuiFont,SIGNAL(clicked()),SLOT(resetGUIFont()));
@@ -10021,7 +10010,7 @@ connect(cmdSelGUIBGColor,SIGNAL(clicked()),SLOT(select_BG_Color()));
 connect(cmdSetGUIBGColor_to_Std,SIGNAL(clicked()),SLOT(set_BG_Color_to_Std()));
 connect(cmdSetGUIBGColor_to_PageBG,SIGNAL(clicked()),SLOT(set_BG_Color_to_Page_BG()));
 
-layout2->addWidget(empty2,index++,0,1,2);
+//layout2->addWidget(empty2,index++,0,1,2);
 
 grp_tool_bar->setLayout(layout2);
 
@@ -10029,10 +10018,16 @@ grp_Startup=new QGroupBox(tr("Startup-Settings"),this);
 layout3=new QVBoxLayout();
 layout3->setSpacing(STD_SPACING);
 layout3->setMargin(STD_MARGIN);
+
+/*grpIniPos=new QGroupBox(tr("Initial Size and Position"),this);
+layoutIniPos=new QGridLayout();
+layoutIniPos->setSpacing(STD_SPACING);
+layoutIniPos->setMargin(STD_MARGIN);*/
+
 QWidget * empty=new QWidget(this);
 QGridLayout * grid1=new QGridLayout(empty);
 grid1->setSpacing(STD_MARGIN);
-grid1->setMargin(0);
+grid1->setMargin(STD_MARGIN);
 
 QString * entr=new QString[8];
 int nr=2;
@@ -10055,12 +10050,15 @@ for (int i=0;i<nr;i++)
     i_entr[i]=i;
     }
 }
-selDefaultPrintDevice=new StdSelector(this,tr("Default printing device:"),nr,entr);
+selDefaultPrintDevice=new StdSelector(this,tr("Default output format:"),nr,entr);
+selDefaultPrintDevice->setToolTip(tr("Select an output format to be used as default"));
 selDefaultPrintDevice->setValues(i_entr);
 
 lenDefaultFile=new stdLineEdit(this,tr("Default startup file:"));
+lenDefaultFile->setToolTip(tr("This file is loaded when \"File->New\" is clicked.\nThis file has to be located in the bin-folder."));
 lenDefaultFile->setText(QString(default_grace_file));
 cmdBrowseForDefault=new QPushButton(tr("Select default file"),this);
+cmdBrowseForDefault->setToolTip(tr("Select a project file to be used as an empty project."));
 connect(cmdBrowseForDefault,SIGNAL(clicked()),SLOT(doBrowseStartup()));
 lblStartupWarning=new QLabel(tr("The settings in this group will take effect at the next restart of QtGrace."),this);
 QFont tfont=lblStartupWarning->font();
@@ -10073,26 +10071,49 @@ grid1->addWidget(lenDefaultFile,3,0,1,2);
 grid1->addWidget(cmdBrowseForDefault,3,2,1,1);
 
 selStdDpi=new stdIntSelector(this,tr("DPI:"),72,720);
-lblSelStartup=new QLabel(tr("Select initial position/size:"),this);
+selStdDpi->lblText->setAlignment(Qt::AlignRight);
+selStdDpi->setToolTip(tr("Use this dpi-value on loading a new file"));
+//lblSelStartup=new QLabel(tr("Select initial position/size:"),this);
 selStartupX=new stdIntSelector(this,tr("x:"),0,QApplication::desktop()->width());
 selStartupX->lblText->setAlignment(Qt::AlignRight);
+selStartupX->setToolTip(tr("Initial horizontal position of upper left hand corner of QtGrace window"));
 selStartupY=new stdIntSelector(this,tr("y:"),0,QApplication::desktop()->height());
 selStartupY->lblText->setAlignment(Qt::AlignRight);
+selStartupY->setToolTip(tr("Initial vertical position of upper left hand corner of QtGrace window"));
 selStartupWidth=new stdIntSelector(this,tr("Width:"),0,QApplication::desktop()->width());
 selStartupWidth->lblText->setAlignment(Qt::AlignRight);
+selStartupWidth->setToolTip(tr("Initial width of QtGrace window"));
 selStartupHeight=new stdIntSelector(this,tr("Height:"),0,QApplication::desktop()->height());
 selStartupHeight->lblText->setAlignment(Qt::AlignRight);
+selStartupHeight->setToolTip(tr("Initial height of QtGrace window"));
 cmdStartupCurrent=new QPushButton(tr("Initial = current"),this);
+cmdStartupCurrent->setToolTip(tr("Use the current size and position of the QtGrace window as default for startup."));
 connect(cmdStartupCurrent,SIGNAL(clicked()),SLOT(doCurrentAsStartup()));
-grid1->addWidget(lblSelStartup,4,0,1,2);
-grid1->addWidget(cmdStartupCurrent,4,2,1,1);
+
+grpIniPos=new QGroupBox(tr("Initial window size and position"),this);
+layoutIniPos=new QGridLayout();
+layoutIniPos->setSpacing(STD_SPACING);
+layoutIniPos->setMargin(STD_MARGIN);
+grpIniPos->setLayout(layoutIniPos);
+
+layoutIniPos->addWidget(selStartupWidth,0,0);
+layoutIniPos->addWidget(selStartupHeight,0,1);
+layoutIniPos->addWidget(selStartupX,1,0);
+layoutIniPos->addWidget(selStartupY,1,1);
+layoutIniPos->addWidget(cmdStartupCurrent,0,2);
+
+//grid1->addWidget(lblSelStartup,4,0,1,2);
+/*grid1->addWidget(cmdStartupCurrent,4,2,1,1);
 grid1->addWidget(selStdDpi,5,0,1,1);
 grid1->addWidget(selStartupX,5,1,1,1);
 grid1->addWidget(selStartupY,5,2,1,1);
 grid1->addWidget(selStartupWidth,6,1,1,1);
-grid1->addWidget(selStartupHeight,6,2,1,1);
+grid1->addWidget(selStartupHeight,6,2,1,1);*/
+
 empty->setLayout(grid1);
+
 layout3->addWidget(empty);
+layout3->addWidget(grpIniPos);
 grp_Startup->setLayout(layout3);
 
 guiLayout->addWidget(grp_tool_bar);
@@ -10110,6 +10131,7 @@ QString * entr2=new QString[6];
 entr2[0]=tr("Grace");
 entr2[1]=tr("QtGrace");
 selGeneral=new StdSelector(this,tr("General Behavior like"),2,entr2);
+selGeneral->setToolTip(tr("Affects behavior settings used in Grace that are unusual. (Like the question asked on closing or loading of project fils if unsaved changes are present.)"));
 delete[] entr2;
 
 QString * entr3=new QString[avcod.length()];
@@ -10118,25 +10140,38 @@ for (int i=0;i<avcod.length();i++)
     entr3[i]=QString(avcod.at(i));
 }
 selCodec=new StdSelector(this,tr("File encoding:"),avcod.length(),entr3);
+selCodec->setToolTip(tr("Change this setting if you want to enter non-Latin-characters directely via the keyboard.\n(When inappropriate encodings are used the characters are not saved/loaded correctely.)"));
 delete[] entr3;
 chkActivateLaTeXSupport=new QCheckBox(tr("Support simple LaTeX-commands"),this);
+chkActivateLaTeXSupport->setToolTip(tr("This option lets you enter some simple LaTeX-commands inside $$-tags for labels (like $$\\alpha$$)."));
 chkImmediateUpdate=new QCheckBox(tr("Immediate updates"),this);
+chkImmediateUpdate->setToolTip(tr("Immediately apply every option in every dialog without having to press \"Apply\" (this does not affect the Preferences dialog)"));
 chkQtFonts=new QCheckBox(tr("Use Qt Fonts"),this);
+chkQtFonts->setToolTip(tr("Use this option if you want to use non-latin and non greek letters or special fonts.\nWarning: The QtFonts are not supported by every output driver.\nThe QtFonts are also not savely portable.\n(If you copy your project file to another platform, the selected fonts might not be present)."));
 connect(chkQtFonts,SIGNAL(toggled(bool)),SLOT(toggleQtFonts(bool)));
 chkSymbolSpecial=new QCheckBox(tr("'Symbol'-font is special"),this);
+chkSymbolSpecial->setToolTip(tr("Enabling this option resorts the characters in the Symbol font to match the order of the characters in the original Grace-Symbol-font"));
 
 nr=2;
 entr[0]=QString(".");
 entr[1]=QString(",");
 selDecSep=new StdSelector(this,tr("Decimal separator:"),nr,entr);
+selDecSep->setToolTip(tr("The decimal separator used in QtGrace for input and display of decimal numbers"));
 histSize=new stdIntSelector(this,tr("Maximum history size:"),0,MAX_HISTORY);
+histSize->setToolTip(tr("The maximum number of project files to be remembered in the ini-file and the \"File->Resently opened files\" menu"));
+histSize->lblText->setAlignment(Qt::AlignRight);
 histSize->setValue(max_history);
 chkAutoSetAgr=new QCheckBox(tr("Auto set .agr-file-extension"),this);
+chkAutoSetAgr->setToolTip(tr("When entering a file name for saving automatically set the agr-extension."));
 chkAutoSetExport=new QCheckBox(tr("Auto set export-file-extension"),this);
+chkAutoSetExport->setToolTip(tr("When entering a file name for exporting automatically set the extension which is specific for the selected output format."));
 chkAutoSetCWD=new QCheckBox(tr("Auto set current working directory (CWD)"),this);
+chkAutoSetCWD->setToolTip(tr("On loading and saving files automatically set the Current Working Directory (CWD) to the folder where the file is in."));
 chkAutoFitLoad=new QCheckBox(tr("Auto fit page after loading project"),this);
-
+chkAutoFitLoad->setToolTip(tr("Automatically fit the page-zoom to accommodate the whole plot in the QtGrace window when loading a project file."));
 chkWarnOnEncodingChange=new QCheckBox(tr("Display warning on encoding change"),this);
+chkWarnOnEncodingChange->setToolTip(tr("Display an information message whenever a file is loaded that has been saved with a different encoding than that, which is currently used.\nIn this case the current encoding format is changed to the one used in the file."));/// Change Encoding or update contents to fit current encoding? Checken!
+
 /*selFontSize=new LineWidthSelector(this);
 selFontSize->lblText->setText(tr("Global font size multiplicator:"));
 selFontSize->spnLineWidth->setRange(0.0,1000.0);
@@ -10160,19 +10195,21 @@ layoutResponse->setSpacing(STD_MARGIN);
 
 layoutResponse->addWidget(selGeneral,0,0,1,2);
 layoutResponse->addWidget(chkImmediateUpdate,1,0,1,1);
-layoutResponse->addWidget(chkAutoSetExport,2,0,1,1);
 
 layoutInput->addWidget(selDecSep,0,0,1,2);
 layoutInput->addWidget(chkQtFonts,1,0,1,1);
 layoutInput->addWidget(chkActivateLaTeXSupport,1,1,1,1);
 layoutInput->addWidget(chkSymbolSpecial,2,0,1,1);
 
-layoutLoadSave->addWidget(selCodec,0,0,1,2);
-layoutLoadSave->addWidget(chkWarnOnEncodingChange,1,0,1,2);
-layoutLoadSave->addWidget(histSize,2,0,1,2);
-layoutLoadSave->addWidget(chkAutoFitLoad,3,0,1,1);
-layoutLoadSave->addWidget(chkAutoSetAgr,4,0,1,1);
-layoutLoadSave->addWidget(chkAutoSetCWD,5,0,1,1);
+index=0;
+layoutLoadSave->addWidget(selCodec,index,0);
+layoutLoadSave->addWidget(chkWarnOnEncodingChange,index++,1);
+layoutLoadSave->addWidget(histSize,index,0);
+layoutLoadSave->addWidget(selStdDpi,index++,1);
+layoutLoadSave->addWidget(chkAutoFitLoad,index,0);
+layoutLoadSave->addWidget(chkAutoSetExport,index++,1);
+layoutLoadSave->addWidget(chkAutoSetAgr,index,0);
+layoutLoadSave->addWidget(chkAutoSetCWD,index++,1);
 
 grpLoadSave->setLayout(layoutLoadSave);
 grpInput->setLayout(layoutInput);
@@ -10181,6 +10218,9 @@ grpResponse->setLayout(layoutResponse);
 behavLayout->addWidget(grpResponse,0,0);
 behavLayout->addWidget(grpInput,1,0);
 behavLayout->addWidget(grpLoadSave,2,0);
+
+behavLayout->addWidget(cmdTest,3,0);
+
 //behavLayout->addWidget(selFontSize,3,0);
 //behavLayout->addWidget(cmdActDevs,4,0);
 
@@ -10200,8 +10240,8 @@ behavLayout->addWidget(chkAutoSetCWD,r_index,0);
 behavLayout->addWidget(chkWarnOnEncodingChange,r_index++,1);
 behavLayout->addWidget(cmdActDevs,r_index++,0,1,2);*/
 QWidget * empty5=new QWidget(this);
-behavLayout->addWidget(empty5,5,0);
-behavLayout->setRowStretch(5,3);
+behavLayout->addWidget(empty5,4,0);
+behavLayout->setRowStretch(4,3);
 
 tab_Behaviour->setLayout(behavLayout);
 
@@ -10288,6 +10328,24 @@ chkHDPrinterOutput=new QCheckBox(tr("Use HD-output on physical printers"),this);
 //lenPrintCommand->setFont(fntPref);
 //chkHDPrinterOutput->setFont(fntPref);
 
+
+chkUseFFTW3->setToolTip(tr("Use the fftw3-library for all fourier-transformations"));
+lblFFTW3_found->setToolTip(tr("Indicates whether the fftw3-library has been found"));
+lblfftw3_static->setToolTip(tr("Indicates that the fftw3-library has been statically linked to QtGrace"));
+ledFFTW3_dll->setToolTip(tr("The location where the fftw3-library can be found (dynamic library)"));
+cmdBrowseFFTW3->setToolTip(tr("Specify the location of the fftw3-library"));
+chkUselibHaru->setToolTip(tr("Use the Haru-PDF-library in the file-output-dialog"));
+lblHaru_found->setToolTip(tr("Indicates whether the Haru-PDF-library has been found"));
+lblHaru_static->setToolTip(tr("Indicates that the Haru-PDF-library has been statically linked to QtGrace"));
+ledHaru_dll->setToolTip(tr("The location where the Haru-PDF-library can be found (dynamic library)"));
+cmdBrowseHaru->setToolTip(tr("Specify the location of the Haru-PDF-library"));
+chkUsePrintCommand->setToolTip(tr("Use a system-command to address the printer"));
+lenPrintCommand->setToolTip(tr("Specify the system-command to address the printer"));
+chkHDPrinterOutput->setToolTip(tr("Use high-quality-output on physical printer\n(this may increases the resolution dramatically and result in much smaller fill-patterns)"));
+chkExternalHelpViewer->setToolTip(tr("Use a different external html-viewer to display help-files\n(the default viewer of the operating system is used otherwise)"));
+lenHelpViewer->setToolTip(tr("Specify alternative external html-viewer"));
+chkShowHideException->setToolTip(tr("A workaround to dectivates and reactivates the plot-area on every redraw\n(this was neccessary on some Linux-systems)\nThis should not be needed any more"));
+
 misc2Layout->addWidget(chkExternalHelpViewer);
 misc2Layout->addWidget(lenHelpViewer);
 misc2Layout->addWidget(chkShowHideException);
@@ -10351,17 +10409,15 @@ void frm_Preferences::init(void)
 tab_prefs->init();
 //tab_extra->init();
 //tab_qtgrace_prefs2->init();
-
 init_GUI();
 init_Behavior();
 init_Misc();
-
+tab_defaults->init();
 tab_linestyles->init();
 tab_colors->init();
 tab_defaults->show_defaults=grdefaults;
 tab_defaults->show_view=grview;
 strcpy(tab_defaults->show_sformat,sformat);
-tab_defaults->init();
 redisplayContents();
 }
 
@@ -10370,7 +10426,7 @@ void frm_Preferences::init_GUI(void)
 
     chkNewIcons->setChecked(use_new_icons);
     QString font_descr=qApp->font().toString();
-    lblGuiFont->setText(tr("Gui Font=")+font_descr);
+    lblGuiFont->setText(font_descr);
 
     selStartupX->spnInt->setRange(0,qApp->desktop()->width()*0.9);
     selStartupY->spnInt->setRange(0,qApp->desktop()->height()*0.9);
@@ -10693,7 +10749,7 @@ chkShowViewp->setChecked(true);
 chkShowPageZoom->setChecked(true);
 chkShowPrintB->setChecked(false);
 chkShowExportP->setChecked(false);
-chkShowHostName->setChecked(true);
+chkShowHostName->setChecked(false);
 chkShowDisplay->setChecked(false);
 selFileDisplay1->setCurrentIndex(2);
 selFileDisplay2->setCurrentIndex(2);
@@ -10723,7 +10779,7 @@ if (ok==true)
     QString font_descr=qApp->font().toString();
     //qApp->setFont(*GuiFont);
     //cout << "setting Font=" << font_descr.toLatin1().constData() << endl;
-    lblGuiFont->setText(tr("Gui Font=")+font_descr);
+    lblGuiFont->setText(font_descr);
     Form_Preferences->show();
     Form_Preferences->activateWindow();
     Form_Preferences->raise();
@@ -10734,7 +10790,7 @@ if (ok==true)
 void frm_Preferences::resetGUIFont(void)
 {
     QString font_descr=stdGuiFont->toString();
-    lblGuiFont->setText(tr("Gui Font=")+font_descr);
+    lblGuiFont->setText(font_descr);
     //cout << "setting Font=" << font_descr.toLatin1().constData() << endl;
     QApplication::setFont(*stdGuiFont);
     delete GuiFont;
@@ -10925,59 +10981,6 @@ void get_tracking_props(int *setno, int *move_dir, int *add_at)
     *add_at = track_add_at;
 }
 
-frmQtGracePrefs2::frmQtGracePrefs2(QWidget * parent):QWidget(parent)
-{
-
-
-
-/*
-buttonGroup=new stdButtonGroup(this);
-connect(buttonGroup->cmdApply,SIGNAL(clicked()),SLOT(doApply()));
-connect(buttonGroup->cmdAccept,SIGNAL(clicked()),SLOT(doAccept()));
-connect(buttonGroup->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
-
-layout=new QVBoxLayout();
-layout->setSpacing(STD_SPACING);
-layout->setMargin(STD_MARGIN);
-//layout->addWidget(lblExtLibs);
-layout->addWidget(grp_libFFTW3);
-layout->addWidget(grp_libHaru);
-//layout->addWidget(grp_tool_bar);
-//layout->addWidget(grp_Startup);
-layout->addStretch(5);
-layout->addWidget(buttonGroup);
-setLayout(layout);*/
-}
-
-
-
-void frmQtGracePrefs2::init(void)
-{
-
-
-}
-
-void frmQtGracePrefs2::read_settings(void)
-{
-
-}
-
-void frmQtGracePrefs2::doApply(void)
-{
-//read_settings();
-}
-
-void frmQtGracePrefs2::doAccept(void)
-{
-doApply();
-doClose();
-}
-
-void frmQtGracePrefs2::doClose(void)
-{
-emit(close_wish());
-}
-
 frmDefaults::frmDefaults(QWidget * parent):QWidget(parent)
 {
 grp_defaults=new QGroupBox(tr("Grace-Defaults"),this);
@@ -11006,11 +11009,32 @@ entr[3]=tr("Grace default");
 selShowDefaults=new StdSelector(this,tr("Show defaults:"),nr,entr);
 connect(selShowDefaults,SIGNAL(currentIndexChanged(int)),SLOT(currentShowDefaultsChanged(int)));
 
-lblviewp=new QLabel(tr("Viewport:"),this);
+lblviewp=new QLabel(tr("Initial viewport for new graphs:"),this);
 selviewp[0]=new stdLineEdit(this,tr("Xmin:"));
 selviewp[1]=new stdLineEdit(this,tr("Ymin:"));
 selviewp[2]=new stdLineEdit(this,tr("Xmax:"));
 selviewp[3]=new stdLineEdit(this,tr("Ymax:"));
+
+grp_defaults->setToolTip(tr("The settings in this group are applied as initial settings for new objects\n(like graphs, texts, lines, sets, ...)\nnot applied to existing objects and not applied to the default-startup-agr-file"));
+/*selStdColor->setToolTip(tr(""));
+selBGColor->setToolTip(tr(""));
+selStdPattern->setToolTip(tr(""));
+selLineStyle->setToolTip(tr(""));
+selLineWidth->setToolTip(tr(""));
+sldStdCharSize->setToolTip(tr(""));
+selStdFont->setToolTip(tr(""));
+sldStdSymSize->setToolTip(tr(""));*/
+lenDefaultFormat->setToolTip(tr("Defaults data point format in C notation"));
+cmdUseThisForCurrent->setToolTip(tr("Use the displayed defaults as the current ones\n(the current defaults are always stored in the ini-file)"));
+cmdUseThisForProjectFile->setToolTip(tr("Store these defaults in the project file on next save"));
+/*lblviewp->setToolTip(tr(""));
+selviewp[0]->setToolTip(tr(""));
+selviewp[1]->setToolTip(tr(""));
+selviewp[2]->setToolTip(tr(""));
+selviewp[3]->setToolTip(tr(""));*/
+selShowDefaults->setToolTip(tr("Which defaults are to displayed here\n(only the current ones are used)"));
+
+
 layout0->addWidget(selStdColor,0,0,1,1);
 layout0->addWidget(selBGColor,1,0,1,1);
 layout0->addWidget(selStdPattern,2,0,1,1);
@@ -13597,7 +13621,8 @@ ledSelection->setText(selection);
 char * filename=new char[selection.length()+8];
 strcpy(filename,selection.toLocal8Bit().constData());
 //struct agr_file_info afi;
-//cout << "new File=" << filename << " isAGR=" << is_agr_file(filename) << endl;
+cout << "new File=" << filename << " isAGR=" << is_agr_file(filename) << endl;
+
     if (is_agr_file(filename))
     {
         if (Form_AgrInfo==NULL)
@@ -13614,12 +13639,13 @@ strcpy(filename,selection.toLocal8Bit().constData());
         else
         cmdOpenSetImport->setEnabled(false);
     }
-    else
+    else//not an agr-file
     {
     txtDescription->clear();
     lblProjectContent->setText(tr("No project file."));
     cmdOpenSetImport->setEnabled(false);
     }
+
 delete[] filename;
 }
 
@@ -13629,7 +13655,7 @@ void frmIOForm::gotNewSelectionDoubleClick(QString selection)
     doOK();
 }
 
-void frmIOForm::init(void)
+void frmIOForm::init(char * f_name)
 {
     ledFormat->lenText->setText(QString(sformat));
     ledFormat2->lenText->setText(QString(sformat));
@@ -13641,8 +13667,35 @@ void frmIOForm::init(void)
         {
         cmdOpenSetImport->setEnabled(false);
         }
-    selector->ledFilter->setText(selector->currentDir+selector->separator+selector->filterExtension);
-    ledSelection->setText(selector->currentDir+selector->separator);
+selFileInfo.setFile(f_name);
+    if (f_name==NULL)
+    {
+    selFileInfo.setFile(get_workingdir());
+    }
+QString a,b;
+    if (f_name==NULL)
+    {
+    selectedFile=QString("");
+    }
+    else
+    {
+    selectedFile=QString(f_name);
+
+    a=selFileInfo.absoluteDir().absolutePath();
+    b=QString("*.")+selFileInfo.suffix();
+    /// selector->setFilterFromExtern(a,b);
+
+    selector->setFileSelectionFromExtern(selectedFile);
+
+    /*qDebug() << "path=" << a.toLatin1() << endl;
+    qDebug() << "extension=" << b.toLatin1() << endl;*/
+    }
+    selector->ledFilter->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator+selector->filterExtension);
+    ledSelection->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator);
+        if (selFileInfo.isFile())
+        ledSelection->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator+selFileInfo.fileName());
+    /*qDebug() << "Set1=" << selector->ledFilter->text() << endl;
+    qDebug() << "Set2=" << ledSelection->text() << endl;*/
     graphList->update_number_of_entries();
     setList->update_number_of_entries();
     int gno=get_cg();
@@ -23300,7 +23353,7 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent)
 {
     int number;
     curaxis=X_AXIS;
-    QString * entr=new QString[5];
+    QString * entr=new QString[8];
 //setFont(*stdFont);
     setWindowTitle(tr("QtGrace: Axis"));
     setWindowIcon(QIcon(*GraceIcon));
@@ -23346,11 +23399,15 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent)
     selScale->entryValues[2]=SCALE_REC;
     selScale->entryValues[3]=SCALE_LOGIT;
     connect(selScale->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(axis_scale_cb(int)));
-    number=4;
+    number=8;
     entr[0]=tr("Current axis");
     entr[1]=tr("All axes, current graph");
     entr[2]=tr("Current axis, all graphs");
     entr[3]=tr("All axes, all graphs");
+    entr[4]=tr("x+y axes, current graph");
+    entr[5]=tr("x+y axes, all graphs");
+    entr[6]=tr("alt x+y axes, current graph");
+    entr[7]=tr("alt x+y axes, all graphs");
     selApplyTo=new StdSelector(this,tr("Apply to:"),number,entr);
     selApplyTo->lblText->setVisible(true);
     cmdApplyTo=new QPushButton(tr("Apply to:"),selApplyTo);
@@ -23709,6 +23766,30 @@ int frmAxis_Prop::axes_aac_cb(void)
         graph_start = 0;
         graph_stop  = number_of_graphs() - 1;
         break;
+    case 4:                     /* x+y axes, current graph */
+        axis_start = 0;
+        axis_stop  = 1;
+        graph_start = cg;
+        graph_stop  = cg;
+        break;
+    case 5:                     /* x+y axes, all graphs */
+        axis_start = 0;
+        axis_stop  = 1;
+        graph_start = 0;
+        graph_stop  = number_of_graphs() - 1;
+        break;
+    case 6:                     /* alt x+y axes, current graph */
+        axis_start = 2;
+        axis_stop  = 3;
+        graph_start = cg;
+        graph_stop  = cg;
+        break;
+    case 7:                     /* alt x+y axes, all graphs */
+        axis_start = 2;
+        axis_stop  = 3;
+        graph_start = 0;
+        graph_stop  = number_of_graphs() - 1;
+        break;
     default:
         axis_start = curaxis;
         axis_stop  = curaxis;
@@ -23936,7 +24017,7 @@ int frmAxis_Prop::axes_aac_cb(void)
                 sprintf(dummy,"    %s  tick place %s",descr_axis,dummy2);
                 ListOfOldStates << QString(dummy);
             }
-            if (t->active!=t2->active && applyto==0)//active will only be changed if we apply to current axis
+            if (t->active!=t2->active)// && applyto==0)//active will only be changed if we apply to current axis
             {
                 sprintf(dummy,"    %s %s",descr_axis,t->active?"on":"off");
                 ListOfChanges << QString(dummy);
@@ -24324,16 +24405,16 @@ int frmAxis_Prop::axes_aac_cb(void)
 
             }
 
-            if (applyto>0 && !(i==get_cg() && j==curaxis))//apply to more than one axis and we are not on the current axis
+            /*if (applyto>0 && !(i==get_cg() && j==curaxis))//apply to more than one axis and we are not on the current axis
             {
             tmp_active=t->active;
             t->active=t2->active;
-            }
+            }*/
             set_graph_tickmarks(i, j, t);//actually do something!!!
-            if (applyto>0 && !(i==get_cg() && j==curaxis))//apply to more than one axis and we are not on the current axis
+            /*if (applyto>0 && !(i==get_cg() && j==curaxis))//apply to more than one axis and we are not on the current axis
             {
             t->active=tmp_active;
-            }
+            }*/
 
             //the following commands are neccessary for LaTeX-support (because dynamic strings are coppied dynamically)
             if (i==get_cg() && j==curaxis)
@@ -30416,14 +30497,39 @@ frmColorManagement::frmColorManagement(QWidget * parent):QWidget(parent)
     layout->addWidget(aac);
     setLayout(layout);
 
+colorsel->setToolTip(tr("The currently active color palette"));
+grpCurCol->setToolTip(tr("The settings in this group are used to define or edit single colors"));
+//lblInstructions->setToolTip(tr(""));
+lblIllustration->setToolTip(tr("How the current color looks like"));
+ledRed->setToolTip(tr("Red component of the current color"));
+ledGreen->setToolTip(tr("Green component of the current color"));
+ledBlue->setToolTip(tr("Blue component of the current color"));
+ledColName->setToolTip(tr("Define name of color"));
+cmdSelNewColor->setToolTip(tr("Select a new color from the color-selector of the operating system"));
+cmdDelColor->setToolTip(tr("Delete the color at the current postion from the list"));
+cmdAddColor->setToolTip(tr("Append the displayed color at the end of the list"));
+cmdEditColor->setToolTip(tr("Set the color in the list at the current position to the color displayed here"));
+lblColNumber->setToolTip(tr("Number of the color currently displayed / current position"));
+grpColSpectra->setToolTip(tr("The settings in this dialog alter the whole list of colors at once"));
+//lblInstructions2->setToolTip(tr(""));
+lblIllustration2->setToolTip(tr("Displays the new colors as a spectrum"));
+cmdStdCols->setToolTip(tr("Resets the colors to the default list used in Grace"));
+cmdSetSpectrum->setToolTip(tr("Sets the currently displayed spectrum as the new list of colors for this project"));
+selStdSpectra->setToolTip(tr("Select the type of spectrum to be used (predefined or Custom)"));
+chkInvert->setToolTip(tr("Reverses the order the colors are put into the list"));
+selNumberOfColors->setToolTip(tr("Number of colors to be put into the new list of colors"));
+selNumberOfPathPoints->setToolTip(tr("Number of points to use as a direction for generating the spectrum\nOnly used if Custom-spectrum is to be defined"));
+selNumberOfCurPathPoint->setToolTip(tr("Color point in the path that is to be eddited\nOnly used if Custom-spectrum is to be defined"));
+selPathCol->setToolTip(tr("Select color for current path-point\nOnly used if Custom-spectrum is to be defined"));
+
     init();
     colorsel->setCurrentIndex(0);
+
     QPushButton * emptyButton=new QPushButton("",this);
     emptyButton->setDefault(true);
     emptyButton->hide();
     curColorChanged(0);
-    generateSpectrum(0);
-    showTempSpectrum();
+    curSpectrumChanged(0);
 }
 
 void frmColorManagement::generateSpectrum(int nr)
@@ -30669,6 +30775,18 @@ void frmColorManagement::curSpectrumChanged(int nr)
     //cout << "spectrum changed" << endl;
     generateSpectrum(nr);
     showTempSpectrum();
+    if (nr==3)
+    {
+    selNumberOfPathPoints->setEnabled(true);
+    selNumberOfCurPathPoint->setEnabled(true);
+    selPathCol->setEnabled(true);
+    }
+    else
+    {
+    selNumberOfPathPoints->setEnabled(false);
+    selNumberOfCurPathPoint->setEnabled(false);
+    selPathCol->setEnabled(false);
+    }
 }
 
 void frmColorManagement::curNumberOfColorsChanged(int nr)
@@ -32933,7 +33051,6 @@ void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,in
     orders[0]=o1;
     orders[1]=o2;
 }
-
 
 TestDialog::TestDialog(QWidget * parent):QWidget(parent)
 {

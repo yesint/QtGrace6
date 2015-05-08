@@ -30,9 +30,7 @@
 #include <QMessageBox>
 
 extern char startupphase;
-extern void set_docname_external(const char *s);
-extern void set_exportname_external(const char *s);
-
+extern int hardCopyDeviceNr;
 
 // initialize server
 LocalSocketIpcServer::LocalSocketIpcServer(QString receiveClientSocketName,
@@ -430,20 +428,16 @@ void LocalSocketIpcServer::executeTaskFromClient()
         }
 
 
-
-        qDebug()<< get_docname();
-        qDebug()<<get_exportname();
-          qDebug()<<get_exportbname();
-                  qDebug()<<get_exportfilename();
-
-
         /* force a hardcopy */
         set_pagelayout(PAGE_FIXED);
         update_all();
 
         oldNoask_m=noask;
         noask=true; // prevent questions
-        do_hardcopy();
+
+        int w=872,h=670;
+        do_hardcopy_external(get_exportname(),hardCopyDeviceNr,start_dpi,w,h);
+
         noask=oldNoask_m;
         countNoOfRead_m = 0;
         break;

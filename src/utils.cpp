@@ -409,8 +409,8 @@ else
 {
     if (general_behavior==0)//like Grace
     {
-//ret=yesno(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data(), NULL, NULL, NULL);
-/*ret=yesnosave(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data());*/
+/*ret=yesno(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data(), NULL, NULL, NULL);
+ret=yesnosave(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data());*/
 FormQuestion->init(QObject::tr("Exit losing unsaved changes?"),QObject::tr("Exit QtGrace"));
 /*FormQuestion->show();
 FormQuestion->raise();

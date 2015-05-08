@@ -1723,7 +1723,16 @@ int load_project_file(char *fn, int as_n_template)
         //set_exportname(NULL);
         update_line_style_selectors();
             if (autofit_on_load==TRUE)
-            mainWin->doFitPage();
+            {
+                if (mainWin->isVisible()==false)
+                {
+                autofit_pending=1;
+                }
+                else
+                {
+                mainWin->doFitPage();
+                }
+            }
             else
             mainWin->doPageZoom(mainWin->sldPageZoom->value());
         return retval;

@@ -157,6 +157,7 @@ public:
     MainWindow( QWidget *parent=0 );
     ~MainWindow();
 
+    virtual void showEvent( QShowEvent * e );
     virtual void resizeEvent( QResizeEvent * e);
     virtual void mouseReleaseEvent(QMouseEvent * event);
     virtual void keyPressEvent( QKeyEvent * e );

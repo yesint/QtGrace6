@@ -883,7 +883,10 @@ int replacement_main(int argc, char **argv)
                                 exit(1);
                             } else {//successfull device selection --> maybe we need a special treatment
                                 hdeviceFlag = true;
-                                if(!strcmp("PDF",argv[i])){
+
+                                hardCopyDeviceNr = get_device_by_name(argv[i]);
+
+                                /*if(!strcmp("PDF",argv[i])){
                                     hardCopyDeviceNr = DEVICE_PDF;
                                 }else if(!strcmp("PNG",argv[i])){
                                     hardCopyDeviceNr = DEVICE_PNG;
@@ -897,7 +900,7 @@ int replacement_main(int argc, char **argv)
                                     hardCopyDeviceNr = DEVICE_SVG;
                                 }else if(!strcmp("PDF(Haru)",argv[i])){
                                     hardCopyDeviceNr = DEVICE_PDF_HARU;
-                                }
+                                }*/
                             }
                         }
                     } else if (argmatch(argv[i], "-log", 2)) {
@@ -1233,6 +1236,8 @@ int replacement_main(int argc, char **argv)
         }
         if (!noprint)
         {
+        cout << "ptofile=" << get_ptofile() << endl;
+        cout << "outfile=" << print_file << endl;
             do_hardcopy();
         }
         bailout();

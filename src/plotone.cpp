@@ -818,7 +818,8 @@ QString suf2=QString(dev.fext).toLower();
     }
 
 bool use_x11drv=prepare_x11drv(hdevice,get_ptofile());
-FormProgress->increase();
+    if (FormProgress!=NULL)
+    FormProgress->increase();
 if (print_error==true)
 {
     //restore old settings
@@ -859,9 +860,11 @@ QMessageBox::information(0,QString("vor drawgraph"),st1+QString("\n")+st2);*/
 
 /// do the actual drawing
 drawgraph();
-FormProgress->increase();
+    if (FormProgress!=NULL)
+    FormProgress->increase();
 postprocess_x11drv(hdevice,get_ptofile());
-FormProgress->increase();
+        if (FormProgress!=NULL)
+        FormProgress->increase();
     if (dirty==FALSE)
     clear_dirtystate();
     else
@@ -3744,3 +3747,42 @@ void draw_timestamp(void)
         timestamp.bb = get_bbox(BBOX_TYPE_TEMP);
     }
 }
+
+void do_hardcopy_external(char * target_file,char * target_device,float dpi,unsigned long w,unsigned long h)
+{
+int dev_nr=get_device_by_name(target_device);
+do_hardcopy_external(target_file,dev_nr,dpi,w,h);
+}
+
+void do_hardcopy_external(char * target_file,int dev_nr,float dpi,unsigned long w,unsigned long h)
+{
+int sav_cur_file=curdevice;
+int sav_hdevice=hdevice;
+int sav_ptofile=get_ptofile();
+char exname_sav[GR_MAXPATHLEN];
+
+    strcpy(exname_sav,get_exportname());
+    set_exportname(target_file);
+    set_ptofile(TRUE);
+
+Page_geometry pg,sav_pg;
+sav_pg=get_page_geometry();
+    pg.dpi=dpi;
+    pg.height=h;
+    pg.width=w;
+
+    hdevice=dev_nr;
+    select_device(hdevice);
+    set_page_geometry(pg);
+
+    do_hardcopy();
+
+    hdevice=sav_hdevice;
+    select_device(sav_cur_file);
+    set_page_geometry(sav_pg);
+    set_ptofile(sav_ptofile);
+    set_exportname(exname_sav);
+
+}
+
+

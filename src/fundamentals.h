@@ -849,6 +849,7 @@ void doSetCWD(void);
 //void doGetCWD(void);
 void toggleHiddenFile(int i);
 void setFilterFromExtern(QString & directory,QString & extension);
+void setFileSelectionFromExtern(QString n_file);
 void currentDirChanged(int i);
 signals:
 void newSelection(QString selection);

@@ -2790,6 +2790,22 @@ void FileSelector::setFilterFromExtern(QString & directory,QString & extension)
     showFilesLikeFilter();
 }
 
+void FileSelector::setFileSelectionFromExtern(QString n_file)
+{
+QFileInfo fi(n_file);
+QString ext=QString("*.")+fi.suffix();
+QString n_dir=QDir::toNativeSeparators(fi.absolutePath());
+setFilterFromExtern(n_dir,ext);
+
+QModelIndex mi=modelFiles->index(n_file);
+FileList->setCurrentIndex(mi);
+/*
+cout << "Files: rows=" << modelFiles->rowCount() << endl;
+cout << "Files: cols=" << modelFiles->columnCount() << endl;
+cout << "Dirs: rows=" << DirList->model()->rowCount() << endl;
+*/
+}
+
 void FileSelector::doSetCWD(void)
 {
     char * dummy=new char[currentDir.length()+1];
@@ -2926,6 +2942,7 @@ cout << "updir2=#" << strbuf << "# possible=" << up_possible << endl;*/
 #endif
         return;
     }
+
     currentDir=tdir.absolutePath();
     currentDir=QDir::cleanPath(currentDir);
     QString newFilter,newPath;
