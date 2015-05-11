@@ -865,6 +865,7 @@ public:
 
     QPushButton * device_opts_item;
     QPushButton * wbut;
+    QPushButton * cmdUseScreenResolution;
     QGroupBox * grpDevSetup;
     QGroupBox * grpOutput;
     QGroupBox * grpPage;
@@ -931,6 +932,7 @@ public slots:
     void doHelpOnDevSetup(void);
     void doBrowse(void);
     void doDevOpt(void);
+    void doUseScreenResolution(void);
     bool openNativePrinter(int dev);
     void printerAccepted(QPrinter * pri);
     void printerRejected(void);

@@ -407,10 +407,16 @@ ret=true;
 }
 else
 {
+    ret2=yesnosave(0);
+
+return ret2;
+/// Function ends here
+
     if (general_behavior==0)//like Grace
     {
-/*ret=yesno(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data(), NULL, NULL, NULL);
-ret=yesnosave(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data());*/
+//ret=yesno(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data(), NULL, NULL, NULL);
+//ret=yesnosave(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data());
+//ret=yesnosave();
 FormQuestion->init(QObject::tr("Exit losing unsaved changes?"),QObject::tr("Exit QtGrace"));
 /*FormQuestion->show();
 FormQuestion->raise();
@@ -440,6 +446,7 @@ ret=FormQuestion->exec();//ret=1 heißt exit, ret=0 heißt kein exit
     }
 
 }
+
     if (!is_dirtystate() || ret)
     {
         if (resfp)
@@ -1331,10 +1338,76 @@ int yesnoterm(char *msg)
     return 1;
 }
 
-int yesnosave(char * msg)//-1=Save
+int yesnosave(int version)//version=0 --> Exit / version=1 --> just load something else
 {
-int ret=QMessageBox::question(0,QString("Error"),QString(msg),QMessageBox::Yes | QMessageBox::No | QMessageBox::Save,QMessageBox::No);
-if (ret==QMessageBox::Yes)
+//int ret=QMessageBox::question(0,QString("Error"),QString(msg),QMessageBox::Yes | QMessageBox::No | QMessageBox::Save,QMessageBox::No);
+int ret2;
+if (general_behavior==0)//like Grace
+{
+    if (version==0)
+    ret2=QMessageBox::question(mainWin,QObject::tr("Exit QtGrace"),QObject::tr("Exit losing unsaved changes?"),QMessageBox::Yes|QMessageBox::No|QMessageBox::Save);
+    else
+    ret2=QMessageBox::question(mainWin,QObject::tr("Close project"),QObject::tr("Abandon unsaved changes?"),QMessageBox::Yes|QMessageBox::No|QMessageBox::Save);
+
+    if (ret2==QMessageBox::Save)
+    {
+    ret2=ANSWER_SAVE;
+    }
+    else if (ret2==QMessageBox::Yes)
+    {
+    ret2=ANSWER_YES;
+    }
+    else
+    {
+    ret2=ANSWER_NO;
+    }
+}
+else//like QtGrace
+{
+    if (version==0)
+    ret2=QMessageBox::question(mainWin,QObject::tr("Exit QtGrace"),QObject::tr("Content of current project changed!\nSave project?"),QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel);
+    else
+    ret2=QMessageBox::question(mainWin,QObject::tr("Close project"),QObject::tr("Content of current project changed!\nSave project?"),QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel);
+
+    if (ret2==QMessageBox::Save)
+    {
+    ret2=ANSWER_SAVE;
+    }
+    else if (ret2==QMessageBox::Discard)//"discard" means "Yes, Exit without saving!"
+    {
+    ret2=ANSWER_YES;
+    }
+    else
+    {
+    ret2=ANSWER_NO;
+    }
+}
+
+if (ret2==ANSWER_SAVE)
+{
+//cout << "getDocName=" << get_docname() << endl;
+QString sav_file_name=QFileDialog::getSaveFileName(mainWin,QObject::tr("Save project file"),get_docfilename(),QObject::tr("Project files (*.agr)"));
+    if (!sav_file_name.isEmpty())
+    {
+    int noask_save = noask;
+    noask=1;
+    //cout << "Yes to save: " << sav_file_name.toLocal8Bit().constData() << endl;
+    save_project(sav_file_name.toLocal8Bit().data());
+    noask=noask_save;
+    return ANSWER_YES;
+    }
+    else
+    {
+    //cout << "Not To Save:" << sav_file_name.toLocal8Bit().constData() << endl;
+    return ANSWER_NO;
+    }
+}
+else
+{
+return ret2;
+}
+
+/*if (ret==QMessageBox::Yes)
     return 1;
 else if (ret==QMessageBox::No)
     return 0;
@@ -1353,7 +1426,8 @@ question+=QString("?");
     {
     return 0;
     }
-}
+}*/
+
 }
 
 int yesno(char *msg, char *s1, char *s2, char *help_anchor)

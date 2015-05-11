@@ -101,6 +101,10 @@
 #define SLIDE_LINEAR 0
 #define SLIDE_LOGARITHMIC 1
 
+#define ANSWER_YES 1
+#define ANSWER_NO 0
+#define ANSWER_SAVE -1
+
 using namespace std;
 
 void append_to_storage(int * len,int ** storage,int n,int * new_entries);

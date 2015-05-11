@@ -114,7 +114,7 @@ void echomsg(char *msg);
 void stufftext(const char *msg);
 
 int yesnoterm(char *msg);
-int yesnosave(char * msg);
+int yesnosave(int version);
 int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 
 char *mybasename(const char *s);

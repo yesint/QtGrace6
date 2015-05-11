@@ -1232,6 +1232,7 @@ void MainWindow::Exit(void)
 
 void MainWindow::PrintSetup(void)
 {
+bool initiate=false;
     if (FormDeviceSetup==NULL)
     {
         FormDeviceSetup=new frmDeviceSetup(this);
@@ -1247,6 +1248,7 @@ void MainWindow::PrintSetup(void)
         if (lastPrintDevice<=0) lastPrintDevice=FormDeviceSetup->devices_item->currentValue();
 
         FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+    initiate=true;
     }
     FormDeviceSetup->changeDeviceList(2);
 
@@ -1298,6 +1300,8 @@ void MainWindow::PrintSetup(void)
     FormDeviceSetup->show();
     FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
+    if (initiate==true)
+    FormDeviceSetup->resize(400,400);
 }
 
 void MainWindow::Print(void)
@@ -2196,9 +2200,11 @@ xpos+=WIN_SIZE_CORR;
 
 void MainWindow::PageSetup(void)
 {
+bool initiate=false;
     if (FormDeviceSetup==NULL)
     {
         FormDeviceSetup=new frmDeviceSetup(this);
+        initiate=true;
     }
     FormDeviceSetup->show();
         if (FormDeviceSetup->devices_item->currentValue()!=DEVICE_SCREEN)//'0'=Screen
@@ -2209,6 +2215,8 @@ void MainWindow::PageSetup(void)
     FormDeviceSetup->DeviceChanged(DEVICE_SCREEN);
     FormDeviceSetup->raise();
     FormDeviceSetup->activateWindow();
+    if (initiate==true)
+    FormDeviceSetup->resize(400,400);
 }
 
 void MainWindow::Redraw(void)

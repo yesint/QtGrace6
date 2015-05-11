@@ -90,6 +90,7 @@ double saved_value;//a constant value to remember
 
 bool hdeviceFlag;
 int hardCopyDeviceNr;
+int save_successful=false;
 int initial_x_pos=65,initial_y_pos=65;
 int initial_width=872,initial_height=670;
 
@@ -2570,6 +2571,9 @@ create_line_Patterns();
 
     allPrefs->endGroup();
     allPrefs->beginGroup(QString("General"));
+    lastPrintDevice=stdOutputFormat=allPrefs->value(QString("lastOutputFormat"),QVariant(1)).toInt();
+    default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(DEVICE_PNG)).toInt();//changed from -1 to PNG
+
     warn_on_encoding_change=allPrefs->value(QString("Warn_On_Encoding_Change"),QVariant(TRUE)).toInt();
     DefaultFont=allPrefs->value(QString("DefaultFont"),QVariant(0)).toInt();
     strcpy(default_grace_file,allPrefs->value(QString("DefaultAgrFile"),QVariant(QString("Default.agr"))).toString().toLocal8Bit().constData());
@@ -2602,7 +2606,14 @@ stdFontMetrics=new QFontMetrics(*stdFont);
     mainWin=new MainWindow();
     a->setWindowIcon(*GraceIcon);
     stop_repaint=FALSE;
+
+    if (default_Print_Device==-1)//last one
+    hardCopyDeviceNr=stdOutputFormat;
+    else
+    hardCopyDeviceNr=default_Print_Device;
+
     replacement_main(argc,argv);//set up all internal Grace-things
+
     stop_repaint=TRUE;
     //Here setup socket connection.
     if (enableServerMode)
@@ -2657,13 +2668,13 @@ stdFontMetrics=new QFontMetrics(*stdFont);
     FormQuestion->hide();
 
 /*cout << "Before read_settings(): autofit_on_load=" << autofit_on_load << endl;
-cout << "                warn_on_encoding_change=" << warn_on_encoding_change << endl;*/
+cout << "                warn_on_encoding_change=" << warn_on_encoding_change << endl;
+cout << "Before read_settings(): hdevice="<< hdevice << endl;*/
 
-cout << "Before read_settings(): hdevice="<< hdevice << endl;
     read_settings();
-cout << "After  read_settings(): hdevice="<< hdevice << endl;
 
-/*cout << "After read_settings():  autofit_on_load=" << autofit_on_load << endl;
+/*cout << "After  read_settings(): hdevice="<< hdevice << endl;
+cout << "After read_settings():  autofit_on_load=" << autofit_on_load << endl;
 cout << "                warn_on_encoding_change=" << warn_on_encoding_change << endl;*/
 
     if (default_line!=NULL) delete[] default_line;
@@ -2702,7 +2713,7 @@ cout << "                warn_on_encoding_change=" << warn_on_encoding_change <<
     //FormDeviceSetup->devices_item->setCurrentValue(hardCopyDeviceNr);
     }
 
-cout << "After overwrite: hdevice=" << hdevice << endl;
+//cout << "After overwrite: hdevice=" << hdevice << endl;
 
 int maxwi,maxhi;
 maxwi=qApp->desktop()->width()*0.9;
@@ -3328,7 +3339,7 @@ strcpy(tmp_sformat,sformat);
     immediateUpdate=allPrefs->value(QString("ImmediateUpdates"),QVariant(false)).toBool();
     Form_Preferences->chkImmediateUpdate->setChecked(immediateUpdate);
     default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(DEVICE_PNG)).toInt();//changed from -1 to PNG
-    Form_Preferences->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);
+    Form_Preferences->selDefaultPrintDevice->setCurrentIndex(default_Print_Device+1);//+1 because -1=last
     if (autofit_on_load==0)
     {
     //use_new_print_dialog=allPrefs->value(QString("UseNewPrintingDialog"),QVariant(false)).toBool();
@@ -3379,6 +3390,7 @@ strcpy(tmp_sformat,sformat);
     FormDeviceSetup->hide();
     FormDeviceSetup->print_string_item->setText( allPrefs->value(QString("PrintCommand"),QVariant("lpr")).toString() );
     FormDeviceSetup->doApply();
+    FormDeviceSetup->resize(400,400);
 
 QString pat_lens,pat_styles;
 int nr_of_l_styles;

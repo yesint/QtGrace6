@@ -170,14 +170,22 @@ int wipeout(void)
 {
     if (!noask && is_dirtystate())
     {
+    int ret;
+        /*
         FormQuestion->init(QObject::tr("Abandon unsaved changes?"),QObject::tr("Close Project"));
-        int ret=FormQuestion->exec();
+        ret=FormQuestion->exec();
         if (ret==0)//No
             return 1;
+        */
         /*if (!yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
             return 1;
         }*/
+    ret=yesnosave(1);
+    //cout << "in Wipeout(): Answer=" << ret << endl;
+        if (ret==0)//Cancel
+        return 1;
     }
+    //if we get here: everything will be deleted (wiped out)
     kill_all_graphs();
     do_clear_lines();
     do_clear_boxes();

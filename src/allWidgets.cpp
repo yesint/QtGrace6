@@ -7485,6 +7485,9 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
     cmdDoPrint=new QPushButton(tr("Export to File"),this);
     connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrintToFile()));
 
+    cmdUseScreenResolution=new QPushButton(tr("Use screen resolution"),this);
+    connect(cmdUseScreenResolution,SIGNAL(clicked()),SLOT(doUseScreenResolution()));
+
     buttonGroup=new stdButtonGroup(this);
     connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
     connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
@@ -7518,7 +7521,8 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
     layout2->addWidget(page_y_item,1,2);
     layout2->addWidget(page_size_unit_item,1,3);
     layout2->addWidget(dev_res_item,2,0);//,1,2
-    layout2->addWidget(chkDontChangeSize,2,1,1,2);
+    layout2->addWidget(chkDontChangeSize,3,0);//,2,1,1,2);
+    layout2->addWidget(cmdUseScreenResolution,2,1);//,3,0,1,3);
     grpPage->setLayout(layout2);
     layout3=new QHBoxLayout();
     layout3->setMargin(STD_MARGIN);
@@ -8452,6 +8456,12 @@ void frmDeviceSetup::doDevOpt(void)
         ;//Do nothing
         break;
     }
+}
+
+void frmDeviceSetup::doUseScreenResolution(void)
+{
+dev_res_item->setText(QString::number(QApplication::desktop()->physicalDpiX()));
+DpisChanged();
 }
 
 bool frmDeviceSetup::openNativePrinter(int dev)//returns true, if everything is ok, and returns false, if the user selected cancel
@@ -32791,6 +32801,26 @@ int generate_x_mesh_from_formula(int gno,int sno,double start,double stop,int np
     XCFREE(t->data);
     t->length = 0;
     return RETURN_SUCCESS;
+}
+
+char * extract_single_parameter(char * command,char * parameter)//takes the command an extracts everything until the next separator is reached (like ; or }); returns the position of the separtor or the '\0'; parameter is copied in the parameter-array
+{
+int braket_counter=0;
+int len=strlen(command);
+int i;
+for (i=0;i<len;i++)
+{
+    if (command[i]=='(') braket_counter++;
+    else if (command[i]==')') braket_counter--;
+    else if ((command[i]==';' || command[i]=='}') && (braket_counter==0))
+    {
+    strncpy(parameter,command,i);
+    parameter[i]='\0';
+    break;
+    }
+}
+if (i==len) parameter[0]='\0';
+return command+i;
 }
 
 int containsSpecialCommand(char * com,char ** parameters)
