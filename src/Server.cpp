@@ -30,7 +30,8 @@
 #include <QMessageBox>
 
 extern char startupphase;
-extern int hardCopyDeviceNr;
+extern Device_entry *device_table;
+
 
 // initialize server
 LocalSocketIpcServer::LocalSocketIpcServer(QString receiveClientSocketName,
@@ -436,7 +437,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
         noask=true; // prevent questions
 
         int w=872,h=670;
-        do_hardcopy_external(get_exportname(),hardCopyDeviceNr,start_dpi,w,h);
+        do_hardcopy_external(get_exportname(),device_table[hdevice].name,start_dpi,w,h);
 
         noask=oldNoask_m;
         countNoOfRead_m = 0;
