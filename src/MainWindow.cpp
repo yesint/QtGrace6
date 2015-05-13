@@ -2905,14 +2905,14 @@ void MainWindow::LoadProject(char * filename)
 {
 stop_repaint=TRUE;
     inwin=1;
-    load_project(filename);
+int ret=load_project(filename);
     ///Are the following two statements realy necessary?
     /*inwin=1;
     monomode=0;*/
     //addToHistory(filename);
     initNodes();//Undo-Stuff
 
-    int use_dev=hdevice;
+int use_dev=hdevice;
     if (FormDeviceSetup!=NULL) use_dev=FormDeviceSetup->cur_dev;
     QString fwe=get_filename_with_extension(use_dev);
     strcpy(print_file,fwe.toLocal8Bit().constData());
@@ -2947,10 +2947,11 @@ mainArea->completeRedraw();
 mainArea->setGeometry(mainArea->x(),mainArea->y(),mainArea->width(),mainArea->height());
 */
 stop_repaint=FALSE;
-        if (autofit_on_load==TRUE)
+        if (autofit_on_load==TRUE && ret==0)
         doFitPage();
         else
         mainArea->completeRedraw();
+    if (ret==0)
     clear_dirtystate();
 }
 

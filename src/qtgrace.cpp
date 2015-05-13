@@ -2349,7 +2349,7 @@ cout << "                warn_on_encoding_change=" << warn_on_encoding_change <<
     // For Qt > 4.8 plugin search
         if (getenv("BEAST") && getenv("ABI"))
         {
-            qDebug()<<"START 1";
+        //qDebug()<<"START 1";
             string qt5DevDir = string(getenv("BEAST")) + "/lib/qt5/" + string(getenv("ABI")) + "/plugins";
             string qt4DevDir = string(getenv("BEAST")) + "/lib/qt4/" + string(getenv("ABI")) + "/plugins";
             string qtRunDir = string(getenv("BEAST")) + "/bin/" + string(getenv("ABI")) + "/plugins";

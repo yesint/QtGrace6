@@ -109,6 +109,7 @@ GLOBAL(allow_dc, int, TRUE);
 GLOBAL(noask, int, FALSE);
 /* if TRUE, then there is unsaved data*/
 GLOBAL(dirtystate, int, FALSE);
+GLOBAL(dirtysave, int, FALSE);
 /* to tell what objects are to be drawn on an image - e.g. lines - making simple drawings much faster*/
 /* simple draw means: we draw only a few lines on the background of the whole picture (graphs and everything) - this is useful if you want to draw a crosshair-cursor or a region or just a line in a project that has a lot of data points - much faster this way */
 GLOBAL(simple_draw_setting, int, 0);

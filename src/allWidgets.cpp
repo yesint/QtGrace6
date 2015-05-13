@@ -13631,7 +13631,7 @@ ledSelection->setText(selection);
 char * filename=new char[selection.length()+8];
 strcpy(filename,selection.toLocal8Bit().constData());
 //struct agr_file_info afi;
-cout << "new File=" << filename << " isAGR=" << is_agr_file(filename) << endl;
+//cout << "new File=" << filename << " isAGR=" << is_agr_file(filename) << endl;
 
     if (is_agr_file(filename))
     {
@@ -20602,9 +20602,9 @@ void frmSet_Appearance::doApply(void)
         }
         if (p.linepen.pattern != pattern)
         {
-            sprintf(dummy,"    s%d fill pattern %d",setno,pattern);
+            sprintf(dummy,"    s%d line pattern %d",setno,pattern);
             ListOfChanges << QString(dummy);
-            sprintf(dummy,"    s%d fill pattern %d",setno,p.linepen.pattern);
+            sprintf(dummy,"    s%d line pattern %d",setno,p.linepen.pattern);
             ListOfOldStates << QString(dummy);
         }
         if (p.sympen.color != symcolor)
@@ -32812,7 +32812,7 @@ for (i=0;i<len;i++)
 {
     if (command[i]=='(') braket_counter++;
     else if (command[i]==')') braket_counter--;
-    else if ((command[i]==';' || command[i]=='}') && (braket_counter==0))
+    else if ((command[i]==',' || command[i]==';' || command[i]=='{' || command[i]=='}') && (braket_counter==0))
     {
     strncpy(parameter,command,i);
     parameter[i]='\0';
@@ -33022,8 +33022,25 @@ void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,in
     int counter;
     int len=strlen(com);
     counter=0;
-    //cout << "Parsing filter-command=#" << com << "#" << endl;
-    sscanf(com,"%d,%d",&o_n_sets,&n_sets);
+    cout << "Parsing filter-command=#" << com << "#" << endl;
+    /// sscanf(com,"%d,%d",&o_n_sets,&n_sets);
+n_sets=o_n_sets=-1;
+    double tmp_answer;
+    char parameter[128];
+    char * next_pos=extract_single_parameter(com,parameter);
+    next_pos++;//we are now after the ','
+
+    int retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) o_n_sets=(int)tmp_answer;
+
+//cout << "after first extract: com=#" << next_pos << "# parameter=#" << parameter << "# o_n_sets=" << o_n_sets << endl;
+
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) n_sets=(int)tmp_answer;
+
+//cout << "after second extract: com=#" << next_pos << "# parameter=#" << parameter << "# n_sets=" << n_sets << endl;
+
     index=-1;
     (*o_gnos)=new int[1+o_n_sets];
     (*o_snos)=new int[1+o_n_sets];
@@ -33039,6 +33056,7 @@ void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,in
     }
     for (i=0;i<o_n_sets;i++)
     {
+    next_pos=com+index;
         //cout << "original: com-index=" << com+index << endl;
         sscanf(com+index,"%d,%d",(*o_gnos)+i,(*o_snos)+i);
         for (j=0;j<len;j++)
