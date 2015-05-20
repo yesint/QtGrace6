@@ -228,9 +228,31 @@ void LocalSocketIpcServer::readFromClient() {
     }
 
 
-    availableBytesFromSocket_m += clientConnection->bytesAvailable();
+    int receivedFromRead;
+
+    while(clientConnection->bytesAvailable()>0){
+        char *messagePtr=new char[clientConnection->bytesAvailable()+1];
+        receivedFromRead=clientConnection->read(messagePtr,clientConnection->bytesAvailable());
+
+        if (receivedFromRead==-1) {
+            if(isDebugFlagOn_m){
+                *debugOut_m<<"readSocket() FAIL 2"<<"\n";
+                debugOut_m->flush();
+            }
+            clientConnection->disconnectFromServer();
+            availableBytesFromSocket_m = 0;
+            return;
+        }else{
+
+            dataFromSocket.append(messagePtr,receivedFromRead);
+        }
+
+    }
+
+
 
     if(bytesNeeded==availableBytesFromSocket_m){
+
 
         messagePtr_m=new char[availableBytesFromSocket_m+1];
 
@@ -239,10 +261,10 @@ void LocalSocketIpcServer::readFromClient() {
         // come here correctly.
         messagePtr_m[availableBytesFromSocket_m]=0;
 
-        int receivedFromRead=clientConnection->read(messagePtr_m,availableBytesFromSocket_m);
+        memcpy(messagePtr_m, dataFromSocket.data(),dataFromSocket.size());
 
 
-        if (receivedFromRead==-1 ||bytesNeeded!=receivedFromRead ) {
+        if (dataFromSocket.size()==-1 ||bytesNeeded!=dataFromSocket.size() ) {
             if(isDebugFlagOn_m){
                 *debugOut_m<<"readSocket() FAIL 2"<<"\n";
                 debugOut_m->flush();

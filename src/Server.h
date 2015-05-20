@@ -225,6 +225,7 @@ private:
     QList<int>          saveCountNoOfDataSets_m;
 
     QLocalSocket *clientConnection;
+    QByteArray dataFromSocket;
 
 
 };
