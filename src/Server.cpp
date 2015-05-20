@@ -250,6 +250,7 @@ void LocalSocketIpcServer::readFromClient() {
     }
 
 
+    availableBytesFromSocket_m = dataFromSocket.size();
 
     if(bytesNeeded==availableBytesFromSocket_m){
 
@@ -278,6 +279,8 @@ void LocalSocketIpcServer::readFromClient() {
             *debugOut_m<<"Afterreading bytesAvailable=" <<  clientConnection->bytesAvailable() << " bytes\n";
             debugOut_m->flush();
         }
+
+               dataFromSocket.clear();
 
         // Read all data from socket
 
