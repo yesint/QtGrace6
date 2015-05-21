@@ -516,8 +516,11 @@ void initSettings(struct importSettings & iset,bool remove_old_settings=true)
         delete[] iset.channel_size;
     if (iset.channel_target && remove_old_settings)
         delete[] iset.channel_target;
-    if (iset.set_title && remove_old_settings)
-        delete[] iset.set_title;
+    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
+    {
+    if (iset.set_title[i] && remove_old_settings)
+        delete[] iset.set_title[i];
+    }
     iset.channel_format=NULL;
     iset.channel_size=NULL;
     iset.channel_target=NULL;
@@ -526,7 +529,8 @@ void initSettings(struct importSettings & iset,bool remove_old_settings=true)
     iset.subtitle=NULL;
     iset.x_title=NULL;
     iset.y_title=NULL;
-    iset.set_title=NULL;
+    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
+    iset.set_title[i]=NULL;
     iset.first_data=NULL;
 
     iset.read_to_eof=false;
@@ -638,13 +642,16 @@ to->setorder=from->setorder;
         strcpy(to->y_title,from->y_title);
     }
     else to->y_title=NULL;
-    if (from->set_title!=NULL)
+    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
     {
-        if (to->set_title!=NULL) delete[] to->set_title;
-        to->set_title=new char[strlen(from->set_title)+2];
-        strcpy(to->set_title,from->set_title);
+        if (from->set_title[i]!=NULL)
+        {
+            if (to->set_title[i]!=NULL) delete[] to->set_title[i];
+            to->set_title[i]=new char[strlen(from->set_title[i])+2];
+            strcpy(to->set_title[i],from->set_title[i]);
+        }
+        else to->set_title[i]=NULL;
     }
-    else to->set_title=NULL;
 to->target_gno=from->target_gno;
 to->set_type=from->set_type;
     if (from->first_data!=NULL)
@@ -8527,7 +8534,7 @@ int millisec=st1.restart();
 if (millisec<500) ret_val1=printDialog->exec();
 */
 
-printDialog->setModal(true);
+printDialog->setModal(false);
 connect(printDialog,SIGNAL(accepted(QPrinter *)),SLOT(printerAccepted(QPrinter *)));
 connect(printDialog,SIGNAL(rejected()),SLOT(printerRejected()));
 
@@ -26329,7 +26336,8 @@ frmBinaryFormatInput::frmBinaryFormatInput(QWidget * parent):QDialog(parent)
     imp_set.subtitle=new char[2];
     imp_set.x_title=new char[2];
     imp_set.y_title=new char[2];
-    imp_set.set_title=new char[2];
+    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
+    imp_set.set_title[i]=new char[2];
     imp_set.first_data=new double*[2];
     imp_set.channel_format=new int[2];
     imp_set.channel_size=new int[2];
@@ -27476,11 +27484,13 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
                     if (imp_set.channel_target[i]==IMPORT_TO_Y)
                     {
                         if (imp_set.set_title!=NULL)
-                            strcpy(set_identifier_string,imp_set.set_title);
+                            strcpy(set_identifier_string,imp_set.set_title[imp_set.import_dest.at(i)]);
                         else
                             sprintf(set_identifier_string,"binary import from: %s, channel %d",set_identifier.toLatin1().constData(),i);
-                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].comments,set_identifier_string);
-                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_comments,set_identifier_string);
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].lstr,set_identifier_string);
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_lstr,set_identifier_string);
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].comments,imp_set.DataFile.toLocal8Bit().constData());
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_comments,imp_set.DataFile.toLocal8Bit().constData());
                     }
 
                     if (imp_set.factors[col]!=1.0)
@@ -28131,9 +28141,9 @@ ifi.open(imp_set.HeaderFile.toLocal8Bit().constData(),ios::binary);
                 strcpy(imp_set.title,stringText);
                 break;
             case IMPORT_TO_SET_LEGEND:
-                delete[] imp_set.set_title;
-                imp_set.set_title=new char[size+1];
-                strcpy(imp_set.set_title,stringText);
+                delete[] imp_set.set_title[imp_set.import_dest.at(i)];
+                imp_set.set_title[imp_set.import_dest.at(i)]=new char[size+1];
+                strcpy(imp_set.set_title[imp_set.import_dest.at(i)],stringText);
                 break;
             case IMPORT_TO_X0:
                 if (integer_type)
@@ -28472,10 +28482,10 @@ if (imp_set.import_dest.at(i)==IMPORT_TO_NONE) continue;
         strcpy(imp_set.title,tmp_target_name);
         break;
     case IMPORT_TO_SET_LEGEND:
-        if (imp_set.set_title!=NULL)
-            delete[] imp_set.set_title;
-        imp_set.set_title=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
-        strcpy(imp_set.set_title,tmp_target_name);
+        if (imp_set.set_title[imp_set.import_channel_dest.at(i)]!=NULL)
+            delete[] imp_set.set_title[imp_set.import_channel_dest.at(i)];
+        imp_set.set_title[imp_set.import_channel_dest.at(i)]=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
+        strcpy(imp_set.set_title[imp_set.import_channel_dest.at(i)],tmp_target_name);
         break;
     case IMPORT_TO_XTITLE:
         if (imp_set.x_title!=NULL)
@@ -28660,7 +28670,7 @@ for (int i=0;i<imp_set.channels;i++)
             triggerChannel=i;
     }
 }
-number_of_x_columns=number_of_sets_with_column[0];//save this, because we need to know it and the array will be a counter in future
+number_of_x_columns=number_of_sets_with_column[0];//save this, because we need to know it and the array will be a counter in the future
 int max_nr_of_sets=0;
 int col_count_import_set=settype_cols(imp_set.set_type);
 //cout << "col_count_import_set=" << col_count_import_set << endl;
@@ -28765,15 +28775,17 @@ for (int i=0;i<imp_set.channels;i++)
         if (imp_set.channel_target[i]==IMPORT_TO_Y)
         {
             if (imp_set.set_title!=NULL)
-                strcpy(set_identifier_string,imp_set.set_title);
+                strcpy(set_identifier_string,imp_set.set_title[imp_set.import_dest.at(i)]);
             else
             {
                 QFileInfo fi(imp_set.DataFile);
                 QString set_identifier=fi.fileName();
                 sprintf(set_identifier_string,"binary import from: %s, channel %d",set_identifier.toLatin1().constData(),i);
             }
-            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].comments,set_identifier_string);
-            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_comments,set_identifier_string);
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].lstr,set_identifier_string);
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_lstr,set_identifier_string);
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].comments,imp_set.DataFile.toLocal8Bit().constData());
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_comments,imp_set.DataFile.toLocal8Bit().constData());
         }
 cout << "channel " << i << " factor=" << imp_set.channel_factors[i] << " offset=" << imp_set.channel_offsets[i] << " col_factor=" << imp_set.factors[col] << endl;
         //if (imp_set.factors[col]!=1.0)
@@ -28956,10 +28968,10 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
                     strcpy(imp_set.title,dummy);
                     break;
                 case IMPORT_TO_SET_LEGEND:
-                    if (imp_set.set_title!=NULL)
-                        delete[] imp_set.set_title;
-                    imp_set.set_title=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
-                    strcpy(imp_set.set_title,dummy);
+                    if (imp_set.set_title[imp_set.import_dest.at(i)]!=NULL)
+                        delete[] imp_set.set_title[imp_set.import_dest.at(i)];
+                    imp_set.set_title[imp_set.import_dest.at(i)]=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
+                    strcpy(imp_set.set_title[imp_set.import_dest.at(i)],dummy);
                     break;
                 case IMPORT_TO_X0:
                     imp_set.x0=d_value;
@@ -29163,9 +29175,9 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
                     strcpy(imp_set.title,stringText);
                     break;
                 case IMPORT_TO_SET_LEGEND:
-                    delete[] imp_set.set_title;
-                    imp_set.set_title=new char[size+1];
-                    strcpy(imp_set.set_title,stringText);
+                    delete[] imp_set.set_title[imp_set.import_dest.at(i)];
+                    imp_set.set_title[imp_set.import_dest.at(i)]=new char[size+1];
+                    strcpy(imp_set.set_title[imp_set.import_dest.at(i)],stringText);
                     break;
                 case IMPORT_TO_X0:
                     if (integer_type)
@@ -29391,9 +29403,12 @@ void frmBinaryFormatInput::convertSettingsToString(void)
     if (imp_set.y_title!=NULL)
         if (imp_set.y_title[0]!='\0')
             result.append(tr("Set y-title= ")+QString(imp_set.y_title)+QString("\n"));
-    if (imp_set.set_title!=NULL)
-        if (imp_set.set_title[0]!='\0')
-            result.append(tr("Set-title= ")+QString(imp_set.set_title)+QString("\n"));
+    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
+    {
+    if (imp_set.set_title[i]!=NULL)
+        if (imp_set.set_title[i][0]!='\0')
+            result.append(tr("Set-title[")+QString::number(i)+QString("]= ")+QString(imp_set.set_title[i])+QString("\n"));
+    }
 
     if (imp_set.x0set)
     {
@@ -29515,10 +29530,10 @@ void readBinaryFromFile(ifstream & ifi,importSettings & imp_set,double *** data)
     ifi.seekg(0,ios::end);
     length=ifi.tellg();//length complete
     if (position!=imp_set.headersize) position=imp_set.headersize;
-cout << "length=" << length << " position=" << position << endl;
+//cout << "length=" << length << " position=" << position << endl;
     length-=position;//length without header
     ifi.seekg(position);//go to first byte after header
-cout << "resulting length=" << length << endl;
+//cout << "resulting length=" << length << endl;
     long size_of_one_point=0;
     long * size_of_one_set=new long[imp_set.channels];
     long calc_samp_count;
@@ -29544,9 +29559,9 @@ cout << "resulting length=" << length << endl;
             return;
         }
 #endif
-    for (int i=0;i<imp_set.channels;i++)
+        for (int i=0;i<imp_set.channels;i++)
         size_of_one_set[i]=calc_samp_count*imp_set.channel_size[i];//the byte-size in the file
-cout << "size_of_one_point=" << size_of_one_point << " calc.samp.count=" << calc_samp_count << endl;
+//cout << "size_of_one_point=" << size_of_one_point << " calc.samp.count=" << calc_samp_count << endl;
     imp_set.columns_read=imp_set.channels;
     int i=0;//channel_nr
     int read=0;//current number of read data
@@ -32855,6 +32870,21 @@ int containsSpecialCommand(char * com,char ** parameters)
         return SPECIAL_EXTRACT;
     else if ( strcmp(operand,"FORMULA") == 0 )
         return SPECIAL_FORMULA;
+    else if ( strcmp(operand,"ECHO") == 0 )
+    {
+        int len=strlen(com);
+        int anz_space=0,i=0;
+        while (anz_space<2 && i<len)
+        {
+            if (com[i]==' ')
+            {
+            anz_space++;
+            }
+            i++;
+        }
+        strcpy(para,com+i);
+        return SPECIAL_ECHO;
+    }
     else
         return SPECIAL_NONE;
 }
@@ -32941,6 +32971,34 @@ arg[0]=arg[1]=arg[2]='\0';
 return -1;
 }
 
+int ParseEcho(char * com)
+{
+int len=strlen(com);
+int counter=0;
+int start_index=0,stop_index=0;
+char para[1024];
+cout << "Process Echo=#" << com << "#" << endl;
+for (int i=0;i<=len;i++)
+{
+    if (com[i]=='\\')//skip next character
+    {
+    i++;
+    continue;
+    }
+    if (com[i]=='"') counter++;
+    if ((com[i]==' ' || com[i]=='\0') && counter%2==0)
+    {
+    stop_index=i-1;
+    strncpy(para,com+start_index,stop_index-start_index+1);
+    para[stop_index-start_index+1]='\0';
+    cout << "Para=#" << para << "#" << endl;
+    start_index=i+1;
+    }
+}
+
+return RETURN_SUCCESS;
+}
+
 int ParseSpecialFormula(char * com,char * arg)
 {
 return 0;
@@ -33022,7 +33080,7 @@ void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,in
     int counter;
     int len=strlen(com);
     counter=0;
-    cout << "Parsing filter-command=#" << com << "#" << endl;
+//cout << "Parsing filter-command=#" << com << "#" << endl;
     /// sscanf(com,"%d,%d",&o_n_sets,&n_sets);
 n_sets=o_n_sets=-1;
     double tmp_answer;
@@ -33058,7 +33116,16 @@ n_sets=o_n_sets=-1;
     {
     next_pos=com+index;
         //cout << "original: com-index=" << com+index << endl;
-        sscanf(com+index,"%d,%d",(*o_gnos)+i,(*o_snos)+i);
+        //sscanf(com+index,"%d,%d",(*o_gnos)+i,(*o_snos)+i);
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*o_gnos)[i]=(int)tmp_answer;
+        next_pos++;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*o_snos)[i]=(int)tmp_answer;
+        next_pos++;
+
         for (j=0;j<len;j++)
         {
             if (com[j+index]==';' || com[j+index]=='}')
@@ -33071,8 +33138,18 @@ n_sets=o_n_sets=-1;
     index++;
     for (i=0;i<n_sets;i++)
     {
+    next_pos=com+index;
         //cout << "new: com-index=" << com+index << endl;
-        sscanf(com+index,"%d,%d",(*gnos)+i,(*snos)+i);
+        //sscanf(com+index,"%d,%d",(*gnos)+i,(*snos)+i);
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*gnos)[i]=(int)tmp_answer;
+        next_pos++;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*snos)[i]=(int)tmp_answer;
+        next_pos++;
+
         for (j=0;j<len;j++)
         {
             if (com[j+index]==';' || com[j+index]=='}')
@@ -33087,12 +33164,67 @@ n_sets=o_n_sets=-1;
 
     double d1,d2;
     int o1,o2;
+//sscanf(com+index,"%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lf;%lf;%lf;%s",&type,&realization,&o1,&o2,&absolute,&debug,&point_extension,&oversampling,&rno,&invr,&d1,&d2,&ripple,x_formula);
 
-    sscanf(com+index,"%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lf;%lf;%lf;%s",&type,&realization,&o1,&o2,&absolute,&debug,&point_extension,&oversampling,&rno,&invr,&d1,&d2,&ripple,x_formula);
+next_pos=com+index;
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) type=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) realization=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) o1=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) o2=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) absolute=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) debug=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) point_extension=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) oversampling=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) rno=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) invr=(int)tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) d1=tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) d2=tmp_answer;
+next_pos++;//we are now after the ','
+next_pos=extract_single_parameter(next_pos,parameter);
+retval=std_evalexpr(parameter,&tmp_answer);
+if (retval==RETURN_SUCCESS) ripple=tmp_answer;
+next_pos++;//we are now after the ','
+strcpy(x_formula,next_pos);
+
     x_formula[strlen(x_formula)-1]='\0';
 
-    //cout << "d1=" << d1 << " o1=" << o1 << endl;
-    //cout << "d2=" << d2 << " o2=" << o2 << endl;
+/*cout << "d1=" << d1 << " o1=" << o1 << endl;
+cout << "d2=" << d2 << " o2=" << o2 << endl;*/
 
     limits[0]=d1;
     limits[1]=d2;

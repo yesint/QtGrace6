@@ -99,10 +99,8 @@
 #define MAXFIT 12               /* max degree of polynomial+1 that can be
                                  * fitted */
 
-
 /* number of extra objects of a given type to allocate if not enough */
 #define OBJECT_BUFNUM 10
-
 
 #define MAX_ARROW 3
 #define MAX_PREC 10

@@ -669,7 +669,23 @@ QPoint po=CenterOfMass(n,p);
 set_Rotation_Matrix(po.x(),po.y(),RotationAngle);
     for (i=0;i<xn;i++)
     p[i]-=po;
-GeneralPainter->drawPolyline(p,xn);
+//cout << "Draw Polyline xn=" << xn << endl;
+    if (xn>10000)
+    {
+    int todraw=xn,pos=0;
+        while (todraw>0)
+        {
+            if (todraw>10000)
+            GeneralPainter->drawPolyline(p+pos,10000);
+            else
+            GeneralPainter->drawPolyline(p+pos,todraw);
+        pos+=9999;
+        todraw-=9999;
+        }
+    }
+    else
+    GeneralPainter->drawPolyline(p,xn);
+
     ///XDrawLines(disp, displaybuff, gc, p, xn, CoordModeOrigin);
 reset_Transformation_Matrix();
     ///xfree(p);

@@ -4198,11 +4198,11 @@ void SetPopup::CreateActions(void)
     connect(actLabel,SIGNAL(triggered()), this, SLOT(doNothing()));
     actHide=new QAction(tr("Hide"),this);
     connect(actHide,SIGNAL(triggered()), this,SLOT(doHide()));
-    actBringToFront=new QAction(tr("BringToFront"),this);
+    actBringToFront=new QAction(tr("Bring to front"),this);
     connect(actBringToFront,SIGNAL(triggered()), this,SLOT(doBringToFront()));
     actSendToBack=new QAction(tr("Send to back"),this);
     connect(actSendToBack,SIGNAL(triggered()), this,SLOT(doSendToBack()));
-    actPackAllSets=new QAction(tr("Pack All sets"),this);
+    actPackAllSets=new QAction(tr("Pack all sets"),this);
     connect(actPackAllSets,SIGNAL(triggered()), this,SLOT(doPackAllSets()));
     actShow=new QAction(tr("Show"),this);
     connect(actShow,SIGNAL(triggered()), this,SLOT(doShow()));

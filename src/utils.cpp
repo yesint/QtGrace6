@@ -1662,7 +1662,7 @@ void update_timestamp(void)
     struct tm tm;
     time_t time_value;
     char *str;
-    char dummy[512];
+    char dummy[GR_MAXPATHLEN];
 
     (void) time(&time_value);
     tm = *localtime(&time_value);
@@ -1679,7 +1679,12 @@ void update_timestamp(void)
         }
         else if (timestamp.active==TRUE)
         {
-        sprintf(dummy,"%s, %s",str,get_docname());
+        //QString doc_path(get_docname());
+        QDir doc_path;
+        QString doc_str=doc_path.absoluteFilePath(get_docname());
+        doc_str=QDir::toNativeSeparators(doc_str);
+        doc_str.replace("\\","\\\\");
+        sprintf(dummy,"%s, %s",str,doc_str.toLocal8Bit().constData());
         }
     set_plotstr_string(&timestamp, dummy);
     }

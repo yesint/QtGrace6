@@ -105,6 +105,7 @@
 #define SPECIAL_USE 8
 #define SPECIAL_EXTRACT 9
 #define SPECIAL_FORMULA 10
+#define SPECIAL_ECHO 11
 
 using namespace std;
 
@@ -3010,7 +3011,7 @@ struct importSettings
     //auxiliary data read from the header
     char * title;
     char * subtitle;
-    char * x_title,*y_title,*set_title;
+    char * x_title,*y_title,*set_title[MAX_BIN_IMPORT_CHANNELS];
 
     double x0,deltax,f;//f=sampling rate-->deltax=1/f; x=x0+deltax*i
 
@@ -3543,7 +3544,7 @@ void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_s
 int containsSpecialCommand(char * com,char ** parameters);
 int ParseExtractCommand(char * com,char * arg);
 int ParseSpecialFormula(char * com,char * arg);
-
+int ParseEcho(char * com);
 
 class TestDialog:public QWidget
 {
