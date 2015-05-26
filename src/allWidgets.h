@@ -105,7 +105,6 @@
 #define SPECIAL_USE 8
 #define SPECIAL_EXTRACT 9
 #define SPECIAL_FORMULA 10
-#define SPECIAL_ECHO 11
 
 using namespace std;
 
@@ -889,6 +888,9 @@ public:
     QPushButton * cmdNativePrinterDialog;
     QPushButton * cmdDoPrint;
 
+    Page_geometry quick_pg[32];
+    StdSelector * quick_resolution_selector;
+
     QCheckBox * printto_item;
     QCheckBox * fontaa_item;
     QCheckBox * devfont_item;
@@ -920,6 +922,7 @@ public slots:
     void SizeChanged(int i);
     void OrientationChanged(int i);
     void DimChanged(int i);
+    void QuickResolutionChange(int val);
     void changeDeviceList(int version);
     void DpisChanged(void);
     void doApply(void);
@@ -1834,11 +1837,11 @@ public slots:
     void newLinkFileSelected(int type,QString file,bool exists,bool writeable,bool readable);
 };
 
-class frmMasterRegionOperator:public QDialog
+class frmMasterRegionOperator_Main:public QWidget
 {
     Q_OBJECT
 public:
-    frmMasterRegionOperator(QWidget * parent=0);
+    frmMasterRegionOperator_Main(QWidget * parent=0);
     QLabel * lblTitles[5];
     QLabel * lblRegions[7];
     QComboBox * cmbType[7];
@@ -1856,6 +1859,8 @@ public:
 
     QString regtypes[10];
     int reg_order[10];
+signals:
+void closeWish(void);
 public slots:
     void init(void);
     void doClearARegion(void);
@@ -1866,6 +1871,72 @@ public slots:
     void clickDefine(int regno);
     void clickReportSets(int regno);
     void clickReportPoints(int regno);
+};
+
+class frmMasterRegionOperator_Style:public QWidget
+{
+    Q_OBJECT
+public:
+    frmMasterRegionOperator_Style(QWidget * parent=0);
+
+    QLabel * lblRegion[7];
+    ColorSelector * selCol[7];
+    LineWidthSelector * selWidth[7];
+    LineStyleSelector * selStyle[7];
+    stdButtonGroup * cmdButtons;
+    QSignalMapper * mapColor,*mapLineW,*mapLineS;
+    QGridLayout * layout;
+signals:
+void closeWish(void);
+public slots:
+    void init(void);
+    void doApply(void);
+    void doAccept(void);
+    void doClose(void);
+};
+
+class frmMasterRegionOperator_Operations:public QWidget
+{
+    Q_OBJECT
+public:
+    frmMasterRegionOperator_Operations(QWidget * parent=0);
+
+    QLabel * lblGraph,*lblSet;
+    uniList * graphList;
+    uniList * setList;
+
+    StdSelector * selRestriction;
+    QCheckBox * chkNegRes;
+    QCheckBox * chkNewSets;
+    StdSelector * selOperation;
+    StdSelector * selTargetGraph;
+
+    stdButtonGroup * cmdButtons;
+    QGridLayout * layout;
+signals:
+void closeWish(void);
+public slots:
+    void init(void);
+    void doApply(void);
+    void doAccept(void);
+    void doClose(void);
+};
+
+class frmMasterRegionOperator:public QDialog
+{
+    Q_OBJECT
+public:
+    frmMasterRegionOperator(QWidget * parent=0);
+
+    frmMasterRegionOperator_Main * tabMain;
+    frmMasterRegionOperator_Style * tabStyle;
+    frmMasterRegionOperator_Operations * tabOperations;
+
+    QTabWidget * tabs;
+    QVBoxLayout * layout;
+public slots:
+    void init(void);
+    void doClose(void);
 };
 
 class frmRegionStatus:public QDialog
@@ -3011,7 +3082,7 @@ struct importSettings
     //auxiliary data read from the header
     char * title;
     char * subtitle;
-    char * x_title,*y_title,*set_title[MAX_BIN_IMPORT_CHANNELS];
+    char * x_title,*y_title,*set_title;
 
     double x0,deltax,f;//f=sampling rate-->deltax=1/f; x=x0+deltax*i
 
@@ -3544,7 +3615,7 @@ void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_s
 int containsSpecialCommand(char * com,char ** parameters);
 int ParseExtractCommand(char * com,char * arg);
 int ParseSpecialFormula(char * com,char * arg);
-int ParseEcho(char * com);
+
 
 class TestDialog:public QWidget
 {

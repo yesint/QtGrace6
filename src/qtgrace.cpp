@@ -4766,8 +4766,6 @@ int qtspecial_scanner(char * command,int * errors)
     int retval2,nr_of_replacements=0,eq_pos,extract_err;
     QString replayed_command;
 
-    if (retval!=SPECIAL_ECHO)
-    {
 //cout << "New command: vorher: command=" << command << endl;
     replayed_command=QString(command);
     nr_of_replacements=process_command_for_new_sets(replayed_command,current_target_graph);
@@ -4778,7 +4776,7 @@ int qtspecial_scanner(char * command,int * errors)
     return RETURN_SUCCESS;//we report that everything is alright --> no further parsing needed
     }
     //else: no replacements --> command is ok as it is
-    }
+
 //cout << "New command: nachher: command=" << command << endl;
 
     /// cout << "special scanner=" << command << " retval=" << retval << endl;
@@ -4942,12 +4940,11 @@ int qtspecial_scanner(char * command,int * errors)
                 cout << "read_value=" << limits[0] << endl;
                 }
         cout << "parameters=" << parameters << " retval2=" << retval2 << " Formula_arg=" << formula_arg << " result=" << limits[0] << endl;
+
         break;
     case SPECIAL_FORMULA:
         retval2=ParseSpecialFormula(parameters,formula_arg);
-        break;
-    case SPECIAL_ECHO:
-        retval2=ParseEcho(parameters);
+
         break;
     }
     if (replayed_command.isEmpty()==false)//there is a command left -- we have to do this for all sets if replacement is wanted/activated

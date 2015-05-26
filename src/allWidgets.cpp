@@ -516,11 +516,8 @@ void initSettings(struct importSettings & iset,bool remove_old_settings=true)
         delete[] iset.channel_size;
     if (iset.channel_target && remove_old_settings)
         delete[] iset.channel_target;
-    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
-    {
-    if (iset.set_title[i] && remove_old_settings)
-        delete[] iset.set_title[i];
-    }
+    if (iset.set_title && remove_old_settings)
+        delete[] iset.set_title;
     iset.channel_format=NULL;
     iset.channel_size=NULL;
     iset.channel_target=NULL;
@@ -529,8 +526,7 @@ void initSettings(struct importSettings & iset,bool remove_old_settings=true)
     iset.subtitle=NULL;
     iset.x_title=NULL;
     iset.y_title=NULL;
-    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
-    iset.set_title[i]=NULL;
+    iset.set_title=NULL;
     iset.first_data=NULL;
 
     iset.read_to_eof=false;
@@ -642,16 +638,13 @@ to->setorder=from->setorder;
         strcpy(to->y_title,from->y_title);
     }
     else to->y_title=NULL;
-    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
+    if (from->set_title!=NULL)
     {
-        if (from->set_title[i]!=NULL)
-        {
-            if (to->set_title[i]!=NULL) delete[] to->set_title[i];
-            to->set_title[i]=new char[strlen(from->set_title[i])+2];
-            strcpy(to->set_title[i],from->set_title[i]);
-        }
-        else to->set_title[i]=NULL;
+        if (to->set_title!=NULL) delete[] to->set_title;
+        to->set_title=new char[strlen(from->set_title)+2];
+        strcpy(to->set_title,from->set_title);
     }
+    else to->set_title=NULL;
 to->target_gno=from->target_gno;
 to->set_type=from->set_type;
     if (from->first_data!=NULL)
@@ -1762,7 +1755,7 @@ void frmSpreadSheet::update_entries(void)
     }
     else//no valid data present
     {
-        sprintf(dum,"Invalid set!");
+        sprintf(dum," Invalid set!");
         fraDataset->setTitle(tr("Dataset") + QString(dum));
     }
 }
@@ -7364,8 +7357,8 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
     cur_version=0;
     actNativePrinterDialog=NULL;
     int number;
-    QString entr[13];
-    int i_entr[13];
+    QString entr[32];
+    int i_entr[32];
     strcpy(out_format_int,"%.0f");
     strcpy(out_format_float,"%.2f");
 //setFont(*stdFont);
@@ -7424,6 +7417,89 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
     page_orient_item=new StdSelector(grpPage,tr("Orientation:"),number,entr);
     page_orient_item->setValues(i_entr);
     connect(page_orient_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(OrientationChanged(int)));
+
+    number=26;
+    entr[0]=tr("Letter (72dpi)");
+    quick_pg[0].width=792;
+    quick_pg[0].height=612;
+    entr[1]=tr("Letter (300dpi)");
+    quick_pg[1].width=3300;
+    quick_pg[1].height=2550;
+    entr[2]=tr("A4 (72dpi)");
+    quick_pg[2].width=842;
+    quick_pg[2].height=595;
+    entr[3]=tr("A4 (300dpi)");
+    quick_pg[3].width=3510;
+    quick_pg[3].height=2483;
+    entr[4]=tr("QVGA");
+    quick_pg[4].width=320;
+    quick_pg[4].height=240;
+    entr[5]=tr("QSVGA");
+    quick_pg[5].width=400;
+    quick_pg[5].height=300;
+    entr[6]=tr("HVGA");
+    quick_pg[6].width=480;
+    quick_pg[6].height=320;
+    entr[7]=tr("EGA");
+    quick_pg[7].width=640;
+    quick_pg[7].height=350;
+    entr[8]=tr("HSVGA");
+    quick_pg[8].width=600;
+    quick_pg[8].height=400;
+    entr[9]=tr("WGA");
+    quick_pg[9].width=720;
+    quick_pg[9].height=400;
+    entr[10]=tr("VGA");
+    quick_pg[10].width=640;
+    quick_pg[10].height=480;
+    entr[11]=tr("SVGA");
+    quick_pg[11].width=800;
+    quick_pg[11].height=600;
+    entr[12]=tr("WSVGA");
+    quick_pg[12].width=1072;
+    quick_pg[12].height=600;
+    entr[13]=tr("XGA");
+    quick_pg[13].width=1024;
+    quick_pg[13].height=768;
+    entr[14]=tr("720p");
+    quick_pg[14].width=1280;
+    quick_pg[14].height=720;
+    entr[15]=tr("DSVGA");
+    quick_pg[15].width=1200;
+    quick_pg[15].height=800;
+    entr[16]=tr("SXVGA");
+    quick_pg[16].width=1280;
+    quick_pg[16].height=960;
+    entr[17]=tr("UXGA");
+    quick_pg[17].width=1600;
+    quick_pg[17].height=1200;
+    entr[18]=tr("1080p");
+    quick_pg[18].width=1920;
+    quick_pg[18].height=1080;
+    entr[19]=tr("WUXGA");
+    quick_pg[19].width=1920;
+    quick_pg[19].height=1200;
+    entr[20]=tr("SUXGA");
+    quick_pg[20].width=2048;
+    quick_pg[20].height=1536;
+    entr[21]=tr("1440p");
+    quick_pg[21].width=3440;
+    quick_pg[21].height=1440;
+    entr[22]=tr("2160p (4K)");
+    quick_pg[22].width=3840;
+    quick_pg[22].height=2160;
+    entr[23]=tr("UHD+ (5K)");
+    quick_pg[23].width=5120;
+    quick_pg[23].height=2880;
+    entr[24]=tr("4320p (8K)");
+    quick_pg[24].width=7680;
+    quick_pg[24].height=4320;
+    entr[25]=tr("8640p (16K)");
+    quick_pg[25].width=15360;
+    quick_pg[25].height=8640;
+    quick_resolution_selector=new StdSelector(grpPage,tr("Quick select:"),number,entr);
+    connect(quick_resolution_selector,SIGNAL(currentIndexChanged(int)),SLOT(QuickResolutionChange(int)));
+
     number=12;
     entr[0]=tr("Custom");
     entr[1]=tr("Letter");
@@ -7528,8 +7604,9 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
     layout2->addWidget(page_y_item,1,2);
     layout2->addWidget(page_size_unit_item,1,3);
     layout2->addWidget(dev_res_item,2,0);//,1,2
-    layout2->addWidget(chkDontChangeSize,3,0);//,2,1,1,2);
+    layout2->addWidget(chkDontChangeSize,3,1);//,2,1,1,2);
     layout2->addWidget(cmdUseScreenResolution,2,1);//,3,0,1,3);
+    layout2->addWidget(quick_resolution_selector,3,0);//,3,0,1,3);
     grpPage->setLayout(layout2);
     layout3=new QHBoxLayout();
     layout3->setMargin(STD_MARGIN);
@@ -7950,6 +8027,24 @@ page_size_unit_item->setEnabled(FALSE);
 page_x_item->setEnabled(FALSE);
 page_y_item->setEnabled(FALSE);
 }*/
+}
+
+void frmDeviceSetup::QuickResolutionChange(int val)
+{
+    double nx=quick_pg[val].width,ny=quick_pg[val].height;
+
+page_orient_item->setCurrentIndex(0);
+page_format_item->setCurrentIndex(0);
+
+    page_x_item->setDoubleValue("%.0f",nx);
+    page_y_item->setDoubleValue("%.0f",ny);
+
+if (val==1 || val==3)
+dev_res_item->setDoubleValue("%.0f",300.0);
+else
+dev_res_item->setDoubleValue("%.0f",72.0);
+    page_size_unit_item->setCurrentIndex(0);
+
 }
 
 void frmDeviceSetup::DimChanged(int i)//change between units for device-dimensions (pixel/inch or cm)
@@ -8534,7 +8629,7 @@ int millisec=st1.restart();
 if (millisec<500) ret_val1=printDialog->exec();
 */
 
-printDialog->setModal(false);
+printDialog->setModal(true);
 connect(printDialog,SIGNAL(accepted(QPrinter *)),SLOT(printerAccepted(QPrinter *)));
 connect(printDialog,SIGNAL(rejected()),SLOT(printerRejected()));
 
@@ -16007,7 +16102,193 @@ cout << "readable=" << readable << endl;*/
     delete[] dummy;
 }
 
+frmMasterRegionOperator_Style::frmMasterRegionOperator_Style(QWidget * parent):QWidget(parent)
+{
+    layout=new QGridLayout(this);
+    layout->setMargin(STD_MARGIN);
+    layout->setSpacing(STD_SPACING*2);
+int line;
+
+//QSignalMapper * mapColor,*mapLineW,*mapLineW;
+line=0;
+for (int i=0;i<MAXREGION;i++)
+{
+selCol[i]=new ColorSelector(this);
+selWidth[i]=new LineWidthSelector(this);
+selStyle[i]=new LineStyleSelector(this);
+lblRegion[i]=new QLabel(tr("Region ")+QString::number(i),this);
+
+layout->addWidget(lblRegion[i],line,0);
+layout->addWidget(selCol[i],line,1);
+layout->addWidget(selWidth[i],line,2);
+layout->addWidget(selStyle[i],line,3);
+line++;
+}
+
+cmdButtons=new stdButtonGroup(this);
+connect(cmdButtons->cmdApply,SIGNAL(clicked()),SLOT(doApply()));
+connect(cmdButtons->cmdAccept,SIGNAL(clicked()),SLOT(doAccept()));
+connect(cmdButtons->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
+layout->addWidget(cmdButtons,line,0,1,4);
+
+setLayout(layout);
+}
+
+void frmMasterRegionOperator_Style::init(void)
+{
+    for (int i=0;i<MAXREGION;i++)
+    {
+    selCol[i]->setCurrentIndex(rg[i].color);
+    selWidth[i]->setValue(rg[i].linew);
+    selStyle[i]->setCurrentIndex(rg[i].lines);
+    }
+}
+
+void frmMasterRegionOperator_Style::doApply(void)
+{
+    for (int i=0;i<MAXREGION;i++)
+    {
+    rg[i].color=selCol[i]->currentIndex();
+    rg[i].linew=selWidth[i]->value();
+    rg[i].lines=selStyle[i]->currentIndex();
+    }
+    mainWin->mainArea->completeRedraw();
+}
+
+void frmMasterRegionOperator_Style::doAccept(void)
+{
+ApplyError=false;
+doApply();
+    if (ApplyError==false)
+    doClose();
+}
+
+void frmMasterRegionOperator_Style::doClose(void)
+{
+emit(closeWish());
+}
+
+frmMasterRegionOperator_Operations::frmMasterRegionOperator_Operations(QWidget * parent):QWidget(parent)
+{
+int line=0;
+layout=new QGridLayout();
+layout->setMargin(STD_MARGIN);
+layout->setSpacing(STD_SPACING);
+
+lblGraph=new QLabel(tr("Source graph:"));
+lblSet=new QLabel(tr("Source set:"));
+
+graphList=new uniList(GRAPHLIST,this);
+graphList->setBehavior(false,false,true);
+setList=new uniList(SETLIST,this);
+setList->setBehavior(true,true,true);
+
+int number=7;
+QString entr[7];
+entr[0]=tr("None");
+entr[1]=tr("Region 0");
+entr[2]=tr("Region 1");
+entr[3]=tr("Region 2");
+entr[4]=tr("Region 3");
+entr[5]=tr("Region 4");
+entr[6]=tr("Inside graph");
+selRestriction=new StdSelector(this,tr("Restriction:"),number,entr);
+
+chkNegRes=new QCheckBox(tr("Negated"),this);
+chkNegRes->setChecked(FALSE);
+chkNewSets=new QCheckBox(tr("Create new set(s)"),this);
+number=4;
+entr[0]=tr("Delete sets in Region");
+entr[1]=tr("Delete points in Region");
+entr[2]=tr("Extract sets in region");
+entr[3]=tr("Extract points in region");
+selOperation=new StdSelector(this,tr("Operation:"),number,entr);
+
+number=3;
+entr[0]=tr("Current graph");
+entr[1]=tr("Source graph");
+entr[2]=tr("G0");
+selTargetGraph=new StdSelector(this,tr("Target graph:"),number,entr);
+
+cmdButtons=new stdButtonGroup(this);
+connect(cmdButtons->cmdApply,SIGNAL(clicked()),SLOT(doApply()));
+connect(cmdButtons->cmdAccept,SIGNAL(clicked()),SLOT(doAccept()));
+connect(cmdButtons->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
+
+layout->addWidget(lblGraph,line,0,1,1);
+layout->addWidget(lblSet,line++,1,1,1);
+layout->addWidget(graphList,line,0,1,1);
+layout->addWidget(setList,line++,1,1,1);
+layout->addWidget(selOperation,line++,0,1,2);
+layout->addWidget(selRestriction,line,0,1,1);
+layout->addWidget(chkNegRes,line++,1,1,1);
+layout->addWidget(selTargetGraph,line,0,1,1);
+layout->addWidget(chkNewSets,line++,1,1,1);
+layout->addWidget(cmdButtons,line++,0,1,2);
+
+setLayout(layout);
+}
+
+void frmMasterRegionOperator_Operations::init(void)
+{
+graphList->update_number_of_entries();
+setList->update_number_of_entries();
+}
+
+void frmMasterRegionOperator_Operations::doApply(void)
+{
+
+
+}
+
+void frmMasterRegionOperator_Operations::doAccept(void)
+{
+ApplyError=false;
+doApply();
+    if (ApplyError==false)
+    doClose();
+}
+
+void frmMasterRegionOperator_Operations::doClose(void)
+{
+emit(closeWish());
+}
+
 frmMasterRegionOperator::frmMasterRegionOperator(QWidget * parent):QDialog(parent)
+{
+    tabMain=new frmMasterRegionOperator_Main(this);
+    tabStyle=new frmMasterRegionOperator_Style(this);
+    tabOperations=new frmMasterRegionOperator_Operations(this);
+
+    tabs=new QTabWidget(this);
+    tabs->addTab(tabMain,tr("Main"));
+    tabs->addTab(tabStyle,tr("Appearance"));
+    tabs->addTab(tabOperations,tr("Operations"));
+
+connect(tabMain,SIGNAL(closeWish()),SLOT(doClose()));
+connect(tabStyle,SIGNAL(closeWish()),SLOT(doClose()));
+connect(tabOperations,SIGNAL(closeWish()),SLOT(doClose()));
+
+layout=new QVBoxLayout();
+layout->setMargin(STD_MARGIN);
+layout->setSpacing(STD_SPACING);
+layout->addWidget(tabs);
+setLayout(layout);
+}
+
+void frmMasterRegionOperator::init(void)
+{
+tabMain->init();
+tabStyle->init();
+tabOperations->init();
+}
+
+void frmMasterRegionOperator::doClose(void)
+{
+hide();
+}
+
+frmMasterRegionOperator_Main::frmMasterRegionOperator_Main(QWidget * parent):QWidget(parent)
 {
 setWindowTitle(tr("Regions"));
 setWindowIcon(QIcon(*GraceIcon));
@@ -16110,7 +16391,7 @@ layout->addWidget(cmdClose,8,4,1,2);
 setLayout(layout);
 }
 
-void frmMasterRegionOperator::init(void)
+void frmMasterRegionOperator_Main::init(void)
 {
     for (int i=0;i<MAXREGION;i++)
     {
@@ -16145,7 +16426,7 @@ void frmMasterRegionOperator::init(void)
     }
 }
 
-void frmMasterRegionOperator::doClearARegion(void)
+void frmMasterRegionOperator_Main::doClearARegion(void)
 {
 bool ok;
 int i;
@@ -16160,7 +16441,7 @@ int regno = QInputDialog::getInt(this, tr("Clear region"),tr("# of region to be 
     }
 }
 
-void frmMasterRegionOperator::doClearAllRegions(void)
+void frmMasterRegionOperator_Main::doClearAllRegions(void)
 {
     int i;
     int ret=QMessageBox::question(this,tr("Clear all regions"),tr("Do you really want to clear all regions?"),QMessageBox::Yes,QMessageBox::No);
@@ -16179,37 +16460,37 @@ void frmMasterRegionOperator::doClearAllRegions(void)
     }
 }
 
-void frmMasterRegionOperator::doClose(void)
+void frmMasterRegionOperator_Main::doClose(void)
 {
-hide();
+emit(closeWish());
 }
 
-void frmMasterRegionOperator::clickActive(int regno)
+void frmMasterRegionOperator_Main::clickActive(int regno)
 {
     rg[regno].active=(!rg[regno].active);
     init();
     mainWin->mainArea->completeRedraw();
 }
 
-void frmMasterRegionOperator::changeType(int regno)
+void frmMasterRegionOperator_Main::changeType(int regno)
 {
     rg[regno].type=reg_order[cmbType[regno]->currentIndex()];
     init();
 }
 
-void frmMasterRegionOperator::clickDefine(int regno)
+void frmMasterRegionOperator_Main::clickDefine(int regno)
 {
 //cout << "define region: " << regno << endl;
 define_region(regno,reg_order[cmbType[regno]->currentIndex()]);
 }
 
-void frmMasterRegionOperator::clickReportSets(int regno)
+void frmMasterRegionOperator_Main::clickReportSets(int regno)
 {
 //cout << "ReportSets: " << regno << endl;
 reporton_region(get_cg(), regno, 0);
 }
 
-void frmMasterRegionOperator::clickReportPoints(int regno)
+void frmMasterRegionOperator_Main::clickReportPoints(int regno)
 {
 //cout << "ReportPoints: " << regno << endl;
 reporton_region(get_cg(), regno, 1);
@@ -26336,8 +26617,7 @@ frmBinaryFormatInput::frmBinaryFormatInput(QWidget * parent):QDialog(parent)
     imp_set.subtitle=new char[2];
     imp_set.x_title=new char[2];
     imp_set.y_title=new char[2];
-    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
-    imp_set.set_title[i]=new char[2];
+    imp_set.set_title=new char[2];
     imp_set.first_data=new double*[2];
     imp_set.channel_format=new int[2];
     imp_set.channel_size=new int[2];
@@ -27484,13 +27764,11 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
                     if (imp_set.channel_target[i]==IMPORT_TO_Y)
                     {
                         if (imp_set.set_title!=NULL)
-                            strcpy(set_identifier_string,imp_set.set_title[imp_set.import_dest.at(i)]);
+                            strcpy(set_identifier_string,imp_set.set_title);
                         else
                             sprintf(set_identifier_string,"binary import from: %s, channel %d",set_identifier.toLatin1().constData(),i);
-                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].lstr,set_identifier_string);
-                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_lstr,set_identifier_string);
-                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].comments,imp_set.DataFile.toLocal8Bit().constData());
-                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_comments,imp_set.DataFile.toLocal8Bit().constData());
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].comments,set_identifier_string);
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_comments,set_identifier_string);
                     }
 
                     if (imp_set.factors[col]!=1.0)
@@ -28141,9 +28419,9 @@ ifi.open(imp_set.HeaderFile.toLocal8Bit().constData(),ios::binary);
                 strcpy(imp_set.title,stringText);
                 break;
             case IMPORT_TO_SET_LEGEND:
-                delete[] imp_set.set_title[imp_set.import_dest.at(i)];
-                imp_set.set_title[imp_set.import_dest.at(i)]=new char[size+1];
-                strcpy(imp_set.set_title[imp_set.import_dest.at(i)],stringText);
+                delete[] imp_set.set_title;
+                imp_set.set_title=new char[size+1];
+                strcpy(imp_set.set_title,stringText);
                 break;
             case IMPORT_TO_X0:
                 if (integer_type)
@@ -28482,10 +28760,10 @@ if (imp_set.import_dest.at(i)==IMPORT_TO_NONE) continue;
         strcpy(imp_set.title,tmp_target_name);
         break;
     case IMPORT_TO_SET_LEGEND:
-        if (imp_set.set_title[imp_set.import_channel_dest.at(i)]!=NULL)
-            delete[] imp_set.set_title[imp_set.import_channel_dest.at(i)];
-        imp_set.set_title[imp_set.import_channel_dest.at(i)]=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
-        strcpy(imp_set.set_title[imp_set.import_channel_dest.at(i)],tmp_target_name);
+        if (imp_set.set_title!=NULL)
+            delete[] imp_set.set_title;
+        imp_set.set_title=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
+        strcpy(imp_set.set_title,tmp_target_name);
         break;
     case IMPORT_TO_XTITLE:
         if (imp_set.x_title!=NULL)
@@ -28670,7 +28948,7 @@ for (int i=0;i<imp_set.channels;i++)
             triggerChannel=i;
     }
 }
-number_of_x_columns=number_of_sets_with_column[0];//save this, because we need to know it and the array will be a counter in the future
+number_of_x_columns=number_of_sets_with_column[0];//save this, because we need to know it and the array will be a counter in future
 int max_nr_of_sets=0;
 int col_count_import_set=settype_cols(imp_set.set_type);
 //cout << "col_count_import_set=" << col_count_import_set << endl;
@@ -28775,17 +29053,15 @@ for (int i=0;i<imp_set.channels;i++)
         if (imp_set.channel_target[i]==IMPORT_TO_Y)
         {
             if (imp_set.set_title!=NULL)
-                strcpy(set_identifier_string,imp_set.set_title[imp_set.import_dest.at(i)]);
+                strcpy(set_identifier_string,imp_set.set_title);
             else
             {
                 QFileInfo fi(imp_set.DataFile);
                 QString set_identifier=fi.fileName();
                 sprintf(set_identifier_string,"binary import from: %s, channel %d",set_identifier.toLatin1().constData(),i);
             }
-            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].lstr,set_identifier_string);
-            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_lstr,set_identifier_string);
-            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].comments,imp_set.DataFile.toLocal8Bit().constData());
-            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_comments,imp_set.DataFile.toLocal8Bit().constData());
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].comments,set_identifier_string);
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_comments,set_identifier_string);
         }
 cout << "channel " << i << " factor=" << imp_set.channel_factors[i] << " offset=" << imp_set.channel_offsets[i] << " col_factor=" << imp_set.factors[col] << endl;
         //if (imp_set.factors[col]!=1.0)
@@ -28968,10 +29244,10 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
                     strcpy(imp_set.title,dummy);
                     break;
                 case IMPORT_TO_SET_LEGEND:
-                    if (imp_set.set_title[imp_set.import_dest.at(i)]!=NULL)
-                        delete[] imp_set.set_title[imp_set.import_dest.at(i)];
-                    imp_set.set_title[imp_set.import_dest.at(i)]=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
-                    strcpy(imp_set.set_title[imp_set.import_dest.at(i)],dummy);
+                    if (imp_set.set_title!=NULL)
+                        delete[] imp_set.set_title;
+                    imp_set.set_title=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
+                    strcpy(imp_set.set_title,dummy);
                     break;
                 case IMPORT_TO_X0:
                     imp_set.x0=d_value;
@@ -29175,9 +29451,9 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
                     strcpy(imp_set.title,stringText);
                     break;
                 case IMPORT_TO_SET_LEGEND:
-                    delete[] imp_set.set_title[imp_set.import_dest.at(i)];
-                    imp_set.set_title[imp_set.import_dest.at(i)]=new char[size+1];
-                    strcpy(imp_set.set_title[imp_set.import_dest.at(i)],stringText);
+                    delete[] imp_set.set_title;
+                    imp_set.set_title=new char[size+1];
+                    strcpy(imp_set.set_title,stringText);
                     break;
                 case IMPORT_TO_X0:
                     if (integer_type)
@@ -29403,12 +29679,9 @@ void frmBinaryFormatInput::convertSettingsToString(void)
     if (imp_set.y_title!=NULL)
         if (imp_set.y_title[0]!='\0')
             result.append(tr("Set y-title= ")+QString(imp_set.y_title)+QString("\n"));
-    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
-    {
-    if (imp_set.set_title[i]!=NULL)
-        if (imp_set.set_title[i][0]!='\0')
-            result.append(tr("Set-title[")+QString::number(i)+QString("]= ")+QString(imp_set.set_title[i])+QString("\n"));
-    }
+    if (imp_set.set_title!=NULL)
+        if (imp_set.set_title[0]!='\0')
+            result.append(tr("Set-title= ")+QString(imp_set.set_title)+QString("\n"));
 
     if (imp_set.x0set)
     {
@@ -29530,10 +29803,10 @@ void readBinaryFromFile(ifstream & ifi,importSettings & imp_set,double *** data)
     ifi.seekg(0,ios::end);
     length=ifi.tellg();//length complete
     if (position!=imp_set.headersize) position=imp_set.headersize;
-//cout << "length=" << length << " position=" << position << endl;
+cout << "length=" << length << " position=" << position << endl;
     length-=position;//length without header
     ifi.seekg(position);//go to first byte after header
-//cout << "resulting length=" << length << endl;
+cout << "resulting length=" << length << endl;
     long size_of_one_point=0;
     long * size_of_one_set=new long[imp_set.channels];
     long calc_samp_count;
@@ -29559,9 +29832,9 @@ void readBinaryFromFile(ifstream & ifi,importSettings & imp_set,double *** data)
             return;
         }
 #endif
-        for (int i=0;i<imp_set.channels;i++)
+    for (int i=0;i<imp_set.channels;i++)
         size_of_one_set[i]=calc_samp_count*imp_set.channel_size[i];//the byte-size in the file
-//cout << "size_of_one_point=" << size_of_one_point << " calc.samp.count=" << calc_samp_count << endl;
+cout << "size_of_one_point=" << size_of_one_point << " calc.samp.count=" << calc_samp_count << endl;
     imp_set.columns_read=imp_set.channels;
     int i=0;//channel_nr
     int read=0;//current number of read data
@@ -32870,21 +33143,6 @@ int containsSpecialCommand(char * com,char ** parameters)
         return SPECIAL_EXTRACT;
     else if ( strcmp(operand,"FORMULA") == 0 )
         return SPECIAL_FORMULA;
-    else if ( strcmp(operand,"ECHO") == 0 )
-    {
-        int len=strlen(com);
-        int anz_space=0,i=0;
-        while (anz_space<2 && i<len)
-        {
-            if (com[i]==' ')
-            {
-            anz_space++;
-            }
-            i++;
-        }
-        strcpy(para,com+i);
-        return SPECIAL_ECHO;
-    }
     else
         return SPECIAL_NONE;
 }
@@ -32971,34 +33229,6 @@ arg[0]=arg[1]=arg[2]='\0';
 return -1;
 }
 
-int ParseEcho(char * com)
-{
-int len=strlen(com);
-int counter=0;
-int start_index=0,stop_index=0;
-char para[1024];
-cout << "Process Echo=#" << com << "#" << endl;
-for (int i=0;i<=len;i++)
-{
-    if (com[i]=='\\')//skip next character
-    {
-    i++;
-    continue;
-    }
-    if (com[i]=='"') counter++;
-    if ((com[i]==' ' || com[i]=='\0') && counter%2==0)
-    {
-    stop_index=i-1;
-    strncpy(para,com+start_index,stop_index-start_index+1);
-    para[stop_index-start_index+1]='\0';
-    cout << "Para=#" << para << "#" << endl;
-    start_index=i+1;
-    }
-}
-
-return RETURN_SUCCESS;
-}
-
 int ParseSpecialFormula(char * com,char * arg)
 {
 return 0;
@@ -33080,7 +33310,7 @@ void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,in
     int counter;
     int len=strlen(com);
     counter=0;
-//cout << "Parsing filter-command=#" << com << "#" << endl;
+    cout << "Parsing filter-command=#" << com << "#" << endl;
     /// sscanf(com,"%d,%d",&o_n_sets,&n_sets);
 n_sets=o_n_sets=-1;
     double tmp_answer;
@@ -33116,16 +33346,7 @@ n_sets=o_n_sets=-1;
     {
     next_pos=com+index;
         //cout << "original: com-index=" << com+index << endl;
-        //sscanf(com+index,"%d,%d",(*o_gnos)+i,(*o_snos)+i);
-        next_pos=extract_single_parameter(next_pos,parameter);
-        retval=std_evalexpr(parameter,&tmp_answer);
-        if (retval==RETURN_SUCCESS) (*o_gnos)[i]=(int)tmp_answer;
-        next_pos++;
-        next_pos=extract_single_parameter(next_pos,parameter);
-        retval=std_evalexpr(parameter,&tmp_answer);
-        if (retval==RETURN_SUCCESS) (*o_snos)[i]=(int)tmp_answer;
-        next_pos++;
-
+        sscanf(com+index,"%d,%d",(*o_gnos)+i,(*o_snos)+i);
         for (j=0;j<len;j++)
         {
             if (com[j+index]==';' || com[j+index]=='}')
@@ -33138,18 +33359,8 @@ n_sets=o_n_sets=-1;
     index++;
     for (i=0;i<n_sets;i++)
     {
-    next_pos=com+index;
         //cout << "new: com-index=" << com+index << endl;
-        //sscanf(com+index,"%d,%d",(*gnos)+i,(*snos)+i);
-        next_pos=extract_single_parameter(next_pos,parameter);
-        retval=std_evalexpr(parameter,&tmp_answer);
-        if (retval==RETURN_SUCCESS) (*gnos)[i]=(int)tmp_answer;
-        next_pos++;
-        next_pos=extract_single_parameter(next_pos,parameter);
-        retval=std_evalexpr(parameter,&tmp_answer);
-        if (retval==RETURN_SUCCESS) (*snos)[i]=(int)tmp_answer;
-        next_pos++;
-
+        sscanf(com+index,"%d,%d",(*gnos)+i,(*snos)+i);
         for (j=0;j<len;j++)
         {
             if (com[j+index]==';' || com[j+index]=='}')
@@ -33164,67 +33375,12 @@ n_sets=o_n_sets=-1;
 
     double d1,d2;
     int o1,o2;
-//sscanf(com+index,"%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lf;%lf;%lf;%s",&type,&realization,&o1,&o2,&absolute,&debug,&point_extension,&oversampling,&rno,&invr,&d1,&d2,&ripple,x_formula);
 
-next_pos=com+index;
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) type=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) realization=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) o1=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) o2=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) absolute=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) debug=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) point_extension=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) oversampling=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) rno=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) invr=(int)tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) d1=tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) d2=tmp_answer;
-next_pos++;//we are now after the ','
-next_pos=extract_single_parameter(next_pos,parameter);
-retval=std_evalexpr(parameter,&tmp_answer);
-if (retval==RETURN_SUCCESS) ripple=tmp_answer;
-next_pos++;//we are now after the ','
-strcpy(x_formula,next_pos);
-
+    sscanf(com+index,"%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lf;%lf;%lf;%s",&type,&realization,&o1,&o2,&absolute,&debug,&point_extension,&oversampling,&rno,&invr,&d1,&d2,&ripple,x_formula);
     x_formula[strlen(x_formula)-1]='\0';
 
-/*cout << "d1=" << d1 << " o1=" << o1 << endl;
-cout << "d2=" << d2 << " o2=" << o2 << endl;*/
+    //cout << "d1=" << d1 << " o1=" << o1 << endl;
+    //cout << "d2=" << d2 << " o2=" << o2 << endl;
 
     limits[0]=d1;
     limits[1]=d2;
