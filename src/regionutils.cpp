@@ -143,6 +143,24 @@ void activate_region(int r, int type, int linkto)
     set_dirtystate();
 }
 
+int is_set_in_region(int gno,int sno,int rno,int inv)
+{
+if (is_set_active(gno, sno)==FALSE) return FALSE;
+double * x = getx(gno, sno);
+double * y = gety(gno, sno);
+int contained=0;
+for (int i = 0; i < getsetlength(gno, sno); i++)
+{
+    if (inregion(rno, x[i], y[i]))
+    {
+    contained=1;
+    break;
+    }
+}
+if ((contained==0 && inv==1) || (contained==1 && inv==0)) return TRUE;
+else return FALSE;
+}
+
 /*
  * report on sets in a region
  */
@@ -151,12 +169,12 @@ void reporton_region(int gno, int rno, int type)
     char buf[256];
     int i, j, first, contained;
     double *x, *y;
-    if (rno>=0 && rno<MAXREGION)
-    sprintf(buf, "\nRegion R%1d contains:\n", rno);
-    else if (rno==MAXREGION)
-    sprintf(buf, "\nInside World:\n", rno);
-    else
-    sprintf(buf, "\nOutside World:\n", rno);
+        if (rno>=0 && rno<MAXREGION)
+        sprintf(buf, "\nRegion R%1d contains:\n", rno);
+        else if (rno==MAXREGION)
+        sprintf(buf, "\nInside World:\n", rno);
+        else
+        sprintf(buf, "\nOutside World:\n", rno);
     stufftext(buf);
     for (j = 0; j < number_of_sets(gno); j++) {
 	if (is_set_active(gno, j)) {

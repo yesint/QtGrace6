@@ -351,6 +351,9 @@ extern int n_linestyles_ini,n_linestyles_tmp,n_linestyles_file,nr_of_current_lin
 extern int *l_linestyle_pat_ini,*l_linestyle_pat_tmp,*l_linestyle_pat_file,*lenghts_of_linestyle_patterns;
 extern char **linestyle_pat_ini,**linestyle_pat_tmp,**linestyle_pat_file,**current_linestyle_patterns;
 
+QString regtypes[10];
+int reg_order[10];
+
 //the following two lists are for the generation of new sets by commands lie G0.S5N
 //for new sets allocated during command execution
 /*extern QStringList NewGraphCommands;//commands used to create a new graph
@@ -5547,6 +5550,7 @@ frmSetOp::frmSetOp(QWidget * parent):QDialog(parent)
 
     lblDataSet=new QLabel(tr("Data sets:"),this);
     listSets=new uniList(SETLIST,this);
+    listSets->setBehavior(true,true,true);
 
     menuBar=new QMenuBar();
     mnuFile=new QMenu("&File",this);
@@ -16116,7 +16120,7 @@ for (int i=0;i<MAXREGION;i++)
 selCol[i]=new ColorSelector(this);
 selWidth[i]=new LineWidthSelector(this);
 selStyle[i]=new LineStyleSelector(this);
-lblRegion[i]=new QLabel(tr("Region ")+QString::number(i),this);
+lblRegion[i]=new QLabel(tr("Region ")+QString::number(i)+QString(": "),this);
 
 layout->addWidget(lblRegion[i],line,0);
 layout->addWidget(selCol[i],line,1);
@@ -16168,6 +16172,174 @@ void frmMasterRegionOperator_Style::doClose(void)
 emit(closeWish());
 }
 
+frmMasterRegionOperator_Edit::frmMasterRegionOperator_Edit(QWidget * parent):QWidget(parent)
+{
+int line=0;
+    layout=new QGridLayout();
+    layout->setMargin(STD_MARGIN);
+    layout->setSpacing(STD_SPACING);
+
+    layout0=new QGridLayout();
+    layout0->setMargin(STD_MARGIN);
+    layout0->setSpacing(STD_SPACING);
+
+int number=5;
+QString entr[5];
+entr[0]=tr("Region 0");
+entr[1]=tr("Region 1");
+entr[2]=tr("Region 2");
+entr[3]=tr("Region 3");
+entr[4]=tr("Region 4");
+selRegion=new StdSelector(this,tr("Edit:"),number,entr);
+connect(selRegion->cmbSelect,SIGNAL(activated(int)),SLOT(regionChanged(int)));
+
+regType=new QLabel(tr(""),this);
+
+scroll=new QScrollArea(this);
+Empty=new QWidget(scroll);
+
+cmdButtons=new stdButtonGroup(this);
+connect(cmdButtons->cmdApply,SIGNAL(clicked()),SLOT(doApply()));
+connect(cmdButtons->cmdAccept,SIGNAL(clicked()),SLOT(doAccept()));
+connect(cmdButtons->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
+
+lblTitle[0]=new QLabel(tr("# | X"),Empty);
+lblTitle[1]=new QLabel(tr("Y"),Empty);
+
+layout0->addWidget(lblTitle[0],0,0,1,1);
+layout0->addWidget(lblTitle[1],0,1,1,1);
+
+Empty->setLayout(layout0);
+nr_of_lines=0;
+ledCoords[0]=NULL;
+ledCoords[1]=NULL;
+lblCoords=NULL;
+
+scroll->setWidget(Empty);
+layout->addWidget(selRegion,line,0,1,1);
+layout->addWidget(regType,line++,1,1,1);
+layout->addWidget(lblTitle[0],line,0,1,1);
+layout->addWidget(lblTitle[1],line++,1,1,1);
+layout->addWidget(scroll,line++,0,1,2);
+layout->addWidget(cmdButtons,line++,0,1,2);
+
+setLayout(layout);
+}
+
+void frmMasterRegionOperator_Edit::init(void)
+{
+
+}
+
+void frmMasterRegionOperator_Edit::showEvent(QShowEvent * event)
+{
+regionChanged(0);
+}
+
+void frmMasterRegionOperator_Edit::regionChanged(int re)
+{
+    regType->setText(regtypes[rg[re].type]);
+if (nr_of_lines>0)
+{
+    for (int i=0;i<nr_of_lines;i++)
+    {
+    layout0->removeWidget(lblCoords[i]);
+    layout0->removeWidget(ledCoords[0][i]);
+    layout0->removeWidget(ledCoords[1][i]);
+    delete lblCoords[i];
+    delete ledCoords[0][i];
+    delete ledCoords[1][i];
+    }
+delete[] lblCoords;
+delete[] ledCoords[0];
+delete[] ledCoords[1];
+    ledCoords[0]=NULL;
+    ledCoords[1]=NULL;
+    lblCoords=NULL;
+    nr_of_lines=0;
+}
+    if (rg[re].active==false) return;
+
+nr_of_lines=2;
+    if (rg[re].type==REGION_POLYI || rg[re].type==REGION_POLYO)
+    {
+    nr_of_lines=rg[re].n;
+    }
+lblCoords=new QLabel*[nr_of_lines];
+ledCoords[0]=new QLineEdit*[nr_of_lines];
+ledCoords[1]=new QLineEdit*[nr_of_lines];
+    for (int i=0;i<nr_of_lines;i++)
+    {
+        lblCoords[i]=new QLabel(QString::number(i)+QString(":"),Empty);
+        if (rg[re].type==REGION_POLYI || rg[re].type==REGION_POLYO)
+        {
+        ledCoords[0][i]=new QLineEdit(QString::number(rg[re].x[i]),Empty);
+        ledCoords[1][i]=new QLineEdit(QString::number(rg[re].y[i]),Empty);
+        }
+        else
+        {
+            if (i==0)
+            {
+            ledCoords[0][i]=new QLineEdit(QString::number(rg[re].x1),Empty);
+            ledCoords[1][i]=new QLineEdit(QString::number(rg[re].y1),Empty);
+            }
+            else
+            {
+            ledCoords[0][i]=new QLineEdit(QString::number(rg[re].x2),Empty);
+            ledCoords[1][i]=new QLineEdit(QString::number(rg[re].y2),Empty);
+            }
+        }
+    layout0->addWidget(lblCoords[i],1+i,0);
+    layout0->addWidget(ledCoords[0][i],1+i,1);
+    layout0->addWidget(ledCoords[1][i],1+i,2);
+    }
+    Empty->resize(2*lblTitle[0]->width()*0.95,lblTitle[0]->height()*nr_of_lines*1.3);
+//cout << "Size= " << Empty->width() << " x " << Empty->height() << endl;
+}
+
+void frmMasterRegionOperator_Edit::doApply(void)
+{
+double d_tmp;
+int re=selRegion->currentIndex();
+if (rg[re].active==false) return;
+    if (rg[re].type==REGION_POLYI || rg[re].type==REGION_POLYO)
+    {
+        for (int i=0;i<nr_of_lines;i++)
+        {
+        xv_evalexpr(ledCoords[0][i],&d_tmp);
+        rg[re].x[i]=d_tmp;
+        xv_evalexpr(ledCoords[1][i],&d_tmp);
+        rg[re].y[i]=d_tmp;
+        }
+    }
+    else
+    {
+    strcpy(dummy,ledCoords[0][0]->text().toLocal8Bit().constData());
+    xv_evalexpr(ledCoords[0][0],&d_tmp);
+    rg[re].x1=d_tmp;
+    xv_evalexpr(ledCoords[1][0],&d_tmp);
+    rg[re].y1=d_tmp;
+    xv_evalexpr(ledCoords[0][1],&d_tmp);
+    rg[re].x2=d_tmp;
+    xv_evalexpr(ledCoords[1][1],&d_tmp);
+    rg[re].y2=d_tmp;
+    }
+mainWin->mainArea->completeRedraw();
+}
+
+void frmMasterRegionOperator_Edit::doAccept(void)
+{
+ApplyError=false;
+doApply();
+    if (ApplyError==false)
+    doClose();
+}
+
+void frmMasterRegionOperator_Edit::doClose(void)
+{
+emit(closeWish());
+}
+
 frmMasterRegionOperator_Operations::frmMasterRegionOperator_Operations(QWidget * parent):QWidget(parent)
 {
 int line=0;
@@ -16179,9 +16351,10 @@ lblGraph=new QLabel(tr("Source graph:"));
 lblSet=new QLabel(tr("Source set:"));
 
 graphList=new uniList(GRAPHLIST,this);
-graphList->setBehavior(false,false,true);
+graphList->setBehavior(true,true,true);
 setList=new uniList(SETLIST,this);
 setList->setBehavior(true,true,true);
+connect(graphList,SIGNAL(new_selection(int)),SLOT(newGraphSelection(int)));
 
 int number=7;
 QString entr[7];
@@ -16196,13 +16369,19 @@ selRestriction=new StdSelector(this,tr("Restriction:"),number,entr);
 
 chkNegRes=new QCheckBox(tr("Negated"),this);
 chkNegRes->setChecked(FALSE);
-chkNewSets=new QCheckBox(tr("Create new set(s)"),this);
+number=3;
+entr[0]=tr("No new set(s)");
+entr[1]=tr("All in one new set");
+entr[2]=tr("Several new set(s)");
+selNewSets=new StdSelector(this,tr("New set(s):"),number,entr);
+
 number=4;
-entr[0]=tr("Delete sets in Region");
-entr[1]=tr("Delete points in Region");
+entr[0]=tr("Delete sets in region");
+entr[1]=tr("Delete points in region");
 entr[2]=tr("Extract sets in region");
 entr[3]=tr("Extract points in region");
 selOperation=new StdSelector(this,tr("Operation:"),number,entr);
+connect(selOperation->cmbSelect,SIGNAL(activated(int)),SLOT(OperationChanged(int)));
 
 number=3;
 entr[0]=tr("Current graph");
@@ -16223,22 +16402,409 @@ layout->addWidget(selOperation,line++,0,1,2);
 layout->addWidget(selRestriction,line,0,1,1);
 layout->addWidget(chkNegRes,line++,1,1,1);
 layout->addWidget(selTargetGraph,line,0,1,1);
-layout->addWidget(chkNewSets,line++,1,1,1);
+layout->addWidget(selNewSets,line++,1,1,1);
 layout->addWidget(cmdButtons,line++,0,1,2);
-
 setLayout(layout);
+OperationChanged(0);
 }
 
 void frmMasterRegionOperator_Operations::init(void)
 {
-graphList->update_number_of_entries();
-setList->update_number_of_entries();
+graphList->update_number_of_entries_preserve_selection();
+setList->update_number_of_entries_preserve_selection();
+int cur_gr[2]={cg,cg};
+graphList->set_new_selection(1,cur_gr);
+int number=number_of_graphs()+2;
+QString *entries = new QString [number+2];
+entries[0]=tr("Current graph");
+entries[1]=tr("Source graph");
+for (int i=0;i<number_of_graphs();i++)
+{
+entries[i+2]=QString("G")+QString::number(i);
+}
+selTargetGraph->setNewEntries(number,entries);
+
+delete[] entries;
+}
+
+void frmMasterRegionOperator_Operations::newGraphSelection(int r)
+{
+    if (r-1<0)
+    setList->set_graph_number(cg,true);
+    else
+    setList->set_graph_number(r-1,true);
+}
+
+void frmMasterRegionOperator_Operations::OperationChanged(int op)
+{
+int number=0;
+QString entries[5];
+    switch (op)
+    {
+    case 0://Delete sets in Region
+    selTargetGraph->setVisible(false);
+    selNewSets->setVisible(false);
+    break;
+    case 1://Delete points in Region
+    selTargetGraph->setVisible(true);
+    selNewSets->setVisible(true);
+    number=2;
+    entries[0]=tr("Operate on source set(s)");
+    entries[1]=tr("Create new set(s)");
+    selNewSets->setNewEntries(number,entries);
+    break;
+    case 2://Extract sets in Region
+    selTargetGraph->setVisible(true);
+    selNewSets->setVisible(true);
+    number=3;
+    entries[0]=tr("Copy set(s)");
+    entries[1]=tr("Copy data into one new set");
+    entries[2]=tr("Move set(s)");
+    selNewSets->setNewEntries(number,entries);
+    break;
+    case 3://Extract points in Region
+    selTargetGraph->setVisible(true);
+    selNewSets->setVisible(true);
+    number=4;
+    entries[0]=tr("Copy points into new set(s)");
+    entries[1]=tr("Copy points into one new set");
+    entries[2]=tr("Move points into new set(s)");
+    entries[3]=tr("Move points into one new set");
+    selNewSets->setNewEntries(number,entries);
+    break;
+    }
 }
 
 void frmMasterRegionOperator_Operations::doApply(void)
 {
+int reg=RESTRICT_NONE;
+    switch (selRestriction->currentIndex())
+    {
+    case 0:
+    reg=RESTRICT_NONE;
+    break;
+    case 1:
+    reg=RESTRICT_REG0;
+    break;
+    case 2:
+    reg=RESTRICT_REG1;
+    break;
+    case 3:
+    reg=RESTRICT_REG2;
+    break;
+    case 4:
+    reg=RESTRICT_REG3;
+    break;
+    case 5:
+    reg=RESTRICT_REG4;
+    break;
+    case 6:
+    reg=RESTRICT_WORLD;
+    break;
+    }
+    if (reg==RESTRICT_NONE)
+    {
+    errmsg(tr("Please select a region to operate with!").toLocal8Bit().data());
+    return;
+    }
 
+int negate=(chkNegRes->isChecked()==true)?1:0;
+int n_set_type=selNewSets->currentIndex();
+int op=selOperation->currentIndex();
+int target=selTargetGraph->currentIndex();
+int tmp_target_graph,tmp_new_set;
+int * g_sel=NULL,* s_sel=NULL;
+int n_g_sel,n_s_sel;
+bool allGraphsSelected,allSetsSelected;
+graphList->get_selection(&n_g_sel,&g_sel);
+setList->get_selection(&n_s_sel,&s_sel);
+allGraphsSelected=graphList->all_entries_option_selected;
+allSetsSelected=setList->all_entries_option_selected;
+/*
+    for (int i=0;i<n_g_sel;i++)
+    {
+    cout << "Graph: G" << g_sel[i] << endl;
+    }
+    cout << "all Graph entries=" << allGraphsSelected << endl;
+    for (int i=0;i<n_s_sel;i++)
+    {
+    cout << "Set: S" << s_sel[i] << endl;
+    }
+    cout << "all Set entries=" << allSetsSelected << endl;
+*/
+int * source_graphs1=NULL;//just the graphs
+int n_source_graphs1=0;
 
+int * source_graphs=NULL;//source graphs and sets
+int n_source_graphs=0;
+int * source_sets=NULL;
+int n_source_sets=0;
+int * target_graphs=NULL;//target graphs and sets
+int n_target_graphs=0;
+int * target_sets=NULL;
+int n_target_sets=0;
+
+//first: determine all source sets that are part of the region
+if (allGraphsSelected==true)
+{
+n_source_graphs1=number_of_graphs();
+    source_graphs1=new int[n_source_graphs1];
+    for (int i=0;i<n_source_graphs1;i++)
+    {
+    source_graphs1[i]=i;
+    }
+}
+else
+{
+n_source_graphs1=n_g_sel;
+    source_graphs1=new int[n_source_graphs1];
+    for (int i=0;i<n_source_graphs1;i++)
+    {
+    source_graphs1[i]=g_sel[i];
+    }
+}
+int contained,tmp_nr;
+for (int i=0;i<n_source_graphs1;i++)
+{
+    if (allSetsSelected==true)
+    {
+        for (int j=0;j<number_of_sets(source_graphs1[i]);j++)//go through all sets in the graph --> j=set-id
+        {
+        contained=is_set_in_region(source_graphs1[i],j,reg,negate);
+            if (contained==TRUE)
+            {
+            tmp_nr=source_graphs1[i];
+            append_to_storage(&n_source_graphs,&source_graphs,1,&tmp_nr);
+            tmp_nr=j;
+            append_to_storage(&n_source_sets,&source_sets,1,&tmp_nr);
+            }
+        }
+    }
+    else
+    {
+        for (int j=0;j<n_s_sel;j++)//go through all selected sets in the current graph --> s_sel[j]=set-id
+        {
+        contained=is_set_in_region(source_graphs1[i],s_sel[j],reg,negate);
+            if (contained==TRUE)
+            {
+            tmp_nr=source_graphs1[i];
+            append_to_storage(&n_source_graphs,&source_graphs,1,&tmp_nr);
+            tmp_nr=s_sel[j];
+            append_to_storage(&n_source_sets,&source_sets,1,&tmp_nr);
+            }
+        }
+    }
+}
+
+if (n_source_graphs>0)
+{
+/*cout << "SETS to operate on:" << endl;
+for (int i=0;i<n_source_graphs;i++)
+{
+cout << "G" << source_graphs[i] << ".S" << source_sets[i] << endl;
+}*/
+ListOfChanges.clear();
+//second: do the actual changes
+    switch (op)
+    {
+    case 0://Delete sets in Region (the whole sets)
+        for (int i=0;i<n_source_graphs;i++)
+        {
+            sprintf(dummy,"kill G%d.S%d",source_graphs[i],source_sets[i]);
+            ListOfChanges << QString(dummy);
+        }
+        SetsDeleted(n_source_graphs,source_graphs,source_sets,UNDO_COMPLETE);//UndoStuff
+        for (int i=0;i<n_source_graphs;i++)
+        {
+            killset(source_graphs[i],source_sets[i]);
+        }
+    break;
+    case 2://Extract sets in Region (the whole sets)
+        if (n_set_type==0)//"Copy set(s)"
+        {
+            for (int i=0;i<n_source_graphs;i++)
+            {
+                if (target==0) tmp_target_graph=cg;
+                else if (target==1) tmp_target_graph=source_graphs[i];
+                else tmp_target_graph=target-2;
+                tmp_new_set=nextset(tmp_target_graph);
+                do_copyset(source_graphs[i],source_sets[i],tmp_target_graph,tmp_new_set);
+            append_to_storage(&n_target_graphs,&target_graphs,1,&tmp_target_graph);
+            append_to_storage(&n_target_sets,&target_sets,1,&tmp_new_set);
+            }
+        if (n_target_graphs>0)
+        SetsCreated(n_target_graphs,target_graphs,target_sets,UNDO_COMPLETE);
+        }
+        else if (n_set_type==1)//"Copy data into one new set"
+        {
+            if (target==0) tmp_target_graph=cg;
+            else if (target==1) tmp_target_graph=source_graphs[0];
+            else tmp_target_graph=target-2;
+            tmp_new_set=nextset(tmp_target_graph);
+            do_copyset(source_graphs[0],source_sets[0],tmp_target_graph,tmp_new_set);
+            append_to_storage(&n_target_graphs,&target_graphs,1,&tmp_target_graph);
+            append_to_storage(&n_target_sets,&target_sets,1,&tmp_new_set);
+            if (source_graphs1!=NULL) delete[] source_graphs1;
+            source_graphs1=new int[2];
+            source_graphs1[0]=tmp_new_set;
+            tmp_new_set=nextset(tmp_target_graph);
+            source_graphs1[1]=tmp_new_set;
+            for (int i=1;i<n_source_graphs;i++)
+            {
+                if (target==1 && tmp_target_graph!=source_graphs[i])//a new graph has started, but we want a new set in every graph
+                {
+                killsetdata(tmp_target_graph,tmp_new_set);
+                tmp_target_graph=source_graphs[i];
+                tmp_new_set=nextset(tmp_target_graph);
+                do_copyset(source_graphs[i],source_sets[i],tmp_target_graph,tmp_new_set);
+                append_to_storage(&n_target_graphs,&target_graphs,1,&tmp_target_graph);
+                append_to_storage(&n_target_sets,&target_sets,1,&tmp_new_set);
+                source_graphs1[0]=tmp_new_set;
+                tmp_new_set=nextset(tmp_target_graph);
+                source_graphs1[1]=tmp_new_set;
+                continue;
+                }
+            do_copyset(source_graphs[i],source_sets[i],tmp_target_graph,tmp_new_set);
+            join_sets(tmp_target_graph,source_graphs1,2);
+            }
+            killsetdata(tmp_target_graph,tmp_new_set);
+        SetsCreated(n_target_graphs,target_graphs,target_sets,UNDO_COMPLETE);
+        }
+        else//"Move set(s)"
+        {
+        //first: copy sets
+            for (int i=0;i<n_source_graphs;i++)
+            {
+                if (target==0) tmp_target_graph=cg;
+                else if (target==1) tmp_target_graph=source_graphs[i];
+                else tmp_target_graph=target-2;
+                tmp_new_set=nextset(tmp_target_graph);
+                do_copyset(source_graphs[i],source_sets[i],tmp_target_graph,tmp_new_set);
+            append_to_storage(&n_target_graphs,&target_graphs,1,&tmp_target_graph);
+            append_to_storage(&n_target_sets,&target_sets,1,&tmp_new_set);
+            }
+        if (n_target_graphs>0)
+        SetsCreated(n_target_graphs,target_graphs,target_sets,UNDO_COMPLETE);
+        //then: delete old sets
+        SetsDeleted(n_source_graphs,source_graphs,source_sets,UNDO_COMPLETE);
+            for (int i=0;i<n_source_graphs;i++)
+            {
+            killset(source_graphs[i],source_sets[i]);
+            }
+        }
+    break;
+    case 1://Delete points in Region
+        //n_set_type==0 --> tr("Operate on source set(s)");
+        //n_set_type==1 --> tr("Create new set(s)");
+        if (n_set_type==0)//"Operate on source set(s)"
+        {
+        SaveSetStatesPrevious(n_source_graphs,source_graphs,source_sets,UNDO_DATA);
+            for (int i=0;i<n_source_graphs;i++)
+            {
+            restrict_set_to_region(source_graphs[i],source_sets[i],reg,!negate);//!negate because we restrict the sets to the points outside the region (delete inside)
+            }
+        SetsModified(n_source_graphs,source_graphs,source_sets,UNDO_DATA);
+        }
+        else//"Create new set(s)"
+        {
+            for (int i=0;i<n_source_graphs;i++)
+            {
+                if (target==0) tmp_target_graph=cg;
+                else if (target==1) tmp_target_graph=source_graphs[i];
+                else tmp_target_graph=target-2;
+                tmp_new_set=nextset(tmp_target_graph);
+                do_copyset(source_graphs[i],source_sets[i],tmp_target_graph,tmp_new_set);
+                restrict_set_to_region(tmp_target_graph,tmp_new_set,reg,!negate);
+            append_to_storage(&n_target_graphs,&target_graphs,1,&tmp_target_graph);
+            append_to_storage(&n_target_sets,&target_sets,1,&tmp_new_set);
+            }
+        if (n_target_graphs>0)
+        SetsCreated(n_target_graphs,target_graphs,target_sets,UNDO_COMPLETE);
+        }
+    break;
+    case 3://Extract points in Region
+        if (n_set_type==0 || n_set_type==2)//"Copy points into new set(s)"
+        {
+            for (int i=0;i<n_source_graphs;i++)
+            {
+                if (target==0) tmp_target_graph=cg;
+                else if (target==1) tmp_target_graph=source_graphs[i];
+                else tmp_target_graph=target-2;
+                tmp_new_set=nextset(tmp_target_graph);
+                do_copyset(source_graphs[i],source_sets[i],tmp_target_graph,tmp_new_set);
+                restrict_set_to_region(tmp_target_graph,tmp_new_set,reg,negate);//only take points inside region
+            append_to_storage(&n_target_graphs,&target_graphs,1,&tmp_target_graph);
+            append_to_storage(&n_target_sets,&target_sets,1,&tmp_new_set);
+            }
+        if (n_target_graphs>0)
+        SetsCreated(n_target_graphs,target_graphs,target_sets,UNDO_COMPLETE);
+        }
+        else if (n_set_type==1 || n_set_type==3)//"Copy points into one new set"
+        {
+            if (target==0) tmp_target_graph=cg;
+            else if (target==1) tmp_target_graph=source_graphs[0];
+            else tmp_target_graph=target-2;
+            tmp_new_set=nextset(tmp_target_graph);
+            do_copyset(source_graphs[0],source_sets[0],tmp_target_graph,tmp_new_set);
+            restrict_set_to_region(tmp_target_graph,tmp_new_set,reg,negate);
+            append_to_storage(&n_target_graphs,&target_graphs,1,&tmp_target_graph);
+            append_to_storage(&n_target_sets,&target_sets,1,&tmp_new_set);
+            if (source_graphs1!=NULL) delete[] source_graphs1;
+            source_graphs1=new int[2];
+            source_graphs1[0]=tmp_new_set;
+            tmp_new_set=nextset(tmp_target_graph);
+            source_graphs1[1]=tmp_new_set;
+            for (int i=1;i<n_source_graphs;i++)
+            {
+                if (target==1 && tmp_target_graph!=source_graphs[i])//a new graph has started, but we want a new set in every graph
+                {
+                killsetdata(tmp_target_graph,tmp_new_set);
+                tmp_target_graph=source_graphs[i];
+                tmp_new_set=nextset(tmp_target_graph);
+                do_copyset(source_graphs[i],source_sets[i],tmp_target_graph,tmp_new_set);
+                restrict_set_to_region(tmp_target_graph,tmp_new_set,reg,negate);
+                append_to_storage(&n_target_graphs,&target_graphs,1,&tmp_target_graph);
+                append_to_storage(&n_target_sets,&target_sets,1,&tmp_new_set);
+                source_graphs1[0]=tmp_new_set;
+                tmp_new_set=nextset(tmp_target_graph);
+                source_graphs1[1]=tmp_new_set;
+                continue;
+                }
+                do_copyset(source_graphs[i],source_sets[i],tmp_target_graph,tmp_new_set);
+                restrict_set_to_region(tmp_target_graph,tmp_new_set,reg,negate);//only take points inside region
+                join_sets(tmp_target_graph,source_graphs1,2);
+            }
+            killsetdata(tmp_target_graph,tmp_new_set);
+        if (n_target_graphs>0)
+        SetsCreated(n_target_graphs,target_graphs,target_sets,UNDO_COMPLETE);
+        }
+
+        if (n_set_type==2 || n_set_type==4)//"Move points into new set(s)" || "Move points into one new set" --> restrict old sets
+        {
+        SaveSetStatesPrevious(n_source_graphs,source_graphs,source_sets,UNDO_DATA);
+            for (int i=0;i<n_source_graphs;i++)
+            {
+            restrict_set_to_region(source_graphs[i],source_sets[i],reg,!negate);//!negate because we restrict the sets to the points outside the region (delete inside)
+            }
+        SetsModified(n_source_graphs,source_graphs,source_sets,UNDO_DATA);
+        }
+    break;
+    }
+ListOfChanges.clear();
+}
+else
+{
+errmsg(tr("No data inside selected region found!").toLocal8Bit().data());
+}
+if (g_sel!=NULL) delete[] g_sel;
+if (s_sel!=NULL) delete[] s_sel;
+if (source_graphs1!=NULL) delete[] source_graphs1;
+if (source_graphs!=NULL) delete[] source_graphs;
+if (source_sets!=NULL) delete[] source_sets;
+if (target_graphs!=NULL) delete[] target_graphs;
+if (target_sets!=NULL) delete[] target_sets;
+mainWin->mainArea->completeRedraw();
+init();
 }
 
 void frmMasterRegionOperator_Operations::doAccept(void)
@@ -16256,18 +16822,23 @@ emit(closeWish());
 
 frmMasterRegionOperator::frmMasterRegionOperator(QWidget * parent):QDialog(parent)
 {
-    tabMain=new frmMasterRegionOperator_Main(this);
-    tabStyle=new frmMasterRegionOperator_Style(this);
-    tabOperations=new frmMasterRegionOperator_Operations(this);
+    setWindowTitle(tr("Regions"));
+    setWindowIcon(QIcon(*GraceIcon));
+tab_Main=new frmMasterRegionOperator_Main(this);
+tab_Style=new frmMasterRegionOperator_Style(this);
+tab_Edit=new frmMasterRegionOperator_Edit(this);
+tab_Operations=new frmMasterRegionOperator_Operations(this);
 
     tabs=new QTabWidget(this);
-    tabs->addTab(tabMain,tr("Main"));
-    tabs->addTab(tabStyle,tr("Appearance"));
-    tabs->addTab(tabOperations,tr("Operations"));
+    tabs->addTab(tab_Main,tr("Main"));
+    tabs->addTab(tab_Style,tr("Appearance"));
+    tabs->addTab(tab_Edit,tr("Edit"));
+    tabs->addTab(tab_Operations,tr("Operations"));
 
-connect(tabMain,SIGNAL(closeWish()),SLOT(doClose()));
-connect(tabStyle,SIGNAL(closeWish()),SLOT(doClose()));
-connect(tabOperations,SIGNAL(closeWish()),SLOT(doClose()));
+connect(tab_Main,SIGNAL(closeWish()),SLOT(doClose()));
+connect(tab_Style,SIGNAL(closeWish()),SLOT(doClose()));
+connect(tab_Edit,SIGNAL(closeWish()),SLOT(doClose()));
+connect(tab_Operations,SIGNAL(closeWish()),SLOT(doClose()));
 
 layout=new QVBoxLayout();
 layout->setMargin(STD_MARGIN);
@@ -16278,9 +16849,10 @@ setLayout(layout);
 
 void frmMasterRegionOperator::init(void)
 {
-tabMain->init();
-tabStyle->init();
-tabOperations->init();
+tab_Main->init();
+tab_Style->init();
+tab_Edit->init();
+tab_Operations->init();
 }
 
 void frmMasterRegionOperator::doClose(void)
@@ -16288,11 +16860,14 @@ void frmMasterRegionOperator::doClose(void)
 hide();
 }
 
+void frmMasterRegionOperator::number_of_graphs_changed(void)
+{
+tab_Main->init();
+tab_Operations->selOperation->setCurrentIndex(tab_Operations->selOperation->currentIndex());
+}
+
 frmMasterRegionOperator_Main::frmMasterRegionOperator_Main(QWidget * parent):QWidget(parent)
 {
-setWindowTitle(tr("Regions"));
-setWindowIcon(QIcon(*GraceIcon));
-
 mapActive=new QSignalMapper(this);
 mapType=new QSignalMapper(this);
 mapDefine=new QSignalMapper(this);
@@ -16300,72 +16875,58 @@ mapReportSet=new QSignalMapper(this);
 mapReportPoints=new QSignalMapper(this);
 
 connect(mapActive,SIGNAL(mapped(int)),this,SLOT(clickActive(int)));
+//connect(mapType,SIGNAL(mapped(int)),this,SLOT(changeType(int)));
 connect(mapDefine,SIGNAL(mapped(int)),this,SLOT(clickDefine(int)));
 connect(mapReportSet,SIGNAL(mapped(int)),this,SLOT(clickReportSets(int)));
 connect(mapReportPoints,SIGNAL(mapped(int)),this,SLOT(clickReportPoints(int)));
 
-regtypes[REGION_POLYI]=tr("Inside polygon");
-regtypes[REGION_POLYO]=tr("Outside polygon");
-regtypes[REGION_ABOVE]=tr("Above line");
-regtypes[REGION_BELOW]=tr("Below line");
-regtypes[REGION_TOLEFT]=tr("Left of line");
-regtypes[REGION_TORIGHT]=tr("Right of line");
-regtypes[REGION_HORIZI]=tr("In Horiz. Range");
-regtypes[REGION_VERTI]=tr("In Vert. Range");
-regtypes[REGION_HORIZO]=tr("Out of Horiz. Range");
-regtypes[REGION_VERTO]=tr("Out of Vert. Range");
-
-reg_order[0]=REGION_POLYI;
-reg_order[1]=REGION_POLYO;
-reg_order[2]=REGION_ABOVE;
-reg_order[3]=REGION_BELOW;
-reg_order[4]=REGION_TOLEFT;
-reg_order[5]=REGION_TORIGHT;
-reg_order[6]=REGION_HORIZI;
-reg_order[7]=REGION_VERTI;
-reg_order[8]=REGION_HORIZO;
-reg_order[9]=REGION_VERTO;
-
 layout=new QGridLayout();
 layout->setMargin(STD_MARGIN);
 layout->setSpacing(STD_SPACING);
-for (int i=0;i<5;i++)
+for (int i=0;i<6;i++)
 lblTitles[i]=new QLabel(this);
-lblTitles[0]->setText(tr("Region # (Graph)"));
-lblTitles[1]->setText(tr("Active"));
-lblTitles[2]->setText(tr("Type"));
-lblTitles[3]->setText(tr("Define"));
-lblTitles[4]->setText(tr("Report on"));
+lblTitles[0]->setText(tr("Region"));
+lblTitles[1]->setText(tr("Graph"));
+lblTitles[2]->setText(tr("Active"));
+lblTitles[3]->setText(tr("Type"));
+lblTitles[4]->setText(tr("Define"));
+lblTitles[5]->setText(tr("Report on"));
 layout->addWidget(lblTitles[0],0,0,1,1,Qt::AlignCenter);
 layout->addWidget(lblTitles[1],0,1,1,1,Qt::AlignCenter);
 layout->addWidget(lblTitles[2],0,2,1,1,Qt::AlignCenter);
 layout->addWidget(lblTitles[3],0,3,1,1,Qt::AlignCenter);
 layout->addWidget(lblTitles[4],0,4,1,2,Qt::AlignCenter);
+layout->addWidget(lblTitles[5],0,5,1,2,Qt::AlignCenter);
 for (int i=0;i<7;i++)
 {
 lblRegions[i]=new QLabel(QString::number(i),this);
 layout->addWidget(lblRegions[i],1+i,0,1,1,Qt::AlignCenter);
+spnLink[i]=new QSpinBox(this);
+spnLink[i]->setRange(0,8);
+layout->addWidget(spnLink[i],1+i,1,1,1,Qt::AlignCenter);
+    connect(spnLink[i],SIGNAL(valueChanged(int)),SLOT(changeLink(int)));
 cmdActive[i]=new QPushButton(tr("On"),this);
 cmdActive[i]->setCheckable(true);
     connect(cmdActive[i], SIGNAL(clicked()), mapActive, SLOT(map()));
     mapActive->setMapping(cmdActive[i],i);
-layout->addWidget(cmdActive[i],1+i,1,1,1,Qt::AlignCenter);
+layout->addWidget(cmdActive[i],1+i,2,1,1,Qt::AlignCenter);
 cmbType[i]=new QComboBox(this);
     for (int j=0;j<10;j++)
     cmbType[i]->addItem(regtypes[reg_order[j]]);
-layout->addWidget(cmbType[i],1+i,2,1,1,Qt::AlignCenter);
+    connect(cmbType[i],SIGNAL(activated(int)),SLOT(changeType(int)));
+layout->addWidget(cmbType[i],1+i,3,1,1,Qt::AlignCenter);
 cmdDefine[i]=new QPushButton(tr("Define"),this);
     connect(cmdDefine[i], SIGNAL(clicked()), mapDefine, SLOT(map()));
     mapDefine->setMapping(cmdDefine[i],i);
-layout->addWidget(cmdDefine[i],1+i,3,1,1,Qt::AlignCenter);
+layout->addWidget(cmdDefine[i],1+i,4,1,1,Qt::AlignCenter);
 cmdReportSet[i]=new QPushButton(tr("Sets"),this);
     connect(cmdReportSet[i], SIGNAL(clicked()), mapReportSet, SLOT(map()));
     mapReportSet->setMapping(cmdReportSet[i],i);
-layout->addWidget(cmdReportSet[i],1+i,4,1,1,Qt::AlignCenter);
+layout->addWidget(cmdReportSet[i],1+i,5,1,1,Qt::AlignCenter);
 cmdReportPoints[i]=new QPushButton(tr("Points"),this);
     connect(cmdReportPoints[i], SIGNAL(clicked()), mapReportPoints, SLOT(map()));
     mapReportPoints->setMapping(cmdReportPoints[i],i);
-layout->addWidget(cmdReportPoints[i],1+i,5,1,1,Qt::AlignCenter);
+layout->addWidget(cmdReportPoints[i],1+i,6,1,1,Qt::AlignCenter);
 }
 lblRegions[MAXREGION]->setText(tr("Inside World"));
 lblRegions[MAXREGION+1]->setText(tr("Outside World"));
@@ -16373,9 +16934,11 @@ lblRegions[MAXREGION+1]->setText(tr("Outside World"));
 cmdActive[MAXREGION]->setVisible(false);
 cmbType[MAXREGION]->setVisible(false);
 cmdDefine[MAXREGION]->setVisible(false);
+spnLink[MAXREGION]->setVisible(false);
 cmdActive[MAXREGION+1]->setVisible(false);
 cmbType[MAXREGION+1]->setVisible(false);
 cmdDefine[MAXREGION+1]->setVisible(false);
+spnLink[MAXREGION+1]->setVisible(false);
 
 cmdClearARegion=new QPushButton(tr("Clear one region"),this);
 connect(cmdClearARegion,SIGNAL(clicked()),SLOT(doClearARegion()));
@@ -16384,38 +16947,51 @@ connect(cmdClearAllRegions,SIGNAL(clicked()),SLOT(doClearAllRegions()));
 cmdClose=new QPushButton(tr("Close"),this);
 cmdClose->setDefault(true);
 connect(cmdClose,SIGNAL(clicked()),SLOT(doClose()));
-layout->addWidget(cmdClearARegion,8,0,1,2);
-layout->addWidget(cmdClearAllRegions,8,2,1,2);
-layout->addWidget(cmdClose,8,4,1,2);
+layout->addWidget(cmdClearARegion,8,0,1,3);
+layout->addWidget(cmdClearAllRegions,8,3,1,2);
+layout->addWidget(cmdClose,8,5,1,2);
 
 setLayout(layout);
 }
 
 void frmMasterRegionOperator_Main::init(void)
 {
+static bool init_running=false;
+if (init_running==true) return;
+init_running=true;
+for (int i=0;i<7;i++)
+{
+disconnect(spnLink[i],SIGNAL(valueChanged(int)),this,SLOT(changeLink(int)));
+disconnect(cmbType[i],SIGNAL(activated(int)),this,SLOT(changeType(int)));
+}
     for (int i=0;i<MAXREGION;i++)
     {
+    spnLink[i]->setRange(0,number_of_graphs()-1);
+    //cout << "number_o_graphs=" << number_of_graphs() << endl;
         if (rg[i].type==0 && rg[i].x1==0.0 && rg[i].x2==0.0 && rg[i].y1==0.0 && rg[i].y2==0.0)
         {//region not defined
         cmdActive[i]->setText(tr("---"));
         cmdActive[i]->setChecked(false);
         cmdActive[i]->setEnabled(false);
         lblRegions[i]->setText(QString::number(i));
+        spnLink[i]->setValue(cg);
         }
         else//region defined
         {
-        lblRegions[i]->setText(QString::number(i)+QString(" (G")+QString::number(rg[i].linkto)+QString(")"));
+        //lblRegions[i]->setText(QString::number(i)+QString(" (G")+QString::number(rg[i].linkto)+QString(")"));
+        lblRegions[i]->setText(QString::number(i));
         cmdActive[i]->setEnabled(true);
-        if (rg[i].active==true)
-        {
-        cmdActive[i]->setText(tr("On"));
-        cmdActive[i]->setChecked(true);
-        }
-        else
-        {
-        cmdActive[i]->setText(tr("Off"));
-        cmdActive[i]->setChecked(false);
-        }
+        spnLink[i]->setValue(rg[i].linkto);
+            if (rg[i].active==true)
+            {
+            cmdActive[i]->setText(tr("On"));
+            cmdActive[i]->setChecked(true);
+            }
+            else
+            {
+            cmdActive[i]->setText(tr("Off"));
+            cmdActive[i]->setChecked(false);
+            }
         }
         if (reg_order[cmbType[i]->currentIndex()]!=rg[i].type)
         {
@@ -16424,6 +17000,12 @@ void frmMasterRegionOperator_Main::init(void)
                     cmbType[i]->setCurrentIndex(j);
         }
     }
+for (int i=0;i<7;i++)
+{
+connect(spnLink[i],SIGNAL(valueChanged(int)),SLOT(changeLink(int)));
+connect(cmbType[i],SIGNAL(activated(int)),SLOT(changeType(int)));
+}
+init_running=false;
 }
 
 void frmMasterRegionOperator_Main::doClearARegion(void)
@@ -16472,10 +17054,72 @@ void frmMasterRegionOperator_Main::clickActive(int regno)
     mainWin->mainArea->completeRedraw();
 }
 
-void frmMasterRegionOperator_Main::changeType(int regno)
+void frmMasterRegionOperator_Main::changeType(int reg_no)
 {
+int regno=0;
+    for (int i=0;i<5;i++)
+    {
+        if (rg[i].type!=reg_order[cmbType[i]->currentIndex()])
+        {
+        regno=i;
+        break;
+        }
+    }
+if ((reg_order[cmbType[regno]->currentIndex()]==REGION_POLYI || reg_order[cmbType[regno]->currentIndex()]==REGION_POLYO) && rg[regno].n<=0)
+{//we want to have a polygon, but only have x1,y1 and x2,y2
+
+    rg[regno].n = 4;
+    rg[regno].x = (double*)xcalloc(4, sizeof(double));
+    rg[regno].y = (double*)xcalloc(4, sizeof(double));
+
+        rg[regno].x[0] = rg[regno].x1;
+        rg[regno].y[0] = rg[regno].y1;
+        rg[regno].x[1] = rg[regno].x2;
+        rg[regno].y[1] = rg[regno].y1;
+        rg[regno].x[2] = rg[regno].x2;
+        rg[regno].y[2] = rg[regno].y2;
+        rg[regno].x[3] = rg[regno].x1;
+        rg[regno].y[3] = rg[regno].y2;
+}
+else if ((rg[regno].x1==0.0 && rg[regno].x2==0.0 && rg[regno].y1==0.0 && rg[regno].y2==0.0) && (rg[regno].type==REGION_POLYI || rg[regno].type==REGION_POLYO) && !(reg_order[cmbType[regno]->currentIndex()]==REGION_POLYI || reg_order[cmbType[regno]->currentIndex()]==REGION_POLYO))
+{//we had a polygon so far, but now want something else
+rg[regno].x1=rg[regno].x[0];
+rg[regno].x2=rg[regno].x[0];
+rg[regno].y1=rg[regno].y[0];
+rg[regno].y2=rg[regno].y[0];
+    for (int i=1;i<rg[regno].n;i++)
+    {
+    if (rg[regno].x[i]<rg[regno].x1) rg[regno].x1=rg[regno].x[i];
+    if (rg[regno].x[i]>rg[regno].x2) rg[regno].x2=rg[regno].x[i];
+    if (rg[regno].y[i]<rg[regno].y1) rg[regno].y1=rg[regno].y[i];
+    if (rg[regno].y[i]>rg[regno].y2) rg[regno].y2=rg[regno].y[i];
+    }
+}
     rg[regno].type=reg_order[cmbType[regno]->currentIndex()];
     init();
+//cout << "TypeChanged regno=" << regno << " type=" << rg[regno].type << endl;
+mainWin->mainArea->completeRedraw();
+}
+
+void frmMasterRegionOperator_Main::changeLink(int reg_no)
+{
+static bool changeRunning=false;
+if (changeRunning==true) return;
+int regno=0;
+changeRunning=true;
+    for (int i=0;i<MAXREGION;i++)
+    {
+        if (rg[i].linkto!=spnLink[i]->value())
+        {
+        regno=i;
+        break;
+        }
+    }
+//cout << "regno=" << regno << " reg_no=" << reg_no << " value=" << spnLink[regno]->value() << endl;
+rg[regno].linkto=spnLink[regno]->value();
+init();
+mainWin->mainArea->completeRedraw();
+changeRunning=false;
 }
 
 void frmMasterRegionOperator_Main::clickDefine(int regno)
@@ -16506,17 +17150,6 @@ frmRegionStatus::frmRegionStatus(QWidget * parent):QDialog(parent)
     QString info;
     active=tr("on");
     inactive=tr("off");
-
-    regtypes[REGION_POLYI]=tr("INSIDE POLY");
-    regtypes[REGION_POLYO]=tr("OUTSIDE POLY");
-    regtypes[REGION_ABOVE]=tr("REGION_ABOVE");
-    regtypes[REGION_BELOW]=tr("REGION_BELOW");
-    regtypes[REGION_TOLEFT]=tr("REGION_TOLEFT");
-    regtypes[REGION_TORIGHT]=tr("REGION_TORIGHT");
-    regtypes[REGION_HORIZI]=tr("REGION_HORIZI");
-    regtypes[REGION_VERTI]=tr("REGION_VERTI");
-    regtypes[REGION_HORIZO]=tr("REGION_HORIZO");
-    regtypes[REGION_VERTO]=tr("REGION_VERTO");
 
     for (int i=0;i<MAXREGION;i++)
     {
@@ -16587,17 +17220,6 @@ frmRegions::frmRegions(int type,QWidget * parent):QDialog(parent)
     setWindowIcon(QIcon(*GraceIcon));
     setWindowTitle(tr(""));
     windowtype=type;
-
-    reg_order[0]=REGION_POLYI;
-    reg_order[1]=REGION_POLYO;
-    reg_order[2]=REGION_ABOVE;
-    reg_order[3]=REGION_BELOW;
-    reg_order[4]=REGION_TOLEFT;
-    reg_order[5]=REGION_TORIGHT;
-    reg_order[6]=REGION_HORIZI;
-    reg_order[7]=REGION_VERTI;
-    reg_order[8]=REGION_HORIZO;
-    reg_order[9]=REGION_VERTO;
 
     layout=new QVBoxLayout;
     layout->setMargin(STD_MARGIN);

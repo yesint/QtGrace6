@@ -1518,6 +1518,7 @@ void MainWindow::RegionsMaster(void)
     if (FormRegionMaster==NULL)
     {
         FormRegionMaster=new frmMasterRegionOperator(this);
+        FormRegionMaster->resize(500,250);
     }
     FormRegionMaster->init();
     FormRegionMaster->show();

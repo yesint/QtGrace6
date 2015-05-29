@@ -1592,6 +1592,7 @@ void update_all(void)
         update_color_selectors();
         ReqUpdateColorSel = FALSE;
     }
+    if (FormRegionMaster!=NULL) FormRegionMaster->number_of_graphs_changed();
     if (FormAxisProperties!=NULL) FormAxisProperties->update_ticks(gno);
     /*if (Form_Preferences!=NULL)
     {

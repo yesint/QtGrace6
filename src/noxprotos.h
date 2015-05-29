@@ -276,6 +276,7 @@ void kill_all_regions(void);
 void activate_region(int r, int type, int gno);
 void load_poly_region(int r, int gno, int n, WPoint *wps);
 int inregion(int regno, double x, double y);
+int is_set_in_region(int gno,int sno,int rno,int inv);
 
 void set_plotstr_string(plotstr * pstr, char *buf);
 

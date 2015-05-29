@@ -5150,6 +5150,7 @@ uniList::uniList(int type,QWidget *parent):QListWidget(parent)
     datType=type;
     partner=NULL;
     show_all_sets_marker=false;
+    all_entries_option_selected=false;
     //set the standard-behavior (can be changed especially for some widgets)
     if (type==GRAPHLIST)
     {
@@ -5382,8 +5383,9 @@ void uniList::get_selection(int * number,int ** selection)
     if (*number<=0) return;//return without deleting anything
         if (*selection!=NULL)
         delete[] *selection;
-    if (entries[list.at(0).row()]<0)
+    if (entries[list.at(0).row()]<0)//all_entries
     {
+        all_entries_option_selected=true;
         *number=number_of_entries-1;
         *selection=new int[*number];
         for (int i=0;i<*number;i++)
@@ -5391,6 +5393,7 @@ void uniList::get_selection(int * number,int ** selection)
     }
     else
     {
+        all_entries_option_selected=false;
         *selection=new int[*number];
         for (int i=0;i<*number;i++)
             *(*selection+i)=entries[list.at(i).row()];

@@ -277,6 +277,9 @@ QIcon ** LineIcons=NULL;
 QPixmap ** LinePixmaps=NULL;
 QVector<qreal> ** PenDashPattern=NULL;
 
+extern QString regtypes[10];
+extern int reg_order[10];
+
 int ngraph_select_items = 0;
 uniList ** graph_selectors=NULL;
 int ngraph_selectors = 0,n_gr_sel_alloc=0;
@@ -1699,6 +1702,29 @@ fo.fromString(QString("Courier,10,-1,5,50,0,0,0,0,0"));
 
 void init(void)
 {
+
+    regtypes[REGION_POLYI]=QObject::tr("Inside polygon");
+    regtypes[REGION_POLYO]=QObject::tr("Outside polygon");
+    regtypes[REGION_ABOVE]=QObject::tr("Above line");
+    regtypes[REGION_BELOW]=QObject::tr("Below line");
+    regtypes[REGION_TOLEFT]=QObject::tr("Left of line");
+    regtypes[REGION_TORIGHT]=QObject::tr("Right of line");
+    regtypes[REGION_HORIZI]=QObject::tr("In Horiz. Range");
+    regtypes[REGION_VERTI]=QObject::tr("In Vert. Range");
+    regtypes[REGION_HORIZO]=QObject::tr("Out of Horiz. Range");
+    regtypes[REGION_VERTO]=QObject::tr("Out of Vert. Range");
+
+    reg_order[0]=REGION_POLYI;
+    reg_order[1]=REGION_POLYO;
+    reg_order[2]=REGION_ABOVE;
+    reg_order[3]=REGION_BELOW;
+    reg_order[4]=REGION_TOLEFT;
+    reg_order[5]=REGION_TORIGHT;
+    reg_order[6]=REGION_HORIZI;
+    reg_order[7]=REGION_VERTI;
+    reg_order[8]=REGION_HORIZO;
+    reg_order[9]=REGION_VERTO;
+
 QChar unicode[] = {0x03B1,'a'};
 unicode_greek_shift = unicode[0].unicode()-unicode[1].unicode();//difference between 'alpha' and 'a'
 QString n_list[128]={

@@ -1849,16 +1849,14 @@ public:
     QPushButton * cmdDefine[7];
     QPushButton * cmdReportSet[7];
     QPushButton * cmdReportPoints[7];
+    QSpinBox * spnLink[7];
 
     QPushButton * cmdClearARegion;
     QPushButton * cmdClearAllRegions;
     QPushButton * cmdClose;
     QGridLayout * layout;
 
-    QSignalMapper * mapActive,*mapType,*mapDefine,*mapReportSet,*mapReportPoints;
-
-    QString regtypes[10];
-    int reg_order[10];
+    QSignalMapper * mapActive,*mapType,*mapDefine,*mapReportSet,*mapReportPoints,*mapLink;
 signals:
 void closeWish(void);
 public slots:
@@ -1867,7 +1865,8 @@ public slots:
     void doClearAllRegions(void);
     void doClose(void);
     void clickActive(int regno);
-    void changeType(int regno);
+    void changeType(int reg_no);
+    void changeLink(int reg_no);
     void clickDefine(int regno);
     void clickReportSets(int regno);
     void clickReportPoints(int regno);
@@ -1895,6 +1894,35 @@ public slots:
     void doClose(void);
 };
 
+class frmMasterRegionOperator_Edit:public QWidget
+{
+    Q_OBJECT
+public:
+    frmMasterRegionOperator_Edit(QWidget * parent=0);
+
+    QLabel * lblTitle[2];
+    int nr_of_lines;
+    QGridLayout * layout0;
+    QWidget * Empty;
+    QLabel ** lblCoords;
+    QLineEdit ** ledCoords[2];
+    QScrollArea * scroll;
+    QLabel * regType;
+    StdSelector * selRegion;
+
+    stdButtonGroup * cmdButtons;
+    QGridLayout * layout;
+signals:
+void closeWish(void);
+public slots:
+virtual void showEvent(QShowEvent * event);
+    void init(void);
+    void regionChanged(int re);
+    void doApply(void);
+    void doAccept(void);
+    void doClose(void);
+};
+
 class frmMasterRegionOperator_Operations:public QWidget
 {
     Q_OBJECT
@@ -1907,7 +1935,7 @@ public:
 
     StdSelector * selRestriction;
     QCheckBox * chkNegRes;
-    QCheckBox * chkNewSets;
+    StdSelector * selNewSets;
     StdSelector * selOperation;
     StdSelector * selTargetGraph;
 
@@ -1917,6 +1945,8 @@ signals:
 void closeWish(void);
 public slots:
     void init(void);
+    void newGraphSelection(int r);
+    void OperationChanged(int op);
     void doApply(void);
     void doAccept(void);
     void doClose(void);
@@ -1928,15 +1958,17 @@ class frmMasterRegionOperator:public QDialog
 public:
     frmMasterRegionOperator(QWidget * parent=0);
 
-    frmMasterRegionOperator_Main * tabMain;
-    frmMasterRegionOperator_Style * tabStyle;
-    frmMasterRegionOperator_Operations * tabOperations;
+    frmMasterRegionOperator_Main * tab_Main;
+    frmMasterRegionOperator_Style * tab_Style;
+    frmMasterRegionOperator_Edit * tab_Edit;
+    frmMasterRegionOperator_Operations * tab_Operations;
 
     QTabWidget * tabs;
     QVBoxLayout * layout;
 public slots:
     void init(void);
     void doClose(void);
+    void number_of_graphs_changed(void);
 };
 
 class frmRegionStatus:public QDialog
@@ -1946,7 +1978,6 @@ public:
     frmRegionStatus(QWidget * parent=0);
 
     QString active,inactive;
-    QString regtypes[10];
 
     QScrollArea * scroll;
     QWidget * background;
@@ -1971,7 +2002,6 @@ public:
     StdSelector * selector0;
     StdSelector * selector1;
     stdButtonGroup * buttonGroup;
-    int reg_order[10];
     QVBoxLayout * layout;
 public slots:
     void init(void);

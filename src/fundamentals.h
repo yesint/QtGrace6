@@ -273,7 +273,7 @@ bool show_data_less;
 bool show_comments;
 bool prevent_from_autoupdate;
 bool deselect_possible;
-bool show_all_sets_marker;
+bool show_all_sets_marker,all_entries_option_selected;
 
 class uniList * partner;
 
