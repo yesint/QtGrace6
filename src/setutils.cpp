@@ -2475,7 +2475,8 @@ tbuf[0]=tbuf[1]=tbuf[2]='\0';
         *datum = do_int(cgr, cs, 1);
         break;
     case FEATURE_VALUE_CROSSING:        /* y-value crossing */
-        if( get_value_crossing(cgr, cs, dummy, datum) ){
+        cout << "returning Value-Crossing: G" << cgr << ".S" << cs << " value=" << dummy << endl;
+        if( get_value_crossing(cgr, cs, dummy, datum) == RETURN_FAILURE){
             sprintf( tbuf+strlen(tbuf),"%s%g%s%d\n",QObject::tr("Unable to find crossing of y-value ").toLocal8Bit().constData(),dummy,QObject::tr(" of set ").toLocal8Bit().constData(), cs );
             errwin( tbuf );
             extract_err = 1;

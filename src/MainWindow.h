@@ -137,7 +137,7 @@ public:
 
     QAction * actNew,*actOpen,*actSave,*actSaveAs,*actRevert,*actPrint,*actPrintToFile,*actPrintSetup,*actExit;
     QAction *actDataSets,*actSetOperations,*actArrangeGraphs,*actOverlayGraphs,*actAutoscaleGraphs,*actRegionMaster,*actRegionsStatus,*actRegionsDefine,*actRegionsClear,*actRegionsReportOn,*actHotLinks,*actSetLocFixPoint,*actClearLocFixPoint,*actLocProp,*actPreferences;
-    QAction*actDataSetOperations,*actFeatureExtraction,*actExportAscii,*actImportNetCDF,*actImportAscii,*actEvaluateExpr,*actHistograms,*actFourier,*actFourier2,*actRunningAverages,*actDifferences,*actSeasonalDiff,*actIntegration,*actInterpolation,*actRegression,*actNonLinCurveFitting,*actCorrelation,*actDigitalFilter,*actLinConvolution,*actGeomTransform,*actSamplePoints,*actPruneData;
+    QAction*actDataSetOperations,*actFeatureExtraction,*actExportAscii,*actImportNetCDF,*actImportAscii,*actEvaluateExpr,*actHistograms,*actFourier,*actFourier2,*actRunningAverages,*actDifferences,*actSeasonalDiff,*actIntegration,*actInterpolation,*actRegression,*actNonLinCurveFitting,*actReportFitParameters,*actCorrelation,*actDigitalFilter,*actLinConvolution,*actGeomTransform,*actSamplePoints,*actPruneData;
     QAction *actPlotAppearance,*actGraphAppearance,*actSetAppearance,*actAxisProperties,*actLoadParameters,*actSaveParameters;
     QAction *actCommands,*actPointExplorer,*actDrawingObjects,*actFontTool,*actConsole;
     QAction *actHelpOnContext,*actHelpUsersGuide,*actHelpTutorial,*actHelpFAQ,*actHelpChanges,*actHelpQtGrace,*actHelpComments,*actHelpLicense,*actHelpAbout;
@@ -209,6 +209,7 @@ public slots:
     void Interpolation(void);
     void Regression(void);
     void NonLinCurveFitting(void);
+    void ReportOnFitParameters(void);
     void Correlation(void);
     void DigitalFilter(void);
     void LinConvolution(void);

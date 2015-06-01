@@ -192,6 +192,7 @@ frmCSVImporter * FormCSVImport;
 frmProgressWin * FormProgress;
 frmQuestionDialog * FormQuestion;
 frmSimpleListSelectionDialog * FormSimpleListSel;
+frmReportOnFitParameters * FormReportFitParameters;
 
 frmBinaryFormatInput * FormBinaryImportFilter;
 
@@ -1477,7 +1478,7 @@ return ret;
 int process_command_for_new_sets(QString & command,int target_graph)//returns the number of replacements
 {
 command.toUpper();
-    //cout << "COMMAND AT BEGINNING=#" << command.toLocal8Bit().constData() << "#" << endl;
+//cout << "COMMAND AT BEGINNING=#" << command.toLocal8Bit().constData() << "#" << endl;
 
 /*
 //Replace known existing commands
@@ -1501,7 +1502,7 @@ if (type>0)
 {
 nr_of_replacemants++;
 ret=read_g_s_id_from_new_command(found,type,i_gno,i_sno);
-cout << "READ:#" << found.toLatin1().constData() << "# type=" << type << " ID=G" << i_gno << ".S" << i_sno << endl;
+//cout << "READ:#" << found.toLatin1().constData() << "# type=" << type << " ID=G" << i_gno << ".S" << i_sno << endl;
 ret=NewGraphSetCommands.indexOf(found);
     if (ret>=0)//we already know about that --> replace this and find the next
     {
@@ -1605,7 +1606,7 @@ command.replace(found,QString(s_text));
 break;
 }//end switch
 }//end while-loop
-    //cout << "COMMAND AT END=#" << command.toLocal8Bit().constData() << "#" << endl;
+//cout << "COMMAND AT END=#" << command.toLocal8Bit().constData() << "#" << endl;
 return nr_of_replacemants;
 }
 
@@ -2495,6 +2496,7 @@ cout << "                warn_on_encoding_change=" << warn_on_encoding_change <<
     Form_Preferences=NULL;
     Form_AgrInfo=NULL;
     FormSimpleListSel=NULL;
+    FormReportFitParameters=NULL;
 /*
 #!/bin/sh
 #xmgrace-Version mit Punkten statt Kommas
@@ -4048,6 +4050,14 @@ void UpdateAllWindowContents(void)//a "repaint"-funktion for all widgets
             FormSpreadSheets[i]->init(FormSpreadSheets[i]->gno,FormSpreadSheets[i]->sno);
         }
     }
+    if (FormReportFitParameters)
+    {
+        for (int i=0;i<MAXPARM;i++)
+        {
+        FormReportFitParameters->spnPara[i]->setLocale(newLocale);
+        }
+        FormReportFitParameters->init();
+    }
     update_encoding();
     //Switching complete --> set old=new to prevent unnecessary switching
     OldDecimalPoint=DecimalPointToUse;
@@ -4785,14 +4795,15 @@ int qtspecial_scanner(char * command,int * errors)
 {
     static int len,len2,pos;
     len=strlen(command);
-    if (len<16) return RETURN_FAILURE;//can not be a special command
+
     char * parameters;
     char formula_arg[MAX_STRING_LENGTH];
     int retval=containsSpecialCommand(command,&parameters);
     int retval2,nr_of_replacements=0,eq_pos,extract_err;
     QString replayed_command;
 
-//cout << "New command: vorher: command=" << command << endl;
+//cout << "New command: vorher: command=#" << command << "#" << endl;
+
     replayed_command=QString(command);
     nr_of_replacements=process_command_for_new_sets(replayed_command,current_target_graph);
     if (nr_of_replacements>0)//we made replacements-->send it back to the scanner
@@ -4803,7 +4814,9 @@ int qtspecial_scanner(char * command,int * errors)
     }
     //else: no replacements --> command is ok as it is
 
-//cout << "New command: nachher: command=" << command << endl;
+    if (len<16) return RETURN_FAILURE;//can not be a special command
+
+//cout << "New command: nachher: command=#" << command << "#" << endl;
 
     /// cout << "special scanner=" << command << " retval=" << retval << endl;
     if (retval==SPECIAL_NONE) return RETURN_FAILURE;
@@ -4940,16 +4953,29 @@ int qtspecial_scanner(char * command,int * errors)
                 break;
                 }
             }
+            //cout << "parameters=#" << parameters << "# eq_pos=" << eq_pos << endl;
+
             orders[0]=0;/// Warning! This is wrong!
             orders[1]=0;
+
+            if (activate_id_replacing==true)
+            {
+            orders[0]=replace_o_gnos[0];
+            orders[1]=replace_o_snos[0];
+            }
+
             if (eq_pos<0)
             {
-            retval2=ParseExtractCommand(parameters,formula_arg);
+            retval2=ParseExtractCommand(parameters,formula_arg);//no '=' in command
             }
             else
             {
             retval2=ParseExtractCommand(parameters+eq_pos+1,formula_arg);
             }
+            std_evalexpr(formula_arg,limits);
+
+            //cout << "read set-id: G" << orders[0] << ".S" << orders[1] << " limit=" << limits[0] << endl;
+
                 if (retval2==4)//median -- special traetment because I extended the possible usage of the median (all columns, not only X or Y)
                 {
                     orders[0]=-1;//Warning! Invalid ids!
@@ -4957,16 +4983,20 @@ int qtspecial_scanner(char * command,int * errors)
                     orders[2]=-1;
                 getSetIDFromText(formula_arg,orders[0],orders[1],orders[2]);
                 getmedian(orders[0],orders[1],orders[2],limits);
-                cout << "read set-id: G" << orders[0] << ".S" << orders[1] << "." << orders[2] << endl;
-                cout << "median=" << limits[0] << endl;
+                //cout << "read set-id: G" << orders[0] << ".S" << orders[1] << "." << orders[2] << endl;
+                //cout << "median=" << limits[0] << endl;
                 }
                 else
                 {
                 extract_err=extract_single_feature(retval2,orders[0],orders[1],limits);
-                cout << "read_value=" << limits[0] << endl;
+                //cout << "read_value=" << limits[0] << endl;
                 }
-        cout << "parameters=" << parameters << " retval2=" << retval2 << " Formula_arg=" << formula_arg << " result=" << limits[0] << endl;
-
+        //cout << "parameters=" << parameters << " retval2=" << retval2 << " Formula_arg=" << formula_arg << " result=" << limits[0] << endl;
+            if (eq_pos>=0)
+            {
+            sprintf(parameters+eq_pos+1,sformat,limits[0]);
+            scanner(parameters);
+            }
         break;
     case SPECIAL_FORMULA:
         retval2=ParseSpecialFormula(parameters,formula_arg);

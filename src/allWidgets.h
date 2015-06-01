@@ -3639,6 +3639,27 @@ public slots:
     void doNew(void);
 };
 
+class frmReportOnFitParameters:public QDialog
+{
+    Q_OBJECT
+public:
+    frmReportOnFitParameters(QWidget * parent=0);
+    QGridLayout * layout;
+    QLabel * lblName[2],*lblValue[2];
+    LineWidthSelector * spnPara[MAXPARM];
+    /*QLabel * lblPara[MAXPARM];
+    QDoubleSpinBox * spnPara[MAXPARM];*/
+    QPushButton * cmdSet;
+    QPushButton * cmdUpdate;
+    QPushButton * cmdReport;
+    QPushButton * cmdClose;
+public slots:
+    void init(void);
+    void doSet(void);
+    void doReport(void);
+    void doClose(void);
+};
+
 int generate_x_mesh_from_formula(int gno,int sno,double start,double stop,int npts,char * formula,int type);
 void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,int & n_sets,int ** gnos,int ** snos,int & type,int & realization,double * limits,int * orders,char * x_formula,double & ripple,int & absolute,int & debug,int & point_extension,int & oversampling,int & rno,int & invr);
 void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_sets,int ** n_gnos,int ** n_snos,int & ideg,int & iresid,int & rno,int & invr,double & start,double & stop,int & points,int & rx,char * formula);

@@ -642,7 +642,7 @@ new_set_no=fitset;
 
     remove_whitespaces(last_formula,buf);//save the formula used for the regression
 
-cout << "Regression: last Formula=#" << last_formula << "#" << endl;
+//cout << "Regression: last Formula=#" << last_formula << "#" << endl;
 
     SetDecimalSeparatorToUserValue(buf,false);
 

@@ -994,8 +994,10 @@ switch (type)
 {
 case UNDO_TYPE_DATAPOINT_EDIT:
     dp=(Datapoint*)data;
-    for (int i=0;i<2*origin[2];i++)
-    xfree(dp[i].s);
+        for (int i=0;i<2*origin[2];i++)
+        {
+        xfree(dp[i].s);
+        }
     delete[] dp;
 break;
 case UNDO_TYPE_PACK_SETS:

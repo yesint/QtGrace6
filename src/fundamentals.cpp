@@ -2222,7 +2222,6 @@ void OrderSelector::setCurrentIndex(int i)
     cmbOrderPattern->setCurrentIndex(i);
 }
 
-
 LineWidthSelector::LineWidthSelector(QWidget * parent):QWidget(parent)
 {
     lblText=new QLabel(tr("Line width:"));
@@ -2794,6 +2793,7 @@ void FileSelector::setFileSelectionFromExtern(QString n_file)
 {
 QFileInfo fi(n_file);
 QString ext=QString("*.")+fi.suffix();
+if (fi.suffix().isEmpty()) ext=QString("*.agr");
 QString n_dir=QDir::toNativeSeparators(fi.absolutePath());
 setFilterFromExtern(n_dir,ext);
 

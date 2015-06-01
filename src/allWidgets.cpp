@@ -796,16 +796,16 @@ void prependAllSetID(QString * text,int sno,int gno)
     QString toinsert;
     QRegExp regex1("G\\d+.S\\d+.$");//what we search for as a regular expression
     QRegExp regex2("S\\d+.$");//I changed the expression to '+' from '*' because we want to find at least one digit (0 digits is not allowed)
-
-    //QRegExp regex3("G\\d+N?.S\\d+N?$");//generate a new graph and / or a set
-    //QRegExp regex4("G\\d+N?$");//generate just a new graph
+    QRegExp regex3("G\\d+N{1}.S\\d+N{1}$");//generate a new graph and / or a set
+    QRegExp regex4("G\\d+N{1}$");//generate just a new graph
+    QRegExp regex5("S\\d+N{1}$");//generate just a new set
     //QString find_new_set_command(QString newCommand)
 
     char dummy1[128];
     char dummy2[128];
     sprintf(dummy1,"G%d.",gno);
     sprintf(dummy2,"G%d.S%d.",gno,sno);
-    int pos=0,last=0,inlen;
+    int pos=0,t_pos=0,last=0,inlen;
     int p1,pos_1,pos_2;
     char c1;
     pos_1=text->indexOf("\"");
@@ -829,7 +829,39 @@ void prependAllSetID(QString * text,int sno,int gno)
         {
             //cout << "#" << str.toLocal8Bit().constData() << "#" << pos << "#" << tosuppl[i] << endl;
             last=pos;//last is position at beginning of search
+            //we search here for X,Y,Y0,Y1,...,Y4
             pos=str.indexOf(tosuppl[i],pos);//pos is now the position of the string we search for
+
+            //we have to ingore values with '_' before or after, because these are commands not set-ids
+            if (pos==0 && str.length()>1)
+            {
+                if (str.at(pos+1).toLatin1()=='_')//we have a '_' after it
+                {
+                pos++;
+                continue;
+                }
+            }
+            else if (pos>0 && pos<=str.length()-1)
+            {
+                if (pos<str.length()-1)//not the last character
+                {
+                    if (str.at(pos+1).toLatin1()=='_' || str.at(pos-1).toLatin1()=='_')
+                    {
+                    pos++;
+                    continue;
+                    }
+                }
+                else if (pos==str.length()-1)//the last character
+                {
+                    if (str.at(pos-1).toLatin1()=='_')
+                    {
+                    pos++;
+                    continue;
+                    }
+                }
+            }
+            //ok, we ignored the ones with '_' in front or after
+
             if (pos==-1)//nothing found
             {
                 last=pos=str.length()+1;//nothing found-->set current position to the end of the string
@@ -841,6 +873,12 @@ void prependAllSetID(QString * text,int sno,int gno)
                 if (p1==-1)//expression not found --> id not complete
                 {
                     p1=regex2.indexIn(l1);
+                    t_pos=regex3.indexIn(l1);
+                        if (p1==t_pos)//S0N and S0 are at the same position --> ignore this!
+                        {
+                        pos++;
+                        continue;
+                        }
                     if (p1==-1)//no usual set-id --> search for S$ and S_
                     {
                     p1=l1.indexOf("S$");
@@ -4843,8 +4881,9 @@ frmPlot_Appearance::frmPlot_Appearance(QWidget * parent):QWidget(parent)
     //setWindowTitle(tr("QtGrace: Plot appearance"));
     //setWindowIcon(QIcon(*GraceIcon));
 
-    fraFont=new QGroupBox(tr("Font"),this);;
+    fraFont=new QGroupBox(tr("Font"),this);
 
+    QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
     selFontSize=new LineWidthSelector(this);
     selFontSize->lblText->setText(tr("Global font size multiplicator:"));
     selFontSize->spnLineWidth->setRange(0.0,1000.0);
@@ -4852,6 +4891,7 @@ frmPlot_Appearance::frmPlot_Appearance(QWidget * parent):QWidget(parent)
     selFontSize->spnLineWidth->setValue(100.0);
     selFontSize->spnLineWidth->setSingleStep(1.0);
     selFontSize->spnLineWidth->setSuffix(tr(" %"));
+    selFontSize->setLocale(newLocale);
 
     layout4=new QVBoxLayout;
     layout4->setSpacing(STD_SPACING);
@@ -6834,7 +6874,7 @@ void frmCommands::doInsertSpecial(void)
     case 12://"Create New Set"
         newCommand+=QString("CREATE NEW_SET ");
         n_set=next_unused_new_set();
-        newCommand+=QString("S")+QString::number(n_set)+QString("N");
+        newCommand=QString("S")+QString::number(n_set)+QString("N");//I removed the '+' at the beginning (command=S0N without CREATE_NEW)
         break;
     case 13://"Special Formula"
         newCommand+=QString("EXTRACT a19=");
@@ -6913,7 +6953,10 @@ void frmCommands::doInsertSpecial(void)
                 newCommand=QString("a19=INT(G0.S0.X,G0.S0.Y)");
                 break;
             case 24:
-                newCommand+=QString("VALUE_CROSSING(0.0)");
+                newCommand+=QString("Y_VALUE_CROSSING(0.0)");
+                break;
+            case 25:
+                newCommand+=QString("X_VALUE_CROSSING(0.0)");
                 break;
             }
         break;
@@ -6984,7 +7027,8 @@ void frmCommands::Special1Changed(int nr)
         cmbSpecial2->addItem(tr("X of Ymax"));
         cmbSpecial2->addItem(tr("Y of Xmax"));
         cmbSpecial2->addItem(tr("Integral"));
-        cmbSpecial2->addItem(tr("Value crossing"));
+        cmbSpecial2->addItem(tr("Y Value crossing"));
+        cmbSpecial2->addItem(tr("X Value crossing"));
     }
     else
     {
@@ -13798,7 +13842,10 @@ QString a,b;
     selectedFile=QString(f_name);
 
     a=selFileInfo.absoluteDir().absolutePath();
+    if (!selFileInfo.suffix().isEmpty())
     b=QString("*.")+selFileInfo.suffix();
+    else
+    b=QString("*.agr")+selFileInfo.suffix();
     /// selector->setFilterFromExtern(a,b);
 
     selector->setFileSelectionFromExtern(selectedFile);
@@ -16415,7 +16462,7 @@ setList->update_number_of_entries_preserve_selection();
 int cur_gr[2]={cg,cg};
 graphList->set_new_selection(1,cur_gr);
 int number=number_of_graphs()+2;
-QString *entries = new QString [number+2];
+QString * entries=new QString[number+2];
 entries[0]=tr("Current graph");
 entries[1]=tr("Source graph");
 for (int i=0;i<number_of_graphs();i++)
@@ -16423,7 +16470,6 @@ for (int i=0;i<number_of_graphs();i++)
 entries[i+2]=QString("G")+QString::number(i);
 }
 selTargetGraph->setNewEntries(number,entries);
-
 delete[] entries;
 }
 
@@ -33216,6 +33262,89 @@ void frmSimpleListSelectionDialog::doNew(void)
     }
 }
 
+frmReportOnFitParameters::frmReportOnFitParameters(QWidget * parent):QDialog(parent)
+{
+layout=new QGridLayout();
+layout->setMargin(STD_MARGIN);
+layout->setSpacing(0);
+int line=0,col=0;
+cmdReport=new QPushButton(tr("Report"),this);
+cmdUpdate=new QPushButton(tr("Update"),this);
+layout->addWidget(cmdUpdate,line,0,1,2);
+layout->addWidget(cmdReport,line++,2,1,2);
+lblName[0]=new QLabel(tr("Name"),this);
+lblName[1]=new QLabel(tr("Name"),this);
+lblValue[0]=new QLabel(tr("Value"),this);
+lblValue[1]=new QLabel(tr("Value"),this);
+    layout->addWidget(lblName[0],line,0);
+    layout->addWidget(lblName[1],line,2);
+    layout->addWidget(lblValue[0],line,1);
+    layout->addWidget(lblValue[1],line++,3);
+
+/// Decimaltrennzeichen umwandeln (auch in report!)
+
+QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
+for (int i=0;i<MAXPARM;i++)
+{
+spnPara[i]=new LineWidthSelector(this);
+spnPara[i]->lblText->setText(QString("a")+QString::number(i));
+spnPara[i]->spnLineWidth->setDecimals(6);
+spnPara[i]->spnLineWidth->setSingleStep(0.0001);
+spnPara[i]->spnLineWidth->setRange(DBL_MIN,DBL_MAX);
+spnPara[i]->setLocale(newLocale);
+if (i==MAXPARM/2) {col=2;line=2;}
+layout->addWidget(spnPara[i],line++,col,1,2);
+}
+cmdSet=new QPushButton(tr("Set"),this);
+cmdClose=new QPushButton(tr("Close"),this);
+connect(cmdClose,SIGNAL(clicked()),SLOT(doClose()));
+connect(cmdSet,SIGNAL(clicked()),SLOT(doSet()));
+connect(cmdReport,SIGNAL(clicked()),SLOT(doReport()));
+connect(cmdUpdate,SIGNAL(clicked()),SLOT(init()));
+layout->addWidget(cmdSet,line,0,1,2);
+layout->addWidget(cmdClose,line++,2,1,2);
+setLayout(layout);
+}
+
+void frmReportOnFitParameters::init(void)
+{
+    for (int i=0;i<MAXPARM;i++)
+    {
+    spnPara[i]->setValue(nonl_parms[i].value);
+    }
+}
+
+void frmReportOnFitParameters::doSet(void)
+{
+    for (int i=0;i<MAXPARM;i++)
+    {
+    nonl_parms[i].value=spnPara[i]->value();
+    }
+}
+
+void frmReportOnFitParameters::doReport(void)
+{
+QString tmptext;
+char dummy_vals[128];
+    stufftext(tr("Current settings for fit-parameters:").toLocal8Bit().constData());
+    for (int i=0;i<MAXPARM;i++)
+    {
+    tmptext=QString("A")+QString::number(i)+QString("=");
+    sprintf(dummy_vals,sformat,nonl_parms[i].value);
+    tmptext+=QString(dummy_vals)+QString("\t ")+tr("Min=");
+    sprintf(dummy_vals,sformat,nonl_parms[i].min);
+    tmptext+=QString(dummy_vals)+QString("\t ")+tr("Max=");
+    sprintf(dummy_vals,sformat,nonl_parms[i].max);
+    tmptext+=QString(dummy_vals)+QString("\t ")+tr("Use constrains=")+(nonl_parms[i].constr==0?tr("No"):tr("Yes"));
+    stufftext(tmptext.toLocal8Bit().constData());
+    }
+}
+
+void frmReportOnFitParameters::doClose(void)
+{
+hide();
+}
+
 //padding_type=PROCESSING_INTERPOLATION
 //padding_type=PROCESSING_ZERO_PADDING --> include zeros at start and at end
 //padding_type=PROCESSING_FIRST_LAST_PADDING --> include the same values at the beginning and at the end
@@ -33773,6 +33902,9 @@ int ParseExtractCommand(char * com,char * arg)
 {
 int brakets,endpos;
 arg[0]=arg[1]=arg[2]='\0';
+
+cout << "ParseExtractCommand: com=#" << com << "#" << endl;
+
     if (strncmp(com,"MEDIAN",6)==0)
     {
         brakets=1;
@@ -33815,7 +33947,7 @@ arg[0]=arg[1]=arg[2]='\0';
     {
     return 15;//no arguments
     }
-    else if (strncmp(com,"Y_INTERCEPTION",14)==0)
+    else if (strncmp(com,"INTERCEPTION_Y",14)==0)
     {
     return 16;//no arguments
     }
@@ -33835,9 +33967,9 @@ arg[0]=arg[1]=arg[2]='\0';
     {
     return 20;//no arguments
     }
-    else if (strncmp(com,"VALUE_CROSSING",14)==0)
+    else if (strncmp(com,"Y_VALUE_CROSSING",16)==0)
     {
-        strcpy(arg,com+15);
+        strcpy(arg,com+17);
         for (int i=strlen(arg)-1;i>=0;i++)
         {
             if (arg[i]==')')
@@ -33846,7 +33978,20 @@ arg[0]=arg[1]=arg[2]='\0';
             break;
             }
         }
-    return 24;
+    return FEATURE_VALUE_CROSSING;
+    }
+    else if (strncmp(com,"X_VALUE_CROSSING",16)==0)
+    {
+        strcpy(arg,com+17);
+        for (int i=strlen(arg)-1;i>=0;i++)
+        {
+            if (arg[i]==')')
+            {
+            arg[i]='\0';
+            break;
+            }
+        }
+    return FEATURE_VALUE_CROSSING2;
     }
 return -1;
 }
@@ -33863,7 +34008,18 @@ void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_s
     int len=strlen(com);
     counter=0;
     //cout << "Parsing regression-command=#" << com << "#" << endl;
-    sscanf(com,"%d,%d",&n_sets,&n_n_sets);
+    double tmp_answer;
+    char parameter[128];
+    char * next_pos=extract_single_parameter(com,parameter);
+    next_pos++;//we are now after the ','
+    int retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) n_sets=(int)tmp_answer;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) n_n_sets=(int)tmp_answer;
+    next_pos++;
+    /// sscanf(com,"%d,%d",&n_sets,&n_n_sets);
+//cout << "Einlesen: old_sets=" << n_sets << " new_sets=" << n_n_sets << endl;
     index=-1;
     (*gnos)=new int[1+n_sets];
     (*snos)=new int[1+n_sets];
@@ -33879,8 +34035,21 @@ void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_s
     }
     for (i=0;i<n_sets;i++)
     {
+    next_pos=com+index;
+        //cout << "A: original: next_pos=" << next_pos << endl;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*gnos)[i]=(int)tmp_answer;
+        next_pos++;
+        //cout << "B: original: next_pos=" << next_pos << endl;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*snos)[i]=(int)tmp_answer;
+        next_pos++;
+        //cout << "C: original: next_pos=" << next_pos << endl;
         //cout << "original: com-index=" << com+index << endl;
-        sscanf(com+index,"%d,%d",(*gnos)+i,(*snos)+i);
+        /// sscanf(com+index,"%d,%d",(*gnos)+i,(*snos)+i);
+        index=next_pos-com-1;
         for (j=0;j<len;j++)
         {
             if (com[j+index]==';' || com[j+index]=='}')
@@ -33891,10 +34060,25 @@ void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_s
         }
     }
     index++;
+    next_pos=com+index;
     for (i=0;i<n_n_sets;i++)
     {
+    next_pos=com+index;
+        //cout << "A: original: next_pos=" << next_pos << endl;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*n_gnos)[i]=(int)tmp_answer;
+        next_pos++;
+        //cout << "B: original: next_pos=" << next_pos << endl;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*n_snos)[i]=(int)tmp_answer;
+        next_pos++;
+        //cout << "C: original: next_pos=" << next_pos << endl;
+        //cout << "original: com-index=" << com+index << endl;
         //cout << "new: com-index=" << com+index << endl;
-        sscanf(com+index,"%d,%d",(*n_gnos)+i,(*n_snos)+i);
+        /// sscanf(com+index,"%d,%d",(*n_gnos)+i,(*n_snos)+i);
+        index=next_pos-com-1;
         for (j=0;j<len;j++)
         {
             if (com[j+index]==';' || com[j+index]=='}')
@@ -33906,8 +34090,56 @@ void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_s
     }
     if (n_n_sets==0) index++;
     index++;
+    next_pos=com+index;
+/*cout << "source sets:" << endl;
+for (i=0;i<n_sets;i++)
+{
+cout << "G" << (*gnos)[i] << ".S" << (*snos)[i] << endl;
+}
+cout << "target sets:" << endl;
+for (i=0;i<n_n_sets;i++)
+{
+cout << "G" << (*n_gnos)[i] << ".S" << (*n_snos)[i] << endl;
+}
+cout << "Parameters:" << endl;*/
     //cout << "rest: com-index=" << com+index << endl;
-    sscanf(com+index,"%d;%d;%d;%d;%d;%lf;%lf;%s",&ideg,&rno,&invr,&points,&rx,&start,&stop,formula);
+    /// sscanf(com+index,"%d;%d;%d;%d;%d;%lf;%lf;%s",&ideg,&rno,&invr,&points,&rx,&start,&stop,formula);
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) ideg=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) rno=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) invr=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) points=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) rx=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) start=tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) stop=tmp_answer;
+    next_pos++;
+    sscanf(next_pos,"%s",formula);
+/*cout << "ideg=" << ideg << endl;
+cout << "rno=" << rno << endl;
+cout << "invr=" << invr << endl;
+cout << "points=" << points << endl;
+cout << "rx=" << rx << endl;
+cout << "start=" << start << endl;
+cout << "stop=" << stop << endl;*/
     switch (rx)
     {
     case 0://fitted values
@@ -33924,6 +34156,7 @@ void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_s
         break;
     }
     formula[strlen(formula)-1]='\0';
+//cout << "formula=" << formula << endl;
 }
 
 void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,int & n_sets,int ** gnos,int ** snos,int & type,int & realization,double * limits,int * orders,char * x_formula,double & ripple,int & absolute,int & debug,int & point_extension,int & oversampling,int & rno,int & invr)
@@ -33932,7 +34165,7 @@ void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,in
     int counter;
     int len=strlen(com);
     counter=0;
-    cout << "Parsing filter-command=#" << com << "#" << endl;
+    //cout << "Parsing filter-command=#" << com << "#" << endl;
     /// sscanf(com,"%d,%d",&o_n_sets,&n_sets);
 n_sets=o_n_sets=-1;
     double tmp_answer;
@@ -33967,8 +34200,19 @@ n_sets=o_n_sets=-1;
     for (i=0;i<o_n_sets;i++)
     {
     next_pos=com+index;
-        //cout << "original: com-index=" << com+index << endl;
-        sscanf(com+index,"%d,%d",(*o_gnos)+i,(*o_snos)+i);
+        //cout << "A: original: next_pos=" << next_pos << endl;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*o_gnos)[i]=(int)tmp_answer;
+        next_pos++;
+        //cout << "B: original: next_pos=" << next_pos << endl;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*o_snos)[i]=(int)tmp_answer;
+        next_pos++;
+        //cout << "C: original: next_pos=" << next_pos << endl;
+        /// sscanf(com+index,"%d,%d",(*o_gnos)+i,(*o_snos)+i);
+        index=next_pos-com-1;
         for (j=0;j<len;j++)
         {
             if (com[j+index]==';' || com[j+index]=='}')
@@ -33981,8 +34225,21 @@ n_sets=o_n_sets=-1;
     index++;
     for (i=0;i<n_sets;i++)
     {
+    next_pos=com+index;
+        //cout << "A: original: next_pos=" << next_pos << endl;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*gnos)[i]=(int)tmp_answer;
+        next_pos++;
+        //cout << "B: original: next_pos=" << next_pos << endl;
+        next_pos=extract_single_parameter(next_pos,parameter);
+        retval=std_evalexpr(parameter,&tmp_answer);
+        if (retval==RETURN_SUCCESS) (*snos)[i]=(int)tmp_answer;
+        next_pos++;
+        //cout << "C: original: next_pos=" << next_pos << endl;
         //cout << "new: com-index=" << com+index << endl;
-        sscanf(com+index,"%d,%d",(*gnos)+i,(*snos)+i);
+        /// sscanf(com+index,"%d,%d",(*gnos)+i,(*snos)+i);
+        index=next_pos-com-1;
         for (j=0;j<len;j++)
         {
             if (com[j+index]==';' || com[j+index]=='}')
@@ -33992,17 +34249,98 @@ n_sets=o_n_sets=-1;
             }
         }
     }
+    next_pos++;
     index++;
-    //cout << "rest: com-index=" << com+index << endl;
+    //cout << "D: rest: next_pos=" << next_pos << endl;
 
     double d1,d2;
     int o1,o2;
 
-    sscanf(com+index,"%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lf;%lf;%lf;%s",&type,&realization,&o1,&o2,&absolute,&debug,&point_extension,&oversampling,&rno,&invr,&d1,&d2,&ripple,x_formula);
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) type=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) realization=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) o1=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) o2=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) absolute=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) debug=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) point_extension=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) oversampling=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) rno=(int)tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) invr=(int)tmp_answer;
+    next_pos++;
+
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) d1=tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) d2=tmp_answer;
+    next_pos++;
+    next_pos=extract_single_parameter(next_pos,parameter);
+    retval=std_evalexpr(parameter,&tmp_answer);
+    if (retval==RETURN_SUCCESS) ripple=tmp_answer;
+    next_pos++;
+    sscanf(next_pos,"%s",x_formula);
+
+    /// sscanf(com+index,"%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%lf;%lf;%lf;%s",&type,&realization,&o1,&o2,&absolute,&debug,&point_extension,&oversampling,&rno,&invr,&d1,&d2,&ripple,x_formula);
     x_formula[strlen(x_formula)-1]='\0';
 
     //cout << "d1=" << d1 << " o1=" << o1 << endl;
     //cout << "d2=" << d2 << " o2=" << o2 << endl;
+
+/*cout << "original sets:" << endl;
+for (i=0;i<o_n_sets;i++)
+{
+cout << "G" << (*o_gnos)[i] << ".S" << (*o_snos)[i] << endl;
+}
+cout << "target sets:" << endl;
+for (i=0;i<n_sets;i++)
+{
+cout << "G" << (*gnos)[i] << ".S" << (*snos)[i] << endl;
+}
+cout << "type= " << type << endl;
+cout << "realization= " << realization << endl;
+cout << "o1= " << o1 << endl;
+cout << "o2= " << o2 << endl;
+cout << "absolute= " << absolute << endl;
+cout << "debug= " << debug << endl;
+cout << "point_extension= " << point_extension << endl;
+cout << "oversampling= " << oversampling << endl;
+cout << "rno= " << rno << endl;
+cout << "invr= " << invr << endl;
+cout << "d1= " << d1 << endl;
+cout << "d2= " << d2 << endl;
+cout << "ripple= " << ripple << endl;
+cout << "x_formula= #" << x_formula << "#" << endl;*/
 
     limits[0]=d1;
     limits[1]=d2;

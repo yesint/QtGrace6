@@ -99,6 +99,7 @@ extern frmRegions * FormClearRegion;
 extern frmRegions * FormDefineRegion;
 extern frmExplorer * FormExplorer;
 extern frmRealTimeInputManager * FormRTIManage;
+extern frmReportOnFitParameters * FormReportFitParameters;
 
 extern frmNetCDF * FormNetCDF;
 extern frmIOForm * FormReadSets;
@@ -374,6 +375,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuTransform->addAction(actInterpolation);
     mnuTransform->addAction(actRegression);
     mnuTransform->addAction(actNonLinCurveFitting);
+    mnuTransform->addAction(actReportFitParameters);
     mnuTransform->addSeparator();
     mnuTransform->addAction(actCorrelation);
     mnuTransform->addAction(actDigitalFilter);
@@ -1812,6 +1814,18 @@ void MainWindow::NonLinCurveFitting(void)
     FormNonlinCurveFit->activateWindow();
 }
 
+void MainWindow::ReportOnFitParameters(void)
+{
+    if (FormReportFitParameters==NULL)
+    {
+        FormReportFitParameters=new frmReportOnFitParameters(this);
+    }
+    FormReportFitParameters->init();
+    FormReportFitParameters->show();
+    FormReportFitParameters->raise();
+    FormReportFitParameters->activateWindow();
+}
+
 void MainWindow::Correlation(void)
 {
     if(FormCorrelation==NULL)
@@ -2643,6 +2657,8 @@ void MainWindow::CreateActions(void)
     connect(actRegression, SIGNAL(triggered()), this, SLOT(Regression()));
     actNonLinCurveFitting= new QAction(tr("&Non-linear curve fitting..." ), this);
     connect(actNonLinCurveFitting, SIGNAL(triggered()), this, SLOT(NonLinCurveFitting()));
+    actReportFitParameters= new QAction(tr("Report on fit parameters..." ), this);
+    connect(actReportFitParameters, SIGNAL(triggered()), this, SLOT(ReportOnFitParameters()));
     actCorrelation= new QAction(tr("&Correlation/covariance..." ), this);
     connect(actCorrelation, SIGNAL(triggered()), this, SLOT(Correlation()));
     actDigitalFilter= new QAction(tr("Digital &filter..." ), this);
