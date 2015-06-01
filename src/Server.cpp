@@ -385,8 +385,9 @@ void LocalSocketIpcServer::executeTaskFromClient()
         oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
-        doPlotFit();
+        doPlotFit();        
         setScalingMode();
+        autotick_axis(get_cg(), ALL_AXES);
         noask=oldNoask_m;
         startupphase=0;
 
@@ -437,6 +438,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
         noask=true; // prevent questions
         writeDataToTmpFile();
         setScalingMode();
+        autotick_axis(get_cg(), ALL_AXES);
         noask=oldNoask_m;
         startupphase=0;
 
