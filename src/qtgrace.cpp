@@ -502,6 +502,7 @@ extern void read_INI_header(struct importSettings & imp_set,struct importSetting
 extern void read_BINARY_Header(struct importSettings & imp_set,struct importSettings & imp_schema);
 extern int postprocess_bin_import_data(struct importSettings & imp_set,int & nr_of_new_sets,int ** n_gnos,int ** n_snos);
 extern void copy_import_settings(struct importSettings * from, struct importSettings * to);
+extern void prependSetID(char * text,int leftset,int leftgraph,int rightset,int rightgraph);
 
 QStringList get_all_std_bin_format_files(void)
 {
@@ -1534,7 +1535,7 @@ IndexNewSetCommand << i_sno;
 n_gno=i_gno;
 n_sno=nextset(n_gno);
 activateset(n_gno,n_sno);
-add_point(n_gno,n_sno,0.0,0.0);
+/// add_point(n_gno,n_sno,0.0,0.0);
 SetsCreated(1,&n_gno,&n_sno,UNDO_COMPLETE);
 sprintf(s_text,"G%d.S%d",n_gno,n_sno);
 IndexNewGraphReplacement << n_gno;
@@ -1552,7 +1553,7 @@ IndexNewGraphCommand << -1;//no graph set explicitely
 IndexNewSetCommand << i_sno;
 n_sno=nextset(n_gno);
 activateset(n_gno,n_sno);
-add_point(n_gno,n_sno,0.0,0.0);
+/// add_point(n_gno,n_sno,0.0,0.0);
 SetsCreated(1,&n_gno,&n_sno,UNDO_COMPLETE);
 sprintf(s_text,"G%d.S%d",n_gno,n_sno);
 IndexNewGraphReplacement << n_gno;
@@ -1592,7 +1593,7 @@ if (n_sno==-1 || is_set_active(n_gno,n_sno)==FALSE)
 {
 n_sno=nextset(n_gno);
 activateset(n_gno,n_sno);
-add_point(n_gno,n_sno,0.0,0.0);
+/// add_point(n_gno,n_sno,0.0,0.0);
 SetsCreated(1,&n_gno,&n_sno,UNDO_COMPLETE);
 }
 sprintf(s_text,"G%d.S%d",n_gno,n_sno);
@@ -3964,6 +3965,10 @@ void UpdateAllWindowContents(void)//a "repaint"-funktion for all widgets
     {
         //Nothing to change here!
     }
+    if (FormRegionMaster)
+    {
+        FormRegionMaster->updateDecimalSeparator();
+    }
     if (FormNetCDF)
     {
         //Nothing to change here!
@@ -4791,6 +4796,74 @@ void replace_found_ids_with_new_ones(int & found_o_sets,int ** found_o_gnos,int 
     }
 }
 
+int read_id_from_text(char * text,int * gno,int * sno,int cur_graph,int cur_set)
+{
+int read_number;
+read_number=sscanf(text,"G%dN.S%dN",gno,sno);
+    if (read_number==2)
+    {
+    return RETURN_SUCCESS;
+    }
+read_number=sscanf(text,"G%d.S%dN",gno,sno);
+    if (read_number==2)
+    {
+    return RETURN_SUCCESS;
+    }
+read_number=sscanf(text,"G%d.S%d",gno,sno);
+    if (read_number==2)
+    {
+    return RETURN_SUCCESS;
+    }
+read_number=sscanf(text,"G%dN",gno);
+    if (read_number==1)
+    {
+    return RETURN_SUCCESS;
+    }
+read_number=sscanf(text,"G%d",gno);
+    if (read_number==1)
+    {
+    *sno=cur_set;
+    return RETURN_SUCCESS;
+    }
+read_number=sscanf(text,"S%dN",gno);
+    if (read_number==1)
+    {
+    return RETURN_SUCCESS;
+    }
+read_number=sscanf(text,"S%d",sno);
+    if (read_number==1)
+    {
+    *gno=cur_graph;
+    return RETURN_SUCCESS;
+    }
+return RETURN_FAILURE;
+}
+
+int read_datapoint_from_text(char * text,int * cols,Datapoint * p)
+{
+int suc=RETURN_SUCCESS;
+QString tmp_txt(text);
+char * ts=NULL;
+tmp_txt.chop(1);
+tmp_txt=tmp_txt.mid(1);
+//cout << "tmp_txt=#" << tmp_txt.toLocal8Bit().constData() << "#" << endl;
+QStringList list=tmp_txt.split(";");
+set_parser_setno(current_origin_graph,current_origin_set);
+    for (int i=0;i<(list.length()<MAX_SET_COLS?list.length():MAX_SET_COLS-1);i++)
+    {
+        if (ts!=NULL) delete[] ts;
+        ts=new char[list.at(i).length()*2+8];
+        strcpy(ts,list.at(i).toLatin1().constData());
+        //cout << "ts=" << ts << endl;
+        prependSetID(ts,current_origin_set,current_origin_graph,current_origin_set,current_origin_graph);
+        //cout << "ts after prepend=" << ts << endl;
+    if (std_evalexpr(ts,p->ex+i)==RETURN_FAILURE) suc=RETURN_FAILURE;
+    }
+*cols=list.length();
+if (ts!=NULL) delete[] ts;
+return suc;
+}
+
 int qtspecial_scanner(char * command,int * errors)
 {
     static int len,len2,pos;
@@ -4800,7 +4873,8 @@ int qtspecial_scanner(char * command,int * errors)
     char formula_arg[MAX_STRING_LENGTH];
     int retval=containsSpecialCommand(command,&parameters);
     int retval2,nr_of_replacements=0,eq_pos,extract_err;
-    QString replayed_command;
+    QString replayed_command,errormsg;
+    Datapoint dp;
 
 //cout << "New command: vorher: command=#" << command << "#" << endl;
 
@@ -4830,7 +4904,7 @@ int qtspecial_scanner(char * command,int * errors)
     int * found_n_snos=NULL;
     int type,realization,absolute,debug,point_extension,oversampling,rno,invr;
     double limits[2];
-    int orders[3];
+    int orders[4];
     char x_formula[MAX_STRING_LENGTH];
     double ripple;
 
@@ -4996,6 +5070,44 @@ int qtspecial_scanner(char * command,int * errors)
             {
             sprintf(parameters+eq_pos+1,sformat,limits[0]);
             scanner(parameters);
+            }
+        break;
+    case SPECIAL_APPEND:
+        //cout << "to append: parameters=#" << parameters << "#" << endl;
+        orders[0]=-1;
+            for (int i=0;i<strlen(parameters);i++)
+            {
+                if (parameters[i]!='{') formula_arg[i]=parameters[i];
+                else
+                {
+                formula_arg[i]='\0';
+                orders[0]=i;
+                break;
+                }
+            }
+        //cout << "to Append: id=#" << formula_arg << "#" << endl;
+        //cout << "to Append: point=#" << parameters+orders[0] << "#" << endl;
+        errormsg.clear();
+        zero_datapoint(&dp);
+            if (read_id_from_text(formula_arg,orders+1,orders+2,replace_n_gnos[0],replace_n_snos[0])==RETURN_FAILURE)
+            {
+            errormsg+=QObject::tr("Unable to read set-id from ")+QString(formula_arg)+QString("\n");
+            }
+            else
+            {
+                if (read_datapoint_from_text(parameters+orders[0],orders+3,&dp)==RETURN_FAILURE)
+                {
+                errormsg+=QObject::tr("Unable to read point data from ")+QString(parameters+orders[0])+QString("\n");
+                }
+            }
+            if (!errormsg.isEmpty())
+            {
+            errmsg(errormsg.toLocal8Bit().constData());
+            }
+            else
+            {
+            //cout << "read-id=G" << orders[1] << ".S" << orders[2] << endl;
+            add_point_at(orders[1],orders[2],getsetlength(orders[1],orders[2]),&dp);
             }
         break;
     case SPECIAL_FORMULA:
