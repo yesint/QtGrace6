@@ -369,6 +369,7 @@ typedef enum {
 #define LINE_TYPE_RIGHTSTAIR    3
 #define LINE_TYPE_SEGMENT2      4
 #define LINE_TYPE_SEGMENT3      5
+#define LINE_TYPE_SKIP_DECREASING_X 6
 
 /* baseline types */
 #define BASELINE_TYPE_0         0

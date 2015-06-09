@@ -105,6 +105,7 @@
 #define SPECIAL_USE 8
 #define SPECIAL_EXTRACT 9
 #define SPECIAL_FORMULA 10
+#define SPECIAL_APPEND 11
 
 using namespace std;
 
@@ -1472,7 +1473,7 @@ public:
     QGroupBox * grpBuildInfo;
     QGroupBox * grpHomePage;
 
-    QLabel * lblInfo[32];
+    QLabel * lblInfo[40];
     QPushButton * cmdIAdr;
     QPushButton * cmdIAdr2;
     QPushButton * cmdIAdr3;
@@ -1842,7 +1843,7 @@ class frmMasterRegionOperator_Main:public QWidget
     Q_OBJECT
 public:
     frmMasterRegionOperator_Main(QWidget * parent=0);
-    QLabel * lblTitles[5];
+    QLabel * lblTitles[6];
     QLabel * lblRegions[7];
     QComboBox * cmbType[7];
     QPushButton * cmdActive[7];
@@ -1967,6 +1968,7 @@ public:
     QVBoxLayout * layout;
 public slots:
     void init(void);
+    void updateDecimalSeparator(void);
     void doClose(void);
     void number_of_graphs_changed(void);
 };

@@ -706,6 +706,8 @@ updateRunning=true;
                     ///get_datapoint(cg,track_setno,track_loc,&nrOfUndoObj,&undo_dp);
                         if (undo_dp!=NULL) delete[] undo_dp;
                         undo_dp=new Datapoint[2];
+                        zero_datapoint(undo_dp);
+                        zero_datapoint(undo_dp+1);
                         if (undo_nrs!=NULL) delete[] undo_nrs;
                         undo_nrs=new int[2];
                         undo_nrs[1]=undo_nrs[0]=track_loc;
@@ -737,8 +739,11 @@ updateRunning=true;
                 loc = find_insert_location(cg, track_setno, vp);
                     break;
                 }
+
                 if (undo_dp!=NULL) delete[] undo_dp;
                 undo_dp=new Datapoint[2];
+                zero_datapoint(undo_dp);
+                zero_datapoint(undo_dp+1);
                 if (undo_nrs!=NULL) delete[] undo_nrs;
                 undo_nrs=new int[2];
                 undo_nrs[1]=undo_nrs[0]=loc;
@@ -748,7 +753,7 @@ updateRunning=true;
                     else
                     undo_dp[0].s=NULL;
                 DataPointEdited(cg,track_setno,&loc,1,undo_dp,0);
-                if (add_point_at(cg, track_setno, loc, &dpoint)== RETURN_SUCCESS)
+                if (add_point_at(cg, track_setno, loc, &dpoint) == RETURN_SUCCESS)
                 {
                 update_set_lists(cg);
                 mainWin->mainArea->completeRedraw();
@@ -942,11 +947,13 @@ updateRunning=true;
                 }
             load_poly_region(nr, cg, region_pts, region_wps);
                 set_action(DO_NOTHING);
-            mainWin->mainArea->completeRedraw();
                     if (FormRegionMaster!=NULL)
                     {
                     FormRegionMaster->init();
                     }
+                updateRunning=false;
+            mainWin->mainArea->completeRedraw();
+                updateRunning=true;
                 break;
             default:
                 rg[MAXREGION].active=FALSE;

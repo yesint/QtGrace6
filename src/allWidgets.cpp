@@ -827,7 +827,6 @@ void prependAllSetID(QString * text,int sno,int gno)
         pos=0;
         while (pos<str.length())
         {
-            //cout << "#" << str.toLocal8Bit().constData() << "#" << pos << "#" << tosuppl[i] << endl;
             last=pos;//last is position at beginning of search
             //we search here for X,Y,Y0,Y1,...,Y4
             pos=str.indexOf(tosuppl[i],pos);//pos is now the position of the string we search for
@@ -861,7 +860,6 @@ void prependAllSetID(QString * text,int sno,int gno)
                 }
             }
             //ok, we ignored the ones with '_' in front or after
-
             if (pos==-1)//nothing found
             {
                 last=pos=str.length()+1;//nothing found-->set current position to the end of the string
@@ -887,6 +885,7 @@ void prependAllSetID(QString * text,int sno,int gno)
                     }
                     if (p1==-1)//expression not found --> no id at all
                     {
+                        //cout << "expression found at#" << str.mid(pos).toLatin1().constData() << "#" << endl;
                         c1='\0';
                         if (pos>0)//there are characters in front
                         {
@@ -6079,6 +6078,9 @@ frmCommands::frmCommands(QWidget * parent):QDialog(parent)
     cmbSpecial->addItem("Create new Set");
     cmbSpecial->addItem("Extract feature");
     cmbSpecial->addItem("Special formula");
+    cmbSpecial->addItem("Append data point");
+    cmbSpecial->addItem("Filter");
+    cmbSpecial->addItem("Regression");
 
     cmbSpecial2=new QComboBox(this);
     cmbSpecial2->addItem(tr("---"));
@@ -6651,6 +6653,11 @@ void frmCommands::doReplayWithReplace(void)
             else
             replace_n_snos[0]=destSets[jj];
 
+        current_origin_set=replace_o_snos[0];
+        current_origin_graph=replace_o_gnos[0];
+        current_target_set=replace_n_snos[0];
+        current_target_graph=replace_n_gnos[0];
+
         for (i = 0; i < hc; i++)//do every command in the list
         {
             //lwid=list->item(i);
@@ -6834,7 +6841,7 @@ void frmCommands::doInsertSpecial(void)
     int nr=cmbSpecial->currentIndex();
     if (nr==0) return;
     int n_set;
-    cout << "inserting" << endl;
+//cout << "inserting" << endl;
     switch (nr)
     {
     case 1://"Add last Formula"
@@ -6959,6 +6966,15 @@ void frmCommands::doInsertSpecial(void)
                 newCommand+=QString("X_VALUE_CROSSING(0.0)");
                 break;
             }
+        break;
+    case 15://"APPEND New Point"
+        newCommand+=QString("APPEND G0.S0{0.0;0.0}");
+        break;
+    case 16://"Filter"
+        newCommand+=QString("FILTER_SET <nr_of_source_sets>,<nr_of_target_sets>{<first_source_graph>,<first_source_set>;<second_source_graph>,<second_source_set>;...}{<first_destination_graph>,<first_destination_set>;...}{<type>;<realization>;<order_first_cutoff>;<order_second_cutoff>;<absolute_values>;<debug>;<point_extension>;<oversampling>;<region_nr>;<negate_region>;<first_frequency(Hz)>;<second_frequency(Hz)>;<chebychev_ripples(dB)>;<x_transformation_formula>}");
+        break;
+    case 17://"Regression"
+        newCommand+=QString("REGRESSION <nr_of_source_sets>,<nr_of_target_sets>{<first_source_graph>,<first_source_set>;<second_source_graph>,<second_source_set>;...}{<Type_of_fit>,<restriction>,<invert_region>,<nr_of_points>,<Load>,<start>,<stop>,<x_$t_formula>}");
         break;
     case 0://"None"
 defaut:
@@ -12942,11 +12958,13 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     layout1=new QVBoxLayout;
     layout1->setMargin(STD_MARGIN);
     layout1->setSpacing(STD_SPACING);
-    lblInfo[index++]=new QLabel(tr("Copyright (c) 1991-1995 Paul J Turner"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("Copyright (c) 1996-2008 Grace Development Team"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("Maintained by Evgeny Stambulchik"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("QtGrace by Andreas Winter, 2008-2015"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("Additional code by Vadim Engelson and Nimalendiran Kailasanathan from Wolfram MathCore AB"),grpLegal);
+    lblInfo[index++]=new QLabel(QString(bi_version_string())+QString(":"),grpLegal);
+    lblInfo[index++]=new QLabel(tr("      Copyright (c) 1991-1995 Paul J Turner"),grpLegal);
+    lblInfo[index++]=new QLabel(tr("      Copyright (c) 1996-2008 Grace Development Team"),grpLegal);
+    lblInfo[index++]=new QLabel(tr("      Maintained by Evgeny Stambulchik"),grpLegal);
+    lblInfo[index++]=new QLabel(tr("QtGrace:"),grpLegal);
+    lblInfo[index++]=new QLabel(tr("      Copyright (c) 2008-2015 Andreas Winter"),grpLegal);
+    lblInfo[index++]=new QLabel(tr("      Additional code by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB"),grpLegal);
     lblInfo[index++]=new QLabel(tr("All rights reserved"),grpLegal);
     lblInfo[index++]=new QLabel(tr("The program is distributed under the terms of the GNU General Public License"),grpLegal);
     e_index=index;
@@ -16285,6 +16303,8 @@ regionChanged(0);
 
 void frmMasterRegionOperator_Edit::regionChanged(int re)
 {
+char dummy23[GR_MAXPATHLEN];
+QString dsp_text;
     regType->setText(regtypes[rg[re].type]);
 if (nr_of_lines>0)
 {
@@ -16320,8 +16340,16 @@ ledCoords[1]=new QLineEdit*[nr_of_lines];
         lblCoords[i]=new QLabel(QString::number(i)+QString(":"),Empty);
         if (rg[re].type==REGION_POLYI || rg[re].type==REGION_POLYO)
         {
-        ledCoords[0][i]=new QLineEdit(QString::number(rg[re].x[i]),Empty);
-        ledCoords[1][i]=new QLineEdit(QString::number(rg[re].y[i]),Empty);
+        sprintf(dummy23,sformat,rg[re].x[i]);
+        dsp_text=QString(dummy23);
+        if (DecimalPointToUse!='.') dsp_text.replace(QString("."),QString(DecimalPointToUse));
+        ledCoords[0][i]=new QLineEdit(dsp_text,Empty);
+        sprintf(dummy23,sformat,rg[re].y[i]);
+        dsp_text=QString(dummy23);
+        if (DecimalPointToUse!='.') dsp_text.replace(QString("."),QString(DecimalPointToUse));
+        ledCoords[1][i]=new QLineEdit(dsp_text,Empty);
+        //ledCoords[0][i]=new QLineEdit(QString::number(rg[re].x[i]),Empty);
+        //ledCoords[1][i]=new QLineEdit(QString::number(rg[re].y[i]),Empty);
         }
         else
         {
@@ -16874,13 +16902,11 @@ tab_Main=new frmMasterRegionOperator_Main(this);
 tab_Style=new frmMasterRegionOperator_Style(this);
 tab_Edit=new frmMasterRegionOperator_Edit(this);
 tab_Operations=new frmMasterRegionOperator_Operations(this);
-
     tabs=new QTabWidget(this);
     tabs->addTab(tab_Main,tr("Main"));
     tabs->addTab(tab_Style,tr("Appearance"));
     tabs->addTab(tab_Edit,tr("Edit"));
     tabs->addTab(tab_Operations,tr("Operations"));
-
 connect(tab_Main,SIGNAL(closeWish()),SLOT(doClose()));
 connect(tab_Style,SIGNAL(closeWish()),SLOT(doClose()));
 connect(tab_Edit,SIGNAL(closeWish()),SLOT(doClose()));
@@ -16899,6 +16925,17 @@ tab_Main->init();
 tab_Style->init();
 tab_Edit->init();
 tab_Operations->init();
+updateDecimalSeparator();
+}
+
+void frmMasterRegionOperator::updateDecimalSeparator(void)
+{
+QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
+    for (int i=0;i<MAXREGION;i++)
+    {
+    tab_Style->selWidth[i]->spnLineWidth->setLocale(newLocale);
+    }
+tab_Edit->regionChanged(tab_Edit->selRegion->currentIndex());
 }
 
 void frmMasterRegionOperator::doClose(void)
@@ -16930,7 +16967,8 @@ layout=new QGridLayout();
 layout->setMargin(STD_MARGIN);
 layout->setSpacing(STD_SPACING);
 for (int i=0;i<6;i++)
-lblTitles[i]=new QLabel(this);
+lblTitles[i]=new QLabel(QString("_"),this);
+
 lblTitles[0]->setText(tr("Region"));
 lblTitles[1]->setText(tr("Graph"));
 lblTitles[2]->setText(tr("Active"));
@@ -16943,6 +16981,7 @@ layout->addWidget(lblTitles[2],0,2,1,1,Qt::AlignCenter);
 layout->addWidget(lblTitles[3],0,3,1,1,Qt::AlignCenter);
 layout->addWidget(lblTitles[4],0,4,1,2,Qt::AlignCenter);
 layout->addWidget(lblTitles[5],0,5,1,2,Qt::AlignCenter);
+
 for (int i=0;i<7;i++)
 {
 lblRegions[i]=new QLabel(QString::number(i),this);
@@ -16974,6 +17013,7 @@ cmdReportPoints[i]=new QPushButton(tr("Points"),this);
     mapReportPoints->setMapping(cmdReportPoints[i],i);
 layout->addWidget(cmdReportPoints[i],1+i,6,1,1,Qt::AlignCenter);
 }
+
 lblRegions[MAXREGION]->setText(tr("Inside World"));
 lblRegions[MAXREGION+1]->setText(tr("Outside World"));
 
@@ -20780,7 +20820,8 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     entr[3]=tr("Right stairs");
     entr[4]=tr("Segments");
     entr[5]=tr("3-Segments");
-    number=6;
+    entr[6]=tr("Skip decreasing X");
+    number=7;
     cmbLineType=new StdSelector(fraLineProp,tr("Type:"),number,entr);
     layout2->addWidget(cmbLineType);
     cmbLineStyle=new LineStyleSelector(fraLineProp);
@@ -33894,6 +33935,8 @@ int containsSpecialCommand(char * com,char ** parameters)
         return SPECIAL_EXTRACT;
     else if ( strcmp(operand,"FORMULA") == 0 )
         return SPECIAL_FORMULA;
+    else if ( strcmp(operand,"APPEND") == 0 )
+        return SPECIAL_APPEND;
     else
         return SPECIAL_NONE;
 }
@@ -33902,9 +33945,7 @@ int ParseExtractCommand(char * com,char * arg)
 {
 int brakets,endpos;
 arg[0]=arg[1]=arg[2]='\0';
-
-cout << "ParseExtractCommand: com=#" << com << "#" << endl;
-
+//cout << "ParseExtractCommand: com=#" << com << "#" << endl;
     if (strncmp(com,"MEDIAN",6)==0)
     {
         brakets=1;
