@@ -630,31 +630,31 @@ fpath=fpath.left(point_pos+1)+n_suffix;
 }
 }
 
-void copy_std_settings_to_current_bin_import(char * filename,int std_format_nr,bool is_header)
+void copy_bin_settings_to_current_bin_import(char * filename,bool is_header,importSettings * imp_set)
 {
 initSettings(current_bin_import_settings);//clear settings
-copy_import_settings(std_bin_import_settings+std_format_nr,&current_bin_import_settings);//copy settings from std-bin-format to current settings
-if (std_bin_import_settings[std_format_nr].header_present)//there should be a header
+copy_import_settings(imp_set,&current_bin_import_settings);//copy settings from imp_set to current settings
+if (imp_set->header_present)//there should be a header
 {
-    if (std_bin_import_settings[std_format_nr].header_format==1)//header in same file as bin-data
+    if (imp_set->header_format==1)//header in same file as bin-data
     {
     current_bin_import_settings.DataFile=QString(filename);
     current_bin_import_settings.HeaderFile=current_bin_import_settings.DataFile;
     }
     else
     {
-    if (is_header==false)
-    {
-    current_bin_import_settings.DataFile=QString(filename);
-    current_bin_import_settings.HeaderFile=current_bin_import_settings.DataFile;
-    replaceSuffix(current_bin_import_settings.HeaderFile,std_bin_import_settings[std_format_nr].HeaderSuffix);
-    }
-    else
-    {
-    current_bin_import_settings.HeaderFile=QString(filename);
-    current_bin_import_settings.DataFile=current_bin_import_settings.HeaderFile;
-    replaceSuffix(current_bin_import_settings.DataFile,std_bin_import_settings[std_format_nr].DataSuffix);
-    }
+        if (is_header==false)
+        {
+        current_bin_import_settings.DataFile=QString(filename);
+        current_bin_import_settings.HeaderFile=current_bin_import_settings.DataFile;
+        replaceSuffix(current_bin_import_settings.HeaderFile,imp_set->HeaderSuffix);
+        }
+        else
+        {
+        current_bin_import_settings.HeaderFile=QString(filename);
+        current_bin_import_settings.DataFile=current_bin_import_settings.HeaderFile;
+        replaceSuffix(current_bin_import_settings.DataFile,imp_set->DataSuffix);
+        }
     }
 }
 else//no header
@@ -663,26 +663,35 @@ current_bin_import_settings.DataFile=QString(filename);
 current_bin_import_settings.HeaderFile=QString("");
 }
 
+cout << "current_bin_import: data=#" << current_bin_import_settings.DataFile.toLocal8Bit().constData() << "#" << endl;
+cout << "current_bin_import: header=#" << current_bin_import_settings.HeaderFile.toLocal8Bit().constData() << "#" << endl;
+
 if (current_bin_import_settings.header_present)
 {
     if (current_bin_import_settings.header_format==HEADER_FORMAT_INI_FILE)//ini-File
     {
-    read_INI_header(current_bin_import_settings,std_bin_import_settings[std_format_nr]);
+    read_INI_header(current_bin_import_settings,*imp_set);
     }
     else if (current_bin_import_settings.header_format==HEADER_FORMAT_DATA_FILE)//binary-header in bin-file
     {
-    read_BINARY_Header(current_bin_import_settings,std_bin_import_settings[std_format_nr]);
+    read_BINARY_Header(current_bin_import_settings,*imp_set);
     }
     else if (current_bin_import_settings.header_format==HEADER_FORMAT_ASCII_FILE)//ascii-header-file
     {
 
     }
 }
-cout << "std=" << std_bin_import_settings[std_format_nr].nr_of_header_values << " current=" << current_bin_import_settings.nr_of_header_values << endl;
-cout << "import_format=" << std_bin_import_settings[std_format_nr].channel_format[0] << "-->" << binaryImportFormatName[std_bin_import_settings[std_format_nr].channel_format[0]] << endl;
+cout << "std=" << imp_set->nr_of_header_values << " current=" << current_bin_import_settings.nr_of_header_values << endl;
+cout << "import_format=" << imp_set->channel_format[0] << "-->" << binaryImportFormatName[imp_set->channel_format[0]] << endl;
 
 //now we should begin reading...
 }
+
+void copy_std_settings_to_current_bin_import(char * filename,int std_format_nr,bool is_header)
+{
+copy_bin_settings_to_current_bin_import(filename,is_header,std_bin_import_settings+std_format_nr);
+}
+
 /*
 void read_std_bin_file(char * filename,int std_format_nr,bool is_header,bool halt_autoscale)
 {//read the data from a std-binary-file (read header and data according to the schema set as std)
@@ -4023,6 +4032,7 @@ void UpdateAllWindowContents(void)//a "repaint"-funktion for all widgets
     }
     if (FormBinaryImportFilter)
     {
+        FormBinaryImportFilter->tabDataInfo->selTriggerValue->spnLineWidth->setLocale(newLocale);
         //Nothing to change here!
     }
     if (FormEditBlockData)
@@ -4238,6 +4248,11 @@ cout << endl;
         else if (guess_bin_format(filename,std_schema_nr,is_header_file)==RETURN_SUCCESS)//look for a std binary format
         {
         copy_std_settings_to_current_bin_import(filename,std_schema_nr,is_header_file);
+
+/*Start Test*/
+SaveFileFormat("/Users/andreaswinter/akt_bin_settings_auto.fmt",current_bin_import_settings);
+/*ENDE Test*/
+
             if (i==urls.length()-1)//last file --> allow autoscale, but no replot (stop_repaint=TRUE; prevents replot)
             {
             //read_std_bin_file(filename,std_schema_nr,is_header_file,false);

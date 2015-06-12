@@ -331,6 +331,7 @@ extern char binaryImportFormatName[NUMBER_OF_COLUMN_FORMATS][32];
 extern int ImportDestination[NUMBER_OF_IMPORT_DESTINATIONS];
 extern char ImportDestinationName[NUMBER_OF_IMPORT_DESTINATIONS][32];
 extern signed char ImportDestinationType[NUMBER_OF_IMPORT_DESTINATIONS];
+extern void copy_bin_settings_to_current_bin_import(char * filename,bool is_header,importSettings * imp_set);
 extern int openPipe(char * pname,int * fd);
 extern void update_font_selectors(bool appearance);
 extern int get_QtFontID_from_Grace_Name(char * name,int whatlist);
@@ -8693,7 +8694,8 @@ int millisec=st1.restart();
 if (millisec<500) ret_val1=printDialog->exec();
 */
 
-printDialog->setModal(true);
+printDialog->setModal(false);
+
 connect(printDialog,SIGNAL(accepted(QPrinter *)),SLOT(printerAccepted(QPrinter *)));
 connect(printDialog,SIGNAL(rejected()),SLOT(printerRejected()));
 
@@ -8702,6 +8704,9 @@ cout << "nach new PrintDialog" << endl;
 //if (printDialog->exec() == QDialog::Accepted)
 
 printDialog->show();
+printDialog->raise();
+printDialog->activateWindow();
+qApp->processEvents();
 //printDialog->open(this,SLOT(printerAccepted(QPrinter*)));
 
 return true;
@@ -20820,8 +20825,9 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     entr[3]=tr("Right stairs");
     entr[4]=tr("Segments");
     entr[5]=tr("3-Segments");
-    entr[6]=tr("Skip decreasing X");
-    number=7;
+    entr[6]=tr("Increasing X only");
+    entr[7]=tr("Decreasing X only");
+    number=8;
     cmbLineType=new StdSelector(fraLineProp,tr("Type:"),number,entr);
     layout2->addWidget(cmbLineType);
     cmbLineStyle=new LineStyleSelector(fraLineProp);
@@ -26610,8 +26616,26 @@ void inputIniData::setData(struct importSettings & imp_set)
     for (int i=0;i<lines;i++)
     {
     imp_set.import_channel_dest << cmbChannel[i]->currentIndex()-1;
+    cout << "channel_dest=" << imp_set.import_channel_dest.at(i) << endl;
     imp_set.import_dest << datas.at(cmbImportTo[i]->currentIndex());
     }
+    if (imp_set.token_target!=NULL) delete[] imp_set.token_target;
+    imp_set.token_target=new int[imp_set.import_dest.length()];
+        for (int i=0;i<imp_set.import_dest.length();i++)
+        {
+        imp_set.token_target[i]=imp_set.import_dest.at(i);
+        cout << i << ": token target=" << imp_set.token_target[i] << endl;
+        }
+    for (int i=0;i<imp_set.keys.length();i++)
+    {
+    cout << i << ": key=" << imp_set.keys.at(i).toLocal8Bit().constData() << endl;
+    }
+    /*for (int i=0;i<imp_set.keys.length();i++)
+    {
+    imp_set.import_channel_dest.at(i)
+    imp_set.keys.at(i).toLocal8Bit().constData()
+    ImportDestinationName[imp_set.token_target[i]]
+    }*/
 }
 
 pageHeaderInfo::pageHeaderInfo(QWidget * parent):QWidget(parent)
@@ -26741,7 +26765,7 @@ QStringList val3;
 QSettings settings(ini_file,QSettings::IniFormat);
 keys.clear();
 vals.clear();
-import_channels.clear();
+//import_channels.clear();
 keys=settings.allKeys();
     for (int i=0;i<keys.length();i++)
     {
@@ -26761,7 +26785,7 @@ keys=settings.allKeys();
         tval=QObject::tr("unidentified");
         }
     vals << tval;
-    import_channels << -1;//none
+    //import_channels << -1;//none
     }
 }
 
@@ -26853,6 +26877,7 @@ int counter;
 imp_set.header_present=par_wid->chkHeader->isChecked();
 imp_set.multiple_header_files=par_wid->chkMultiHeaders->isChecked();
 int val=lenEndChar->text().toInt();
+
 imp_set.string_end_char=(char)val;
 if (par_wid->cmbFormatSource->currentIndex()==0)//manual
 imp_set.header_format=0;
@@ -26860,6 +26885,7 @@ else if (par_wid->cmbFormatSource->currentIndex()==1)//header in data file
 imp_set.header_format=1;
 else
 imp_set.header_format=2+par_wid->cmbHeaderFileFormat->currentIndex();
+
     if (par_wid->cmbHeaderFileFormat->currentIndex()==0)//binary header information
     {
     imp_set.nr_of_header_values=number_of_lines;
@@ -26893,6 +26919,7 @@ imp_set.header_format=2+par_wid->cmbHeaderFileFormat->currentIndex();
             }
         }
     imp_set.nr_of_import_tokens=imp_set.keys.length();*/
+    cout << "read header settings: ini header" << endl;
         iniDataGroup->setData(imp_set);
     }
     else//ascii header
@@ -27971,6 +27998,7 @@ void LoadFileFormat(char * fname,struct importSettings & imp_set)
             if (imp_set.token_target!=NULL) delete[] imp_set.token_target;
             imp_set.token_target=new int[imp_set.nr_of_import_tokens];
             }
+        imp_set.import_dest.clear();
         for (int i=0;i<imp_set.nr_of_import_tokens;i++)
         {
         ifi.getline(dummy2,512);
@@ -27991,6 +28019,7 @@ void LoadFileFormat(char * fname,struct importSettings & imp_set)
 ///cout << "Val=#" << imp_set.vals.last().toLocal8Bit().constData() << "#" << endl;
 ///cout << "Channel=#" << imp_set.import_channel_dest.last() << "#" << endl;
         imp_set.token_target[i]=find_import_destination(imp_set.vals.last().toLocal8Bit().data(),1);
+        imp_set.import_dest << imp_set.token_target[i];
         }
     }
     ifi.close();
@@ -28020,7 +28049,7 @@ void SaveFileFormat(char * fname,struct importSettings & imp_set)
     else
     {
     ofi << "Format_Source= " << 2 << endl;//cmbFormatSource->currentIndex()
-    ofi << "Header_Format= " << imp_set.header_format << endl;//cmbHeaderFileFormat->currentIndex()
+    ofi << "Header_Format= " << imp_set.header_format-2 << endl;//cmbHeaderFileFormat->currentIndex()
     }
     //strcpy(dummy,tabHeader->lenEndChar->text().toLocal8Bit());
     ofi << "Line_End_Char(ASCII)= " << (int)(imp_set.string_end_char) << endl;
@@ -28035,8 +28064,8 @@ void SaveFileFormat(char * fname,struct importSettings & imp_set)
     ofi << "ChannelCount= " << imp_set.channels << endl;//tabDataInfo->spnChannelCount->value()
     ofi << "NrOfDataSets= " << imp_set.points << endl;//tabDataInfo->spnDataSetCount->value()
     ofi << "SetOrderingInFile= " << imp_set.setorder << endl;//tabDataInfo->selOrder->currentIndex()
-    ofi << "Trigger_Type= " << imp_set.triggervalue << endl;//tabDataInfo->selTriggerType->currentIndex()
-    ofi << "Trigger_Value= " << imp_set.trigger_type << endl;//tabDataInfo->selTriggerValue->value()
+    ofi << "Trigger_Type= " << imp_set.trigger_type << endl;//tabDataInfo->selTriggerType->currentIndex()
+    ofi << "Trigger_Value= " << imp_set.triggervalue << endl;//tabDataInfo->selTriggerValue->value()
     ofi << "Bin_Input_Definition_Length= " << imp_set.channels << endl;//tabDataInfo->number_of_lines
     for (int i=0;i<imp_set.channels;i++)//tabDataInfo->number_of_lines;i++)
     {
@@ -28066,7 +28095,9 @@ for (int i=0;i<tabHeader->nr_of_sels;i++)
 */
     for (int i=0;i<imp_set.keys.length();i++)
     {
-        ofi << imp_set.import_channel_dest.at(i) << " " << imp_set.keys.at(i).toLocal8Bit().constData() << " = \"" << ImportDestinationName[imp_set.token_target[i]] << "\"" << endl;
+    //cout << "imp_set.token_target[" << i << "]=#" << imp_set.token_target[i] << "# imp_set.import_dest=" << imp_set.import_dest.at(i) << endl;
+    //ofi << imp_set.import_channel_dest.at(i) << " " << imp_set.keys.at(i).toLocal8Bit().constData() << " = \"" << ImportDestinationName[imp_set.token_target[i]] << "\"" << endl;
+    ofi << imp_set.import_channel_dest.at(i) << " " << imp_set.keys.at(i).toLocal8Bit().constData() << " = \"" << ImportDestinationName[imp_set.import_dest.at(i)] << "\"" << endl;
     }
     ofi.close();
 
@@ -28210,6 +28241,8 @@ void frmBinaryFormatInput::formatSourceChanged(int i)
 
 void frmBinaryFormatInput::init(void)
 {
+    QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
+    tabDataInfo->selTriggerValue->spnLineWidth->setLocale(newLocale);
     update_all();
     int nr=1,*sel=new int[2];
     sel[0]=get_cg();
@@ -28230,7 +28263,7 @@ void frmBinaryFormatInput::doOK(void)
     QString set_identifier;
     char set_identifier_string[MAX_STRING_LENGTH];
     ifstream ifi;
-
+cout << "binImportFilter: OK" << endl;
     determine_string_size=false;
     tabImportInfo->importGraph->get_selection(&nr_sel,&selection);
     if (nr_sel!=1)
@@ -28245,10 +28278,14 @@ void frmBinaryFormatInput::doOK(void)
         target_gno=selection[0];
 
         ///Undo-Stuff
-        SaveSetStatesPrevious(0,selection,selection,UNDO_COMPLETE);//all sets will be new --> no previous sets --> 0
+        /// SaveSetStatesPrevious(0,selection,selection,UNDO_COMPLETE);//all sets will be new --> no previous sets --> 0
 
+cout << "Start reading header" << endl;
         auto_transfer_from_header=false;
         readHeader();
+cout << "Finished reading header" << endl;
+
+for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
 
         if (datFileName[0]=='\0')
         {
@@ -28257,12 +28294,12 @@ void frmBinaryFormatInput::doOK(void)
             return;
         }
 
-        tabDataInfo->readDataSettings(imp_set);
+tabDataInfo->readDataSettings(imp_set);
 
         imp_set.contains_trigger=false;
         for (int i=0;i<imp_set.channels;i++)
         {
-            //cout << "i=" << i << " target=" << imp_set.channel_target[i] << endl;
+            cout << "i=" << i << " target=" << imp_set.channel_target[i] << endl;
             if (imp_set.channel_target[i]==IMPORT_TO_TRIGGER)
             {
                 imp_set.contains_trigger=true;
@@ -28281,7 +28318,7 @@ void frmBinaryFormatInput::doOK(void)
         {
             strcpy(datFileName,datFileNames.at(kkk).toLocal8Bit().constData());
             strcpy(headerFileName,headerFileNames.at(kkk).toLocal8Bit().constData());
-            cout << "File=#" << datFileName << "# Header=" << headerFileName << endl;
+            cout << "File=#" << datFileName << "# Header=#" << headerFileName << "#" << endl;
             QFileInfo FilInf(datFileName);
             set_identifier=FilInf.fileName();//QString(datFileName);
             cout << "name only=#" << set_identifier.toLatin1().constData() << "#" << endl;
@@ -28340,6 +28377,29 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
                 ifi.open(datFileName, ios::binary );
                 //ifi.seekg(0,ios_base::beg);
             }
+            cout << "about to save settings" << endl;
+/*Start Test*/
+SaveFileFormat("/Users/andreaswinter/akt_bin_settings.fmt",imp_set);
+/*ENDE Test*/
+            cout << "settings saved" << endl;
+
+            ifi.close();
+
+            if (imp_set.token_target) delete[] imp_set.token_target;
+            imp_set.token_target=new int[imp_set.vals.length()+2];
+            for (int lll=0;lll<imp_set.vals.length();lll++)
+            {
+            imp_set.vals.replace(lll,QString(ImportDestinationName[imp_set.import_dest.at(lll)]));
+            imp_set.token_target[lll]=find_import_destination(imp_set.vals.at(lll).toLocal8Bit().data(),1);
+            }
+
+            copy_bin_settings_to_current_bin_import(datFileName,false,&imp_set);
+            if (kkk<datFileNames.length()-1)
+            read_bin_file_by_current_settings(true);
+            else
+            read_bin_file_by_current_settings(false);
+
+            continue;/// loop ends here
 
             //if header is part of the file, then the header is already read here --> we are at the beginning of the data-stream now
             readBinaryFromFile(ifi,imp_set,&imp_set.first_data);//does the actual read operations --> now we have to enter the data into the sets
@@ -28582,36 +28642,38 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
 
         }//end for(all files to import)
 
+cout << "AFTER ALL-FILES-LOOP" << endl;
+
         auto_transfer_from_header=true;
 
         //Undo-Stuff
         ///SetImportBinaryData(target_gno, setno,datFileName,&imp_set);
         ///SetsModified(1,&target_gno,&setno,UNDO_COMPLETE);
         //SetsModified(max_nr_of_sets,gnos,snos,UNDO_COMPLETE);//INFORMATION FOR BINARY IMPORT NOT INCLUDED IN UNDO! WARNING!
-        SetsModified(collect_nr_of_sets,col_gnos,col_snos,UNDO_COMPLETE);
+        /// SetsModified(collect_nr_of_sets,col_gnos,col_snos,UNDO_COMPLETE);
 
         //char dummy[1024];
         if (collect_nr_of_sets==1)//max_nr_of_sets==1)
         {
             sprintf(dummy,"[G%d.S%d]",col_gnos[0],col_snos[0]);
-            addAditionalDescriptionToLastNode(-1,QObject::tr("Binary data import --> ")+QString(dummy),QString(),0);
+            /// addAditionalDescriptionToLastNode(-1,QObject::tr("Binary data import --> ")+QString(dummy),QString(),0);
         }
         else
         {
-            addAditionalDescriptionToLastNode(-1,QObject::tr("Binary data import"),QString(),0);
+            /// addAditionalDescriptionToLastNode(-1,QObject::tr("Binary data import"),QString(),0);
         }
         ret=imp_set.autoscale;//tabImportInfo->selAutoscale->currentValue();
-        if (ret!=AUTOSCALE_NONE)
+        /*if (ret!=AUTOSCALE_NONE)
         {
         ListOfChanges.clear();
             //Undo-Stuff
-            SaveTickmarksStatesPrevious(X_AXIS,Y_AXIS,col_gnos[0],col_gnos[0]);
+            /// SaveTickmarksStatesPrevious(X_AXIS,Y_AXIS,col_gnos[0],col_gnos[0]);
         autoscale_graph(target_gno,ret);
             //Undo-Stuff
-            TickmarksModified(X_AXIS,Y_AXIS,col_gnos[0],col_gnos[0]);
+            /// TickmarksModified(X_AXIS,Y_AXIS,col_gnos[0],col_gnos[0]);
             addAditionalDescriptionToLastNode(-1,tr("Autoscale after binary import"),QString(),0);
         ListOfChanges.clear();
-        }
+        }*/
     }//end of 'there has really been a graph selected for import'
 
     convert_all_strings_from_encoding_to_UTF8();
@@ -28703,6 +28765,8 @@ cout << "DataSuffix   = " << Data_Suffix.toLocal8Bit().constData() << endl;
 cout << "DataPath     = " << Data_Path.toLocal8Bit().constData() << endl;
 //datFileNames.clear();
 //headerFileNames.clear();
+        imp_set.HeaderSuffix=HeaderSuffix;
+        imp_set.DataSuffix=Data_Suffix;
     if (nr_of_headerfiles!=nr_of_datafiles && imp_set.multiple_header_files==true)//not matching number of headerfiles, but there should be as many headers as data files
     {
         if (imp_set.header_format==HEADER_FORMAT_DATA_FILE || imp_set.header_format==HEADER_FORMAT_MANUAL)//header in data file or no header at all
@@ -28778,6 +28842,10 @@ headerFileNames.clear();
     }
     else if (cmbFormatSource->currentIndex()==2)//header in separate file
     {
+        tabHeader->read_header_settings(imp_set);
+        cout << "nach read_header_settings" << endl;
+        for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
+
         if (!lenHeaderFile->text().isEmpty())
         {
         //strcpy(headerFileName,lenHeaderFile->text().toLocal8Bit());
@@ -28793,8 +28861,13 @@ headerFileNames.clear();
         if (cmbHeaderFileFormat->currentIndex()==1) imp_set.header_format=HEADER_FORMAT_INI_FILE;
         else if (cmbHeaderFileFormat->currentIndex()==2) imp_set.header_format=HEADER_FORMAT_ASCII_FILE;
     }
+    cout << "vor check Headers and dat files" << endl;
+    for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
 
 CheckHeadersAndDatFiles();//to complete filenames and check completeness of informations
+
+    cout << "nach check Headers and dat files" << endl;
+    for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
 
     if (headerFileName[0]!='\0')
     {
@@ -28805,12 +28878,17 @@ CheckHeadersAndDatFiles();//to complete filenames and check completeness of info
             ifi.open(headerFileName);
         //read data from header to imp_set
         doReadDataFromHeader(ifi,imp_set);
+
+        cout << "nach doReadDataFromHeader" << endl;
+        for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
+
+
         //read a few datapoints for showing
         //cout << "channels=" << imp_set.channels << " bytes=" << imp_set.bytesize << " bits=" << imp_set.bitsize << " suggestion=" << first_suggestion << endl;
         if (imp_set.channels>0 && (imp_set.bytesize!=-1 || imp_set.bitsize!=-1))
         {
             int sav_points=imp_set.points;
-            imp_set.points=10;
+            imp_set.points=(imp_set.points<10?imp_set.points:10);
             imp_set.channel_target=new int[imp_set.channels];
             imp_set.channel_size=new int[imp_set.channels];
             imp_set.channel_format=new int[imp_set.channels];
@@ -28820,6 +28898,8 @@ CheckHeadersAndDatFiles();//to complete filenames and check completeness of info
                 imp_set.channel_size[i]=imp_set.bytesize!=-1?imp_set.bytesize:imp_set.bitsize/8;
                 imp_set.channel_format[i]=first_suggestion;
             }
+            ifi.close();
+            ifi.open(imp_set.DataFile.toLocal8Bit().constData(),ios::binary);
             readBinaryFromFile(ifi,imp_set,&imp_set.first_data);
             imp_set.points=sav_points;
         }
@@ -28828,6 +28908,9 @@ CheckHeadersAndDatFiles();//to complete filenames and check completeness of info
             imp_set.first_data=NULL;
         }
         ifi.close();
+
+        cout << "nach BBBB" << endl;
+        for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
 
         if (imp_set.x0set==true && imp_set.deltaxset==false && imp_set.fset==false)
         {
@@ -29295,7 +29378,7 @@ void read_ASCII_Header(struct importSettings & imp_set)//imp_set should contain 
 
 }
 
-void compare_INI_setttings_with_schema(struct importSettings & imp_set,struct importSettings & imp_schema)
+void compare_INI_settings_with_schema(struct importSettings & imp_set,struct importSettings & imp_schema)
 {
 //look for the imp_set-settings in the schema to match it with the import-destinations
     imp_set.import_dest.clear();
@@ -29361,7 +29444,7 @@ for (int i=0;i<imp_set.keys.length();i++)
 cout << "#" << imp_set.keys.at(i).toLocal8Bit().constData() << "#-->#" << imp_set.vals.at(i).toLocal8Bit().constData() << "#" << endl;
 }
 
-compare_INI_setttings_with_schema(imp_set,imp_schema);
+compare_INI_settings_with_schema(imp_set,imp_schema);
 
 char tmp_target_name[1024];
 

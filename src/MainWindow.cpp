@@ -1331,6 +1331,7 @@ ret=FormDeviceSetup->openNativePrinter(DEVICE_PDF);
     {
     cout << "native printing aborted" << endl;
     }
+qApp->processEvents();
 }
 
 void MainWindow::PrintToFile(void)

@@ -3033,7 +3033,16 @@ memcpy(nn->id[0],nrs,sizeof(int)*len);
 Datapoint * ps=new Datapoint[2*len];
     for (int i=0;i<len;i++)
     {
-    copy_Datapoint(gno,sno,nrs[i],ps+i);//save old/new datapoints in first len Datapoints
+        if (type==0)//new point, nothing to copy from set here (because the point is usually not added yet)
+        {
+            memcpy(ps+i,p+i,sizeof(Datapoint));
+            if (p[i].s!=NULL)
+            ps[i].s=copy_string(NULL,p[i].s);
+        }
+        else
+        {
+        copy_Datapoint(gno,sno,nrs[i],ps+i);//save old/new datapoints in first len Datapoints
+        }
     zero_datapoint(ps+i+len);//initialize the second half of the memory
     }
     if (type==0)
@@ -3050,7 +3059,7 @@ Datapoint * ps=new Datapoint[2*len];
         for (int i=0;i<len;i++)
         {
         memcpy(ps+i+len,p+i,sizeof(Datapoint));
-        if (p->s!=NULL)
+        if (p[i].s!=NULL)
         ps[i+len].s=copy_string(NULL,p[i].s);
         }
     }

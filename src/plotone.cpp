@@ -1877,6 +1877,8 @@ void drawsetfill(int gno, int setno, plotarr *p,
     case LINE_TYPE_STRAIGHT:
     case LINE_TYPE_SEGMENT2:
     case LINE_TYPE_SEGMENT3:
+    case LINE_TYPE_INCR_X:
+    case LINE_TYPE_DECR_X:
         if (stacked_chart == TRUE && p->filltype == SETFILL_BASELINE)
         {
             len = 2*setlen;
@@ -2160,39 +2162,6 @@ void drawsetline(int gno, int setno, plotarr *p,
                 DrawLine(vps[0], vps[1]);
             }
             break;
-        case LINE_TYPE_SKIP_DECREASING_X:
-            for (i = 0; i < setlen - 1; i++) {
-
-
-                if(x[i+1]>x[i]){
-                wp.x = x[i];
-                wp.y = y[i];
-
-                if (stacked_chart == TRUE) {
-                    wp.y += refy[i];
-                }
-
-                vps[0] = Wpoint2Vpoint(wp);
-                vps[0].x += offset;
-                wp.x = x[i + 1];
-                wp.y = y[i + 1];
-                if (stacked_chart == TRUE) {
-                    wp.y += refy[i + 1];
-                }
-                vps[1] = Wpoint2Vpoint(wp);
-                vps[1].x += offset;
-
-                vps[0].y -= lw/2.0;
-                vps[1].y -= lw/2.0;
-
-                DrawLine(vps[0], vps[1]);
-
-            }
-
-
-            }
-            break;
-
         case LINE_TYPE_LEFTSTAIR:
         case LINE_TYPE_RIGHTSTAIR:
             len = 2*setlen - 1;
@@ -2221,6 +2190,34 @@ void drawsetline(int gno, int setno, plotarr *p,
             }
             DrawPolyline(vpstmp, len, POLYLINE_OPEN);
             xfree(vpstmp);
+            break;
+        case LINE_TYPE_INCR_X:
+        case LINE_TYPE_DECR_X:
+            for (i = 0; i < setlen - 1; i++)
+            {
+                if((x[i+1]>x[i] && line_type==LINE_TYPE_INCR_X) || (x[i+1]<x[i] && line_type==LINE_TYPE_DECR_X))
+                {
+                       wp.x = x[i];
+                       wp.y = y[i];
+                       if (stacked_chart == TRUE)
+                       {
+                           wp.y += refy[i];
+                       }
+                       vps[0] = Wpoint2Vpoint(wp);
+                       vps[0].x += offset;
+                       wp.x = x[i + 1];
+                       wp.y = y[i + 1];
+                       if (stacked_chart == TRUE)
+                       {
+                           wp.y += refy[i + 1];
+                       }
+                       vps[1] = Wpoint2Vpoint(wp);
+                       vps[1].x += offset;
+                       vps[0].y -= lw/2.0;
+                       vps[1].y -= lw/2.0;
+                 DrawLine(vps[0], vps[1]);
+                }
+            }
             break;
         default:
             errmsg(QObject::tr("Invalid line type").toLocal8Bit().constData());

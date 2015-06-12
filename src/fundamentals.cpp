@@ -713,6 +713,7 @@ panelWindow::panelWindow(int rows,int cols,int last_col,QPixmap ** pix,QWidget *
     setMouseTracking(TRUE);
     layout0->addWidget(frm);
     setLayout(layout0);
+    setModal(true);
 }
 
 panelWindow::~panelWindow()

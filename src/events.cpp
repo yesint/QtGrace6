@@ -952,6 +952,7 @@ updateRunning=true;
                     FormRegionMaster->init();
                     }
                 updateRunning=false;
+                simple_draw_setting=SIMPLE_DRAW_NONE;
             mainWin->mainArea->completeRedraw();
                 updateRunning=true;
                 break;

@@ -1125,7 +1125,7 @@ unsigned char reversebits(unsigned char inword)
 
 char *copy_string(char *dest, const char *src)
 {
-    static char * old_dest;
+static char * old_dest;
     old_dest=dest;
     if (src == dest)
     {
