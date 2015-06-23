@@ -37,54 +37,57 @@ extern Device_entry *device_table;
 LocalSocketIpcServer::LocalSocketIpcServer(QString receiveClientSocketName,
                                            QString sendServerSocketName,
                                            QObject *parent)
-   :QObject(parent)
-  ,isDebugFlagOn_m(true)
-  ,messageSendGraphParam_m(NULL)
-  ,messageParamGraphLength_m(0)
-  ,messagePtr_m(NULL)
-  ,dataSet1Ptr(NULL)
-  ,dataSet2Ptr_m(NULL)
-  ,command_m(READ_MODE)
-  ,dataLength_m(0)
-  ,graphNo_m(0)
-  ,xmin_m(0)
-  ,xmax_m(0)
-  ,conditionToExitFunction_m(0)
-  ,countNoOfRead_m(0)
-  ,newDataSetReady_m(1)
-  ,isWriteToTmpFile_m(true)
-  ,numGraphs_m(0)
-  ,countNoOfDataSets_m(0)
-  ,oldNoask_m(0)
-  ,debugFile_m(NULL)
-  ,debugOut_m(NULL)
-  ,mode_m(DEFAULT_LAYOUT)
-  ,xminPtr_m(NULL)
-  ,xmaxPtr_m(NULL)
-  ,columns_m(0)
-  ,rows_m(0)
-  ,qtGraceDocStrName_m("Untitled")
-  ,dataFromBuffer_m(" ")
-  ,availableBytesFromSocket_m(0)
-  ,messageFromClienttPtr_m(NULL)
-  ,messageToServerPtr_(NULL)
-  ,sendServerSocketName_m(sendServerSocketName)
-  ,receiveClientSocketName_m(receiveClientSocketName)
-  ,clientConnection(NULL)
+    :QObject(parent)
+    ,isDebugFlagOn_m(false)
+    ,messageSendGraphParam_m(NULL)
+    ,messageParamGraphLength_m(0)
+    ,messagePtr_m(NULL)
+    ,dataSet1Ptr(NULL)
+    ,dataSet2Ptr_m(NULL)
+    ,command_m(READ_MODE)
+    ,dataLength_m(0)
+    ,graphNo_m(0)
+    ,xmin_m(0)
+    ,xmax_m(0)
+    ,conditionToExitFunction_m(0)
+    ,countNoOfRead_m(0)
+    ,newDataSetReady_m(1)
+    ,isWriteToTmpFile_m(true)
+    ,numGraphs_m(0)
+    ,countNoOfDataSets_m(0)
+    ,oldNoask_m(0)
+    ,debugFile_m(NULL)
+    ,debugOut_m(NULL)
+    ,mode_m(DEFAULT_LAYOUT)
+    ,xminPtr_m(NULL)
+    ,xmaxPtr_m(NULL)
+    ,columns_m(0)
+    ,rows_m(0)
+    ,qtGraceDocStrName_m("Untitled")
+    ,dataFromBuffer_m(" ")
+    ,availableBytesFromSocket_m(0)
+    ,messageFromClienttPtr_m(NULL)
+    ,messageToServerPtr_(NULL)
+    ,sendServerSocketName_m(sendServerSocketName)
+    ,receiveClientSocketName_m(receiveClientSocketName)
+    ,clientConnection(NULL)
 
 {
     if(getenv("QTGRACEDEBUG")) {
-      cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n";
-      isDebugFlagOn_m = true;
+        cout<<"Detected QTGRACEDEBUG and writes to QTGRACEDEBUG.txt\n";
+        isDebugFlagOn_m = true;
     }
 
     if(isDebugFlagOn_m){
         debugFile_m = new QFile("QTGRACEDEBUG.txt");
+        QFileInfo info1(debugFile_m->fileName());
+        qDebug()<<info1.absoluteFilePath();   // returns "/home/bob/bin/untabify"
+
         debugFile_m->open(QIODevice::WriteOnly | QIODevice::Text);
         debugOut_m = new QTextStream(debugFile_m);
         *debugOut_m<<"***DEBUG MODE ENABLE***\n";
         debugOut_m->flush();
-       }
+    }
 
     for(int i=0;i<10;i++){
         saveCountNoOfDataSets_m.append(0);
@@ -139,11 +142,11 @@ void LocalSocketIpcServer::ConnectToClient( const char* sendParam, int sendLen) 
     //Wait to write to QLocalSocket buffer until previous data has been analysed by client and sends a disconnect signal.
     while(messageToServerPtr_->state()==QLocalSocket::ConnectedState)
     {
-         if(!messageToServerPtr_->waitForDisconnected(60000)){
-             //We don't want to wait for a disconnect signal from client forever.
+        if(!messageToServerPtr_->waitForDisconnected(60000)){
+            //We don't want to wait for a disconnect signal from client forever.
             QMessageBox::information(0,"Communication Error",messageToServerPtr_->errorString() + ". Try to restart QtGrace");
             exit(0);
-          }
+        }
 
     }
 
@@ -218,7 +221,7 @@ void LocalSocketIpcServer::readFromClient() {
     }else if (command_m==WRITE_DATAVEC){
         bytesNeeded= dataLength_m*8;
         availableBytesFromSocket_m = 0;
-    }else if(command_m == SET_SCALING_MODE && mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY){
+    }else if(command_m == SET_SCALING_MODE && (mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY || mode_m==AUTOSCALE_X_AXIS_OR_OVERLAY)){
         bytesNeeded=(int)sizeof(double);
         availableBytesFromSocket_m = 0;
     }else{
@@ -280,7 +283,7 @@ void LocalSocketIpcServer::readFromClient() {
             debugOut_m->flush();
         }
 
-               dataFromSocket.clear();
+        dataFromSocket.clear();
 
         // Read all data from socket
 
@@ -330,7 +333,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
     {
         if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
-             debugOut_m->flush();
+            debugOut_m->flush();
         }
         buffer_m.write(dataSet1Ptr);
         isWriteToTmpFile_m=true;
@@ -343,7 +346,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
     {
         if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
-             debugOut_m->flush();
+            debugOut_m->flush();
         }
         readXYData(dataSet1Ptr, dataSet2Ptr_m);
         countNoOfRead_m = 0;
@@ -354,7 +357,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
 
     {  if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
-             debugOut_m->flush();}
+            debugOut_m->flush();}
         countNoOfRead_m = 0;
         buffer_m.write("\n");
         newDataSetReady_m=1;
@@ -366,7 +369,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
     case READ_MODE:
 
     {    if(isDebugFlagOn_m){    *debugOut_m<<"Run Command" << command_m<<"\n";
-       debugOut_m->flush();
+            debugOut_m->flush();
         }
         sendParam();
         countNoOfRead_m = 0;
@@ -385,9 +388,11 @@ void LocalSocketIpcServer::executeTaskFromClient()
         oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
-        doPlotFit();        
+        doPlotFit();
+        set_graph_selectors(0); // In order to update QtGrace plot window (there is always one graph, therefore 0).
+
         setScalingMode();
-        autotick_axis(get_cg(), ALL_AXES);
+        //autotick_axis(get_cg(), ALL_AXES);
         noask=oldNoask_m;
         startupphase=0;
 
@@ -420,7 +425,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
     case PS_FILENAME:
     {    if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
-             debugOut_m->flush();
+            debugOut_m->flush();
         }
         readPsFileName();
 
@@ -437,8 +442,10 @@ void LocalSocketIpcServer::executeTaskFromClient()
         oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
+       // set_graph_selectors(0);
+
         setScalingMode();
-        autotick_axis(get_cg(), ALL_AXES);
+       // autotick_axis(get_cg(), ALL_AXES);
         noask=oldNoask_m;
         startupphase=0;
 
@@ -448,7 +455,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
     }
 
     case REDRAW_AND_WRITEPS://REDRAW_AND_WRITEPS(7)
-        {
+    {
         if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
             *debugOut_m<<"fileName" <<   get_docname()<<"\n";
@@ -477,7 +484,10 @@ void LocalSocketIpcServer::executeTaskFromClient()
             debugOut_m->flush();
         }
         startupphase=1;
+      //  set_graph_selectors(0);
+
         setLayoutMode();
+
         startupphase=0;
         if(isDebugFlagOn_m){
             *debugOut_m<<"Was setLayoutMode" << command_m<<"\n";
@@ -497,10 +507,10 @@ void LocalSocketIpcServer::executeTaskFromClient()
         /* printf("got killed"); */
 
         if(isDebugFlagOn_m){
-        debugFile_m->close();
-        delete debugFile_m;
-        delete debugOut_m;
-    }
+            debugFile_m->close();
+            delete debugFile_m;
+            delete debugOut_m;
+        }
 
         exit(0);
         countNoOfRead_m = 0;
@@ -516,10 +526,13 @@ void LocalSocketIpcServer::executeTaskFromClient()
         startupphase=1;
         xdrawgraph();
         doPlotFit();
+       // set_graph_selectors(0);
+
         startupphase=0;
 
         isWriteToTmpFile_m=true;
         countNoOfRead_m = 0;
+        //  mode_m = DEFAULT_LAYOUT;
 
 
         break;
@@ -572,16 +585,16 @@ void LocalSocketIpcServer::getCommandFromClient(int commandFromsocket)
         command_m = PLOT_INFO ;
         break;
     case 2:
-         command_m = WRITE_DATAVEC ;
+        command_m = WRITE_DATAVEC ;
         break;
     case 12:
-         command_m =  WRITE_DATAVEC_FINISHED;
+        command_m =  WRITE_DATAVEC_FINISHED;
         break;
     case 3:
         command_m =  READ_MODE;
         break;
     case 4:
-         command_m =  REDRAW;
+        command_m =  REDRAW;
         break;
     case 5:
         command_m =  PS_FILENAME;
@@ -593,16 +606,16 @@ void LocalSocketIpcServer::getCommandFromClient(int commandFromsocket)
         command_m =  REDRAW_AND_WRITEPS;
         break;
     case 8:
-         command_m = SET_LAYOUT_MODE;
+        command_m = SET_LAYOUT_MODE;
         break;
     case 42:
         command_m = KILL_CHILD;
         break;
     case 99:
-         command_m = END_COMM;
+        command_m = END_COMM;
         break;
     case 98:
-         command_m = TEST_CONNECTION;
+        command_m = TEST_CONNECTION;
         break;
     default:
         QMessageBox::information(0,"Communication Error","Communication error: Command not found");
@@ -623,28 +636,28 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
         getCommandFromClient(commandFromsocket);
 
         if(isDebugFlagOn_m){*debugOut_m<< " The command is int, 4 bytes are "<<
-                                  (int)(newDataFromSocket[0]) << " " <<
-                                  (int)(newDataFromSocket[1]) << " " <<
-                                  (int)(newDataFromSocket[2]) << " " <<
-                                  (int)(newDataFromSocket[3]) << " ";
+                                          (int)(newDataFromSocket[0]) << " " <<
+                                                                         (int)(newDataFromSocket[1]) << " " <<
+                                                                                                        (int)(newDataFromSocket[2]) << " " <<
+                                                                                                                                       (int)(newDataFromSocket[3]) << " ";
             debugOut_m->flush();
         }
         break;
     }
 
     case READ_DATALENGTH: //Read data length
-        {
+    {
         dataLength_m = *((int*)(newDataFromSocket));
         if(isDebugFlagOn_m){
             *debugOut_m<< " Got data length= "<< dataLength_m <<"\n";
-        debugOut_m->flush();
+            debugOut_m->flush();
         }
         break;
     }
 
     case READ_DATASET_1:
 
-        {
+    {
         if(command_m!=SET_SCALING_MODE && command_m!=SET_LAYOUT_MODE){
             dataSet1Ptr = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
@@ -665,22 +678,24 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
             case 3:
                 mode_m = GRAPH_POSITION;
                 break;
+            case 7:
+                mode_m = AUTOSCALE_X_AXIS_OR_OVERLAY;
             default:
                 break;
             }
 
             if(isDebugFlagOn_m){
                 *debugOut_m<< " Got mode= "<< mode_m<<"\n" ;
-           debugOut_m->flush();
+                debugOut_m->flush();
             }
 
         }
         break;
-        }
+    }
 
     case READ_PLOT_SETTINGS_1_FROM_CLIENT: //Read Plot settings from client dialogue
 
-        {
+    {
         if(command_m == SET_SCALING_MODE){ //Min x-axis length
             xminPtr_m = (double *)newDataFromSocket;
             xmin_m = xminPtr_m[0];
@@ -692,10 +707,10 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
             dataSet2Ptr_m = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
         break;
-        }
+    }
 
     case READ_PLOT_SETTINGS_2_FROM_CLIENT://Read Plot settings from client dialogue
-        {
+    {
         if(command_m == SET_SCALING_MODE){  //Max x-axis length
             xmaxPtr_m = (double *)newDataFromSocket;
             xmax_m = xmaxPtr_m[0];
@@ -707,7 +722,7 @@ void LocalSocketIpcServer::readDataFromSocket(char *newDataFromSocket, int avail
         }
 
         break;
-        }
+    }
     default:
         QMessageBox::information(0,"Communication Error","Communication error: Command not found");
         exit(0);
@@ -720,7 +735,7 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
     switch (numberOfRead){
 
     case 1:
-        {
+    {
         readDataFromSocket(messagePtr_m,availableBytesFromSocket_m,  START_READ);
 
         if(command_m == READ_MODE || command_m == REDRAW ||
@@ -733,54 +748,54 @@ void LocalSocketIpcServer::saveDataFromSocket(int numberOfRead){
             conditionToExitFunction_m = 1;
 
         break;
-        }
+    }
     case 2:
-        {
+    {
         readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_DATALENGTH);
         conditionToExitFunction_m = 1;
         break;
-        }
+    }
     case 3:
-        {
+    {
         readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_DATASET_1);
 
         if(isDebugFlagOn_m){
             *debugOut_m<< " Analysing(3) mode= "<< mode_m<<"\n" ;
-         debugOut_m->flush();
+            debugOut_m->flush();
         }
 
-        if((command_m == SET_SCALING_MODE && mode_m == AUTOSCALE_Y_AXIS_OR_OVERLAY)||
+        if((command_m == SET_SCALING_MODE && (mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY || mode_m==AUTOSCALE_X_AXIS_OR_OVERLAY))||
                 (command_m == SET_LAYOUT_MODE && mode_m == GRAPH_POSITION) ||
                 command_m == WRITE_DATAVEC)
 
             conditionToExitFunction_m = 1;
         break;
-        }
+    }
 
     case 4:
-        {
+    {
         readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_PLOT_SETTINGS_1_FROM_CLIENT);
 
         if(isDebugFlagOn_m){
             *debugOut_m<< " Analysing(4) mode= "<< mode_m<<"\n" ;
-             debugOut_m->flush();
+            debugOut_m->flush();
         }
 
-        if((command_m == SET_SCALING_MODE && mode_m == AUTOSCALE_Y_AXIS_OR_OVERLAY)||
+        if((command_m == SET_SCALING_MODE && (mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY || mode_m==AUTOSCALE_X_AXIS_OR_OVERLAY))||
                 (command_m == SET_LAYOUT_MODE && mode_m == GRAPH_POSITION))
 
             conditionToExitFunction_m = 1;
 
         break;
-        }
+    }
     case 5:
-        {
+    {
         readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_PLOT_SETTINGS_2_FROM_CLIENT);
         break;
-        }
+    }
 
     default:
-        {
+    {
         conditionToExitFunction_m = 1;
         break;
     }
@@ -866,7 +881,7 @@ void LocalSocketIpcServer::readPsFileName(){
         QString exportNameWithFullPath = QDir::currentPath()+ QString("/") +QString::fromStdString(qtGraceDocStrName_m);
 
 
-       // set_docname(dataSet1Ptr);
+        // set_docname(dataSet1Ptr);
         set_docname_external(docNameWithFullPath.toStdString().c_str());
         set_exportname_external(exportNameWithFullPath.toStdString().c_str());
 
@@ -881,34 +896,67 @@ void LocalSocketIpcServer::setScalingMode()
 {
 
     switch(mode_m){
+
+    case AUTOSCALE_X_AXIS_OR_OVERLAY:
+    {
+        graphNo_m = dataLength_m;
+
+        world w;
+        w.yg2 = xmax_m;
+        w.yg1 = xmin_m;
+        set_graph_world(graphNo_m, w);
+        /* autoscale x axis */
+        autoscale_graph(graphNo_m, AUTOSCALE_X);
+        autoscale_onread = AUTOSCALE_X;
+        autotick_axis(graphNo_m, ALL_AXES);
+
+
+        break;
+    }
+
+
     case AUTOSCALE_Y_AXIS_OR_OVERLAY:
-        { graphNo_m = dataLength_m;
+    {
+
+        graphNo_m = dataLength_m;
         world w;
         w.xg2 = xmax_m;
         w.xg1 = xmin_m;
         set_graph_world(graphNo_m, w);
-
         /* autoscale y axis */
-        autoscale_graph(graphNo_m, 2);
+        autoscale_graph(graphNo_m, AUTOSCALE_Y);
+        autoscale_onread = AUTOSCALE_Y;
+        autotick_axis(graphNo_m, ALL_AXES);
+
+
         break;
-        }
+    }
     case AUTOSCALE_ALL_AXES_OR_JOIN_PLOT:
-        { /* autoscale all axis - default*/
-        autoscale_graph(graphNo_m, 3);
-        //  update_all();
+    { /* autoscale all axis - default*/
+
+        graphNo_m = dataLength_m;
+        autoscale_graph(graphNo_m, AUTOSCALE_XY);
+        autoscale_onread = AUTOSCALE_XY;
+        autotick_axis(graphNo_m, ALL_AXES);
+
+
+        //update_all();
         break;
-        }
+    }
     case DEFAULT_LAYOUT:
         /* no autoscale */
+
         autoscale_onread = AUTOSCALE_NONE;
+        autotick_axis(graphNo_m, ALL_AXES);
 
         break;
     default:
-        { fprintf(stderr, "Wrong autoscale mode!\n");
+    {
+        fprintf(stderr, "Wrong autoscale mode!\n");
         break;}
     }
 
-    mode_m = DEFAULT_LAYOUT;
+    //    mode_m = DEFAULT_LAYOUT;
 
 }
 
@@ -996,6 +1044,25 @@ void LocalSocketIpcServer::setLayoutMode(){
 
         arrange_graphs_simple(rows_m, columns_m,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
 
+
+        /*if(columns_m==1){
+            VVector shift;
+            shift.x=0.1;
+            shift.y=0;
+            move_legend(0,shift);
+        }
+
+        if(columns_m==1){
+
+            for(int i=0; i<numGraphs_m;i++){
+                view v;
+                get_graph_viewport(i,&v);
+                v.xv1 = 0.21;
+                v.xv2 = 1.21;
+                set_graph_viewport(i,v);
+            }
+        }
+        */
         break;
     }
     case AUTOSCALE_Y_AXIS_OR_OVERLAY: //overlay
@@ -1006,6 +1073,16 @@ void LocalSocketIpcServer::setLayoutMode(){
 
         break;
     }
+
+    case AUTOSCALE_X_AXIS_OR_OVERLAY: //overlay
+    {
+        if(graphNo_m != 0)  { // Lay all on the first one.
+            overlay_graphs(graphNo_m, 0, GOVERLAY_SMART_AXES_XY);
+        }
+
+        break;
+    }
+
     case AUTOSCALE_ALL_AXES_OR_JOIN_PLOT:
     {
         // join, do nothing
@@ -1052,19 +1129,19 @@ void LocalSocketIpcServer::sendParam(){
 
 void LocalSocketIpcServer::socketDisconnected() {
     if(isDebugFlagOn_m){*debugOut_m<< "socket_disconnected\n";
-    debugOut_m->flush();
+        debugOut_m->flush();
     }
 }
 
 
 void LocalSocketIpcServer::socketReadReady() {
     if(isDebugFlagOn_m){ *debugOut_m<< "socket_readReady\n";
-    debugOut_m->flush();}
+        debugOut_m->flush();}
 }
 
 void LocalSocketIpcServer::socketError(QLocalSocket::LocalSocketError) {
     if(isDebugFlagOn_m){*debugOut_m<< "socket_error\n";
-    debugOut_m->flush();
+        debugOut_m->flush();
     }
 
     if(messageToServerPtr_->error()!=QAbstractSocket::RemoteHostClosedError)
