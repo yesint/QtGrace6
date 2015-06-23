@@ -1042,7 +1042,35 @@ void LocalSocketIpcServer::setLayoutMode(){
         double vgapArrangeGraph =0.2*numGraphs_m;
         double hgabArrangeGraph =0.2*numGraphs_m;
 
-        arrange_graphs_simple(rows_m, columns_m,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+        //arrange_graphs_simple(rows_m, columns_m,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+
+
+            int *graphs, i,  order, snake;
+            int isFailure = false;
+
+            order = 1;
+            snake = 1;
+
+            graphs = (int*)xmalloc(numGraphs_m*sizeof(int));///SIZEOF_INT);
+            if (graphs == NULL) {
+                isFailure = true;
+            }
+
+            if(!isFailure){
+            for (i = 0; i < numGraphs_m; i++) {
+                graphs[i] = i;
+            }
+
+            for (i = number_of_graphs() - 1; i >= numGraphs_m; i--) {
+                kill_graph(i);
+            }
+
+            arrange_graphs(graphs, numGraphs_m, rows_m, columns_m, order, snake,
+                offset+0.07, offset-0.07, offset, offset, vgapArrangeGraph, hgabArrangeGraph, FALSE, FALSE);
+
+            xfree(graphs);
+            }
+
 
 
         /*if(columns_m==1){
