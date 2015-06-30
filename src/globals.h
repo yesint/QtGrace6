@@ -244,6 +244,7 @@ GLOBAL(enableServerMode,int,FALSE);
 GLOBAL(hideMainWindow, int, FALSE);
 
 GLOBAL(useHDPrinterOutput,int,FALSE);
+GLOBAL(ScaleLineWidthByResolution,int,FALSE);
 GLOBAL(auto_set_agr_extension,int,TRUE);
 GLOBAL(auto_set_export_extensions,int,TRUE);
 GLOBAL(auto_set_cwd,int,TRUE);

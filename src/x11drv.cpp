@@ -1160,7 +1160,7 @@ void set_Pen_only(void)
 QPen tmpPen(GeneralPainter->pen());
 tmpPen.setColor(get_Color(draw_props.pen.color));
 
-if (current_dpi!=72)// && printing_in_file==true)/// removed the second condition
+if (current_dpi!=72 && ScaleLineWidthByResolution)// && printing_in_file==true)/// removed the second condition
 tmpPen.setWidthF(qreal(draw_props.linew*current_dpi/72.0));
 else
 tmpPen.setWidthF(qreal(draw_props.linew));

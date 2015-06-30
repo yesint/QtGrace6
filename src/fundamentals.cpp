@@ -4906,7 +4906,9 @@ void SetPopup::doCopyClipBoard(void)
                 //sprintf(dummy,"%.8g\t",g[gno].p[sno].data.ex[j][k]);
                 //text+=QString(dummy);
                 sprintf(dummy,sformat,g[gno].p[sno].data.ex[j][k]);
-                text+=QString(dummy)+QString("\t");
+                text+=QString(dummy);
+                if (j<col-1)
+                text+=QString("\t");
             }
             text+=QString("\n");
         }
@@ -5351,7 +5353,10 @@ else
     {
         clear();
         for (int i=0;i<number_of_entries;i++)
-            new QListWidgetItem(QString(text_entries[i]), this);
+        {
+            new QListWidgetItem(text_entries[i], this);
+            cout << "update TEXTLIST: #" << text_entries[i].toLocal8Bit().constData() << "#" << endl;
+        }
     }
     else
     {
@@ -5577,10 +5582,18 @@ void uniList::entryDoubleClicked(QListWidgetItem * c_item)
     }
 }
 
+void uniList::clear_text_items(void)
+{
+delete[] text_entries;
+delete[] entries;
+number_of_entries=0;
+clear();
+}
+
 void uniList::add_Item(QString item)
 {
-    QString * str=new QString[number_of_entries+1];
-    int * tentr=new int[number_of_entries];
+    QString * str=new QString[number_of_entries+3];
+    int * tentr=new int[number_of_entries+2];
     for (int i=0;i<number_of_entries;i++)
     {
         str[i]=text_entries[i];

@@ -1066,9 +1066,9 @@ case UNDO_TYPE_LOCATOR_FIXPOINT:
 break;
 case UNDO_TYPE_HOTLINK:
     old_str=(char**)data;
-    for (int i=0;i<origin[2];i++)
+    for (int i=0;i<origin[2]*2;i++)
     {
-    if (old_str[i]!=NULL) delete[] old_str;
+    if (old_str[i]!=NULL) delete[] old_str[i];
     }
     delete[] old_str;
 break;
@@ -2761,7 +2761,7 @@ updateUndoList();
 
 void SaveHotlinkData(int len,int * gnos,int * snos)
 {
-if (undo_active==false || len<=0) return;
+if (undo_active==false) return;
 if (old_strings!=NULL)
 {
     for (int i=0;i<number_of_old_strings;i++)
@@ -2786,9 +2786,10 @@ delete[] old_idata[1];
 old_idata[1]=NULL;
 }
 number_of_old_strings=len;
-old_strings=new char *[len];
-old_idata[0]=new int[len];
-old_idata[1]=new int[len];
+if (len<=0) return;
+old_strings=new char *[len+2];
+old_idata[0]=new int[len+2];
+old_idata[1]=new int[len+2];
     for (int i=0;i<number_of_old_strings;i++)
     {
     old_idata[0][i]=g[gnos[i]].p[snos[i]].hotlink;
@@ -2832,8 +2833,8 @@ nn->id[0]=new int[2*len];
 nn->id[1]=new int[2*len];
 nn->id[2]=new int[len];
 nn->id[3]=new int[len];
-memcpy(nn->id[0],old_idata[0],sizeof(int)*len);//old states --> hotlink
-memcpy(nn->id[1],old_idata[1],sizeof(int)*len);//old_states --> hotsrc
+memcpy(nn->id[0],old_idata[0],sizeof(int)*len);//old states --> hotlink (yes/no)
+memcpy(nn->id[1],old_idata[1],sizeof(int)*len);//old_states --> hotsrc (PIPE/DISK)
 memcpy(nn->id[2],gnos,sizeof(int)*len);//gnos
 memcpy(nn->id[3],snos,sizeof(int)*len);//snos
 delete[] old_idata[0];

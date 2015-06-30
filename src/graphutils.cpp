@@ -718,11 +718,13 @@ int arrange_graphs(int *graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
-                   int hpack, int vpack)
+                   int hpack, int vpack,int move_legend)
 {
     int i, imax, j, jmax, iw, ih, ng, gno;
     double pw, ph, w, h;
     view v;
+    view g_prev,g_after;
+    double l_xpos,l_ypos,portion;
 
     if (hpack) {
         hgap = 0.0;
@@ -760,6 +762,8 @@ int arrange_graphs(int *graphs, int ngraphs,
             gno = graphs[ng];
             set_graph_active(gno);
             
+            get_graph_viewport(gno,&g_prev);
+
             if (order & GA_ORDER_HV_INV) {
                 iw = i;
                 ih = j;
@@ -817,6 +821,17 @@ int arrange_graphs(int *graphs, int ngraphs,
             }
             
             ng++;
+
+            if (move_legend==TRUE)
+            {
+            get_graph_viewport(gno,&g_after);
+            l_xpos=g[gno].l.legx;
+            l_ypos=g[gno].l.legy;
+            portion=(l_xpos-g_prev.xv1)/(g_prev.xv2-g_prev.xv1);
+            g[gno].l.legx=g_after.xv1+portion*(g_after.xv2-g_after.xv1);
+            portion=(l_ypos-g_prev.yv1)/(g_prev.yv2-g_prev.yv1);
+            g[gno].l.legy=g_after.yv1+portion*(g_after.yv2-g_after.yv1);
+            }
         }
     }
     return RETURN_SUCCESS;
@@ -842,7 +857,7 @@ int arrange_graphs_simple(int nrows, int ncols,
     }
     
     retval = arrange_graphs(graphs, ngraphs, nrows, ncols, order, snake,
-        offset, offset, offset, offset, vgap, hgap, FALSE, FALSE);
+        offset, offset, offset, offset, vgap, hgap, FALSE, FALSE, FALSE);
     
     xfree(graphs);
     

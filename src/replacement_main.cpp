@@ -1598,6 +1598,7 @@ void update_all(void)
     {
         Form_Preferences->tab_prefs->update_props_items();
     }*/
+    //cout << "update all: upd. Hotlinks" << endl;
     if (FormHotLinks!=NULL) FormHotLinks->update_hotlinks();
     if (FormPruneData!= NULL)
     {//update_prune_frame();

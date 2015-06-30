@@ -886,6 +886,7 @@ public:
     stdLineEdit * dev_res_item;
     QComboBox * page_size_unit_item;
     QCheckBox * chkDontChangeSize;
+    QCheckBox * chkScaleLineWidthByResolution;
     QPushButton * cmdNativePrinterDialog;
     QPushButton * cmdDoPrint;
 
@@ -1327,6 +1328,7 @@ public:
 
     QCheckBox * chkAddGraphs;
     QCheckBox * chkKillGraphs;
+    QCheckBox * chkMoveLegends;
     QCheckBox * chkSnakeFill;
     QCheckBox * chkHPack;
     QCheckBox * chkVPack;
@@ -1338,11 +1340,17 @@ public:
     QGridLayout * layout2;
     QHBoxLayout * layout3;
     QVBoxLayout * layout;
+
+    int guess_r,guess_c,n_graphs,guess_snake,guess_order,guess_success,guess_hpack,guess_vpack;
+    double guess_hgap,guess_vgap;
+    double left_offset,right_offset,bottom_offset,top_offset;
+
 public slots:
     void init(void);
     void doApply(void);
     void doClose(void);
     void doAccept(void);
+    void guessGraphOrdering(void);
 };
 
 class frmOverlayGraphs:public QDialog
@@ -1822,11 +1830,13 @@ public:
     uniList * hotlink_set_item;
     uniList * hotlink_list_item;///NOCH ZU AENDERN
     StdSelector * hotlink_source_item;
+    StdSelector * auto_hotlink_update;
     stdLineEdit * hotlink_file_item;
 
     QPushButton * buttons[5];
 
     QGridLayout * layout;
+    QTimer * autoupdatetimer;
 public slots:
     void init(void);
     void doLink(void);
@@ -1835,6 +1845,7 @@ public slots:
     void update_hotlinks(void);
     void doClose(void);
     void do_hotupdate_proc(void);
+    void autoupdatechanged(int a);
     void newLinkFileSelected(int type,QString file,bool exists,bool writeable,bool readable);
 };
 
@@ -3114,7 +3125,7 @@ struct importSettings
     //auxiliary data read from the header
     char * title;
     char * subtitle;
-    char * x_title,*y_title,*set_title;
+    char * x_title,*y_title,*set_title[MAX_BIN_IMPORT_CHANNELS];
 
     double x0,deltax,f;//f=sampling rate-->deltax=1/f; x=x0+deltax*i
 
@@ -3291,9 +3302,10 @@ public:
     pageFileInfo * tabFileInfo;
     pageImportInfo * tabImportInfo;
 
-    char datFileName[512];
+    int bin_file_nr_to_import;
+    //char datFileName[512];
     QStringList datFileNames;
-    char headerFileName[512];
+    //char headerFileName[512];
     QStringList headerFileNames;
 
     importSettings imp_set;//the current import-settings to be used

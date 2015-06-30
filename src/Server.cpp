@@ -1042,13 +1042,16 @@ void LocalSocketIpcServer::setLayoutMode(){
         double vgapArrangeGraph =0.2*numGraphs_m;
         double hgabArrangeGraph =0.2*numGraphs_m;
 
-        //arrange_graphs_simple(rows_m, columns_m,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+       //arrange_graphs_simple(rows_m, columns_m,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+
+
+
 
 
             int *graphs, i,  order, snake;
             int isFailure = false;
 
-            order = 1;
+            order = 5;
             snake = 1;
 
             graphs = (int*)xmalloc(numGraphs_m*sizeof(int));///SIZEOF_INT);
@@ -1065,32 +1068,18 @@ void LocalSocketIpcServer::setLayoutMode(){
                 kill_graph(i);
             }
 
+
+
             arrange_graphs(graphs, numGraphs_m, rows_m, columns_m, order, snake,
-                offset+0.07, offset-0.07, offset, offset, vgapArrangeGraph, hgabArrangeGraph, FALSE, FALSE);
+                offset+0.07, offset-0.07, offset, offset, vgapArrangeGraph, hgabArrangeGraph, FALSE, FALSE,TRUE);
 
+            update_all();
             xfree(graphs);
+
             }
 
 
 
-        /*if(columns_m==1){
-            VVector shift;
-            shift.x=0.1;
-            shift.y=0;
-            move_legend(0,shift);
-        }
-
-        if(columns_m==1){
-
-            for(int i=0; i<numGraphs_m;i++){
-                view v;
-                get_graph_viewport(i,&v);
-                v.xv1 = 0.21;
-                v.xv2 = 1.21;
-                set_graph_viewport(i,v);
-            }
-        }
-        */
         break;
     }
     case AUTOSCALE_Y_AXIS_OR_OVERLAY: //overlay

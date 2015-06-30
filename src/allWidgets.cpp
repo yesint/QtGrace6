@@ -77,6 +77,7 @@ extern int error_count;
 }
 #endif
 extern void clear_new_set_ids(void);
+extern double rint_v2(double x);
 
 //int replace_souce_sno,replace_souce_gno,replace_dest_sno,replace_dest_gno;
 //int by_souce_sno,by_souce_gno,by_dest_sno,by_dest_gno;
@@ -232,7 +233,7 @@ extern int arrange_graphs(int *graphs, int ngraphs,
                           int nrows, int ncols, int order, int snake,
                           double loff, double roff, double toff, double boff,
                           double vgap, double hgap,
-                          int hpack, int vpack);
+                          int hpack, int vpack, int move_legend);
 extern void init_color_icons(int nr_of_cols,CMap_entry * entries,int & allocated_colors,QIcon *** ColorIcons,QPixmap *** ColorPixmaps,QString *** ColorNames);
 extern void complete_LaTeX_to_Grace_Translator(QString & text);
 extern void replace_set_ids_in_command(QString & commandString,int o_gno,int o_sno,int n_gno,int n_sno,int relative);//only replace-operations, no command execution
@@ -240,7 +241,7 @@ extern void copy_line_style_patterns_to_current(int n_length,int * n_style_lengt
 extern void copy_line_style_patterns_to_target(int n_length,int * n_style_lengths,char ** n_patterns,int target);
 extern void update_line_style_selectors(void);
 extern void replaceSuffix(QString & fpath,QString n_suffix);
-extern int guess_bin_format(char * filename,int & std_format_nr,bool & is_header);
+extern int guess_bin_format(QString filename,int & std_format_nr,bool & is_header);
 extern int nr_of_std_bin_import_settings;
 extern struct importSettings * std_bin_import_settings;
 
@@ -331,7 +332,7 @@ extern char binaryImportFormatName[NUMBER_OF_COLUMN_FORMATS][32];
 extern int ImportDestination[NUMBER_OF_IMPORT_DESTINATIONS];
 extern char ImportDestinationName[NUMBER_OF_IMPORT_DESTINATIONS][32];
 extern signed char ImportDestinationType[NUMBER_OF_IMPORT_DESTINATIONS];
-extern void copy_bin_settings_to_current_bin_import(char * filename,bool is_header,importSettings * imp_set);
+extern void copy_bin_settings_to_current_bin_import(QString filename,bool is_header,importSettings * imp_set);
 extern int openPipe(char * pname,int * fd);
 extern void update_font_selectors(bool appearance);
 extern int get_QtFontID_from_Grace_Name(char * name,int whatlist);
@@ -520,8 +521,11 @@ void initSettings(struct importSettings & iset,bool remove_old_settings=true)
         delete[] iset.channel_size;
     if (iset.channel_target && remove_old_settings)
         delete[] iset.channel_target;
-    if (iset.set_title && remove_old_settings)
-        delete[] iset.set_title;
+    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
+    {
+        if (iset.set_title[i] && remove_old_settings)
+            delete[] iset.set_title[i];
+    }
     iset.channel_format=NULL;
     iset.channel_size=NULL;
     iset.channel_target=NULL;
@@ -530,9 +534,7 @@ void initSettings(struct importSettings & iset,bool remove_old_settings=true)
     iset.subtitle=NULL;
     iset.x_title=NULL;
     iset.y_title=NULL;
-    iset.set_title=NULL;
     iset.first_data=NULL;
-
     iset.read_to_eof=false;
     iset.multiple_header_files=true;
     iset.string_end_char=0;
@@ -550,12 +552,13 @@ void initSettings(struct importSettings & iset,bool remove_old_settings=true)
     iset.single_size=-1;
     iset.channels=-1;
     iset.points=-1;
-        for (int i=0;i<7;i++)
+        for (int i=0;i<7;i++)//one for every column in a set
         iset.factors[i]=1.0;
-        for (int i=0;i<16;i++)
+        for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
         {
-        iset.channel_factors[i]=1.0;
+        iset.channel_factors[i]=1.0;//one for every set to be imported
         iset.channel_offsets[i]=0.0;
+        iset.set_title[i]=NULL;
         }
     /*iset.x_title=new char[2];
     iset.y_title=new char[2];
@@ -642,13 +645,19 @@ to->setorder=from->setorder;
         strcpy(to->y_title,from->y_title);
     }
     else to->y_title=NULL;
-    if (from->set_title!=NULL)
+    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
     {
-        if (to->set_title!=NULL) delete[] to->set_title;
-        to->set_title=new char[strlen(from->set_title)+2];
-        strcpy(to->set_title,from->set_title);
+        if (from->set_title[i]!=NULL)
+        {
+        if (to->set_title[i]!=NULL) delete[] to->set_title[i];
+        to->set_title[i]=new char[strlen(from->set_title[i])+2];
+        strcpy(to->set_title[i],from->set_title[i]);
+        }
+        else
+        {
+        to->set_title[i]=NULL;
+        }
     }
-    else to->set_title=NULL;
 to->target_gno=from->target_gno;
 to->set_type=from->set_type;
     if (from->first_data!=NULL)
@@ -7610,6 +7619,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
     page_size_unit_item->addItem(tr("cm"));
     connect(page_size_unit_item,SIGNAL(currentIndexChanged(int)),this,SLOT(DimChanged(int)));
     chkDontChangeSize=new QCheckBox(tr("Don't reposition Graph(s)"),this);
+    chkScaleLineWidthByResolution=new QCheckBox(tr("Scale line witdh by resolution"),this);
 
     printto_item=new QCheckBox(tr("Print to file"),grpOutput);
     connect(printto_item,SIGNAL(stateChanged(int)),this,SLOT(PrintToFileClicked(int)));
@@ -7670,6 +7680,8 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
     layout2->addWidget(page_size_unit_item,1,3);
     layout2->addWidget(dev_res_item,2,0);//,1,2
     layout2->addWidget(chkDontChangeSize,3,1);//,2,1,1,2);
+    layout2->addWidget(chkScaleLineWidthByResolution,3,2);
+
     layout2->addWidget(cmdUseScreenResolution,2,1);//,3,0,1,3);
     layout2->addWidget(quick_resolution_selector,3,0);//,3,0,1,3);
     grpPage->setLayout(layout2);
@@ -7907,7 +7919,7 @@ void frmDeviceSetup::DeviceChanged(int device_id)//output-device changed (screen
 
     SetToggleButtonState(fontaa_item, dev.fontaa);
     SetToggleButtonState(devfont_item, dev.devfonts);
-
+    SetToggleButtonState(chkScaleLineWidthByResolution,ScaleLineWidthByResolution);
 //replaceFileNameOnly(QString("nname"));
 }
 
@@ -8285,6 +8297,7 @@ void frmDeviceSetup::doApply(void)
     old_small=cur_pg.width<cur_pg.height?cur_pg.width:cur_pg.height;
 
     stdOutputFormat = seldevice = GetOptionChoice(devices_item);
+    ScaleLineWidthByResolution=chkScaleLineWidthByResolution->isChecked()?TRUE:FALSE;
 
     SaveDeviceState(seldevice,GetToggleButtonState(dsync_item));
 
@@ -10097,6 +10110,7 @@ diaDevAct=NULL;
 
 cmdTest=new QPushButton(tr("DEBUG: TestDialog"),this);
 connect(cmdTest,SIGNAL(clicked()),SLOT(doTest()));
+cmdTest->hide();
 frmTest=new TestDialog(0);
 frmTest->hide();
 
@@ -11411,6 +11425,56 @@ void frmDefaults::currentShowDefaultsChanged(int index)
 
 }
 
+void get_distance_between_graphs(int g1,int g2,int & direction,double & d)
+{//returns the smallest distance (d) between two graphs and the direction (1=g2 right of g1, 2=g2 left of g1, 4=g2 above g1, 8=g2 below g1, combinations allowed)
+view p1,p2;
+double left,right,top,bottom;
+char direction_name[16][32];
+for (int i=0;i<16;i++) strcpy(direction_name[i],"undefined");
+strcpy(direction_name[1],"right");
+strcpy(direction_name[2],"left");
+
+strcpy(direction_name[4],"above");
+strcpy(direction_name[5],"above+right");
+strcpy(direction_name[6],"above+left");
+
+strcpy(direction_name[8],"below");
+strcpy(direction_name[9],"below+right");
+strcpy(direction_name[10],"below+left");
+
+get_graph_viewport(g1,&p1);
+get_graph_viewport(g2,&p2);
+    left=-(p2.xv2-p1.xv1);
+    right=p2.xv1-p1.xv2;
+    top=p2.yv1-p1.yv2;
+    bottom=-(p2.yv2-p1.yv1);
+
+/*cout << "left=  " << left << endl;
+cout << "right= " << right << endl;
+cout << "top=   " << top << endl;
+cout << "bottom=" << bottom << endl;*/
+
+direction=(right>=0?1:0)|(left>=0?2:0)|(top>=0?4:0)|(bottom>=0?8:0);
+    d=-1;
+if (left>=0.0 && (left<=d) || d<0)
+{
+d=left;
+}
+if (right>=0.0 && (right<=d) || d<0)
+{
+d=right;
+}
+if (top>=0.0 && (top<=d) || d<0)
+{
+d=top;
+}
+if (bottom>=0.0 && (bottom<=d) || d<0)
+{
+d=bottom;
+}
+//cout << "direction=" << direction << " --> " << direction_name[direction] << " d=" << d << endl;
+}
+
 frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
 {
 //setFont(*stdFont);
@@ -11460,6 +11524,7 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
     chkAddGraphs=new QCheckBox(tr("Add graphs as needed to fill the matrix"),grpArrGraphs);
     chkAddGraphs->setChecked(TRUE);
     chkKillGraphs=new QCheckBox(tr("Kill extra graphs"),grpArrGraphs);
+    chkMoveLegends=new QCheckBox(tr("Move legends"),grpArrGraphs);
     chkSnakeFill=new QCheckBox(tr("Snake fill"),grpMatrix);
     chkHPack=new QCheckBox(tr("Pack"),grpSpacing);
     chkVPack=new QCheckBox(tr("Pack"),grpSpacing);
@@ -11477,6 +11542,7 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
     layout0->addWidget(graphlist);
     layout0->addWidget(chkAddGraphs);
     layout0->addWidget(chkKillGraphs);
+    layout0->addWidget(chkMoveLegends);
     grpArrGraphs->setLayout(layout0);
 
     layout1=new QHBoxLayout();
@@ -11515,11 +11581,42 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
 
 void frmArrangeGraphs::init(void)
 {
+QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
+selUpperOffset->setLocale(newLocale);
+selLowerOffset->setLocale(newLocale);
+selLeftOffset->setLocale(newLocale);
+selRightOffset->setLocale(newLocale);
+selHGap->spnLineWidth->setLocale(newLocale);
+selVGap->spnLineWidth->setLocale(newLocale);
+
     graphlist->update_number_of_entries();
     int *sel=new int[2];
     sel[0]=get_cg();
     graphlist->set_new_selection(1,sel);
     delete[] sel;
+
+guessGraphOrdering();
+if (guess_success==true)
+{
+    selUpperOffset->setValue(top_offset);
+    selLowerOffset->setValue(bottom_offset);
+    selLeftOffset->setValue(left_offset);
+    selRightOffset->setValue(right_offset);
+    selHGap->setValue(guess_hgap);
+    selVGap->setValue(guess_vgap);
+    chkHPack->setChecked(guess_hpack==1?true:false);
+    chkVPack->setChecked(guess_vpack==1?true:false);
+    selCols->setValue(guess_c);
+    selRows->setValue(guess_r);
+    chkSnakeFill->setChecked(guess_snake==1?true:false);
+    selOrder->setCurrentIndex(guess_order);
+
+    sel=new int[number_of_graphs()+2];
+    for (int i=0;i<number_of_graphs();i++) sel[i]=i;
+    graphlist->set_new_selection(number_of_graphs(),sel);
+    delete[] sel;
+}
+
 }
 
 void frmArrangeGraphs::doApply(void)
@@ -11527,7 +11624,7 @@ void frmArrangeGraphs::doApply(void)
     ApplyError=false;
     int ngraphs, * graphs=new int[2];
     int nrows, ncols, order, snake;
-    int hpack, vpack, add, kill;
+    int hpack, vpack, add, kill, move_legend;
     double toff, loff, roff, boff, vgap, hgap;
 
     nrows = (int) GetSpinChoice(selRows);
@@ -11560,6 +11657,7 @@ void frmArrangeGraphs::doApply(void)
     
     add  = GetToggleButtonState(chkAddGraphs);
     kill = GetToggleButtonState(chkKillGraphs);
+    move_legend = GetToggleButtonState(chkMoveLegends);
     
     hpack = GetToggleButtonState(chkHPack);
     vpack = GetToggleButtonState(chkVPack);
@@ -11592,7 +11690,7 @@ void frmArrangeGraphs::doApply(void)
     arrange_graphs(graphs, ngraphs,
                    nrows, ncols, order, snake,
                    loff, roff, toff, boff, vgap, hgap,
-                   hpack, vpack);
+                   hpack, vpack, move_legend);
 
     //Undo-Staff
     GraphsModified(ngraphs,graphs,UNDO_APPEARANCE);
@@ -11603,9 +11701,9 @@ void frmArrangeGraphs::doApply(void)
     ///SelectListChoices(ui->graphs, ngraphs, graphs);
     //xfree(graphs);
     graphlist->update_number_of_entries();
-    graphlist->set_new_selection(ngraphs,graphs);
 
     mainWin->mainArea->completeRedraw();
+    graphlist->set_new_selection(ngraphs,graphs);
     delete[] graphs;
 }
 
@@ -11619,6 +11717,362 @@ void frmArrangeGraphs::doAccept(void)
     doApply();
     if (ApplyError==false)
         doClose();
+}
+
+void frmArrangeGraphs::guessGraphOrdering(void)
+{
+double xmin,xmax,ymin,ymax;
+double width,height;
+int first=-1;
+tickmarks * t;
+
+guess_r=guess_c=n_graphs=0;
+guess_hgap=guess_vgap=0.0;
+guess_success=0;
+
+//first part is getting the outer margins
+for (int i=0;i<number_of_graphs();i++)
+{
+        if (g[i].hidden==true) continue;//only use visible graphs for checking the borders
+    if (first==-1)
+    {
+    xmin=g[i].v.xv1;
+    xmax=g[i].v.xv2;
+    ymin=g[i].v.yv1;
+    ymax=g[i].v.yv2;
+    first=i;
+    n_graphs=1;
+    }
+    else
+    {
+        if (xmin>g[i].v.xv1)
+        xmin=g[i].v.xv1;
+        if (xmax<g[i].v.xv2)
+        xmax=g[i].v.xv2;
+        if (ymin>g[i].v.yv1)
+        ymin=g[i].v.yv1;
+        if (ymax<g[i].v.yv2)
+        ymax=g[i].v.yv2;
+    n_graphs++;
+    }
+}
+//n_graphs only inlcudes visible graphs
+
+/*cout << "Guessed values: number_of_graphs=" << n_graphs << endl;
+cout << "xmin=" << xmin << " xmax=" << xmax << endl;
+cout << "ymin=" << ymin << " ymax=" << ymax << endl;
+cout << "Page:" << endl;*/
+
+get_page_viewport(&width,&height);
+/*cout << width << " x " << height << endl;*/
+
+left_offset=xmin;
+right_offset=width-xmax;
+bottom_offset=ymin;
+top_offset=height-ymax;
+
+//here we have the outer margins
+/*cout << "Offsets:" << endl;
+cout << "Left=" << left_offset << " Right=" << right_offset << endl;
+cout << "Bottom=" << bottom_offset << " Top=" << top_offset << endl;*/
+
+left_offset=0.01*rint_v2(100.0*left_offset);
+right_offset=0.01*rint_v2(100.0*right_offset);
+bottom_offset=0.01*rint_v2(100.0*bottom_offset);
+top_offset=0.01*rint_v2(100.0*top_offset);
+
+int direction,initial_direction,dir_first_after,dir_before_after;
+double d,initial_d,tmp_d1,tmp_d2;
+int index;
+
+guess_vgap=0.2;
+guess_hgap=0.2;
+guess_hpack=0;
+guess_vpack=0;
+
+//now we guess the ordering
+if (number_of_graphs()>1)
+{
+get_distance_between_graphs(0,1,initial_direction,initial_d);
+index=1;
+direction=initial_direction;
+while (index<number_of_graphs()-1 && direction==initial_direction)
+{
+get_distance_between_graphs(index,index+1,direction,d);
+index++;
+}
+//index is now the id of the first graph after switching directions
+if (index>=number_of_graphs()-1)//just one row or column
+{
+    if (initial_direction==1 || initial_direction==2)//g1 right of g0 or left
+    {
+    guess_r=1;
+    guess_c=number_of_graphs();
+    guess_snake=0;
+    guess_order=0;
+        if (initial_direction==2) guess_order=1;
+    guess_success=1;
+        if (g[0].v.xv2-g[0].v.xv1!=0.0)
+        guess_hgap=0.2;
+        else
+        guess_hgap=initial_d/(g[0].v.xv2-g[0].v.xv1);
+    }
+    else if (initial_direction==4 || initial_direction==8)//g1 is above g0 or below
+    {
+    guess_r=number_of_graphs();
+    guess_c=1;
+    guess_snake=0;
+    guess_order=4;
+        if (initial_direction==4) guess_order=5;
+    guess_success=1;
+        if (g[0].v.yv2-g[0].v.yv1!=0.0)
+        guess_vgap=0.2;
+        else
+        guess_vgap=initial_d/(g[0].v.yv2-g[0].v.yv1);
+    }
+    else
+    {
+    guess_success=0;//no auto-ordering
+    }
+}
+else//more than one row and column
+{
+    if (initial_direction==1 || initial_direction==2)
+    {
+    guess_c=index;
+    guess_r=number_of_graphs()/index;
+    }
+    else if (initial_direction==4 || initial_direction==8)
+    {
+    guess_r=index;
+    guess_c=number_of_graphs()/index;
+    }
+get_distance_between_graphs(0,index,dir_first_after,tmp_d1);
+get_distance_between_graphs(index-1,index,dir_before_after,tmp_d2);
+    switch (initial_direction)
+    {
+    case 1:
+        switch (dir_first_after)
+        {
+        case 4:
+        guess_order=1;
+        guess_snake=0;
+        guess_success=1;
+        break;
+        case 5:
+        guess_order=1;
+        guess_snake=1;
+        guess_success=1;
+        break;
+        case 8:
+        guess_order=0;
+        guess_snake=0;
+        guess_success=1;
+        break;
+        case 9:
+        guess_order=0;
+        guess_snake=1;
+        guess_success=1;
+        break;
+        default:
+        guess_success=0;
+        break;
+        }
+    break;
+    case 2:
+        switch (dir_first_after)
+        {
+        case 4:
+        guess_order=3;
+        guess_snake=0;
+        guess_success=1;
+        break;
+        case 6:
+        guess_order=3;
+        guess_snake=1;
+        guess_success=1;
+        break;
+        case 8:
+        guess_order=2;
+        guess_snake=0;
+        guess_success=1;
+        break;
+        case 10:
+        guess_order=2;
+        guess_snake=1;
+        guess_success=1;
+        break;
+        default:
+        guess_success=0;
+        break;
+        }
+    break;
+    case 4:
+        switch (dir_first_after)
+        {
+        case 1:
+        guess_order=5;
+        guess_snake=0;
+        guess_success=1;
+        break;
+        case 5:
+        guess_order=5;
+        guess_snake=1;
+        guess_success=1;
+        break;
+        case 2:
+        guess_order=7;
+        guess_snake=0;
+        guess_success=1;
+        break;
+        case 6:
+        guess_order=7;
+        guess_snake=1;
+        guess_success=1;
+        break;
+        default:
+        guess_success=0;
+        break;
+        }
+    break;
+    case 8:
+        switch (dir_first_after)
+        {
+        case 1:
+        guess_order=4;
+        guess_snake=0;
+        guess_success=1;
+        break;
+        case 9:
+        guess_order=4;
+        guess_snake=1;
+        guess_success=1;
+        break;
+        case 2:
+        guess_order=6;
+        guess_snake=0;
+        guess_success=1;
+        break;
+        case 10:
+        guess_order=6;
+        guess_snake=1;
+        guess_success=1;
+        break;
+        default:
+        guess_success=0;
+        break;
+        }
+    break;
+    default:
+    guess_success=0;
+    break;
+    }
+    ///guess the gaps now
+    if (guess_success==1)
+    {
+        switch (guess_order)
+        {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            if (g[0].v.xv2-g[0].v.xv1==0.0)
+            guess_hgap=0.2;
+            else
+            guess_hgap=initial_d/(g[0].v.xv2-g[0].v.xv1);
+                if (guess_snake==1)
+                guess_vgap=tmp_d2;
+                else
+                guess_vgap=tmp_d1;
+            if (g[0].v.yv2-g[0].v.yv1==0.0)
+            guess_vgap=0.2;
+            else
+            guess_vgap/=(g[0].v.yv2-g[0].v.yv1);
+        break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+            if (g[0].v.yv2-g[0].v.yv1==0.0)
+            guess_vgap=0.2;
+            else
+            guess_vgap=initial_d/(g[0].v.yv2-g[0].v.yv1);
+                if (guess_snake==1)
+                guess_hgap=tmp_d2;
+                else
+                guess_hgap=tmp_d1;
+            if (g[0].v.xv2-g[0].v.xv1==0.0)
+            guess_hgap=0.2;
+            else
+            guess_hgap/=(g[0].v.xv2-g[0].v.xv1);
+        break;
+        }
+        //looking for packed graphs
+        if (guess_hgap==0.0)//may be h-packed
+        {
+            guess_hpack=0;
+            switch (guess_order)
+            {
+            case 0:
+            case 1:
+                t = get_graph_tickmarks(1, 1);//graph 1, y-axis
+            break;
+            case 2:
+            case 3:
+            case 6:
+            case 7:
+                t = get_graph_tickmarks(0, 1);//graph 0, y-axis
+            break;
+            case 4:
+            case 5:
+                t = get_graph_tickmarks(index, 1);//graph 'index', y-axis
+            break;
+            }
+            if (t!=NULL)
+            guess_hpack=!t->tl_flag;
+        }
+        else guess_hpack=0;
+        if (guess_vgap==0.0)//may be v-packed
+        {
+            guess_vpack=0;
+            switch (guess_order)
+            {
+            case 0:
+            case 2:
+            case 4:
+            case 6:
+                t = get_graph_tickmarks(0, 0);//graph 0, x-axis
+            break;
+            case 5:
+            case 7:
+                t = get_graph_tickmarks(1, 0);//graph 1, x-axis
+            break;
+            case 1:
+            case 3:
+                t = get_graph_tickmarks(index, 0);//graph 'index', x-axis
+            break;
+            }
+            if (t!=NULL)
+            guess_vpack=!t->tl_flag;
+        }
+        else guess_vpack=0;
+        if (guess_vpack==1) guess_vgap=0.2;
+        if (guess_hpack==1) guess_hgap=0.2;
+    }
+}//end more than one row or column
+}//end more than one graph
+else//just one graph
+{
+    guess_r=1;
+    guess_c=1;
+    guess_order=0;
+    guess_snake=0;
+    guess_hpack=guess_vpack=0;
+    guess_success=1;
+}
+guess_hgap=0.1*rint_v2(guess_hgap*10.0);
+guess_vgap=0.1*rint_v2(guess_vgap*10.0);
+//cout << "hgap=" << guess_hgap << " vgap=" << guess_vgap << endl;
 }
 
 frmOverlayGraphs::frmOverlayGraphs(QWidget * parent):QDialog(parent)
@@ -15357,9 +15811,10 @@ void frmFourier2::init(void)
     selOversampling->setCurrentIndex(0);
     selLowOrder->setValue(2);
     selHighOrder->setValue(2);
-    selKind->setCurrentIndex(FILTER_BUTTERWORTH);
+    selPoints->setCurrentValue(PROCESSING_ZERO_PADDING);
+    selKind->setCurrentValue(FILTER_BUTTERWORTH);
     filterKindChanged(FILTER_BUTTERWORTH);
-    selType->setCurrentIndex(FILTER_LOW_PASS);
+    selType->setCurrentValue(FILTER_LOW_PASS);
     filterTypeChanged(FILTER_LOW_PASS);
     grpSource->update_number_of_entries();
     grpDestination->update_number_of_entries();
@@ -15947,7 +16402,7 @@ void frmFourier2::doClose(void)
 frmHotLinks::frmHotLinks(QWidget * parent):QDialog(parent)
 {
     int number;
-    QString entr[2];
+    QString entr[8];
 //setFont(*stdFont);
     setWindowIcon(QIcon(*GraceIcon));
     setWindowTitle(tr("QtGrace: Hot links"));
@@ -15962,7 +16417,15 @@ frmHotLinks::frmHotLinks(QWidget * parent):QDialog(parent)
     entr[0]=tr("Disk file");
     entr[1]=tr("Pipe");
     hotlink_source_item=new StdSelector(this,tr("Source:"),number,entr);
-
+    number=6;
+    entr[0]=tr("Never");
+    entr[1]=tr("Every 1 sec");
+    entr[2]=tr("Every 5 sec");
+    entr[3]=tr("Every 10 sec");
+    entr[4]=tr("Every 30 sec");
+    entr[5]=tr("Every 60 sec");
+    auto_hotlink_update=new StdSelector(this,tr("Autoupdate hotlinks:"),number,entr);
+    connect(auto_hotlink_update->cmbSelect,SIGNAL(activated(int)),SLOT(autoupdatechanged(int)));
     buttons[0]=new QPushButton(tr("Link"),this);
     buttons[0]->setDefault(TRUE);
     connect(buttons[0],SIGNAL(clicked()),SLOT(doLink()));
@@ -15975,6 +16438,9 @@ frmHotLinks::frmHotLinks(QWidget * parent):QDialog(parent)
     buttons[4]=new QPushButton(tr("Close"),this);
     connect(buttons[4],SIGNAL(clicked()),SLOT(doClose()));
 
+    autoupdatetimer=new QTimer(this);
+    connect(autoupdatetimer,SIGNAL(timeout()),SLOT(do_hotupdate_proc()));
+
     layout=new QGridLayout;
     layout->setMargin(STD_MARGIN);
     layout->addWidget(hotlink_list_item,0,0,1,5);
@@ -15982,11 +16448,12 @@ frmHotLinks::frmHotLinks(QWidget * parent):QDialog(parent)
     layout->addWidget(hotlink_set_item,2,0,1,5);
     layout->addWidget(hotlink_file_item,3,0,1,5);
     layout->addWidget(hotlink_source_item,4,0,1,5);
-    layout->addWidget(buttons[0],5,0);
-    layout->addWidget(buttons[1],5,1);
-    layout->addWidget(buttons[2],5,2);
-    layout->addWidget(buttons[3],5,3);
-    layout->addWidget(buttons[4],5,4);
+    layout->addWidget(auto_hotlink_update,5,0,1,5);
+    layout->addWidget(buttons[0],6,0);
+    layout->addWidget(buttons[1],6,1);
+    layout->addWidget(buttons[2],6,2);
+    layout->addWidget(buttons[3],6,3);
+    layout->addWidget(buttons[4],6,4);
     setLayout(layout);
 }
 
@@ -16080,6 +16547,32 @@ void frmHotLinks::do_hotupdate_proc(void)
     mainWin->mainArea->completeRedraw();
 }
 
+void frmHotLinks::autoupdatechanged(int a)
+{
+    if (autoupdatetimer->isActive()==true) autoupdatetimer->stop();
+    switch (a)
+    {
+    default:
+    case 0://never
+    break;
+    case 1://1sec
+        autoupdatetimer->start(1000);
+    break;
+    case 2://5sec
+        autoupdatetimer->start(5000);
+    break;
+    case 3://10sec
+        autoupdatetimer->start(10000);
+    break;
+    case 4://30sec
+        autoupdatetimer->start(30000);
+    break;
+    case 5://60sec
+        autoupdatetimer->start(60000);
+    break;
+    }
+}
+
 void frmHotLinks::doFiles(void)
 {
     if (FormSelectHotLink==NULL)
@@ -16143,15 +16636,18 @@ void frmHotLinks::update_hotlinks(void)
     hotlink_list_item->clear();
     hotlink_list_item->number_of_entries=0;
     for (j = 0; j < number_of_sets(get_cg()); j++) {
+        cout << j << " ";
         if (is_hotlinked(get_cg(), j)) {
             sprintf(buf, "G%d.S%d -> %s -> %s:%d", get_cg(), j,
                     get_hotlink_src(get_cg(), j) == SOURCE_DISK ? "DISK" : "PIPE",
                     get_hotlink_file(get_cg(), j), is_hotlinked(get_cg(),j) );
+            cout << "buf=" << buf << endl;
             xms=QString(buf);
             hotlink_list_item->add_Item(xms);
         }
     }
-    hotlink_list_item->update_number_of_entries_preserve_selection();
+    cout << "number_f_entries=" << hotlink_list_item->number_of_entries << " count=" << hotlink_list_item->count() << endl;
+    /// hotlink_list_item->update_number_of_entries_preserve_selection();
     unset_wait_cursor();
     //}
 }
@@ -18768,7 +19264,7 @@ void frmNonlinCurveFit::doApply(void)
         newset=nextset(src_gno);
         copyset(src_gno,svalues1[0],src_gno,newset);
         setlength(src_gno,newset,resno);
-cout << "new combined temporary set generated=" << src_gno << "." << newset << endl;
+//cout << "new combined temporary set generated=" << src_gno << "." << newset << endl;
         set_legend_string(src_gno,newset,"");
         resno=0;
         for (int i=0;i<ns1;i++)//go through all selected sets
@@ -23052,6 +23548,7 @@ frmGraph_App::frmGraph_App(QWidget * parent):QWidget(parent)
     connect(tabSpec->ledZnormal->lenText,SIGNAL(returnPressed()),SLOT(update0()));
     connect(tabSpec->selBarGap,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
 
+    setMinimumWidth(480);
     //end immediate updates stuff
     init();
 }
@@ -25550,6 +26047,8 @@ void frmAxis_Prop::update_ticks(int gno)
     immediateUpdate=false;
     updateRunning=true;
 
+    setWindowTitle(tr("QtGrace: Axis (G")+QString::number(gno)+QString(")"));
+
     redisplayContents();
 
     t = get_graph_tickmarks(gno, curaxis);
@@ -26762,7 +27261,7 @@ void get_all_settings_from_ini_file(char * ini_file,QStringList & keys,QStringLi
 QVariant val1;
 QString val2,tval;
 QStringList val3;
-QSettings settings(ini_file,QSettings::IniFormat);
+QSettings settings(QString::fromLocal8Bit(ini_file),QSettings::IniFormat);
 keys.clear();
 vals.clear();
 //import_channels.clear();
@@ -26808,14 +27307,17 @@ void pageHeaderInfo::doReadIni(void)
     }*/
     initSettings(par_wid->imp_set);
     par_wid->transmitInfos();
-    if (par_wid->headerFileName[0]!='\0')
+    //if (par_wid->headerFileName[0]!='\0')
+    if (!par_wid->headerFileNames.at(par_wid->bin_file_nr_to_import).isEmpty())
     {
     int std_format_nr;
     bool is_header_file;
     struct importSettings null_import;
     initSettings(null_import,false);
-    par_wid->imp_set.HeaderFile=QString(par_wid->headerFileName);
-        if (guess_bin_format(par_wid->headerFileName,std_format_nr,is_header_file)==RETURN_SUCCESS)
+    //par_wid->imp_set.HeaderFile=QString::fromLocal8Bit(par_wid->headerFileName);
+    par_wid->imp_set.HeaderFile=par_wid->headerFileNames.at(par_wid->bin_file_nr_to_import);
+        //if (guess_bin_format(par_wid->headerFileName,std_format_nr,is_header_file)==RETURN_SUCCESS)
+        if (guess_bin_format(par_wid->headerFileNames.at(par_wid->bin_file_nr_to_import),std_format_nr,is_header_file)==RETURN_SUCCESS)
         {
         read_INI_header(par_wid->imp_set,std_bin_import_settings[std_format_nr]);
         }
@@ -27353,7 +27855,8 @@ frmBinaryFormatInput::frmBinaryFormatInput(QWidget * parent):QDialog(parent)
     imp_set.subtitle=new char[2];
     imp_set.x_title=new char[2];
     imp_set.y_title=new char[2];
-    imp_set.set_title=new char[2];
+        for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
+        imp_set.set_title[i]=new char[2];
     imp_set.first_data=new double*[2];
     imp_set.channel_format=new int[2];
     imp_set.channel_size=new int[2];
@@ -28168,20 +28671,20 @@ int frmBinaryFormatInput::detectStdBinFormat(char * filen)
         {
             if (is_header_file==false)
             {
-            imp_set.DataFile=QString(filen);
+            imp_set.DataFile=QString::fromLocal8Bit(filen);
             imp_set.HeaderFile=imp_set.DataFile;
             replaceSuffix(imp_set.HeaderFile,std_bin_import_settings[std_schema_nr].HeaderSuffix);
             }
             else
             {
-            imp_set.HeaderFile=QString(filen);
+            imp_set.HeaderFile=QString::fromLocal8Bit(filen);
             imp_set.DataFile=imp_set.HeaderFile;
             replaceSuffix(imp_set.DataFile,std_bin_import_settings[std_schema_nr].DataSuffix);
             }
         }
         else//no header
         {
-        imp_set.DataFile=QString(filen);
+        imp_set.DataFile=QString::fromLocal8Bit(filen);
         imp_set.HeaderFile=QString("");
         }
 
@@ -28287,7 +28790,8 @@ cout << "Finished reading header" << endl;
 
 for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
 
-        if (datFileName[0]=='\0')
+        //if (datFileName[0]=='\0')
+        if (!datFileNames.at(bin_file_nr_to_import).isEmpty())
         {
             errwin(tr("No binary input file selected.").toLocal8Bit().constData());
             ApplyError=true;
@@ -28316,35 +28820,39 @@ tabDataInfo->readDataSettings(imp_set);
         collect_nr_of_sets=0;
         for (int kkk=0;kkk<datFileNames.length();kkk++)//go through all selected files
         {
-            strcpy(datFileName,datFileNames.at(kkk).toLocal8Bit().constData());
-            strcpy(headerFileName,headerFileNames.at(kkk).toLocal8Bit().constData());
-            cout << "File=#" << datFileName << "# Header=#" << headerFileName << "#" << endl;
-            QFileInfo FilInf(datFileName);
+            /// strcpy(datFileName,datFileNames.at(kkk).toLocal8Bit().constData());
+            bin_file_nr_to_import=kkk;
+            /// strcpy(headerFileName,headerFileNames.at(kkk).toLocal8Bit().constData());
+            cout << "File=#" << datFileNames.at(kkk).toLocal8Bit().constData() << "# Header=#" << headerFileNames.at(kkk).toLocal8Bit().constData() << "#" << endl;
+            //QFileInfo FilInf(datFileName);
+            QFileInfo FilInf(datFileNames.at(kkk));
             set_identifier=FilInf.fileName();//QString(datFileName);
             cout << "name only=#" << set_identifier.toLatin1().constData() << "#" << endl;
 
             if (cmbFormatSource->currentIndex()==1)//header in datafile
             {
-            strcpy(headerFileName,datFileName);
+            //strcpy(headerFileName,datFileName);
+            headerFileNames.replace(bin_file_nr_to_import,datFileNames.at(bin_file_nr_to_import));
             }
 
-            QFileInfo info(datFileName);
+            //QFileInfo info(datFileName);
+            QFileInfo info(datFileNames.at(kkk));
 
             if (info.isReadable()==false)
             {
                 QString dummy;
-                dummy=tr("Selected binary input file (")+QString(datFileName)+tr(") is unreadable. Please select a suitable input file.");
+                dummy=tr("Selected binary input file (")+datFileNames.at(kkk)+tr(") is unreadable. Please select a suitable input file.");
                 errwin(dummy.toLocal8Bit().constData());
                 ApplyError=true;
                 continue;
             }
 
             if (cmbHeaderFileFormat->currentIndex()==1)//ini-file
-                ifi.open(headerFileName);
+                ifi.open(headerFileNames.at(kkk).toLocal8Bit().constData());
             else if (cmbHeaderFileFormat->currentIndex()==0)
-                ifi.open(headerFileName, ios::binary );//binary header
+                ifi.open(headerFileNames.at(kkk).toLocal8Bit().constData(), ios::binary );//binary header
             else//ascii-file
-                ifi.open(headerFileName);
+                ifi.open(headerFileNames.at(kkk).toLocal8Bit().constData());
             //read data from header to imp_set
             if (chkHeader->isChecked()==true)//read only if there is really a header
                 doReadDataFromHeader(ifi,imp_set);
@@ -28370,11 +28878,11 @@ imp_set.channel_format[i]=tabDataInfo->inFormats[i]->getType();
             if (cmbFormatSource->currentIndex()==2)//header is a seperate file
             {
                 ifi.close();
-                ifi.open(datFileName, ios::binary );
+                ifi.open(datFileNames.at(kkk).toLocal8Bit().constData(), ios::binary );
             }//0-->manual, 1-->datafile=headerfile
             if (chkHeader->isChecked()==false)//no header
             {
-                ifi.open(datFileName, ios::binary );
+                ifi.open(datFileNames.at(kkk).toLocal8Bit().constData(), ios::binary );
                 //ifi.seekg(0,ios_base::beg);
             }
             cout << "about to save settings" << endl;
@@ -28393,7 +28901,7 @@ SaveFileFormat("/Users/andreaswinter/akt_bin_settings.fmt",imp_set);
             imp_set.token_target[lll]=find_import_destination(imp_set.vals.at(lll).toLocal8Bit().data(),1);
             }
 
-            copy_bin_settings_to_current_bin_import(datFileName,false,&imp_set);
+            copy_bin_settings_to_current_bin_import(datFileNames.at(kkk),false,&imp_set);
             if (kkk<datFileNames.length()-1)
             read_bin_file_by_current_settings(true);
             else
@@ -28532,12 +29040,16 @@ SaveFileFormat("/Users/andreaswinter/akt_bin_settings.fmt",imp_set);
 
                     if (imp_set.channel_target[i]==IMPORT_TO_Y)
                     {
-                        if (imp_set.set_title!=NULL)
-                            strcpy(set_identifier_string,imp_set.set_title);
+                        if (imp_set.set_title[imp_set.import_dest.at(i)]!=NULL)
+                            strcpy(set_identifier_string,imp_set.set_title[imp_set.import_dest.at(i)]);
                         else
                             sprintf(set_identifier_string,"binary import from: %s, channel %d",set_identifier.toLatin1().constData(),i);
-                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].comments,set_identifier_string);
-                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_comments,set_identifier_string);
+                        //strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].comments,set_identifier_string);
+                        //strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_comments,set_identifier_string);
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].lstr,set_identifier_string);
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_lstr,set_identifier_string);
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].comments,imp_set.DataFile.toLocal8Bit().constData());
+                        strcpy(g[target_gno].p[snos[number_of_sets_with_column[col]]].orig_comments,imp_set.DataFile.toLocal8Bit().constData());
                     }
 
                     if (imp_set.factors[col]!=1.0)
@@ -28738,7 +29250,7 @@ Data_Path.clear();
     QFileInfo fi(datFileNames.at(0));
     Data_Suffix=fi.suffix();
     Data_Path=fi.absolutePath()+QDir::separator();
-    strcpy(datFileName,datFileNames.at(0).toLocal8Bit().constData());
+    //strcpy(datFileName,datFileNames.at(0).toLocal8Bit().constData());
     }
 
     if (nr_of_headerfiles>0)
@@ -28746,13 +29258,13 @@ Data_Path.clear();
     QFileInfo fi(headerFileNames.at(0));
     HeaderSuffix=fi.suffix();
     HeaderPath=fi.absolutePath()+QDir::separator();
-    strcpy(headerFileName,headerFileNames.at(0).toLocal8Bit().constData());
+    //strcpy(headerFileName,headerFileNames.at(0).toLocal8Bit().constData());
     }
     else//no header file set - but maybe there should be one
     {
     HeaderSuffix.clear();
     HeaderPath.clear();
-    strcpy(headerFileName,"");
+    //strcpy(headerFileName,"");
         if (imp_set.header_present==true && imp_set.header_format>=2)//no headers, but there should be one in a separate file
         {
             HeaderPath=Data_Path;
@@ -28773,7 +29285,7 @@ cout << "DataPath     = " << Data_Path.toLocal8Bit().constData() << endl;
         {
             HeaderSuffix.clear();
             HeaderPath.clear();
-            strcpy(headerFileName,"");
+            //strcpy(headerFileName,"");
             headerFileNames.clear();
         }
         else if (imp_set.header_format==HEADER_FORMAT_BIN_FILE || imp_set.header_format==HEADER_FORMAT_INI_FILE || imp_set.header_format==HEADER_FORMAT_ASCII_FILE)//separate bin-, ini-file or ascii-file
@@ -28811,18 +29323,23 @@ headerFileNames.clear();
     if (!lenDataFile->text().isEmpty())
     {
         QString help=lenDataFile->text().toLocal8Bit();
+        help=lenDataFile->text();/// TEST
         getDatFilesFromString(&help,&datFileNames);//we seperate the individual filenames and save them in datFileNames
-        strcpy(datFileName,datFileNames.at(0).toLocal8Bit());//only get the name of the first file here
+            for (int i=0;i<datFileNames.length();i++)
+            {
+                cout << "File " << i << " --> " << datFileNames.at(i).toLocal8Bit().constData() << endl;
+            }
+        /// strcpy(datFileName,datFileNames.at(0).toLocal8Bit());//only get the name of the first file here
     }
     else//no data-file!?
     {
-        datFileName[0]='\0';
+        ;/// datFileName[0]='\0';
     }
 
     if (!chkHeader->isChecked())//no header
     {
         imp_set.header_present=false;
-        headerFileName[0]='\0';
+        /// headerFileName[0]='\0';
     }
     else
     {
@@ -28837,7 +29354,7 @@ headerFileNames.clear();
     {
         imp_set.header_format=HEADER_FORMAT_DATA_FILE;
         headerFileNames=datFileNames;
-        strcpy(headerFileName,datFileName);
+        /// strcpy(headerFileName,datFileName);
         tabHeader->read_header_settings(imp_set);
     }
     else if (cmbFormatSource->currentIndex()==2)//header in separate file
@@ -28851,11 +29368,11 @@ headerFileNames.clear();
         //strcpy(headerFileName,lenHeaderFile->text().toLocal8Bit());
             QString help=lenHeaderFile->text().toLocal8Bit();
             getDatFilesFromString(&help,&headerFileNames);//we seperate the individual filenames
-            strcpy(headerFileName,headerFileNames.at(0).toLocal8Bit());//only get the name of the first file here
+            /// strcpy(headerFileName,headerFileNames.at(0).toLocal8Bit());//only get the name of the first file here
         }
         else
         {
-            headerFileName[0]='\0';
+            ;/// headerFileName[0]='\0';
         }
         imp_set.header_format=HEADER_FORMAT_BIN_FILE;
         if (cmbHeaderFileFormat->currentIndex()==1) imp_set.header_format=HEADER_FORMAT_INI_FILE;
@@ -28869,13 +29386,14 @@ CheckHeadersAndDatFiles();//to complete filenames and check completeness of info
     cout << "nach check Headers and dat files" << endl;
     for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
 
-    if (headerFileName[0]!='\0')
+    //if (headerFileName[0]!='\0')
+    if (!headerFileNames.at(0).isEmpty())
     {
         ifstream ifi;
             if (cmbFormatSource->currentIndex()==1 || (cmbFormatSource->currentIndex()==2 && cmbHeaderFileFormat->currentIndex()==0) )
-            ifi.open(headerFileName,ios::binary);
+            ifi.open(headerFileNames.at(0).toLocal8Bit().constData(),ios::binary);
             else
-            ifi.open(headerFileName);
+            ifi.open(headerFileNames.at(0).toLocal8Bit().constData());
         //read data from header to imp_set
         doReadDataFromHeader(ifi,imp_set);
 
@@ -29045,7 +29563,7 @@ void prepare_imp_settings_for_header_import(struct importSettings & imp_set)
 
 void complete_channel_settings(struct importSettings & imp_set)
 {
-for (int j=0;j<2;j++)//we  this more than once to get everything as complete as possible
+for (int j=0;j<2;j++)//we do this more than once to get everything as complete as possible
 {
 if (imp_set.bitsize==-1 && imp_set.bytesize>0) imp_set.bitsize=imp_set.bytesize*8;
 if (imp_set.bitsize>0 && imp_set.bytesize==-1) imp_set.bytesize=imp_set.bitsize/8;
@@ -29211,9 +29729,10 @@ ifi.open(imp_set.HeaderFile.toLocal8Bit().constData(),ios::binary);
                 strcpy(imp_set.title,stringText);
                 break;
             case IMPORT_TO_SET_LEGEND:
-                delete[] imp_set.set_title;
-                imp_set.set_title=new char[size+1];
-                strcpy(imp_set.set_title,stringText);
+                if (imp_set.set_title[imp_set.import_dest.at(i)]!=NULL)
+                    delete[] imp_set.set_title[imp_set.import_dest.at(i)];
+                imp_set.set_title[imp_set.import_dest.at(i)]=new char[size+1];
+                strcpy(imp_set.set_title[imp_set.import_dest.at(i)],stringText);
                 break;
             case IMPORT_TO_X0:
                 if (integer_type)
@@ -29230,12 +29749,14 @@ ifi.open(imp_set.HeaderFile.toLocal8Bit().constData(),ios::binary);
                 imp_set.deltaxset=true;
                 break;
             case IMPORT_TO_XTITLE:
-                delete[] imp_set.x_title;
+                if (imp_set.x_title!=NULL)
+                    delete[] imp_set.x_title;
                 imp_set.x_title=new char[size+1];
                 strcpy(imp_set.x_title,stringText);
                 break;
             case IMPORT_TO_YTITLE:
-                delete[] imp_set.y_title;
+                if (imp_set.y_title!=NULL)
+                    delete[] imp_set.y_title;
                 imp_set.y_title=new char[size+1];
                 strcpy(imp_set.y_title,stringText);
                 break;
@@ -29411,9 +29932,76 @@ void compare_INI_settings_with_schema(struct importSettings & imp_set,struct imp
     }
 }
 
+int guess_suitable_import_format(int suggestion,int actualsize)//guess the most suitable import format if the size in bytes does not match the type-suggestion --> will return the suggestion, if nothing better is found
+{
+int ret=suggestion;
+switch (suggestion)
+{
+case COLUMN_SIG_CHAR:
+case COLUMN_SIG_SHORT:
+case COLUMN_SIG_INT:
+case COLUMN_SIG_LONG:
+    if (binaryImportFormat[COLUMN_SIG_CHAR].size==actualsize)
+    {
+    ret=COLUMN_SIG_CHAR;
+    }
+    else if (binaryImportFormat[COLUMN_SIG_SHORT].size==actualsize)
+    {
+    ret=COLUMN_SIG_SHORT;
+    }
+    else if (binaryImportFormat[COLUMN_SIG_INT].size==actualsize)
+    {
+    ret=COLUMN_SIG_INT;
+    }
+    else if (binaryImportFormat[COLUMN_SIG_LONG].size==actualsize)
+    {
+    ret=COLUMN_SIG_LONG;
+    }
+break;
+case COLUMN_USIG_CHAR:
+case COLUMN_USIG_SHORT:
+case COLUMN_USIG_INT:
+case COLUMN_USIG_LONG:
+    if (binaryImportFormat[COLUMN_USIG_CHAR].size==actualsize)
+    {
+    ret=COLUMN_USIG_CHAR;
+    }
+    else if (binaryImportFormat[COLUMN_USIG_SHORT].size==actualsize)
+    {
+    ret=COLUMN_USIG_SHORT;
+    }
+    else if (binaryImportFormat[COLUMN_USIG_INT].size==actualsize)
+    {
+    ret=COLUMN_USIG_INT;
+    }
+    else if (binaryImportFormat[COLUMN_USIG_LONG].size==actualsize)
+    {
+    ret=COLUMN_USIG_LONG;
+    }
+break;
+case COLUMN_FLOAT:
+case COLUMN_DOUBLE:
+case COLUMN_LONG_DOUBLE:
+    if (binaryImportFormat[COLUMN_FLOAT].size==actualsize)
+    {
+    ret=COLUMN_FLOAT;
+    }
+    else if (binaryImportFormat[COLUMN_DOUBLE].size==actualsize)
+    {
+    ret=COLUMN_DOUBLE;
+    }
+    else if (binaryImportFormat[COLUMN_LONG_DOUBLE].size==actualsize)
+    {
+    ret=COLUMN_LONG_DOUBLE;
+    }
+break;
+}
+return ret;
+}
+
 void read_INI_header(struct importSettings & imp_set,struct importSettings & imp_schema)//imp_set should contain the header-file-name
 {
-    cout << "INI-Header-File" << endl;
+//cout << "INI-Header-File" << endl;
 // 0) set some basics from the imp_schema
 imp_set.header_present=imp_schema.header_present;
 imp_set.header_format=imp_schema.header_format;
@@ -29433,16 +30021,18 @@ imp_set.nr_of_import_tokens=imp_set.keys.length();
 // 2) compare the tokens with the schema and set the targets (where to put the data read from the header)
 // the tokens we have to look for are in the imp_schema; any import-key in imp_set that is not part of imp_schema will be market with a 0 (IMPORT_TO_NONE)
 
+/*
 cout << "schema data:" << endl;
 for (int i=0;i<imp_schema.keys.length();i++)
 {
 cout << "#" << imp_schema.keys.at(i).toLocal8Bit().constData() << "#-->#" << imp_schema.vals.at(i).toLocal8Bit().constData() << "#" << endl;
-}
+}*/
 cout << "imported data:" << endl;
 for (int i=0;i<imp_set.keys.length();i++)
 {
 cout << "#" << imp_set.keys.at(i).toLocal8Bit().constData() << "#-->#" << imp_set.vals.at(i).toLocal8Bit().constData() << "#" << endl;
 }
+
 
 compare_INI_settings_with_schema(imp_set,imp_schema);
 
@@ -29480,11 +30070,14 @@ for (int i=0;i<imp_set.keys.length();i++)
 for (int i=0;i<imp_schema.keys.length();i++)
 cout << imp_schema.keys.at(i).toLocal8Bit().constData() << "-->" << imp_schema.vals.at(i).toLocal8Bit().constData() << endl;
 */
+
+/*
 cout << "imp_set: suitable header data found" << endl;
 for (int i=0;i<imp_set.keys.length();i++)
 {
 cout << imp_set.keys.at(i).toLocal8Bit().constData() << "-->" << imp_set.vals.at(i).toLocal8Bit().constData() << " --> " << imp_set.import_dest.at(i) << " -- ch=" << imp_set.import_channel_dest.at(i) << endl;
 }
+*/
 
 // 3) prepare the control variables in the imp_set
 /*imp_set.x0set=false;
@@ -29512,7 +30105,7 @@ for (int i=0;i<imp_set.keys.length();i++)
 if (imp_set.import_dest.at(i)==IMPORT_TO_NONE) continue;
     strcpy(tmp_target_name,imp_set.vals.at(i).toLocal8Bit().constData());//tabHeader->readValues[i].toLocal8Bit());
     d_value=atof(tmp_target_name);
-    //cout << "val=" << tmp_target_name << " --> atof=" << d_value << " imp_dest=" << imp_set.import_dest.at(i) << endl;
+//cout << "val=" << tmp_target_name << " --> atof=" << d_value << " imp_dest=" << imp_set.import_dest.at(i) << endl;
     switch (imp_set.import_dest.at(i))
     {
     case IMPORT_TO_X0:
@@ -29552,10 +30145,23 @@ if (imp_set.import_dest.at(i)==IMPORT_TO_NONE) continue;
         strcpy(imp_set.title,tmp_target_name);
         break;
     case IMPORT_TO_SET_LEGEND:
-        if (imp_set.set_title!=NULL)
-            delete[] imp_set.set_title;
-        imp_set.set_title=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
-        strcpy(imp_set.set_title,tmp_target_name);
+        if (imp_set.import_channel_dest.at(i)==-1)//all
+        {
+            for (int k=0;k<MAX_BIN_IMPORT_CHANNELS;k++)
+            {
+                if (imp_set.set_title[k]!=NULL)
+                    delete[] imp_set.set_title[k];
+                imp_set.set_title[k]=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
+                strcpy(imp_set.set_title[k],tmp_target_name);
+            }
+        }
+        else
+        {
+        if (imp_set.set_title[imp_set.import_channel_dest.at(i)]!=NULL)
+            delete[] imp_set.set_title[imp_set.import_channel_dest.at(i)];
+        imp_set.set_title[imp_set.import_channel_dest.at(i)]=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
+        strcpy(imp_set.set_title[imp_set.import_channel_dest.at(i)],tmp_target_name);
+        }
         break;
     case IMPORT_TO_XTITLE:
         if (imp_set.x_title!=NULL)
@@ -29582,7 +30188,10 @@ if (imp_set.import_dest.at(i)==IMPORT_TO_NONE) continue;
     if (imp_set.import_dest.at(i)>=IMPORT_TO_XFACTOR && imp_set.import_dest.at(i)<=IMPORT_TO_Y4FACTOR)
     {
     //imp_set.factors[imp_set.import_dest.at(i)-IMPORT_TO_XFACTOR]*=d_value;
-    imp_set.channel_factors[imp_set.import_channel_dest.at(i)]*=d_value;
+        if (imp_set.import_channel_dest.at(i)==-1)//all
+        imp_set.factors[imp_set.import_dest.at(i)-IMPORT_TO_XFACTOR]*=d_value;
+        else//just one channel
+        imp_set.channel_factors[imp_set.import_channel_dest.at(i)]*=d_value;
     }
     else if (imp_set.import_dest.at(i)>=IMPORT_TO_CHANNEL0_FACTOR && imp_set.import_dest.at(i)<=IMPORT_TO_CHANNEL15_FACTOR)
     {
@@ -29705,12 +30314,28 @@ for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
 cout << "ch_f[" << i << "]=" << imp_set.channel_factors[i] << endl;
 */
 
+//we check the byte-size of the import-format here (only if a channel size in bytes is set)
+if (bsize>0)
+{
+for (int i=0;i<imp_set.channels;i++)
+{
+    if (binaryImportFormat[imp_set.channel_format[i]].size!=bsize)
+    {
+    cout << "Having to reguess Format of channel " << i << endl;
+    cout << "Original Suggestion: " << binaryImportFormatName[imp_set.channel_format[i]] << endl;
+    imp_set.channel_format[i]=guess_suitable_import_format(imp_set.channel_format[i],bsize);
+    cout << "New Suggestion: " << binaryImportFormatName[imp_set.channel_format[i]] << endl;
+    imp_set.channel_size[i]=binaryImportFormat[imp_set.channel_format[i]].size;
+    }
+}
+}
 //now we have read everything we could from the header!
 //now we should read the data
 }
 
 int postprocess_bin_import_data(struct importSettings & imp_set,int & nr_of_new_sets,int ** n_gnos,int ** n_snos)
 {
+QString set_identifier;
 char set_identifier_string[MAX_STRING_LENGTH];
 nr_of_new_sets=0;
 if (*n_gnos!=NULL) delete[] *n_gnos;
@@ -29720,6 +30345,7 @@ int number_of_sets_with_column[6]={0,0,0,0,0,0};
 int number_of_x_columns=0;
 int triggerChannel=-1;
 int triggerSet=-1;
+
 for (int i=0;i<imp_set.channels;i++)
 {
     if (imp_set.channel_target[i]!=IMPORT_TO_NONE)
@@ -29739,6 +30365,10 @@ for (int i=0;i<imp_set.channels;i++)
         else if (imp_set.channel_target[i]==IMPORT_TO_TRIGGER)
             triggerChannel=i;
     }
+    //if (imp_set.set_title[i]!=NULL)
+    //cout << "postprocessing: setTitle=#" << imp_set.set_title[i] << "#" << endl;
+    //else
+    //cout << "postprocessing: setTitle"<< i << " = NULL" << endl;
 }
 number_of_x_columns=number_of_sets_with_column[0];//save this, because we need to know it and the array will be a counter in future
 int max_nr_of_sets=0;
@@ -29755,13 +30385,12 @@ for (int i=0;i<6;i++)
     if (max_nr_of_sets<number_of_sets_with_column[i]) max_nr_of_sets=number_of_sets_with_column[i];
     number_of_sets_with_column[i]=0;//we will need this as a counter...
 }
-
-cout << "number_of_new_sets=" << max_nr_of_sets << " to be allocated" << endl;
+cout << "Import from file: " << imp_set.DataFile.toLocal8Bit().constData() << " number_of_new_sets=" << max_nr_of_sets << " to be allocated" << endl;
 
 *n_snos=new int[max_nr_of_sets+1];
 *n_gnos=new int[max_nr_of_sets+1];
-labels labs;
-tickmarks *t;
+//labels labs;
+//tickmarks *t;
 int setno,ret;
 
 for (int i=0;i<max_nr_of_sets;i++)
@@ -29770,28 +30399,32 @@ setno = nextset(imp_set.target_gno);//allocate new sets
     (*n_snos)[i] = setno;
     (*n_gnos)[i] = imp_set.target_gno;
         set_set_hidden(imp_set.target_gno, setno, FALSE);
-        get_graph_labels(imp_set.target_gno, &labs);
+        //get_graph_labels(imp_set.target_gno, &labs);
     if (imp_set.title!=NULL)
     {
-        set_plotstr_string(&labs.title,imp_set.title);
+        //set_plotstr_string(&labs.title,imp_set.title);
+        set_plotstr_string(&(g[imp_set.target_gno].labs.title),imp_set.title);
     }
     if (imp_set.subtitle!=NULL)
     {
-        set_plotstr_string(&labs.stitle,imp_set.subtitle);
+        //set_plotstr_string(&labs.stitle,imp_set.subtitle);
+        set_plotstr_string(&(g[imp_set.target_gno].labs.stitle),imp_set.subtitle);
     }
     if (imp_set.x_title!=NULL)
     {
-        t = get_graph_tickmarks(imp_set.target_gno, 0);//X
-        set_plotstr_string(&t->label, imp_set.x_title);
+        //t = get_graph_tickmarks(imp_set.target_gno, 0);//X
+        //set_plotstr_string(&t->label, imp_set.x_title);
+        set_plotstr_string(&(g[imp_set.target_gno].t[0]->label), imp_set.x_title);
     }
     if (imp_set.y_title!=NULL)
     {
-        t = get_graph_tickmarks(imp_set.target_gno, 1);//Y
-        set_plotstr_string(&t->label, imp_set.y_title);
+        //t = get_graph_tickmarks(imp_set.target_gno, 1);//Y
+        //set_plotstr_string(&t->label, imp_set.y_title);
+        set_plotstr_string(&(g[imp_set.target_gno].t[1]->label), imp_set.y_title);
     }
     ret=setlength(imp_set.target_gno,setno,imp_set.points_read);
     ret=set_dataset_type(imp_set.target_gno,setno,imp_set.set_type);
-    cout << "setno=" << setno << " len=" << getsetlength(imp_set.target_gno,setno) << " set_type=" << imp_set.set_type << endl;
+//cout << "setno=" << setno << " len=" << getsetlength(imp_set.target_gno,setno) << " set_type=" << imp_set.set_type << endl;
 }//end for-loop over all new sets
 if (triggerChannel>-1)
 {
@@ -29844,18 +30477,21 @@ for (int i=0;i<imp_set.channels;i++)
 
         if (imp_set.channel_target[i]==IMPORT_TO_Y)
         {
-            if (imp_set.set_title!=NULL)
-                strcpy(set_identifier_string,imp_set.set_title);
+            QFileInfo fi(imp_set.DataFile);
+            set_identifier=fi.filePath()+QObject::tr(", Channel ")+QString::number(i);
+            //if (imp_set.set_title[imp_set.import_dest.at(i)]!=NULL)
+            if (imp_set.set_title[i]!=NULL)
+                strcpy(set_identifier_string,imp_set.set_title[i]);
             else
             {
-                QFileInfo fi(imp_set.DataFile);
-                QString set_identifier=fi.fileName();
-                sprintf(set_identifier_string,"binary import from: %s, channel %d",set_identifier.toLatin1().constData(),i);
+                sprintf(set_identifier_string,"binary import from: %s",set_identifier.toLatin1().constData());
             }
-            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].comments,set_identifier_string);
-            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_comments,set_identifier_string);
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].lstr,set_identifier_string);
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_lstr,set_identifier_string);
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].comments,set_identifier.toLocal8Bit().constData());
+            strcpy(g[imp_set.target_gno].p[(*n_snos)[number_of_sets_with_column[col]]].orig_comments,set_identifier.toLocal8Bit().constData());
         }
-cout << "channel " << i << " factor=" << imp_set.channel_factors[i] << " offset=" << imp_set.channel_offsets[i] << " col_factor=" << imp_set.factors[col] << endl;
+//cout << "channel " << i << " factor=" << imp_set.channel_factors[i] << " offset=" << imp_set.channel_offsets[i] << " col_factor=" << imp_set.factors[col] << endl;
         //if (imp_set.factors[col]!=1.0)
             for (int k=0;k<imp_set.points_read;k++)
             {
@@ -29970,7 +30606,7 @@ if (triggerChannel>-1 && imp_set.trigger_type>=0)
             }
         }
     }
-    cout << "trigger_shift=" << trigger_shift << endl;
+//cout << "trigger_shift=" << trigger_shift << endl;
     for (int lll=0;lll<max_nr_of_sets;lll++)
     {
     ShiftSetAxis(imp_set.target_gno,(*n_snos)[lll],-trigger_shift,DATA_X);
@@ -29979,7 +30615,9 @@ if (triggerChannel>-1 && imp_set.trigger_type>=0)
         resno = do_compute(imp_set.target_gno,(*n_snos)[lll], imp_set.target_gno,(*n_snos)[lll], rarray, fstr2);*/
     }
         if (imp_set.keep_trigger==false)
+        {
         killsetdata(imp_set.target_gno, triggerSet);
+        }
         else
         {
         ShiftSetAxis(imp_set.target_gno,triggerSet,-trigger_shift,DATA_X);
@@ -30036,10 +30674,10 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
                     strcpy(imp_set.title,dummy);
                     break;
                 case IMPORT_TO_SET_LEGEND:
-                    if (imp_set.set_title!=NULL)
-                        delete[] imp_set.set_title;
-                    imp_set.set_title=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
-                    strcpy(imp_set.set_title,dummy);
+                    if (imp_set.set_title[imp_set.import_dest.at(i)]!=NULL)
+                        delete[] imp_set.set_title[imp_set.import_dest.at(i)];
+                    imp_set.set_title[imp_set.import_dest.at(i)]=new char[imp_set.vals.at(i).length()+1];//tabHeader->readValues[i].length()+1];
+                    strcpy(imp_set.set_title[imp_set.import_dest.at(i)],dummy);
                     break;
                 case IMPORT_TO_X0:
                     imp_set.x0=d_value;
@@ -30116,7 +30754,7 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
     }
     else if (imp_set.header_present==true && imp_set.header_format==HEADER_FORMAT_DATA_FILE)//binary header
     {
-        cout << "HEADER IN A BIN-DATA FILE" << endl;
+//cout << "HEADER IN A BIN-DATA FILE" << endl;
     long * headerDatas=new long[imp_set.nr_of_header_values];
     long double * ldHeaderDatas=new long double[imp_set.nr_of_header_values];
         for (int i=0;i<imp_set.nr_of_header_values;i++)//tabHeader->number_of_lines;i++)
@@ -30238,14 +30876,16 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
                 case IMPORT_TO_NONE:
                     break;
                 case IMPORT_TO_TITLE:
-                    delete[] imp_set.title;
+                    if (imp_set.title!=NULL)
+                        delete[] imp_set.title;
                     imp_set.title=new char[size+1];
                     strcpy(imp_set.title,stringText);
                     break;
                 case IMPORT_TO_SET_LEGEND:
-                    delete[] imp_set.set_title;
-                    imp_set.set_title=new char[size+1];
-                    strcpy(imp_set.set_title,stringText);
+                    if (imp_set.set_title[imp_set.import_dest.at(i)]!=NULL)
+                        delete[] imp_set.set_title[imp_set.import_dest.at(i)];
+                    imp_set.set_title[imp_set.import_dest.at(i)]=new char[size+1];
+                    strcpy(imp_set.set_title[imp_set.import_dest.at(i)],stringText);
                     break;
                 case IMPORT_TO_X0:
                     if (integer_type)
@@ -30262,12 +30902,14 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
                     imp_set.deltaxset=true;
                     break;
                 case IMPORT_TO_XTITLE:
-                    delete[] imp_set.x_title;
+                    if (imp_set.x_title!=NULL)
+                        delete[] imp_set.x_title;
                     imp_set.x_title=new char[size+1];
                     strcpy(imp_set.x_title,stringText);
                     break;
                 case IMPORT_TO_YTITLE:
-                    delete[] imp_set.y_title;
+                    if (imp_set.y_title!=NULL)
+                        delete[] imp_set.y_title;
                     imp_set.y_title=new char[size+1];
                     strcpy(imp_set.y_title,stringText);
                     break;
@@ -30355,7 +30997,7 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
 
     delete[] stringText;
     int bsize;
-    //cout << "first_suggestion=" << first_suggestion << " bits=" << imp_set.bitsize << endl;
+//cout << "first_suggestion=" << first_suggestion << " bits=" << imp_set.bitsize << endl;
     imp_set.first_suggestion=-1;
     if (imp_set.bitsize!=-1)
     {
@@ -30385,8 +31027,8 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
             }
         }
     }
-    //cout << "first_suggestion=" << first_suggestion << endl;
-    //cout << imp_set.points << " " << imp_set.whole_size << " " << imp_set.bytesize << " " << imp_set.bitsize << endl;
+//cout << "first_suggestion=" << first_suggestion << endl;
+//cout << imp_set.points << " " << imp_set.whole_size << " " << imp_set.bytesize << " " << imp_set.bitsize << endl;
     if (imp_set.points<=0 && imp_set.whole_size!=-1 && (imp_set.bytesize!=-1 || imp_set.bitsize!=-1))
     {
         int size=imp_set.bytesize!=-1?imp_set.bytesize:imp_set.bitsize/8;
@@ -30394,30 +31036,32 @@ void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set)
         if (imp_set.channels>0)
             imp_set.points/=imp_set.channels;
     }
-    //cout << "points=" << imp_set.points << " whole=" << imp_set.whole_size << " byte=" << imp_set.bytesize << " bit=" << imp_set.bitsize << " global_size=" << global_size << endl;
+//cout << "points=" << imp_set.points << " whole=" << imp_set.whole_size << " byte=" << imp_set.bytesize << " bit=" << imp_set.bitsize << " global_size=" << global_size << endl;
     imp_set.headersize=global_size;
 }
 
 void frmBinaryFormatInput::transmitInfos(void)
 {
+    /// hier fehlt noch was: Bezug auf eine der Dateien in der Liste!
     if (!lenDataFile->text().isEmpty())
     {
-        strcpy(datFileName,lenDataFile->text().toLocal8Bit());
-        tabFileInfo->DatFile=datFileName;
+        //strcpy(datFileName,lenDataFile->text().toLocal8Bit());
+        //tabFileInfo->DatFile=datFileName;
     }
     else
     {
-        tabFileInfo->DatFile=NULL;
-        datFileName[0]='\0';
+        //tabFileInfo->DatFile=NULL;
+        //datFileName[0]='\0';
     }
     if (cmbFormatSource->currentIndex()==2)
     {
         if (!lenHeaderFile->text().isEmpty())
         {
-            strcpy(headerFileName,lenHeaderFile->text().toLocal8Bit());
-            tabFileInfo->HeaderFile=headerFileName;
+            //strcpy(headerFileName,lenHeaderFile->text().toLocal8Bit());
+            //tabFileInfo->HeaderFile=headerFileName;
             ifstream ifi;
-            ifi.open(headerFileName,ios::binary);
+            //ifi.open(headerFileName,ios::binary);
+            ifi.open(headerFileNames.at(bin_file_nr_to_import).toLocal8Bit().constData(),ios::binary);
             doReadDataFromHeader(ifi,imp_set);
             ifi.close();
             convertSettingsToString();
@@ -30436,18 +31080,18 @@ void frmBinaryFormatInput::transmitInfos(void)
         else
         {
             tabFileInfo->HeaderFile=NULL;
-            headerFileName[0]='\0';
+            //headerFileName[0]='\0';
         }
     }
     else if (cmbFormatSource->currentIndex()==1)
     {
         tabFileInfo->HeaderFile=tabFileInfo->DatFile;
-        strcpy(headerFileName,datFileName);
+        //strcpy(headerFileName,datFileName);
     }
     else
     {
         tabFileInfo->HeaderFile=NULL;
-        headerFileName[0]='\0';
+        //headerFileName[0]='\0';
     }
 }
 
@@ -30471,9 +31115,15 @@ void frmBinaryFormatInput::convertSettingsToString(void)
     if (imp_set.y_title!=NULL)
         if (imp_set.y_title[0]!='\0')
             result.append(tr("Set y-title= ")+QString(imp_set.y_title)+QString("\n"));
-    if (imp_set.set_title!=NULL)
+    /*if (imp_set.set_title!=NULL)
         if (imp_set.set_title[0]!='\0')
-            result.append(tr("Set-title= ")+QString(imp_set.set_title)+QString("\n"));
+            result.append(tr("Set-title= ")+QString(imp_set.set_title)+QString("\n"));*/
+    for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
+    {
+    if (imp_set.set_title[i]!=NULL)
+        if (imp_set.set_title[i][0]!='\0')
+            result.append(tr("Set-title[")+QString::number(i)+QString("]= ")+QString(imp_set.set_title[i])+QString("\n"));
+    }
 
     if (imp_set.x0set)
     {
@@ -30595,10 +31245,10 @@ void readBinaryFromFile(ifstream & ifi,importSettings & imp_set,double *** data)
     ifi.seekg(0,ios::end);
     length=ifi.tellg();//length complete
     if (position!=imp_set.headersize) position=imp_set.headersize;
-cout << "length=" << length << " position=" << position << endl;
+//cout << "length=" << length << " position=" << position << endl;
     length-=position;//length without header
     ifi.seekg(position);//go to first byte after header
-cout << "resulting length=" << length << endl;
+//cout << "resulting length=" << length << endl;
     long size_of_one_point=0;
     long * size_of_one_set=new long[imp_set.channels];
     long calc_samp_count;
@@ -30626,7 +31276,7 @@ cout << "resulting length=" << length << endl;
 #endif
     for (int i=0;i<imp_set.channels;i++)
         size_of_one_set[i]=calc_samp_count*imp_set.channel_size[i];//the byte-size in the file
-cout << "size_of_one_point=" << size_of_one_point << " calc.samp.count=" << calc_samp_count << endl;
+//cout << "size_of_one_point=" << size_of_one_point << " calc.samp.count=" << calc_samp_count << endl;
     imp_set.columns_read=imp_set.channels;
     int i=0;//channel_nr
     int read=0;//current number of read data
@@ -33455,10 +34105,13 @@ char dummy_vals[128];
     {
     tmptext=QString("A")+QString::number(i)+QString("=");
     sprintf(dummy_vals,sformat,nonl_parms[i].value);
+    SetDecimalSeparatorToUserValue(dummy_vals,false);
     tmptext+=QString(dummy_vals)+QString("\t ")+tr("Min=");
     sprintf(dummy_vals,sformat,nonl_parms[i].min);
+    SetDecimalSeparatorToUserValue(dummy_vals,false);
     tmptext+=QString(dummy_vals)+QString("\t ")+tr("Max=");
     sprintf(dummy_vals,sformat,nonl_parms[i].max);
+    SetDecimalSeparatorToUserValue(dummy_vals,false);
     tmptext+=QString(dummy_vals)+QString("\t ")+tr("Use constrains=")+(nonl_parms[i].constr==0?tr("No"):tr("Yes"));
     stufftext(tmptext.toLocal8Bit().constData());
     }
@@ -33593,6 +34246,8 @@ int do_filter_on_one_set(int n_gno,int n_sno,int o_gno,int o_sno,int type,int re
     char fstr[256];
     char * rarray;
     int setlen,color=g[o_gno].p[o_sno].linepen.color+1;
+    if (color>=number_of_colors()) color=1;//go back to black
+    if (is_set_active(n_gno,n_sno)==TRUE) color=g[n_gno].p[n_sno].linepen.color;
     int n_setlen;
     double xspace;
     bool mono;
@@ -33629,7 +34284,8 @@ int do_filter_on_one_set(int n_gno,int n_sno,int o_gno,int o_sno,int type,int re
     double * cut_i2;
     int n_pts,nu;
     double amp_correction;
-    if (color>=number_of_colors()) color=1;//go back to black
+
+
     workset1=workset2=workset3=-1;
     error=0;
     /// fuer debug behalten:
@@ -33715,11 +34371,11 @@ int do_filter_on_one_set(int n_gno,int n_sno,int o_gno,int o_sno,int type,int re
     /* amplitude correction due to the zero padding etc. */
     amp_correction = 1.0/sqrt((double)n_pts);
     //we work on workset2 here (not workset1 or the original)
-    for (int i=0;i<n_pts;i++)
-    {
+        for (int i=0;i<n_pts;i++)
+        {
         g[n_gno].p[workset2].data.ex[0][i]=((double)i)/(xspace*n_pts);//x-values in frequency-space
         g[n_gno].p[workset2].data.ex[1][i]=amp_correction*hypot(real_data[i], imag_data[i]);
-    }
+        }
     for (int i=n_pts/2;i<n_pts;i++)//the second half of the x-values has to have the other sign
         g[n_gno].p[workset2].data.ex[0][i]=-g[n_gno].p[workset2].data.ex[0][n_pts-i-1];
     do_copyset(n_gno, workset2, n_gno, fft_original);

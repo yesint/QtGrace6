@@ -581,7 +581,7 @@ if (list.length()>0)
 
 //the following function tries to guess the most suitable binary file-format for filename; returns RETURN_SUCCSESS or RETURN_FAILURE; the format-nr is returned in std_format_nr and it is returned whether this is a header or not (i.e. a binary file)
 //the guessing is done based on the suffix!
-int guess_bin_format(char * filename,int & std_format_nr,bool & is_header)
+int guess_bin_format(QString filename,int & std_format_nr,bool & is_header)
 {
 int ret=-1;
 QString f_suffix;
@@ -630,28 +630,30 @@ fpath=fpath.left(point_pos+1)+n_suffix;
 }
 }
 
-void copy_bin_settings_to_current_bin_import(char * filename,bool is_header,importSettings * imp_set)
+void copy_bin_settings_to_current_bin_import(QString filename,bool is_header,importSettings * imp_set)
 {
+    QString f_name;//=QString::fromLocal8Bit(filename);
+    f_name=filename;
 initSettings(current_bin_import_settings);//clear settings
 copy_import_settings(imp_set,&current_bin_import_settings);//copy settings from imp_set to current settings
 if (imp_set->header_present)//there should be a header
 {
     if (imp_set->header_format==1)//header in same file as bin-data
     {
-    current_bin_import_settings.DataFile=QString(filename);
+    current_bin_import_settings.DataFile=f_name;
     current_bin_import_settings.HeaderFile=current_bin_import_settings.DataFile;
     }
     else
     {
         if (is_header==false)
         {
-        current_bin_import_settings.DataFile=QString(filename);
+        current_bin_import_settings.DataFile=f_name;
         current_bin_import_settings.HeaderFile=current_bin_import_settings.DataFile;
         replaceSuffix(current_bin_import_settings.HeaderFile,imp_set->HeaderSuffix);
         }
         else
         {
-        current_bin_import_settings.HeaderFile=QString(filename);
+        current_bin_import_settings.HeaderFile=f_name;
         current_bin_import_settings.DataFile=current_bin_import_settings.HeaderFile;
         replaceSuffix(current_bin_import_settings.DataFile,imp_set->DataSuffix);
         }
@@ -659,7 +661,7 @@ if (imp_set->header_present)//there should be a header
 }
 else//no header
 {
-current_bin_import_settings.DataFile=QString(filename);
+current_bin_import_settings.DataFile=f_name;
 current_bin_import_settings.HeaderFile=QString("");
 }
 
@@ -681,13 +683,14 @@ if (current_bin_import_settings.header_present)
 
     }
 }
+/*
 cout << "std=" << imp_set->nr_of_header_values << " current=" << current_bin_import_settings.nr_of_header_values << endl;
 cout << "import_format=" << imp_set->channel_format[0] << "-->" << binaryImportFormatName[imp_set->channel_format[0]] << endl;
-
+*/
 //now we should begin reading...
 }
 
-void copy_std_settings_to_current_bin_import(char * filename,int std_format_nr,bool is_header)
+void copy_std_settings_to_current_bin_import(QString filename,int std_format_nr,bool is_header)
 {
 copy_bin_settings_to_current_bin_import(filename,is_header,std_bin_import_settings+std_format_nr);
 }
@@ -747,22 +750,23 @@ if (current_bin_import_settings.header_present)
 
 void read_bin_file_by_current_settings(bool halt_autoscale)
 {
+/*
 cout << "read bin files:" << endl;
 cout << "Header-File=#" << current_bin_import_settings.HeaderFile.toLocal8Bit().constData() << "#" << endl;
 cout << "Data - File=#" << current_bin_import_settings.DataFile.toLocal8Bit().constData() << "#" << endl;
 cout << "before reading bin-file:" << current_bin_import_settings.headersize << endl;
-
+*/
 ifstream ifi;
 ifi.open(current_bin_import_settings.DataFile.toLocal8Bit().constData(),ios::binary);
-cout << "reading from Bin-File=#" << current_bin_import_settings.DataFile.toLocal8Bit().constData() << "# opened?" << ifi.is_open() << endl;
-cout << "std bin import: channels=" << current_bin_import_settings.channels << " points=" << current_bin_import_settings.points << endl;
+//cout << "reading from Bin-File=#" << current_bin_import_settings.DataFile.toLocal8Bit().constData() << "# opened?" << ifi.is_open() << endl;
+//cout << "std bin import: channels=" << current_bin_import_settings.channels << " points=" << current_bin_import_settings.points << endl;
 readBinaryFromFile(ifi,current_bin_import_settings,&current_bin_import_settings.first_data);
-cout << "std bin import: columns=" << current_bin_import_settings.columns_read << " points=" << current_bin_import_settings.points_read << endl;
+//cout << "std bin import: columns=" << current_bin_import_settings.columns_read << " points=" << current_bin_import_settings.points_read << endl;
 ifi.close();
 int nr_of_new_sets=0;
 int *n_snos=NULL,*n_gnos=NULL;
 cout << "Postprocessing: " << postprocess_bin_import_data(current_bin_import_settings,nr_of_new_sets,&n_gnos,&n_snos) << endl;
-cout << "nr_of_new_sets=" << nr_of_new_sets << " NEW sets:" << endl;
+//cout << "nr_of_new_sets=" << nr_of_new_sets << " NEW sets:" << endl;
 
 ///Undo-Stuff
 SaveSetStatesPrevious(0,n_gnos,n_snos,UNDO_COMPLETE);//all sets will be new --> no previous sets --> 0
@@ -776,10 +780,10 @@ SetsModified(nr_of_new_sets,n_gnos,n_snos,UNDO_COMPLETE);
     {
     addAditionalDescriptionToLastNode(-1,QObject::tr("Binary data import"),QString(),0);
     }
-        for (int i=0;i<nr_of_new_sets;i++)
+        /*for (int i=0;i<nr_of_new_sets;i++)
         {
         cout << "G" << n_gnos[i] << ".S" << n_snos[i] << endl;
-        }
+        }*/
 //cout << "AUTOSCALE: " << current_bin_import_settings.autoscale << endl;
     if (nr_of_new_sets>0 && current_bin_import_settings.autoscale!=AUTOSCALE_NONE && halt_autoscale==false)
     {
@@ -2110,8 +2114,8 @@ cout << "251 = " << 0x23A6 << endl;
 
     Qt_matrixOrder[0]=Qt_m_hv_lr_tb_bits;
     Qt_matrixOrder[1]=Qt_m_hv_lr_bt_bits;
-    Qt_matrixOrder[2]=Qt_m_hv_rl_bt_bits;
-    Qt_matrixOrder[3]=Qt_m_hv_rl_tb_bits;
+    Qt_matrixOrder[2]=Qt_m_hv_rl_tb_bits;
+    Qt_matrixOrder[3]=Qt_m_hv_rl_bt_bits;
     Qt_matrixOrder[4]=Qt_m_vh_lr_tb_bits;
     Qt_matrixOrder[5]=Qt_m_vh_lr_bt_bits;
     Qt_matrixOrder[6]=Qt_m_vh_rl_tb_bits;
@@ -2997,6 +3001,9 @@ getSetIDFromText(text,gno,sno,column);
     stop_repaint=FALSE;
 mainWin->mainArea->completeRedraw();
 
+cout << "double mantissenlaenge=" << DBL_DIG << endl;
+cout << "long double mantissenlaenge=" << LDBL_DIG << endl;
+
 int execVal=a->exec();
 delete a;
 return execVal;
@@ -3441,6 +3448,7 @@ int nr_of_l_styles;
     SetToggleButtonState(FormDeviceSetup->dsync_item,allPrefs->value(QString("Sync_Page_Dimensions_On_Devices"),QVariant(true)).toBool());
     SetToggleButtonState(FormDeviceSetup->psync_item,
     allPrefs->value(QString("Rescale_Plot_On_Page_Size_Change"),QVariant(false)).toBool());
+    ScaleLineWidthByResolution=allPrefs->value(QString("Scale_LineWith_By_Resolution"),QVariant(FALSE)).toInt();
     allPrefs->endGroup();
 
     allPrefs->beginGroup(QString("Appearance"));
@@ -3634,6 +3642,7 @@ strcpy(ini_sformat,sformat);
     allPrefs->setValue(QString("Warn_On_Encoding_Change"),QVariant(warn_on_encoding_change));
     allPrefs->setValue(QString("Sync_Page_Dimensions_On_Devices"),QVariant(GetToggleButtonState(FormDeviceSetup->dsync_item)));
     allPrefs->setValue(QString("Rescale_Plot_On_Page_Size_Change"),QVariant(GetToggleButtonState(FormDeviceSetup->psync_item)));
+    allPrefs->setValue(QString("Scale_LineWith_By_Resolution"),QVariant(ScaleLineWidthByResolution));
     allPrefs->endGroup();
 
     allPrefs->beginGroup(QString("Appearance"));
@@ -4245,12 +4254,13 @@ cout << endl;
         if (header_name!=NULL) delete[] header_name;
         continue;//next url/file
         }
-        else if (guess_bin_format(filename,std_schema_nr,is_header_file)==RETURN_SUCCESS)//look for a std binary format
+        else if (guess_bin_format(urls.at(i).toLocalFile(),std_schema_nr,is_header_file)==RETURN_SUCCESS)//look for a std binary format
         {
-        copy_std_settings_to_current_bin_import(filename,std_schema_nr,is_header_file);
+cout << "GUESSED SCHEMA=" << std_schema_nr << endl;
+        copy_std_settings_to_current_bin_import(urls.at(i).toLocalFile(),std_schema_nr,is_header_file);
 
 /*Start Test*/
-SaveFileFormat("/Users/andreaswinter/akt_bin_settings_auto.fmt",current_bin_import_settings);
+/// SaveFileFormat("/Users/andreaswinter/akt_bin_settings_auto.fmt",current_bin_import_settings);
 /*ENDE Test*/
 
             if (i==urls.length()-1)//last file --> allow autoscale, but no replot (stop_repaint=TRUE; prevents replot)

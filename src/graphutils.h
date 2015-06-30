@@ -85,7 +85,7 @@ int arrange_graphs(int *graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
-                   int hpack, int vpack);
+                   int hpack, int vpack, int move_legend);
 int arrange_graphs_simple(int nrows, int ncols,
     int order, int snake, double offset, double hgap, double vgap);
 

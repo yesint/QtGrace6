@@ -290,6 +290,7 @@ void update_number_of_entries(void);//reread and display entries - selection is 
 void update_number_of_entries_preserve_selection(void);//same as above, selection is not cleared
 void get_selection(int * number,int ** selection);
 void get_selection(int * number,QString ** selection);//only useful for TEXTLIST
+void clear_text_items(void);
 void add_Item(QString item);
 void set_graph_number(int gno,bool keep_selection);
 void new_selection(void);

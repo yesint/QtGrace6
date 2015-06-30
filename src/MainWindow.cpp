@@ -375,7 +375,6 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuTransform->addAction(actInterpolation);
     mnuTransform->addAction(actRegression);
     mnuTransform->addAction(actNonLinCurveFitting);
-    mnuTransform->addAction(actReportFitParameters);
     mnuTransform->addSeparator();
     mnuTransform->addAction(actCorrelation);
     mnuTransform->addAction(actDigitalFilter);
@@ -385,6 +384,8 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuTransform->addSeparator();
     mnuTransform->addAction(actSamplePoints);
     mnuTransform->addAction(actPruneData);
+    mnuTransform->addSeparator();
+    mnuTransform->addAction(actReportFitParameters);
 
     mnuImport=new QMenu(tr("&Import"), this );
     mnuImport->setTearOffEnabled(TRUE);
@@ -1004,7 +1005,7 @@ void MainWindow::CreatePatterns(void)
     generate_Pixmap_from_Bits(j_cm_b_bits,5*12+9,JBITMAP_WIDTH,JBITMAP_HEIGHT,Qt_j_cm_b_bits);
 
     Qt_m_hv_lr_bt_bits=new QPixmap(MBITMAP_WIDTH,MBITMAP_HEIGHT);
-    generate_Pixmap_from_Bits(m_hv_lr_tb_bits,5*12,MBITMAP_WIDTH,MBITMAP_HEIGHT,Qt_m_hv_lr_bt_bits);
+    generate_Pixmap_from_Bits(m_hv_lr_bt_bits,5*12,MBITMAP_WIDTH,MBITMAP_HEIGHT,Qt_m_hv_lr_bt_bits);
     Qt_m_hv_lr_tb_bits=new QPixmap(MBITMAP_WIDTH,MBITMAP_HEIGHT);
     //*Qt_m_hv_lr_tb_bits=generate_Bitmap_from_Bits(m_hv_lr_tb_bits,5*12,MBITMAP_WIDTH,MBITMAP_HEIGHT);
     generate_Pixmap_from_Bits(m_hv_lr_tb_bits,5*12,MBITMAP_WIDTH,MBITMAP_HEIGHT,Qt_m_hv_lr_tb_bits);
@@ -1820,6 +1821,7 @@ void MainWindow::ReportOnFitParameters(void)
     if (FormReportFitParameters==NULL)
     {
         FormReportFitParameters=new frmReportOnFitParameters(this);
+        FormReportFitParameters->resize(420,350);
     }
     FormReportFitParameters->init();
     FormReportFitParameters->show();

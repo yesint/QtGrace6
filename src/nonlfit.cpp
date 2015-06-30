@@ -372,20 +372,34 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     if (fcn_error==0)
     {
     if ((info > 0 && info < 4) || (info == 5) || (par_changed==true)) {
+        QString formula_used(nonl_opts.formula);
+        formula_used=formula_used.toLower();
+        QString tmp_val,tmp_var;
+        for (i = nonl_opts.parnum-1;i>=0;i--)
+        {
+        tmp_var=QString("a")+QString::number(i);
+        sprintf(buf,sformat,nonl_parms[i].value);
+        tmp_val=QString(buf);
+        formula_used.replace(tmp_var,tmp_val);
+        }
         stufftext("Computed values:");
-        for (i = 0; i < nonl_opts.parnum; i++) {
+        for (i = 0; i < nonl_opts.parnum; i++)
+        {
             sprintf(buf, "\ta%1d = %g", i, nonl_parms[i].value);
             SetDecimalSeparatorToUserValue(buf,false);
             stufftext(buf);
         }
-        //stufftext("\n");
+        stufftext("");
+        sprintf(buf, "Resulting formula:\n%s\n", formula_used.toLatin1().constData());
+        stufftext(buf);
         sprintf(buf, "Chi-square: %g", chisq);
         SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
         sprintf(buf, "Correlation coefficient: %f", cor);
         SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
-        if (rms_ok) {
+        if (rms_ok)
+        {
             sprintf(buf, "RMS per cent error: %g", rms_pe);
             SetDecimalSeparatorToUserValue(buf,false);
             stufftext(buf);
