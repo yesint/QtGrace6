@@ -714,6 +714,10 @@ QHBoxLayout * layout;
 signals:
 void currentValueChanged(double i);
 public slots:
+void setText(QString txt);
+void setRange(double a,double b);
+void setSingleStep(double a);
+void setDecimals(int d);
 void changed(double i);
 double value(void);
 void setValue(double i);

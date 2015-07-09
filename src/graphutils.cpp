@@ -380,6 +380,11 @@ static void autorange_byset(int gno, int setno, int autos_type)
         getsetminmax_c(gno, setno, &xmin, &xmax, &ymin, &ymax, 1);
     }
 
+/*char dummy_t2[512];
+sprintf(dummy_t2,"xmin=%.16g, xmax=%.16g, ymin=%.16g, ymax=%.16g",xmin,xmax,ymin,ymax);
+cout << "autoscale A: " << dummy_t2 << endl;*/
+//cout << xmin << " " << xmax << " " << ymin << " " << ymax << endl;
+
     if (autos_type == AUTOSCALE_X || autos_type == AUTOSCALE_XY) {
         scale = get_graph_xscale(gno);
         round_axis_limits(&xmin, &xmax, scale);
@@ -393,6 +398,10 @@ static void autorange_byset(int gno, int setno, int autos_type)
         w.yg1 = ymin;
         w.yg2 = ymax;
     }
+
+/*sprintf(dummy_t2,"xmin=%.16g, xmax=%.16g, ymin=%.16g, ymax=%.16g",xmin,xmax,ymin,ymax);
+cout << "autoscale B: " << dummy_t2 << endl;*/
+//cout << xmin << " " << xmax << " " << ymin << " " << ymax << endl;
 
     set_graph_world(gno, w);
 }
@@ -718,7 +727,7 @@ int arrange_graphs(int *graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
-                   int hpack, int vpack,int move_legend)
+                   int hpack, int vpack, int move_legend, double legendX, double legendY)
 {
     int i, imax, j, jmax, iw, ih, ng, gno;
     double pw, ph, w, h;
@@ -822,7 +831,7 @@ int arrange_graphs(int *graphs, int ngraphs,
             
             ng++;
 
-            if (move_legend==TRUE)
+            if (move_legend==1)//keep relative positions
             {
             get_graph_viewport(gno,&g_after);
             l_xpos=g[gno].l.legx;
@@ -831,6 +840,12 @@ int arrange_graphs(int *graphs, int ngraphs,
             g[gno].l.legx=g_after.xv1+portion*(g_after.xv2-g_after.xv1);
             portion=(l_ypos-g_prev.yv1)/(g_prev.yv2-g_prev.yv1);
             g[gno].l.legy=g_after.yv1+portion*(g_after.yv2-g_after.yv1);
+            }
+            else if (move_legend==2)//set new relative positions
+            {
+            get_graph_viewport(gno,&g_after);
+            g[gno].l.legx=g_after.xv1+legendX*(g_after.xv2-g_after.xv1);
+            g[gno].l.legy=g_after.yv1+legendY*(g_after.yv2-g_after.yv1);
             }
         }
     }
@@ -857,7 +872,7 @@ int arrange_graphs_simple(int nrows, int ncols,
     }
     
     retval = arrange_graphs(graphs, ngraphs, nrows, ncols, order, snake,
-        offset, offset, offset, offset, vgap, hgap, FALSE, FALSE, FALSE);
+        offset, offset, offset, offset, vgap, hgap, FALSE, FALSE, FALSE, 0.0, 0.0);
     
     xfree(graphs);
     
@@ -1137,4 +1152,57 @@ else
     }
 }
 }
+
+int CheckWorldIntegrity(int gno)
+{
+double dx,dy;
+int ret=RETURN_SUCCESS;
+QString err_msg;
+err_msg.clear();
+    dx = g[gno].w.xg2 - g[gno].w.xg1;
+    if (fabs(dx)<=5.0*DBL_EPSILON)
+    {
+    err_msg=QObject::tr("Scaling for X-axis to small, X-interval increased.");
+    g[gno].w.xg2*=1+1e-15;
+    g[gno].w.xg1*=1-1e-15;
+    ret=RETURN_FAILURE;
+    }
+    else if (dx<0.0)
+    {
+    err_msg=QObject::tr("Scaling of X-axis inverted because Xmin>Xmax.");
+    dx=g[gno].w.xg2;
+    g[gno].w.xg2=g[gno].w.xg1;
+    g[gno].w.xg1=dx;
+    ret=RETURN_FAILURE;
+    }
+    dy = g[gno].w.yg2 - g[gno].w.yg1;
+    if (fabs(dy)<=5.0*DBL_EPSILON)
+    {
+        if (!err_msg.isEmpty()) err_msg+=QString("\n");
+    err_msg+=QObject::tr("Scaling for Y-axis to small, Y-interval increased.");
+    g[gno].w.yg2*=1+1e-15;
+    g[gno].w.yg1*=1-1e-15;
+    ret=RETURN_FAILURE;
+    }
+    else if (dy<0.0)
+    {
+        if (!err_msg.isEmpty()) err_msg+=QString("\n");
+    err_msg+=QObject::tr("Scaling of Y-axis inverted because Ymin>Ymax.");
+    dy=g[gno].w.yg2;
+    g[gno].w.yg2=g[gno].w.yg1;
+    g[gno].w.yg1=dy;
+    ret=RETURN_FAILURE;
+    }
+/*char dummy_t[128];
+sprintf(dummy_t,"wy= %.16g | %.16g eps=%.16g",g[gno].w.yg1,g[gno].w.yg2,DBL_EPSILON);
+cout << dummy_t << endl;*/
+
+if (ret==RETURN_FAILURE)
+{
+errmsg(err_msg.toLocal8Bit().constData());
+}
+
+return ret;
+}
+
 

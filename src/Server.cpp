@@ -442,10 +442,10 @@ void LocalSocketIpcServer::executeTaskFromClient()
         oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
-       // set_graph_selectors(0);
+        // set_graph_selectors(0);
 
         setScalingMode();
-       // autotick_axis(get_cg(), ALL_AXES);
+        // autotick_axis(get_cg(), ALL_AXES);
         noask=oldNoask_m;
         startupphase=0;
 
@@ -484,7 +484,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
             debugOut_m->flush();
         }
         startupphase=1;
-      //  set_graph_selectors(0);
+        //  set_graph_selectors(0);
 
         setLayoutMode();
 
@@ -526,7 +526,7 @@ void LocalSocketIpcServer::executeTaskFromClient()
         startupphase=1;
         xdrawgraph();
         doPlotFit();
-       // set_graph_selectors(0);
+        // set_graph_selectors(0);
 
         startupphase=0;
 
@@ -842,7 +842,7 @@ void LocalSocketIpcServer::readXYData(char* xData, char* yData){
         //Save x and y data to data buffer
 
         //double to string
-        xValueStr = QString::number(x[i],'g',20);
+        xValueStr = QString::number(x[i],'g',16);
         //String to char
         xValueBa = xValueStr.toLocal8Bit();
         xValueChar = xValueBa.data();
@@ -990,13 +990,6 @@ void LocalSocketIpcServer::setLayoutMode(){
     //Set layout for graph: "graphNo"
     graphNo_m = dataLength_m;
 
-    //Set QtGrace plot viewport
-    /*view v;
-    v.xv1 = 0.21;
-    v.xv2 = 1.21;
-    v.yv1 =0.15;
-    v.yv2 = 0.85;
-*/
     //Update legend properties dialogue
     for(int iSetNo = 0; iSetNo < countNoOfDataSets_m; iSetNo++){
         set_legend_string(graphNo_m,iSetNo,get_legend_string(graphNo_m,iSetNo));
@@ -1042,24 +1035,18 @@ void LocalSocketIpcServer::setLayoutMode(){
         double vgapArrangeGraph =0.2*numGraphs_m;
         double hgabArrangeGraph =0.2*numGraphs_m;
 
-       //arrange_graphs_simple(rows_m, columns_m,1, 1,offset,hgabArrangeGraph,vgapArrangeGraph);
+        int *graphs, i,  order, snake;
+        int isFailure = false;
 
+        order = 5;
+        snake = 1;
 
+        graphs = (int*)xmalloc(numGraphs_m*sizeof(int));///SIZEOF_INT);
+        if (graphs == NULL) {
+            isFailure = true;
+        }
 
-
-
-            int *graphs, i,  order, snake;
-            int isFailure = false;
-
-            order = 5;
-            snake = 1;
-
-            graphs = (int*)xmalloc(numGraphs_m*sizeof(int));///SIZEOF_INT);
-            if (graphs == NULL) {
-                isFailure = true;
-            }
-
-            if(!isFailure){
+        if(!isFailure){
             for (i = 0; i < numGraphs_m; i++) {
                 graphs[i] = i;
             }
@@ -1068,15 +1055,13 @@ void LocalSocketIpcServer::setLayoutMode(){
                 kill_graph(i);
             }
 
-
-
             arrange_graphs(graphs, numGraphs_m, rows_m, columns_m, order, snake,
-                offset+0.07, offset-0.07, offset, offset, vgapArrangeGraph, hgabArrangeGraph, FALSE, FALSE,TRUE);
+                           offset+0.06, offset-0.06, offset, offset, vgapArrangeGraph, hgabArrangeGraph, FALSE, FALSE,2,0.05,0.9);
 
             update_all();
             xfree(graphs);
 
-            }
+        }
 
 
 

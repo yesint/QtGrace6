@@ -668,6 +668,7 @@ int nactive(int gno)
 int select_graph(int gno)
 {
     int retval;
+    CheckWorldIntegrity(gno);
     if (set_parser_gno(gno) == RETURN_SUCCESS)
     {
         cg = gno;

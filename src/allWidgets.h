@@ -1318,24 +1318,33 @@ public:
 
     stdIntSelector * selCols;
     stdIntSelector * selRows;
-    QDoubleSpinBox * selUpperOffset;
+
+    /*QDoubleSpinBox * selUpperOffset;
     QDoubleSpinBox * selLowerOffset;
     QDoubleSpinBox * selLeftOffset;
-    QDoubleSpinBox * selRightOffset;
+    QDoubleSpinBox * selRightOffset;*/
+
+    LineWidthSelector * selUpperOffset;
+    LineWidthSelector * selLowerOffset;
+    LineWidthSelector * selLeftOffset;
+    LineWidthSelector * selRightOffset;
+
+    LineWidthSelector * selLegendX, * selLegendY;
+
     LineWidthSelector * selHGap;
     LineWidthSelector * selVGap;
     OrderSelector * selOrder;
 
     QCheckBox * chkAddGraphs;
     QCheckBox * chkKillGraphs;
-    QCheckBox * chkMoveLegends;
+    StdSelector * selMoveLegends;
     QCheckBox * chkSnakeFill;
     QCheckBox * chkHPack;
     QCheckBox * chkVPack;
 
     stdButtonGroup * buttonGroup;
 
-    QVBoxLayout * layout0;
+    QGridLayout * layout0;
     QHBoxLayout * layout1;
     QGridLayout * layout2;
     QHBoxLayout * layout3;
@@ -1346,11 +1355,13 @@ public:
     double left_offset,right_offset,bottom_offset,top_offset;
 
 public slots:
+    void PackToggled(bool t);
     void init(void);
     void doApply(void);
     void doClose(void);
     void doAccept(void);
     void guessGraphOrdering(void);
+    void MoveLegendsChanged(int l);
 };
 
 class frmOverlayGraphs:public QDialog
@@ -3331,7 +3342,7 @@ public slots:
     void doLoadStdFormat(void);
     void SelectDataFile(void);
     void SelectHeaderFile(void);
-    int detectStdBinFormat(char * filen);
+    int detectStdBinFormat(QString filen);
     void formatSourceChanged(int i);
     void displaySettings(struct importSettings & imp_set);
     void readSettings(struct importSettings & imp_set);
@@ -3342,6 +3353,7 @@ public slots:
     void transmitInfos(void);
     void convertSettingsToString(void);
     void updateSuffixes(void);
+    void readAndCompleteFileNames(int dat_header);//read the filenames from the LineEdits and complete the information (like: search for suitable headerfiles matching the datafiles)
     void CheckHeadersAndDatFiles(void);//to complete filenames and check completeness on informations
 };
 
@@ -3693,6 +3705,7 @@ QPushButton * cmdSetDocName;
 QPushButton * cmdhardcopy;
 QPushButton * cmdLoad;
 QPushButton * cmdImportSin;
+QPushButton * cmdArrangeGr;
 stdLineEdit * lenFile;
 stdLineEdit * lenExport;
 stdLineEdit * lenDoc;
@@ -3709,6 +3722,7 @@ public slots:
     void doExport(void);
     void doDocname(void);
     void doHardcopy(void);
+    void doArrange(void);
 };
 
 #endif

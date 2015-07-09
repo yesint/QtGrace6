@@ -2238,6 +2238,26 @@ LineWidthSelector::LineWidthSelector(QWidget * parent):QWidget(parent)
     setLayout(layout);
 }
 
+void LineWidthSelector::setText(QString txt)
+{
+    lblText->setText(txt);
+}
+
+void LineWidthSelector::setRange(double a,double b)
+{
+    spnLineWidth->setRange(a,b);
+}
+
+void LineWidthSelector::setSingleStep(double a)
+{
+    spnLineWidth->setSingleStep(a);
+}
+
+void LineWidthSelector::setDecimals(int d)
+{
+    spnLineWidth->setDecimals(d);
+}
+
 void LineWidthSelector::changed(double i)
 {
     emit(currentValueChanged(i));

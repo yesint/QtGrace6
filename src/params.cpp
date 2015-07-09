@@ -143,7 +143,7 @@ void putparmbeast(int gno, char *pp, int embed)
         }
     }
 
-    sprintf(pp+strlen(pp), "%sreference date %.12g\n", embedstr, get_ref_date());
+    sprintf(pp+strlen(pp), "%sreference date %.16g\n", embedstr, get_ref_date());
     sprintf(pp+strlen(pp), "%sdate wrap %s\n", embedstr,
         on_or_off(two_digits_years_allowed()));
     sprintf(pp+strlen(pp), "%sdate wrap year %d\n", embedstr, get_wrap_year());
@@ -161,7 +161,7 @@ void putparmbeast(int gno, char *pp, int embed)
     sprintf(pp+strlen(pp), "%spage background fill %s\n", embedstr, on_or_off(getbgfill()));
 
     sprintf(pp+strlen(pp), "%stimestamp %s\n", embedstr, on_or_off(timestamp.active));
-    sprintf(pp+strlen(pp), "%stimestamp %.12g, %.12g\n", embedstr, timestamp.x, timestamp.y);
+    sprintf(pp+strlen(pp), "%stimestamp %.16g, %.16g\n", embedstr, timestamp.x, timestamp.y);
     sprintf(pp+strlen(pp), "%stimestamp color %d\n", embedstr, timestamp.color);
     sprintf(pp+strlen(pp), "%stimestamp rot %d\n", embedstr, timestamp.rot);
     sprintf(pp+strlen(pp), "%stimestamp font %d\n", embedstr, get_font_mapped_id(timestamp.font));
@@ -220,7 +220,7 @@ void putparmbeast(int gno, char *pp, int embed)
             sprintf(pp+strlen(pp), "%swith g%1d\n", embedstr, gno);
 
             get_graph_world(gno, &w);
-            sprintf(pp+strlen(pp), "%s    world %.12g, %.12g, %.12g, %.12g\n", embedstr,
+            sprintf(pp+strlen(pp), "%s    world %.16g, %.16g, %.16g, %.16g\n", embedstr,
                 w.xg1, w.yg1, w.xg2, w.yg2);
 
             for (i = 0; i < graph_world_stack_size(gno); i++) {
@@ -310,7 +310,7 @@ void putparmbeast(int gno, char *pp, int embed)
                 }
 
                 sprintf(pp+strlen(pp), "%s tick %s\n", buf, on_or_off(t->t_flag));
-                sprintf(pp+strlen(pp), "%s tick major %.12g\n", buf, t->tmajor);
+                sprintf(pp+strlen(pp), "%s tick major %.16g\n", buf, t->tmajor);
                 sprintf(pp+strlen(pp), "%s tick minor ticks %d\n", buf, t->nminor);
                 sprintf(pp+strlen(pp), "%s tick default %d\n", buf, t->t_autonum);
                 sprintf(pp+strlen(pp), "%s tick place rounded %s\n", buf, true_or_false(t->t_round));
@@ -420,7 +420,7 @@ void putparmbeast(int gno, char *pp, int embed)
             get_graph_legend(gno, &leg);
             sprintf(pp+strlen(pp), "%s    legend %s\n", embedstr, on_or_off(leg.active));
             sprintf(pp+strlen(pp), "%s    legend loctype %s\n", embedstr, w_or_v(leg.loctype));
-            sprintf(pp+strlen(pp), "%s    legend %.12g, %.12g\n", embedstr, leg.legx, leg.legy);
+            sprintf(pp+strlen(pp), "%s    legend %.16g, %.16g\n", embedstr, leg.legx, leg.legy);
             sprintf(pp+strlen(pp), "%s    legend box color %d\n", embedstr, leg.boxpen.color);
             sprintf(pp+strlen(pp), "%s    legend box pattern %d\n", embedstr, leg.boxpen.pattern);
             sprintf(pp+strlen(pp), "%s    legend box linewidth %.1f\n", embedstr, leg.boxlinew);
@@ -550,7 +550,7 @@ static void put_beast_objects(int gno, char * pp, int embed)
             if (b.loctype == COORD_WORLD) {
                 sprintf(pp+strlen(pp), "%s    box g%1d\n", embedstr, b.gno);
             }
-            sprintf(pp+strlen(pp), "%s    box %.12g, %.12g, %.12g, %.12g\n", embedstr, b.x1, b.y1, b.x2, b.y2);
+            sprintf(pp+strlen(pp), "%s    box %.16g, %.16g, %.16g, %.16g\n", embedstr, b.x1, b.y1, b.x2, b.y2);
             sprintf(pp+strlen(pp), "%s    box linestyle %d\n", embedstr, b.lines);
             sprintf(pp+strlen(pp), "%s    box linewidth %.1f\n", embedstr, b.linew);
             sprintf(pp+strlen(pp), "%s    box color %d\n", embedstr, b.color);
@@ -569,7 +569,7 @@ static void put_beast_objects(int gno, char * pp, int embed)
             if (e.loctype == COORD_WORLD) {
                 sprintf(pp+strlen(pp), "%s    ellipse g%1d\n", embedstr, e.gno);
             }
-            sprintf(pp+strlen(pp), "%s    ellipse %.12g, %.12g, %.12g, %.12g\n", embedstr, e.x1, e.y1, e.x2, e.y2);
+            sprintf(pp+strlen(pp), "%s    ellipse %.16g, %.16g, %.16g, %.16g\n", embedstr, e.x1, e.y1, e.x2, e.y2);
             sprintf(pp+strlen(pp), "%s    ellipse linestyle %d\n", embedstr, e.lines);
             sprintf(pp+strlen(pp), "%s    ellipse linewidth %.1f\n", embedstr, e.linew);
             sprintf(pp+strlen(pp), "%s    ellipse color %d\n", embedstr, e.color);
@@ -587,7 +587,7 @@ static void put_beast_objects(int gno, char * pp, int embed)
             if (l.loctype == COORD_WORLD) {
                 sprintf(pp+strlen(pp), "%s    line g%1d\n", embedstr, l.gno);
             }
-            sprintf(pp+strlen(pp), "%s    line %.12g, %.12g, %.12g, %.12g\n", embedstr, l.x1, l.y1, l.x2, l.y2);
+            sprintf(pp+strlen(pp), "%s    line %.16g, %.16g, %.16g, %.16g\n", embedstr, l.x1, l.y1, l.x2, l.y2);
             sprintf(pp+strlen(pp), "%s    line linewidth %.1f\n", embedstr, l.linew);
             sprintf(pp+strlen(pp), "%s    line linestyle %d\n", embedstr, l.lines);
             sprintf(pp+strlen(pp), "%s    line color %d\n", embedstr, l.color);
@@ -608,7 +608,7 @@ static void put_beast_objects(int gno, char * pp, int embed)
             if (s.loctype == COORD_WORLD) {
                 sprintf(pp+strlen(pp), "%s    string g%1d\n", embedstr, s.gno);
             }
-            sprintf(pp+strlen(pp), "%s    string %.12g, %.12g\n", embedstr, s.x, s.y);
+            sprintf(pp+strlen(pp), "%s    string %.16g, %.16g\n", embedstr, s.x, s.y);
             sprintf(pp+strlen(pp), "%s    string color %d\n", embedstr, s.color);
             sprintf(pp+strlen(pp), "%s    string rot %d\n", embedstr, s.rot);
             sprintf(pp+strlen(pp), "%s    string font %d\n", embedstr, get_font_mapped_id(s.font));
@@ -670,11 +670,11 @@ static void put_beast_regions(char * pp, int embed)
       sprintf(pp+strlen(pp), "%sr%1d linewidth %.1f\n", embedstr, i, rg[i].linew);
       sprintf(pp+strlen(pp), "%sr%1d color %d\n", embedstr, i, rg[i].color);
       if (rg[i].type != REGION_POLYI && rg[i].type != REGION_POLYO) {
-    sprintf(pp+strlen(pp), "%sr%1d line %.12g, %.12g, %.12g, %.12g\n", embedstr, i, rg[i].x1, rg[i].y1, rg[i].x2, rg[i].y2);
+    sprintf(pp+strlen(pp), "%sr%1d line %.16g, %.16g, %.16g, %.16g\n", embedstr, i, rg[i].x1, rg[i].y1, rg[i].x2, rg[i].y2);
       } else {
     if (rg[i].x != NULL) {
       for (j = 0; j < rg[i].n; j++) {
-        sprintf(pp+strlen(pp), "%sr%1d xy %.12g, %.12g\n", embedstr, i, rg[i].x[j], rg[i].y[j]);
+        sprintf(pp+strlen(pp), "%sr%1d xy %.16g, %.16g\n", embedstr, i, rg[i].x[j], rg[i].y[j]);
       }
     }
       }
@@ -783,7 +783,7 @@ void putparms(int gno, FILE *pp, int embed)
         }
     }
     
-    fprintf(pp, "%sreference date %.12g\n", embedstr, get_ref_date());
+    fprintf(pp, "%sreference date %.16g\n", embedstr, get_ref_date());
     fprintf(pp, "%sdate wrap %s\n", embedstr,
         on_or_off(two_digits_years_allowed()));
     fprintf(pp, "%sdate wrap year %d\n", embedstr, get_wrap_year());
@@ -801,7 +801,7 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "%spage background fill %s\n", embedstr, on_or_off(getbgfill()));
             
     fprintf(pp, "%stimestamp %s\n", embedstr, on_or_off(timestamp.active));
-    fprintf(pp, "%stimestamp %.12g, %.12g\n", embedstr, timestamp.x, timestamp.y);
+    fprintf(pp, "%stimestamp %.16g, %.16g\n", embedstr, timestamp.x, timestamp.y);
     fprintf(pp, "%stimestamp color %d\n", embedstr, timestamp.color);
     fprintf(pp, "%stimestamp rot %d\n", embedstr, timestamp.rot);
     fprintf(pp, "%stimestamp font %d\n", embedstr, get_font_mapped_id(timestamp.font));
@@ -860,7 +860,7 @@ void putparms(int gno, FILE *pp, int embed)
             fprintf(pp, "%swith g%1d\n", embedstr, gno);
 
             get_graph_world(gno, &w);
-            fprintf(pp, "%s    world %.12g, %.12g, %.12g, %.12g\n", embedstr,
+            fprintf(pp, "%s    world %.16g, %.16g, %.16g, %.16g\n", embedstr,
                 w.xg1, w.yg1, w.xg2, w.yg2);
 
             for (i = 0; i < graph_world_stack_size(gno); i++) {
@@ -950,7 +950,7 @@ void putparms(int gno, FILE *pp, int embed)
                 }
 
                 fprintf(pp, "%s tick %s\n", buf, on_or_off(t->t_flag));
-                fprintf(pp, "%s tick major %.12g\n", buf, t->tmajor);
+                fprintf(pp, "%s tick major %.16g\n", buf, t->tmajor);
                 fprintf(pp, "%s tick minor ticks %d\n", buf, t->nminor);
                 fprintf(pp, "%s tick default %d\n", buf, t->t_autonum);
                 fprintf(pp, "%s tick place rounded %s\n", buf, true_or_false(t->t_round));
@@ -1060,7 +1060,7 @@ void putparms(int gno, FILE *pp, int embed)
             get_graph_legend(gno, &leg);
             fprintf(pp, "%s    legend %s\n", embedstr, on_or_off(leg.active));
             fprintf(pp, "%s    legend loctype %s\n", embedstr, w_or_v(leg.loctype));
-            fprintf(pp, "%s    legend %.12g, %.12g\n", embedstr, leg.legx, leg.legy);
+            fprintf(pp, "%s    legend %.16g, %.16g\n", embedstr, leg.legx, leg.legy);
             fprintf(pp, "%s    legend box color %d\n", embedstr, leg.boxpen.color);
             fprintf(pp, "%s    legend box pattern %d\n", embedstr, leg.boxpen.pattern);
             fprintf(pp, "%s    legend box linewidth %.1f\n", embedstr, leg.boxlinew);
@@ -1190,7 +1190,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             if (b.loctype == COORD_WORLD) {
                 fprintf(pp, "%s    box g%1d\n", embedstr, b.gno);
             }
-            fprintf(pp, "%s    box %.12g, %.12g, %.12g, %.12g\n", embedstr, b.x1, b.y1, b.x2, b.y2);
+            fprintf(pp, "%s    box %.16g, %.16g, %.16g, %.16g\n", embedstr, b.x1, b.y1, b.x2, b.y2);
             fprintf(pp, "%s    box linestyle %d\n", embedstr, b.lines);
             fprintf(pp, "%s    box linewidth %.1f\n", embedstr, b.linew);
             fprintf(pp, "%s    box color %d\n", embedstr, b.color);
@@ -1209,7 +1209,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             if (e.loctype == COORD_WORLD) {
                 fprintf(pp, "%s    ellipse g%1d\n", embedstr, e.gno);
             }
-            fprintf(pp, "%s    ellipse %.12g, %.12g, %.12g, %.12g\n", embedstr, e.x1, e.y1, e.x2, e.y2);
+            fprintf(pp, "%s    ellipse %.16g, %.16g, %.16g, %.16g\n", embedstr, e.x1, e.y1, e.x2, e.y2);
             fprintf(pp, "%s    ellipse linestyle %d\n", embedstr, e.lines);
             fprintf(pp, "%s    ellipse linewidth %.1f\n", embedstr, e.linew);
             fprintf(pp, "%s    ellipse color %d\n", embedstr, e.color);
@@ -1227,7 +1227,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             if (l.loctype == COORD_WORLD) {
                 fprintf(pp, "%s    line g%1d\n", embedstr, l.gno);
             }
-            fprintf(pp, "%s    line %.12g, %.12g, %.12g, %.12g\n", embedstr, l.x1, l.y1, l.x2, l.y2);
+            fprintf(pp, "%s    line %.16g, %.16g, %.16g, %.16g\n", embedstr, l.x1, l.y1, l.x2, l.y2);
             fprintf(pp, "%s    line linewidth %.1f\n", embedstr, l.linew);
             fprintf(pp, "%s    line linestyle %d\n", embedstr, l.lines);
             fprintf(pp, "%s    line color %d\n", embedstr, l.color);
@@ -1248,7 +1248,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             if (s.loctype == COORD_WORLD) {
                 fprintf(pp, "%s    string g%1d\n", embedstr, s.gno);
             }
-            fprintf(pp, "%s    string %.12g, %.12g\n", embedstr, s.x, s.y);
+            fprintf(pp, "%s    string %.16g, %.16g\n", embedstr, s.x, s.y);
             fprintf(pp, "%s    string color %d\n", embedstr, s.color);
             fprintf(pp, "%s    string rot %d\n", embedstr, s.rot);
             fprintf(pp, "%s    string font %d\n", embedstr, get_font_mapped_id(s.font));
@@ -1310,11 +1310,11 @@ static void put_regions(FILE * pp, int embed)
       fprintf(pp, "%sr%1d linewidth %.1f\n", embedstr, i, rg[i].linew);
       fprintf(pp, "%sr%1d color %d\n", embedstr, i, rg[i].color);
       if (rg[i].type != REGION_POLYI && rg[i].type != REGION_POLYO) {
-	fprintf(pp, "%sr%1d line %.12g, %.12g, %.12g, %.12g\n", embedstr, i, rg[i].x1, rg[i].y1, rg[i].x2, rg[i].y2);
+    fprintf(pp, "%sr%1d line %.16g, %.16g, %.16g, %.16g\n", embedstr, i, rg[i].x1, rg[i].y1, rg[i].x2, rg[i].y2);
       } else {
 	if (rg[i].x != NULL) {
 	  for (j = 0; j < rg[i].n; j++) {
-	    fprintf(pp, "%sr%1d xy %.12g, %.12g\n", embedstr, i, rg[i].x[j], rg[i].y[j]);
+        fprintf(pp, "%sr%1d xy %.16g, %.16g\n", embedstr, i, rg[i].x[j], rg[i].y[j]);
 	  }
 	}
       }

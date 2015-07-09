@@ -91,16 +91,14 @@ static view viewport;
 static int coordinates;
 static int scaletypex;
 static int scaletypey;
-static double xv_med;
-static double yv_med;
-static double xv_rc;
-static double yv_rc;
-static double fxg_med;
-static double fyg_med;
-
+static long double xv_med;
+static long double yv_med;
+static long double xv_rc;
+static long double yv_rc;
+static long double fxg_med;
+static long double fyg_med;
 
 static int clipflag = TRUE;        /* whether clipping must be in force */
-
 static int revflag = FALSE;
 
 /*
@@ -276,7 +274,6 @@ VPoint Wpoint2Vpoint(WPoint wp)
     return (vp);
 }
 
-
 void symplus(VPoint vp, double s)
 {
     VPoint vp1, vp2;
@@ -317,13 +314,11 @@ void symsplat(VPoint vp, double s)
     symx(vp, s);
 }
 
-
 void leavegraphics(void)
 {
 /*    devsymreset(); */
     (*devleavegraphics) ();
 }
-
 
 /*
  * DrawPixel - put a pixel in the current color at position vp
@@ -803,27 +798,27 @@ int is_validWPoint(WPoint wp)
  */
 VPoint *line_intersect(VPoint vp1, VPoint vp2, VPoint vp1p, VPoint vp2p, int mode) {
     static VPoint vpbuf;
-    double vprod, t, tp;
+    long double vprod, t, tp;
     
-    vprod = (vp2p.x - vp1p.x)*(vp2.y - vp1.y) -
-            (vp2.x - vp1.x)*(vp2p.y - vp1p.y);
+    vprod = ((long double) vp2p.x - (long double) vp1p.x)*((long double) vp2.y - (long double) vp1.y) -
+            ((long double) vp2.x - (long double) vp1.x)*((long double) vp2p.y - (long double) vp1p.y);
     if (vprod == 0) {
         return NULL;
     } else {
-        t = ((vp1.x - vp1p.x)*vp2p.y + 
-             (vp2p.x - vp1.x)*vp1p.y - 
-             (vp2p.x - vp1p.x)*vp1.y)/vprod;
+        t = (((long double) vp1.x - (long double) vp1p.x)*((long double) vp2p.y) +
+             ((long double) vp2p.x - (long double) vp1.x)*((long double) vp1p.y) -
+             ((long double) vp2p.x - (long double) vp1p.x)*((long double) vp1.y))/vprod;
         if ((t >= 0.0 - FPCMP_EPS) && (t <= 1.0 + FPCMP_EPS)) {
-            vpbuf.x = vp1.x + t*(vp2.x - vp1.x);
-            vpbuf.y = vp1.y + t*(vp2.y - vp1.y);
+            vpbuf.x = (double)((long double) vp1.x + t*((long double) vp2.x - (long double) vp1.x));
+            vpbuf.y = (double)((long double) vp1.y + t*((long double) vp2.y - (long double) vp1.y));
             
             if (mode == LINE_INFINITE) {
                 return &vpbuf;
             } else {
                 if (vp1p.x != vp2p.x) {
-                    tp = (vpbuf.x - vp1p.x)/(vp2p.x - vp1p.x);
+                    tp = ((long double) vpbuf.x - (long double) vp1p.x)/((long double) vp2p.x - (long double) vp1p.x);
                 } else {
-                    tp = (vpbuf.y - vp1p.y)/(vp2p.y - vp1p.y);
+                    tp = ((long double) vpbuf.y - (long double) vp1p.y)/((long double) vp2p.y - (long double) vp1p.y);
                 }
                 
                 if ((tp >= 0.0 - FPCMP_EPS) && (tp <= 1.0 + FPCMP_EPS)) {
@@ -917,7 +912,7 @@ static int is_inside_boundary(VPoint vp, VPoint vp1c, VPoint vp2c)
     /* vector product should be positive if vp1c, vp2c and vp lie 
      * counter-clockwise
      */
-    if ((vp2c.x - vp1c.x)*(vp.y - vp2c.y) - (vp.x - vp2c.x)*(vp2c.y - vp1c.y) >= 0.0){
+    if (((long double) vp2c.x - (long double) vp1c.x)*((long double) vp.y - (long double) vp2c.y) - ((long double) vp.x - (long double) vp2c.x)*((long double) vp2c.y - (long double) vp1c.y) >= 0.0){
         return TRUE;
     } else {
         return FALSE;
@@ -1172,7 +1167,7 @@ int delete_color(int cindex)
             strcpy(saved_map[i].cname,cmap_table[i].cname);
         }
     realloc_colors(maxcolors-1);
-    int counter=0;
+//int counter=0;
     for (int i=0;i<=maxcolors;i++)
     {
         if (i==cindex) continue;
@@ -1423,7 +1418,6 @@ char *scale_types(int it)
     return s;
 }
 
-
 /*
  * axis scaling
  */
@@ -1464,7 +1458,6 @@ double ifscale(double vc, int scale)
     }
 }
 
-
 /*
  * map world co-ordinates to viewport
   */
@@ -1476,7 +1469,7 @@ double xy_xconv(double wx)
 	(scaletypex == SCALE_LOGIT && wx >= 1.0)){
         return 0;
     } else {
-        return (xv_med + xv_rc*(fscale(wx, scaletypex) - fxg_med));
+        return (double)(xv_med + xv_rc*((long double) fscale(wx, scaletypex) - fxg_med));
     }
 }
 
@@ -1488,7 +1481,7 @@ double xy_yconv(double wy)
 	(scaletypey == SCALE_LOGIT && wy >= 1.0)) {
         return 0;
     } else {
-        return (yv_med + yv_rc*(fscale(wy, scaletypey) - fyg_med));
+        return (double)(yv_med + yv_rc*((long double) fscale(wy, scaletypey) - fyg_med));
     }
 }
 
@@ -1535,8 +1528,8 @@ void view2world(double xv, double yv, double *xw, double *yw)
         *xw /= xv_rc;
         *yw /= yv_rc;
     } else {
-        *xw = ifscale(fxg_med + (1.0/xv_rc)*(xv - xv_med), scaletypex);
-        *yw = ifscale(fyg_med + (1.0/yv_rc)*(yv - yv_med), scaletypey);
+        *xw = ifscale(fxg_med + (1.0/xv_rc)*((long double) xv - xv_med), scaletypex);
+        *yw = ifscale(fyg_med + (1.0/yv_rc)*((long double) yv - yv_med), scaletypey);
     }
 }
 
@@ -1548,7 +1541,7 @@ int definewindow(world w, view v, int gtype,
                         int xscale, int yscale,
                         int invx, int invy)
 {
-    double dx, dy;
+    long double dx, dy;
     
     /* Safety checks */
     if (isvalid_viewport(v) == FALSE) {
@@ -1556,12 +1549,12 @@ int definewindow(world w, view v, int gtype,
         return RETURN_FAILURE;
     }
     
-    dx = w.xg2 - w.xg1;
+    dx = (long double) w.xg2 - (long double) w.xg1;
     if (dx <= 0.0) {
         errmsg("World DX <= 0.0");
         return RETURN_FAILURE;
     }
-    dy = w.yg2 - w.yg1;
+    dy = (long double) w.yg2 - (long double) w.yg1;
     if (dy <= 0.0) {
         errmsg("World DY <= 0.0");
         return RETURN_FAILURE;
@@ -1586,7 +1579,7 @@ int definewindow(world w, view v, int gtype,
             worldwin = w;
             viewport = v;
             scaletypex = xscale;
-            xv_med = (v.xv1 + v.xv2)/2;
+            xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
             if (invx == FALSE) {
                 xv_rc = +1.0;
             } else {
@@ -1594,8 +1587,8 @@ int definewindow(world w, view v, int gtype,
             }
 
             scaletypey = yscale;
-            yv_med = (v.yv1 + v.yv2)/2;
-            yv_rc = (MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2.0)/w.yg2;
+            yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
+            yv_rc = (MIN2((long double) v.xv2 - (long double) v.xv1, (long double) v.yv2 - (long double) v.yv1)*0.5)/((long double) w.yg2);
             return RETURN_SUCCESS;
         }
         break;
@@ -1610,14 +1603,14 @@ int definewindow(world w, view v, int gtype,
             viewport = v;
 
             scaletypex = xscale;
-            xv_med = (v.xv1 + v.xv2)/2;
-            fxg_med = (w.xg1 + w.xg2)/2;
+            xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
+            fxg_med = ((long double) w.xg1 + (long double) w.xg2)*0.5;
             scaletypey = yscale;
-            yv_med = (v.yv1 + v.yv2)/2;
-            fyg_med = (w.yg1 + w.yg2)/2;
+            yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
+            fyg_med = ((long double) w.yg1 + (long double) w.yg2)*0.5;
 
-            xv_rc = MIN2((v.xv2 - v.xv1)/(w.xg2 - w.xg1),
-                         (v.yv2 - v.yv1)/(w.yg2 - w.yg1));
+            xv_rc = MIN2(((long double) v.xv2 - (long double) v.xv1)/((long double) w.xg2 - (long double) w.xg1),
+                         ((long double) v.yv2 - (long double) v.yv1)/((long double) w.yg2 - (long double) w.yg1));
             yv_rc = xv_rc;
             if (invx == TRUE) {
                 xv_rc = -xv_rc;
@@ -1688,21 +1681,21 @@ int definewindow(world w, view v, int gtype,
         viewport = v;
 
         scaletypex = xscale;
-        xv_med = (v.xv1 + v.xv2)/2;
-        fxg_med = (fscale(w.xg1, xscale) + fscale(w.xg2, xscale))/2;
+        xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
+        fxg_med = ((long double) fscale(w.xg1, xscale) + (long double) fscale(w.xg2, xscale))*0.5;
         if (invx == FALSE) {
-            xv_rc = (v.xv2 - v.xv1)/(fscale(w.xg2, xscale) - fscale(w.xg1, xscale));
+            xv_rc = ((long double) v.xv2 - (long double) v.xv1)/((long double) fscale(w.xg2, xscale) - (long double) fscale(w.xg1, xscale));
         } else {
-            xv_rc = - (v.xv2 - v.xv1)/(fscale(w.xg2, xscale) - fscale(w.xg1, xscale));
+            xv_rc = - ((long double) v.xv2 - (long double) v.xv1)/((long double) fscale(w.xg2, xscale) - (long double) fscale(w.xg1, xscale));
         }
 
         scaletypey = yscale;
-        yv_med = (v.yv1 + v.yv2)/2;
-        fyg_med = (fscale(w.yg1, yscale) + fscale(w.yg2, yscale))/2;
+        yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
+        fyg_med = ((long double) fscale(w.yg1, yscale) + (long double) fscale(w.yg2, yscale))*0.5;
         if (invy == FALSE) {
-            yv_rc = (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
+            yv_rc = ((long double) v.yv2 - (long double) v.yv1)/((long double) fscale(w.yg2, yscale) - (long double) fscale(w.yg1, yscale));
         } else {
-            yv_rc = - (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
+            yv_rc = - ((long double) v.yv2 - (long double) v.yv1)/((long double) fscale(w.yg2, yscale) - (long double) fscale(w.yg1, yscale));
         }
  
         return RETURN_SUCCESS;
@@ -1964,7 +1957,7 @@ int update_bboxes_with_vpoints(VPoint *vps, int n, double lw)
         v.yv1 = ymin;
         v.yv2 = ymax;
         
-        view_extend(&v, lw/2);
+        view_extend(&v, lw*0.5);
         
         update_bboxes_with_view(&v);
         

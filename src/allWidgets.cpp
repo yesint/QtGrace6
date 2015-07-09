@@ -233,7 +233,7 @@ extern int arrange_graphs(int *graphs, int ngraphs,
                           int nrows, int ncols, int order, int snake,
                           double loff, double roff, double toff, double boff,
                           double vgap, double hgap,
-                          int hpack, int vpack, int move_legend);
+                          int hpack, int vpack, int move_legend, double legendX, double legendY);
 extern void init_color_icons(int nr_of_cols,CMap_entry * entries,int & allocated_colors,QIcon *** ColorIcons,QPixmap *** ColorPixmaps,QString *** ColorNames);
 extern void complete_LaTeX_to_Grace_Translator(QString & text);
 extern void replace_set_ids_in_command(QString & commandString,int o_gno,int o_sno,int n_gno,int n_sno,int relative);//only replace-operations, no command execution
@@ -10110,7 +10110,7 @@ diaDevAct=NULL;
 
 cmdTest=new QPushButton(tr("DEBUG: TestDialog"),this);
 connect(cmdTest,SIGNAL(clicked()),SLOT(doTest()));
-cmdTest->hide();
+//cmdTest->hide();
 frmTest=new TestDialog(0);
 frmTest->hide();
 
@@ -11493,7 +11493,8 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
 
     selCols=new stdIntSelector(grpMatrix,tr("Cols:"),1,99);
     selRows=new stdIntSelector(grpMatrix,tr("Rows:"),1,99);
-    selUpperOffset=new QDoubleSpinBox(grpPageOffset);
+
+    /*selUpperOffset=new QDoubleSpinBox(grpPageOffset);
     selUpperOffset->setRange(0.0,1.0);
     selUpperOffset->setSingleStep(0.05);
     selUpperOffset->setValue(0.15);
@@ -11507,6 +11508,31 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
     selLeftOffset->setValue(0.15);
     selRightOffset=new QDoubleSpinBox(grpPageOffset);
     selRightOffset->setRange(0.0,1.0);
+    selRightOffset->setSingleStep(0.05);
+    selRightOffset->setValue(0.15);*/
+
+    selUpperOffset=new LineWidthSelector(grpPageOffset);
+    selUpperOffset->setText(tr("Top:"));
+    selUpperOffset->setRange(0.0,1.0);
+    selUpperOffset->setDecimals(2);
+    selUpperOffset->setSingleStep(0.05);
+    selUpperOffset->setValue(0.15);
+    selLowerOffset=new LineWidthSelector(grpPageOffset);
+    selLowerOffset->setText(tr("Bottom:"));
+    selLowerOffset->setRange(0.0,1.0);
+    selLowerOffset->setDecimals(2);
+    selLowerOffset->setSingleStep(0.05);
+    selLowerOffset->setValue(0.15);
+    selLeftOffset=new LineWidthSelector(grpPageOffset);
+    selLeftOffset->setText(tr("Left:"));
+    selLeftOffset->setRange(0.0,1.0);
+    selLeftOffset->setDecimals(2);
+    selLeftOffset->setSingleStep(0.05);
+    selLeftOffset->setValue(0.15);
+    selRightOffset=new LineWidthSelector(grpPageOffset);
+    selRightOffset->setText(tr("Right:"));
+    selRightOffset->setRange(0.0,1.0);
+    selRightOffset->setDecimals(2);
     selRightOffset->setSingleStep(0.05);
     selRightOffset->setValue(0.15);
 
@@ -11524,10 +11550,33 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
     chkAddGraphs=new QCheckBox(tr("Add graphs as needed to fill the matrix"),grpArrGraphs);
     chkAddGraphs->setChecked(TRUE);
     chkKillGraphs=new QCheckBox(tr("Kill extra graphs"),grpArrGraphs);
-    chkMoveLegends=new QCheckBox(tr("Move legends"),grpArrGraphs);
+    int number=3;
+    QString list[3];
+    list[0]=tr("No");
+    list[1]=tr("Keep relative position(s)");
+    list[2]=tr("New relative position(s)");
+    selMoveLegends=new StdSelector(grpArrGraphs,tr("Move legends:"),number,list);
+    connect(selMoveLegends,SIGNAL(currentIndexChanged(int)),SLOT(MoveLegendsChanged(int)));
+    selLegendX=new LineWidthSelector(grpArrGraphs);
+    selLegendX->setText(tr("Relative X of legend:"));
+    selLegendX->setRange(-100.0,200.0);
+    selLegendX->setDecimals(2);
+    selLegendX->setValue(5.0);
+    selLegendX->setVisible(false);
+    selLegendX->spnLineWidth->setSuffix(QString(" %"));
+    selLegendY=new LineWidthSelector(grpArrGraphs);
+    selLegendY->setText(tr("Relative Y of legend:"));
+    selLegendY->setRange(-100.0,200.0);
+    selLegendY->setDecimals(2);
+    selLegendY->setValue(90.0);
+    selLegendY->setVisible(false);
+    selLegendY->spnLineWidth->setSuffix(QString(" %"));
+
     chkSnakeFill=new QCheckBox(tr("Snake fill"),grpMatrix);
     chkHPack=new QCheckBox(tr("Pack"),grpSpacing);
     chkVPack=new QCheckBox(tr("Pack"),grpSpacing);
+    connect(chkHPack,SIGNAL(toggled(bool)),SLOT(PackToggled(bool)));
+    connect(chkVPack,SIGNAL(toggled(bool)),SLOT(PackToggled(bool)));
 
     selOrder=new OrderSelector(grpMatrix);
 
@@ -11536,17 +11585,22 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
     connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
     connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
 
-    layout0=new QVBoxLayout();
+    number=0;
+    layout0=new QGridLayout();
     layout0->setMargin(STD_MARGIN);
-    layout0->addWidget(lblArrGraphs);
-    layout0->addWidget(graphlist);
-    layout0->addWidget(chkAddGraphs);
-    layout0->addWidget(chkKillGraphs);
-    layout0->addWidget(chkMoveLegends);
+    layout0->setSpacing(STD_SPACING);
+    layout0->addWidget(lblArrGraphs,number++,0,1,2);
+    layout0->addWidget(graphlist,number++,0,1,2);
+    layout0->addWidget(chkAddGraphs,number++,0,1,2);
+    layout0->addWidget(chkKillGraphs,number++,0,1,2);
+    layout0->addWidget(selMoveLegends,number++,0,1,2);
+    layout0->addWidget(selLegendX,number,0,1,1);
+    layout0->addWidget(selLegendY,number++,1,1,1);
     grpArrGraphs->setLayout(layout0);
 
     layout1=new QHBoxLayout();
     layout1->setMargin(STD_MARGIN);
+    layout1->setSpacing(STD_SPACING);
     layout1->addWidget(selCols);
     layout1->addWidget(selRows);
     layout1->addWidget(selOrder);
@@ -11555,6 +11609,7 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
 
     layout2=new QGridLayout();
     layout2->setMargin(STD_MARGIN);
+    layout2->setSpacing(STD_SPACING);
     layout2->addWidget(selUpperOffset,0,2);
     layout2->addWidget(selLowerOffset,2,2);
     layout2->addWidget(selLeftOffset,1,0);
@@ -11563,6 +11618,7 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
 
     layout3=new QHBoxLayout();
     layout3->setMargin(STD_MARGIN);
+    layout3->setSpacing(STD_SPACING);
     layout3->addWidget(selHGap);
     layout3->addWidget(chkHPack);
     layout3->addWidget(selVGap);
@@ -11571,12 +11627,19 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
 
     layout=new QVBoxLayout();
     layout->setMargin(STD_MARGIN);
+    layout->setSpacing(STD_SPACING);
     layout->addWidget(grpArrGraphs);
     layout->addWidget(grpMatrix);
     layout->addWidget(grpPageOffset);
     layout->addWidget(grpSpacing);
     layout->addWidget(buttonGroup);
     setLayout(layout);
+}
+
+void frmArrangeGraphs::PackToggled(bool t)
+{
+    selHGap->setEnabled(!(chkHPack->isChecked()));
+    selVGap->setEnabled(!(chkVPack->isChecked()));
 }
 
 void frmArrangeGraphs::init(void)
@@ -11625,7 +11688,7 @@ void frmArrangeGraphs::doApply(void)
     int ngraphs, * graphs=new int[2];
     int nrows, ncols, order, snake;
     int hpack, vpack, add, kill, move_legend;
-    double toff, loff, roff, boff, vgap, hgap;
+    double toff, loff, roff, boff, vgap, hgap, legendXPos, legendYPos;
 
     nrows = (int) GetSpinChoice(selRows);
     ncols = (int) GetSpinChoice(selCols);
@@ -11657,8 +11720,10 @@ void frmArrangeGraphs::doApply(void)
     
     add  = GetToggleButtonState(chkAddGraphs);
     kill = GetToggleButtonState(chkKillGraphs);
-    move_legend = GetToggleButtonState(chkMoveLegends);
-    
+    move_legend = selMoveLegends->currentIndex();
+    legendXPos=selLegendX->value()*0.01;
+    legendYPos=selLegendY->value()*0.01;
+
     hpack = GetToggleButtonState(chkHPack);
     vpack = GetToggleButtonState(chkVPack);
 
@@ -11690,7 +11755,7 @@ void frmArrangeGraphs::doApply(void)
     arrange_graphs(graphs, ngraphs,
                    nrows, ncols, order, snake,
                    loff, roff, toff, boff, vgap, hgap,
-                   hpack, vpack, move_legend);
+                   hpack, vpack, move_legend, legendXPos, legendYPos);
 
     //Undo-Staff
     GraphsModified(ngraphs,graphs,UNDO_APPEARANCE);
@@ -11812,7 +11877,7 @@ if (index>=number_of_graphs()-1)//just one row or column
     guess_order=0;
         if (initial_direction==2) guess_order=1;
     guess_success=1;
-        if (g[0].v.xv2-g[0].v.xv1!=0.0)
+        if (g[0].v.xv2-g[0].v.xv1==0.0)
         guess_hgap=0.2;
         else
         guess_hgap=initial_d/(g[0].v.xv2-g[0].v.xv1);
@@ -11825,7 +11890,7 @@ if (index>=number_of_graphs()-1)//just one row or column
     guess_order=4;
         if (initial_direction==4) guess_order=5;
     guess_success=1;
-        if (g[0].v.yv2-g[0].v.yv1!=0.0)
+        if (g[0].v.yv2-g[0].v.yv1==0.0)
         guess_vgap=0.2;
         else
         guess_vgap=initial_d/(g[0].v.yv2-g[0].v.yv1);
@@ -11834,6 +11899,7 @@ if (index>=number_of_graphs()-1)//just one row or column
     {
     guess_success=0;//no auto-ordering
     }
+//cout << "Guessing: just one row/column: vgap=" << guess_vgap << " hgap=" << guess_hgap << endl;
 }
 else//more than one row and column
 {
@@ -12073,6 +12139,20 @@ else//just one graph
 guess_hgap=0.1*rint_v2(guess_hgap*10.0);
 guess_vgap=0.1*rint_v2(guess_vgap*10.0);
 //cout << "hgap=" << guess_hgap << " vgap=" << guess_vgap << endl;
+}
+
+void frmArrangeGraphs::MoveLegendsChanged(int l)
+{
+    if (l==2)
+    {
+    selLegendX->setVisible(true);
+    selLegendY->setVisible(true);
+    }
+    else
+    {
+    selLegendX->setVisible(false);
+    selLegendY->setVisible(false);
+    }
 }
 
 frmOverlayGraphs::frmOverlayGraphs(QWidget * parent):QDialog(parent)
@@ -26072,11 +26152,11 @@ void frmAxis_Prop::update_ticks(int gno)
     get_graph_world(gno, &w);
     if (is_xaxis(curaxis))
     {
-        ledStart->setDoubleValue("%.9g", w.xg1);
+        ledStart->setDoubleValue("%.16g", w.xg1);
         //sprintf(buf, "%.9g", w.xg1);
         //ledStart->setText(QString(buf));
         //xv_setstr(axis_world_start, buf);
-        ledStop->setDoubleValue("%.9g", w.xg2);
+        ledStop->setDoubleValue("%.16g", w.xg2);
         //sprintf(buf, "%.9g", w.xg2);
         //ledStop->setText(QString(buf));
         //xv_setstr(axis_world_stop, buf);
@@ -26085,11 +26165,11 @@ void frmAxis_Prop::update_ticks(int gno)
     }
     else
     {
-        ledStart->setDoubleValue("%.9g", w.yg1);
+        ledStart->setDoubleValue("%.16g", w.yg1);
         //sprintf(buf, "%.9g", w.yg1);
         //ledStart->setText(QString(buf));
         //xv_setstr(axis_world_start, buf);
-        ledStop->setDoubleValue("%.9g", w.yg2);
+        ledStop->setDoubleValue("%.16g", w.yg2);
         //sprintf(buf, "%.9g", w.yg2);
         //ledStop->setText(QString(buf));
         //xv_setstr(axis_world_stop, buf);
@@ -27262,6 +27342,7 @@ QVariant val1;
 QString val2,tval;
 QStringList val3;
 QSettings settings(QString::fromLocal8Bit(ini_file),QSettings::IniFormat);
+cout << "ini_file to read from=" << ini_file << endl;
 keys.clear();
 vals.clear();
 //import_channels.clear();
@@ -28622,15 +28703,24 @@ QStringList str;
 
     if (str.length()>0)
     {
+
+        bin_file_nr_to_import=0;
+        datFileNames=str;
+        headerFileNames=str;
+
         QString filesText=str.join(QString(";"));
         lenDataFile->setText(filesText);
         QFileInfo tmpInfo(str.at(0));
         LoadDataPath=tmpInfo.path();
 
-        char * filename=new char[8+str.at(0).length()];
-        strcpy(filename,str.at(0).toLocal8Bit().constData());
-        detectStdBinFormat(filename);
-        delete[] filename;
+        readAndCompleteFileNames(0);
+
+        if (lenHeaderFile->text().isEmpty()) lenHeaderFile->setText(headerFileNames.join(QString(";")));
+
+        //char * filename=new char[8+str.at(0).length()];
+        //strcpy(filename,str.at(0).toLocal8Bit().constData());
+        detectStdBinFormat(str.at(0));
+        //delete[] filename;
     }
 }
 
@@ -28644,26 +28734,33 @@ QStringList str;
 
     if (!str.isEmpty())
     {
+        bin_file_nr_to_import=0;
+        datFileNames=str;
+        headerFileNames=str;
+
         QString filesText=str.join(QString(";"));
         lenHeaderFile->setText(filesText);
         QFileInfo tmpInfo(str.at(0));
         LoadIniPath=tmpInfo.path();
 
-        char * filename=new char[8+str.at(0).length()];
-        strcpy(filename,str.at(0).toLocal8Bit().constData());
-        detectStdBinFormat(filename);
-        delete[] filename;
+        readAndCompleteFileNames(1);
 
+        if (lenDataFile->text().isEmpty()) lenDataFile->setText(datFileNames.join(QString(";")));
+
+        //char * filename=new char[8+str.at(0).length()];
+        //strcpy(filename,str.at(0).toLocal8Bit().constData());
+        detectStdBinFormat(str.at(0));
+        //delete[] filename;
     }
 }
 
-int frmBinaryFormatInput::detectStdBinFormat(char * filen)
+int frmBinaryFormatInput::detectStdBinFormat(QString filen)
 {
     bool is_header_file;
     int std_schema_nr=-1;
 
-    cout << "guess " << filen << endl;
-    if (guess_bin_format(filen,std_schema_nr,is_header_file)==RETURN_SUCCESS)//look for a std binary format
+    cout << "guess " << filen.toLocal8Bit().constData() << endl;
+    if (guess_bin_format(filen.toLocal8Bit().constData(),std_schema_nr,is_header_file)==RETURN_SUCCESS)//look for a std binary format
     {
 
     initSettings(imp_set);
@@ -28671,20 +28768,20 @@ int frmBinaryFormatInput::detectStdBinFormat(char * filen)
         {
             if (is_header_file==false)
             {
-            imp_set.DataFile=QString::fromLocal8Bit(filen);
+            imp_set.DataFile=filen;
             imp_set.HeaderFile=imp_set.DataFile;
             replaceSuffix(imp_set.HeaderFile,std_bin_import_settings[std_schema_nr].HeaderSuffix);
             }
             else
             {
-            imp_set.HeaderFile=QString::fromLocal8Bit(filen);
+            imp_set.HeaderFile=filen;
             imp_set.DataFile=imp_set.HeaderFile;
             replaceSuffix(imp_set.DataFile,std_bin_import_settings[std_schema_nr].DataSuffix);
             }
         }
         else//no header
         {
-        imp_set.DataFile=QString::fromLocal8Bit(filen);
+        imp_set.DataFile=filen;
         imp_set.HeaderFile=QString("");
         }
 
@@ -28701,7 +28798,10 @@ int frmBinaryFormatInput::detectStdBinFormat(char * filen)
         lenHeaderFile->setText(imp_set.HeaderFile);
         }
 
+    cout << "Start reading reading INI header" << endl;
     read_INI_header(imp_set,std_bin_import_settings[std_schema_nr]);
+    cout << "Finished reading INI header" << endl;
+
     displaySettings(imp_set);
     tabHeader->doReadIni();
 
@@ -28791,7 +28891,7 @@ cout << "Finished reading header" << endl;
 for (int i=0;i<imp_set.import_channel_dest.length();i++) cout << "dest[" << i << "]=" << imp_set.import_channel_dest.at(i) << endl;
 
         //if (datFileName[0]=='\0')
-        if (!datFileNames.at(bin_file_nr_to_import).isEmpty())
+        if (datFileNames.at(bin_file_nr_to_import).isEmpty())
         {
             errwin(tr("No binary input file selected.").toLocal8Bit().constData());
             ApplyError=true;
@@ -29234,6 +29334,64 @@ void frmBinaryFormatInput::getDatFilesFromString(QString * origin,QStringList * 
     //cout << lst->at(0).toLocal8Bit().constData() << endl;
 }
 
+void frmBinaryFormatInput::readAndCompleteFileNames(int dat_header)
+{
+bool is_header_file;
+int std_schema_nr=-1;
+QStringList str;
+QString t_str;
+if (dat_header==0)//read from dat-files-line
+{
+str=lenDataFile->text().split(";");
+datFileNames=str;
+headerFileNames.clear();
+    for (int i=0;i<str.length();i++)
+    {
+        t_str=str.at(i);
+    cout << "Data: guess " << str.at(i).toLocal8Bit().constData() << endl;
+        if (guess_bin_format(str.at(i).toLocal8Bit().constData(),std_schema_nr,is_header_file)==RETURN_SUCCESS)//look for a std binary format
+        {
+        cout << "guessed=" << std_schema_nr << " is_header_file=" << is_header_file << endl;
+        replaceSuffix(t_str,std_bin_import_settings[std_schema_nr].HeaderSuffix);
+        headerFileNames << t_str;
+        }
+        else
+        {
+        cout << "could not guess format" << endl;
+        }
+    }
+}
+else if (dat_header==1)//read from header-files-line
+{
+str=lenHeaderFile->text().split(";");
+headerFileNames=str;
+datFileNames.clear();
+    for (int i=0;i<str.length();i++)
+    {
+        t_str=str.at(i);
+    cout << "Header: guess " << str.at(i).toLocal8Bit().constData() << endl;
+        if (guess_bin_format(str.at(i).toLocal8Bit().constData(),std_schema_nr,is_header_file)==RETURN_SUCCESS)//look for a std binary format
+        {
+        cout << "guessed=" << std_schema_nr << " is_header_file=" << is_header_file << endl;
+        replaceSuffix(t_str,std_bin_import_settings[std_schema_nr].DataSuffix);
+        datFileNames << t_str;
+        }
+        else
+        {
+        cout << "could not guess format" << endl;
+        }
+    }
+}
+else//read both header- and dat-file-line
+{
+str=lenDataFile->text().split(";");
+datFileNames=str;
+str=lenHeaderFile->text().split(";");
+headerFileNames=str;
+}
+bin_file_nr_to_import=0;
+}
+
 void frmBinaryFormatInput::CheckHeadersAndDatFiles(void)
 {
 cout << "Checking Headers and DataFiles" << endl;
@@ -29320,7 +29478,7 @@ void frmBinaryFormatInput::readHeader(void)
     /// initSettings(imp_set);
 datFileNames.clear();
 headerFileNames.clear();
-    if (!lenDataFile->text().isEmpty())
+    /*if (!lenDataFile->text().isEmpty())
     {
         QString help=lenDataFile->text().toLocal8Bit();
         help=lenDataFile->text();/// TEST
@@ -29344,7 +29502,9 @@ headerFileNames.clear();
     else
     {
         imp_set.header_present=true;
-    }
+    }*/
+
+    readAndCompleteFileNames(2);
 
     imp_set.multiple_header_files=chkMultiHeaders->isChecked();
 
@@ -35149,6 +35309,7 @@ cmdSetDocName=new QPushButton(tr("set_docname_external()"),this);
 cmdhardcopy=new QPushButton(tr("do_hardcopy()"),this);
 cmdLoad=new QPushButton(tr("load_project_file()"),this);
 cmdImportSin=new QPushButton(tr("Import Sinus via readDataFromClient()"),this);
+cmdArrangeGr=new QPushButton(tr("Arrange Graphs"),this);
 lenFile=new stdLineEdit(this,tr("FileName="));
 lenExport=new stdLineEdit(this,tr("ExportName="));
 lenDoc=new stdLineEdit(this,tr("DocName="));
@@ -35176,6 +35337,7 @@ layout->addWidget(lenSizeX,line,0);
 layout->addWidget(lenSizeY,line++,1);
 layout->addWidget(lenDPI,line,0);
 layout->addWidget(cmdhardcopy,line++,1);
+layout->addWidget(cmdArrangeGr,line++,1);
 
 setLayout(layout);
 
@@ -35184,6 +35346,7 @@ connect(cmdSetDocName,SIGNAL(clicked()),SLOT(doDocname()));
 connect(cmdSetExportName,SIGNAL(clicked()),SLOT(doExport()));
 connect(cmdhardcopy,SIGNAL(clicked()),SLOT(doHardcopy()));
 connect(cmdImportSin,SIGNAL(clicked()),SLOT(doImportSin()));
+connect(cmdArrangeGr,SIGNAL(clicked()),SLOT(doArrange()));
 }
 
 void TestDialog::doExport(void)
@@ -35259,4 +35422,12 @@ delete[] dataIn;
 mainWin->mainArea->completeRedraw();
 }
 
+void TestDialog::doArrange(void)
+{
+    int graphs[8];
+    graphs[0]=0;
+    graphs[1]=1;
+    arrange_graphs(graphs, 2, 2, 1, 5, 1, 0.22, 0.08, 0.15, 0.15, 0.2, 0.2, FALSE, FALSE, TRUE, 0.0, 0.0);
+    update_all();
+}
 

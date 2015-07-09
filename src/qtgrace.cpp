@@ -3001,8 +3001,14 @@ getSetIDFromText(text,gno,sno,column);
     stop_repaint=FALSE;
 mainWin->mainArea->completeRedraw();
 
-cout << "double mantissenlaenge=" << DBL_DIG << endl;
-cout << "long double mantissenlaenge=" << LDBL_DIG << endl;
+/*cout << "double mantissenlaenge (dec)=" << DBL_DIG << endl;
+cout << "double mantissenlaenge (bin)=" << DBL_MANT_DIG << endl;
+cout << "double epsilon=" << DBL_EPSILON << endl;
+cout << "sizeof(double)=" << sizeof(double) << endl;
+cout << "long double mantissenlaenge (dec)=" << LDBL_DIG << endl;
+cout << "long double mantissenlaenge (bin)=" << LDBL_MANT_DIG << endl;
+cout << "long double epsilon=" << LDBL_EPSILON << endl;
+cout << "sizeof(long double)=" << sizeof(long double) << endl;*/
 
 int execVal=a->exec();
 delete a;

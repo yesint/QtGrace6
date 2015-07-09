@@ -85,7 +85,7 @@ int arrange_graphs(int *graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
-                   int hpack, int vpack, int move_legend);
+                   int hpack, int vpack, int move_legend, double legendX, double legendY);
 int arrange_graphs_simple(int nrows, int ncols,
     int order, int snake, double offset, double hgap, double vgap);
 
@@ -100,6 +100,7 @@ void rescale_viewport(double ext_x, double ext_y);
 
 //get the position (nvx,nvy) in viewport-coordinates needed to align the legendbox from the graph from_gno to the attachement-axis of graph to_gno
 void position_leg_box(int from_gno,int to_gno,int attachement,double * nvx,double * nvy);
+int CheckWorldIntegrity(int gno);
 
 #ifdef __cplusplus
 }
