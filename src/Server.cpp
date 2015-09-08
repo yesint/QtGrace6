@@ -1146,8 +1146,9 @@ void LocalSocketIpcServer::socketError(QLocalSocket::LocalSocketError) {
         debugOut_m->flush();
     }
 
-    if(messageToServerPtr_->error()!=QAbstractSocket::RemoteHostClosedError)
-        QMessageBox::information(0,"Communication Error",messageToServerPtr_->errorString() + ". Try to restart QtGrace");
+ //   if(messageToServerPtr_->error()!=QAbstractSocket::RemoteHostClosedError)
+        QMessageBox::information(0,"Communication Error",tr("The following error occurred: %1.")
+                                 .arg(clientConnection->errorString()));
 
 }
 
