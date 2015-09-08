@@ -1307,6 +1307,7 @@ void set_docname(const char *s)
 
     } else {
         strcpy(docname, NONAME);
+        set_exportname(NONAME);
     }
 }
 
@@ -1326,6 +1327,7 @@ void errmsg(const char *buf)
         FormConsole->show();
         FormConsole->raise();
         FormConsole->errwin(buf);
+        qApp->processEvents();
     }
     /*else {
         fprintf(stderr, "%s\n", buf);
@@ -1462,6 +1464,7 @@ void stufftext(const char *s)
     FormConsole->show();
     FormConsole->raise();
     FormConsole->msgwin(s);
+    qApp->processEvents();
     /*        stufftextwin(s);*/
     /*} else {
         printf(s);
@@ -1662,28 +1665,26 @@ void update_timestamp(void)
     struct tm tm;
     time_t time_value;
     char *str;
-    char dummy[GR_MAXPATHLEN];
-
+    char dummy[GR_MAXPATHLEN+32];
+    QDir doc_path;
+    QString doc_str=doc_path.absoluteFilePath(get_docname());
+    doc_str=QDir::toNativeSeparators(doc_str);
+    doc_str.replace("\\","\\\\");
     (void) time(&time_value);
     tm = *localtime(&time_value);
     str = asctime(&tm);
-    if (str[strlen(str) - 1] == '\n') {
+    if (str[strlen(str) - 1] == '\n')
+    {
         str[strlen(str) - 1]= '\0';
     }
-
     if (timestamp.path==TRUE)
     {
         if (timestamp.active==FALSE)
         {
-        sprintf(dummy,"%s",get_docname());
+        sprintf(dummy,"%s",doc_str.toLocal8Bit().constData());
         }
         else if (timestamp.active==TRUE)
         {
-        //QString doc_path(get_docname());
-        QDir doc_path;
-        QString doc_str=doc_path.absoluteFilePath(get_docname());
-        doc_str=QDir::toNativeSeparators(doc_str);
-        doc_str.replace("\\","\\\\");
         sprintf(dummy,"%s, %s",str,doc_str.toLocal8Bit().constData());
         }
     set_plotstr_string(&timestamp, dummy);

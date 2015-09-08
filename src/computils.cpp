@@ -58,9 +58,9 @@ extern "C" double MAXNUM;
 
 using namespace std;
 
-static void forwarddiff(double *x, double *y, double *resx, double *resy, int n);
-static void backwarddiff(double *x, double *y, double *resx, double *resy, int n);
-static void centereddiff(double *x, double *y, double *resx, double *resy, int n);
+//static void forwarddiff(double *x, double *y, double *resx, double *resy, int n);
+//static void backwarddiff(double *x, double *y, double *resx, double *resy, int n);
+//static void centereddiff(double *x, double *y, double *resx, double *resy, int n);
 int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *cnt, double **xt, double **yt);
 
 static char buf[256];
@@ -117,7 +117,7 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
 /*
  * forward, backward and centered differences
  */
-static void forwarddiff(double *x, double *y, double *resx, double *resy, int n)
+void forwarddiff(double *x, double *y, double *resx, double *resy, int n)
 {
     int i, eflag = 0;
     double h;
@@ -137,7 +137,7 @@ static void forwarddiff(double *x, double *y, double *resx, double *resy, int n)
     }
 }
 
-static void backwarddiff(double *x, double *y, double *resx, double *resy, int n)
+void backwarddiff(double *x, double *y, double *resx, double *resy, int n)
 {
     int i, eflag = 0;
     double h;
@@ -157,7 +157,7 @@ static void backwarddiff(double *x, double *y, double *resx, double *resy, int n
     }
 }
 
-static void centereddiff(double *x, double *y, double *resx, double *resy, int n)
+void centereddiff(double *x, double *y, double *resx, double *resy, int n)
 {
     int i, eflag = 0;
     double h1, h2;

@@ -449,6 +449,7 @@ if (printing_in_file==false)
    ///XDrawRectangle(disp, displaybuff, gc, 0, 0, win_w - 1, win_h - 1);
 GeneralPainter->setBrush(Qt::NoBrush);
 GeneralPainter->drawRect(0,0,win_w - 1,win_h - 1);//draw border
+    //cout << "drawing: " << win_w << " x " << win_h << endl;
 }
 return RETURN_SUCCESS;
 }

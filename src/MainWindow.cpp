@@ -100,6 +100,7 @@ extern frmRegions * FormDefineRegion;
 extern frmExplorer * FormExplorer;
 extern frmRealTimeInputManager * FormRTIManage;
 extern frmReportOnFitParameters * FormReportFitParameters;
+extern frmGeometricEvaluation * FormGeometricEvaluation;
 
 extern frmNetCDF * FormNetCDF;
 extern frmIOForm * FormReadSets;
@@ -381,6 +382,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mnuTransform->addAction(actLinConvolution);
     mnuTransform->addSeparator();
     mnuTransform->addAction(actGeomTransform);
+    mnuTransform->addAction(actGeomEval);
     mnuTransform->addSeparator();
     mnuTransform->addAction(actSamplePoints);
     mnuTransform->addAction(actPruneData);
@@ -1927,6 +1929,19 @@ void MainWindow::GeomTransform(void)
     FormGeometricTransform->activateWindow();
 }
 
+void MainWindow::GeomEval(void)
+{
+    if (FormGeometricEvaluation==NULL)
+    {
+        FormGeometricEvaluation=new frmGeometricEvaluation(this);
+        FormGeometricEvaluation->setGeometry(FormGeometricEvaluation->x(),FormGeometricEvaluation->y(),FormGeometricEvaluation->width(),350);
+    }
+    FormGeometricEvaluation->init();
+    FormGeometricEvaluation->show();
+    FormGeometricEvaluation->raise();
+    FormGeometricEvaluation->activateWindow();
+}
+
 void MainWindow::SamplePoints(void)
 {
     if (FormSamplePoints==NULL)
@@ -2720,6 +2735,8 @@ void MainWindow::CreateActions(void)
     connect(actLinConvolution, SIGNAL(triggered()), this, SLOT(LinConvolution()));
     actGeomTransform= new QAction(tr("&Geometric transforms..." ), this);
     connect(actGeomTransform, SIGNAL(triggered()), this, SLOT(GeomTransform()));
+    actGeomEval= new QAction(tr("Geometric &evaluations..." ), this);
+    connect(actGeomEval, SIGNAL(triggered()), this, SLOT(GeomEval()));
     actSamplePoints= new QAction(tr("Sa&mple points..." ), this);
     connect(actSamplePoints, SIGNAL(triggered()), this, SLOT(SamplePoints()));
     actPruneData= new QAction(tr("&Prune data..." ), this);
@@ -3952,6 +3969,26 @@ QImage paintXOR(QImage * canvas,QImage * toDraw)//draw "toDraw" at position in X
         }
     }
     return resultImage;
+}
+
+void force_redraw(void)
+{
+int sav_simple=simple_draw_setting;
+int sav_stop_repaiont=stop_repaint;
+int sav_print_target=print_target;
+int sav_print_in_file=printing_in_file;
+int sav_startupphase=startupphase;
+stop_repaint=FALSE;
+simple_draw_setting==SIMPLE_DRAW_NONE;
+print_target=PRINT_TARGET_SCREEN;
+startupphase=0;
+printing_in_file=false;
+mainWin->mainArea->completeRedraw();
+startupphase=sav_startupphase;
+printing_in_file=sav_print_in_file;
+print_target=sav_print_target;
+stop_repaint=sav_stop_repaiont;
+simple_draw_setting=sav_simple;
 }
 
 void MainArea::completeRedraw(void)

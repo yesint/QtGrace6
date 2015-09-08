@@ -40,7 +40,6 @@ QMAKE_CXXFLAGS_RELEASE -= -Zc:strictStrings
 }
 }
 
-
 #CONFIG -= debug \
 #    debug_and_release
 #CONFIG += release

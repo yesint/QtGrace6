@@ -3095,7 +3095,7 @@ parmset:
 
 actions:
 	REDRAW {
-	    drawgraph();
+        force_redraw();
 	}
 	| UPDATEALL {
 #ifndef NONE_GUI

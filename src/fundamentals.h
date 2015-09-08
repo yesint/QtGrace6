@@ -108,6 +108,7 @@
 using namespace std;
 
 void append_to_storage(int * len,int ** storage,int n,int * new_entries);
+void append_to_storage2(int * l,int ** storage_a,int ** storage_b,int n,int * new_entries_a,int * new_entries_b);
 int indexOfFontInDatabase(QFont & f);
 QFont getFontFromDatabase(int i);
 int addFontToDatabase(QFont & f);
@@ -304,6 +305,7 @@ void doCopyClipBoard(void);
 void doPasteClipBoard(void);
 signals:
 void new_selection(int a);
+friend class SetPopup;
 };
 
 class SetCombo:public QComboBox
@@ -767,10 +769,13 @@ void SetMemoryToText(char * t1,char * t2);//Function to get the text and place i
 void DynSetMemoryToText(char * &t1,char * &t2);
 void ReplaceNumberContents(void);//replaces the decimal separators according to the setting of 'OldDecimalPoint' and 'DecimalPointToUse' --> should only be used on lines where numbers and formulas are to be entered
 void RedisplayContents(void);//refreshes the displayed text (usually after a change in the underlying addresses)
+void setDoubleValue(double val);//same as below, but uses the default double-value-format (sformat, usually "%.8g")
 void setDoubleValue(const char * form,double val);
 double getDoubleValue(void);
 int getIntValue(void);
 double guessDoubleValue(void);//tries to convert the text entered into double-value (this should also work for integer) -- a lot of guesswork here -- it should work if the user is not trying to be funny (in which case he/she will get funny results)
+virtual void dropEvent(QDropEvent *);
+virtual void dragEnterEvent(QDragEnterEvent *event);
 };
 
 class stdButtonGroup:public QWidget
@@ -1010,7 +1015,8 @@ void newItemClicked(char type,int gno,int sno);
 #define COLUMN_LONG_DOUBLE 11
 #define COLUMN_STRING 12
 
-#define NUMBER_OF_IMPORT_DESTINATIONS 61
+//#define NUMBER_OF_IMPORT_DESTINATIONS 61
+#define NUMBER_OF_IMPORT_DESTINATIONS 35
 
 #define IMPORT_TO_NONE 0
 #define IMPORT_TO_TITLE 1
@@ -1040,6 +1046,15 @@ void newItemClicked(char type,int gno,int sno);
 #define IMPORT_TO_SINGLE_DATA_BLOCK_SIZE 25
 #define IMPORT_TO_SET_LEGEND 26
 #define IMPORT_TO_TRIGGER 27
+#define IMPORT_TO_X_OFFSET 28
+#define IMPORT_TO_Y_OFFSET 29
+#define IMPORT_TO_Y1_OFFSET 30
+#define IMPORT_TO_Y2_OFFSET 31
+#define IMPORT_TO_Y3_OFFSET 32
+#define IMPORT_TO_Y4_OFFSET 33
+#define IMPORT_TO_DATA_START_OFFSET 34
+
+/*
 #define IMPORT_TO_TRIGGER_FACTOR 28
 #define IMPORT_TO_CHANNEL0_FACTOR 29
 #define IMPORT_TO_CHANNEL1_FACTOR 30
@@ -1072,7 +1087,7 @@ void newItemClicked(char type,int gno,int sno);
 #define IMPORT_TO_CHANNEL12_OFFSET 57
 #define IMPORT_TO_CHANNEL13_OFFSET 58
 #define IMPORT_TO_CHANNEL14_OFFSET 59
-#define IMPORT_TO_CHANNEL15_OFFSET 60
+#define IMPORT_TO_CHANNEL15_OFFSET 60*/
 //#define IMPORT_TO_ 45
 
 //#define IMPORT_TO_DELTAX 19

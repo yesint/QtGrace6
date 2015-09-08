@@ -56,56 +56,56 @@
 #define SAMPLING_MESH   0
 #define SAMPLING_SET    1
 
-#define READ_SET_FORM 0
-#define READ_NETCDF_FORM 1
-#define READ_PROJECT_FORM 2
-#define WRITE_SET_FORM 3
-#define WRITE_PROJECT_FORM 4
-#define SELECT_HOT_LINK_FILE 5
-#define READ_PARAMETERS 6
-#define WRITE_PARAMETERS 7
-#define SELECT_PRINT_FILE 8
-#define WRITE_FIT_PARAM 9
-#define READ_FIT_PARAM 10
-#define READ_BINARY_FILE 11
-#define WRITE_BINARY_FILE 12
+#define READ_SET_FORM           0
+#define READ_NETCDF_FORM        1
+#define READ_PROJECT_FORM       2
+#define WRITE_SET_FORM          3
+#define WRITE_PROJECT_FORM      4
+#define SELECT_HOT_LINK_FILE    5
+#define READ_PARAMETERS         6
+#define WRITE_PARAMETERS        7
+#define SELECT_PRINT_FILE       8
+#define WRITE_FIT_PARAM         9
+#define READ_FIT_PARAM          10
+#define READ_BINARY_FILE        11
+#define WRITE_BINARY_FILE       12
 
-#define INTERPOLATIONWINDOW 0
-#define HISTOGRAMSWINDOW 1
+#define INTERPOLATIONWINDOW     0
+#define HISTOGRAMSWINDOW        1
 
-#define DEFINEREGIONWINDOW 0
-#define REPORTREGIONWINDOW 1
-#define CLEARREGIONWINDOW 2
+#define DEFINEREGIONWINDOW      0
+#define REPORTREGIONWINDOW      1
+#define CLEARREGIONWINDOW       2
 
-#define INTERPOLATIONWINDOW 0
-#define HISTOGRAMSWINDOW 1
+#define INTERPOLATIONWINDOW     0
+#define HISTOGRAMSWINDOW        1
 
-#define INTEGRATIONWINDOW 0
-#define SEASONALWINDOW 1
-#define DIFFERENCESWINDOW 2
-#define AVERAGESWINDOW 3
-#define REGRESSIONWINDOW 4
+#define INTEGRATIONWINDOW       0
+#define SEASONALWINDOW          1
+#define DIFFERENCESWINDOW       2
+#define AVERAGESWINDOW          3
+#define REGRESSIONWINDOW        4
 
-#define CORRELATIONWINDOW 0
-#define CONVOLUTIONWINDOW 1
-#define FILTERWINDOW 2
+#define CORRELATIONWINDOW       0
+#define CONVOLUTIONWINDOW       1
+#define FILTERWINDOW            2
 
-#define PRUNEWINDOW 0
-#define SAMPLEPOINTSWINDOW 1
-#define GEOMETRICWINDOW 2
+#define PRUNEWINDOW             0
+#define SAMPLEPOINTSWINDOW      1
+#define GEOMETRICWINDOW         2
 
-#define SPECIAL_NONE 0
-#define SPECIAL_FILTER 1
-#define SPECIAL_REGRESSION 2
-#define SPECIAL_REMEMBER 3
-#define SPECIAL_ADD 4
-#define SPECIAL_MINUS 5
-#define SPECIAL_DIVIDE 6
-#define SPECIAL_MULTIPLY 7
-#define SPECIAL_USE 8
-#define SPECIAL_EXTRACT 9
-#define SPECIAL_FORMULA 10
-#define SPECIAL_APPEND 11
+#define SPECIAL_NONE            0
+#define SPECIAL_FILTER          1
+#define SPECIAL_REGRESSION      2
+#define SPECIAL_REMEMBER        3
+#define SPECIAL_ADD             4
+#define SPECIAL_MINUS           5
+#define SPECIAL_DIVIDE          6
+#define SPECIAL_MULTIPLY        7
+#define SPECIAL_USE             8
+#define SPECIAL_EXTRACT         9
+#define SPECIAL_FORMULA         10
+#define SPECIAL_APPEND          11
 
 using namespace std;
 
@@ -693,6 +693,9 @@ public:
     StdSelector * selRegion;
     QCheckBox * chkInvert;
     QCheckBox * chkCreateNew;
+
+    StdSelector * selSwap1;
+    StdSelector * selSwap2;
 
     stdLineEdit * ledLength;
     stdLineEdit * ledStart;
@@ -3095,13 +3098,14 @@ struct importSettings
 /// general file-informations (set without having to read a header)
     QString HeaderFile,DataFile;
     QString DataSuffix,HeaderSuffix;//if no header is present or the header is part of the datafile itself HeaderSuffix==""
+    QString ReadFromHeader,ReadFromData;//Files header-information and data has been read from (needed to tell whether informations have been read from the right files already)
     bool header_present;
     int header_format;//0=manual,1=header in data file itself,2=header in separate binary-data-file,3=header in separate ini-file, 4=header in separate ascii-file
     char string_end_char;
     bool read_to_eof,keep_trigger,multiple_header_files,determine_string_size;
     int setorder,autoscale;
     int target_gno,set_type;//target set is always the next set-id available
-    int headersize,first_suggestion;
+    int headersize;//the number of bytes before the actual data starts
 
     //the following values may or may not be present in the header; they can be set ab initio or can be read from the header
     double triggervalue;
@@ -3109,6 +3113,7 @@ struct importSettings
     int channels,points;
 
     //the actual import format for all channels
+    int * format_suggestion;//read from header and scheme to find the most suitable format
     int * channel_format;
     int * channel_size;
     int * channel_target;
@@ -3118,7 +3123,8 @@ struct importSettings
     int bytesize,bitsize;
     int whole_size,single_size;
     double factors[7];//scaling factors for x,y,y1,y2,y3,y4,trigger
-    double channel_factors[MAX_BIN_IMPORT_CHANNELS];//scaling factors for every channel; we use only 16 channels here -- should be enough
+    double offsets[7];//linear offsets for x,y,y1,y2,y3,y4,trigger
+    double channel_factors[MAX_BIN_IMPORT_CHANNELS];//scaling factors for every channel; we use only 32 channels here -- should be enough
     double channel_offsets[MAX_BIN_IMPORT_CHANNELS];//offset value for every channel
     //ini-header-files
     int nr_of_import_tokens;//how many relevant tokens are present in an ini-file
@@ -3140,9 +3146,27 @@ struct importSettings
 
     double x0,deltax,f;//f=sampling rate-->deltax=1/f; x=x0+deltax*i
 
-/// first data read after header (just to check the import settings)
+/// first data read after header (just to check the import settings) --> later used for all data read (all channels)
     double ** first_data;
     int points_read,columns_read;
+};
+
+/*manual data input (simulationg a header)*/
+class manualHeaderData:public QWidget
+{
+    Q_OBJECT
+public:
+    manualHeaderData(QWidget * parent=0);
+    QGridLayout * layout;
+    stdIntSelector * selNrOfEntries;
+    StdSelector ** selTokenType;
+    stdLineEdit ** ledTokenValue;
+    StdSelector ** selTargetChannel;
+    int tokens;
+public slots:
+    void changeNumberOfEntries(int nr);
+    void readDataToScheme(struct importSettings & imp_schema);
+    void displayDataFromScheme(struct importSettings imp_schema);
 };
 
 /*ini-file format input*/
@@ -3178,6 +3202,7 @@ public:
     QWidget * empty2;
     QScrollArea * scroll;
     QScrollArea * scroll2;
+    QScrollArea * scroll3;
     QVBoxLayout * layout2;
     QPushButton * cmdAdd;
     QLabel ** Headers;
@@ -3189,6 +3214,7 @@ public:
     QPushButton * cmdTestLoad;
     //int nr_of_sels;
     //StdSelector ** sels;
+    manualHeaderData * manHeaderGroup;
     inputIniData * iniDataGroup;
     //QString * readValues;
     QPushButton * cmdReadIni;
@@ -3202,14 +3228,15 @@ signals:
     void readHeader(void);
 public slots:
     void changeRepresentation(int r);
-    void doReadIni(void);
+    void doReadIni(void);//read Data from a ini-header-file
+    void resizeIniDisplay(void);
     void updateOffsets(void);
     void doNew(void);
     void doDelete(int i);//remove a line
     void offsetChanged(int i);
     void doTestLoad(void);
     void read_header_settings(struct importSettings & imp_set);//transfer import settings from gui to imp_set
-    void write_header_settings(struct importSettings & imp_set);//tranfer import settings to gui
+    void write_header_settings(struct importSettings & imp_set);//transfer import settings to gui
 };
 
 class pageDataInfo:public QWidget
@@ -3289,18 +3316,27 @@ class frmBinaryFormatInput:public QDialog
 public:
     frmBinaryFormatInput(QWidget * parent=0);
     QGridLayout * grid;
+/*
     QPushButton * cmdSave;
     QPushButton * cmdLoad;
     QPushButton * cmdStdSave;
     QPushButton * cmdStdLoad;
+    QCheckBox * chkAutoGuessFormat;
+*/
+    QLabel * lblCurScheme;
     QCheckBox * chkHeader;
     QCheckBox * chkMultiHeaders;
     QLabel * lblFormatSource;
     QComboBox * cmbFormatSource;
+
+    stdLineEdit * lenDataFile;
+    stdLineEdit * lenHeaderFile;
+/*
     QLabel * lblDataFile;
     QLineEdit * lenDataFile;
     QLabel * lblHeaderFile;
     QLineEdit * lenHeaderFile;
+*/
     QLabel * lblHeaderFileFormat;
     QComboBox * cmbHeaderFileFormat;
     QTabWidget * tabs;
@@ -3326,40 +3362,68 @@ public:
     int first_suggestion;
     bool auto_transfer_from_header,determine_string_size;
     int headersize;
+    int cur_import_scheme;//-1=None, -2=from a format-file, 0....n=std_format_sheme --> to tell the contents of the scheme
     QString LoadFormatPath,SaveFormatPath,LoadIniPath,LoadDataPath;
     QString HeaderSuffix,Data_Suffix;
     QString HeaderPath,Data_Path;
     /*QFileDialog * dlgLoadFormat,* dlgSaveFormat;
     QFileDialog * dlgLoadIniFile,* dlgLoadDataFile;*/
+
+    QMenuBar * mnuBar;
+    QMenu * mnuData,*mnuSettings;
+    QAction * actLoadSettings,*actSaveSettings,*actLoadStdSettings,*actSaveStdSettings,*actClose,*actDeleteSettings,*actautoguess;
+    QAction * actLoadDataFile,*actLoadHeaderFile;
+
 public slots:
+    void CreateActions(void);
     void init(void);
-    void getDatFilesFromString(QString * origin,QStringList * lst);
-    void readHeader(void);
+    void getDatFilesFromString(QString * origin,QStringList * lst);//separates a text with files separated by ';' into a list with filenames
+    void readHeader(void);//try to read data from a header
     void headerToggled(bool t);
     void doSaveFileFormat(void);
     void doLoadFileFormat(void);
     void doSaveStdFormat(void);
     void doLoadStdFormat(void);
-    void SelectDataFile(void);
-    void SelectHeaderFile(void);
+    void doClearCurrentScheme(void);
+    void SelectDataFile(void);//open a dialog to select a file
+    void SelectHeaderFile(void);//open a dialog to select a file
     int detectStdBinFormat(QString filen);
     void formatSourceChanged(int i);
-    void displaySettings(struct importSettings & imp_set);
-    void readSettings(struct importSettings & imp_set);
+    void displaySettings(struct importSettings & imp_s);
+    void readSettings(struct importSettings & imp_s,int type);//transfer the settings in the gui in the scheme (it is meant to be the scheme - but any import_settings are possible), type=0: just header, type=1: just data, type=2: just auxilliary data, type=3: everything
     void HeaderFormatChanged(int i);
-    void doOK(void);
-    void doClose(void);
-    void doAccept(void);
     void transmitInfos(void);
     void convertSettingsToString(void);
     void updateSuffixes(void);
-    void readAndCompleteFileNames(int dat_header);//read the filenames from the LineEdits and complete the information (like: search for suitable headerfiles matching the datafiles)
+    void newFileEntry(void);//a new file (header or data) has been selected --> complete settings and try to load header (if suitable)
+    void readAndCompleteFileNames(int dat_header,int & std_schema_nr,bool & is_header_file);//read the filenames from the LineEdits and complete the information (like: search for suitable headerfiles matching the datafiles)
     void CheckHeadersAndDatFiles(void);//to complete filenames and check completeness on informations
+
+    void doOK(void);//do actual loading
+    void doClose(void);
+    void doAccept(void);//load and close
+
+    void binary_load_Phase0(int stage,struct importSettings & imp_scheme);//stage=0: read from header input, stage=2: read from data import settings, stage=3: read import settings (autoscale, target, ...)
 };
 
 void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set);
 void readBinaryFromFile(ifstream & ifi,struct importSettings & imp_set,double *** data);
 void get_all_settings_from_ini_file(char * ini_file,QStringList & keys,QStringList & vals);
+
+void copy_basic_scheme_data(struct importSettings & imp_set,struct importSettings & imp_schema);
+void copy_manual_header_data(struct importSettings & imp_set,struct importSettings & imp_schema);
+void read_INI_header(struct importSettings & imp_set,struct importSettings & imp_schema);
+void read_BINARY_header(struct importSettings & imp_set,struct importSettings & imp_schema);
+void read_ASCII_header(struct importSettings & imp_set,struct importSettings & imp_schema);
+int postprocess_bin_import_data(struct importSettings & imp_set,int & nr_of_new_sets,int ** n_gnos,int ** n_snos);
+void insert_filenames_in_settings(struct importSettings & imp_set,struct importSettings & imp_schema,QString headerfilename,QString datafilename);
+void readHeaderData(struct importSettings & imp_set,struct importSettings & imp_scheme);
+void prepare_imp_settings_for_header_import(struct importSettings & imp_set);
+
+void binary_load_Phase1(QString Header_Filename,QString Data_Filename,struct importSettings & imp_set,struct importSettings & imp_scheme);//load header and initialize imp_set
+void binary_load_Phase2(struct importSettings & imp_set,struct importSettings & imp_scheme);//compare imp_set with imp_schema to prepare for binary import
+void binary_load_Phase3(struct importSettings & imp_set);//the actual import
+void binary_load_Phase4(struct importSettings & imp_set,int & nr_of_new_sets,int ** n_gnos,int ** n_snos);//the postprocessing of the data
 
 class frmSetEditor:public QDialog
 {
@@ -3686,13 +3750,31 @@ public slots:
     void doClose(void);
 };
 
+class frmGeometricEvaluation: public QDialog
+{
+    Q_OBJECT
+public:
+    frmGeometricEvaluation(QWidget * parent=0);
+    grpSelect * sourceSelect;
+    QGridLayout * layout;
+    StdSelector * selOption;
+    StdSelector * selLoadX;
+    StdSelector * selRegion;
+    QCheckBox * chkInvert;
+    stdButtonGroup * buttons;
+public slots:
+    void init(void);
+    void doApply(void);
+    void doAccept(void);
+    void doClose(void);
+};
+
 int generate_x_mesh_from_formula(int gno,int sno,double start,double stop,int npts,char * formula,int type);
 void ParseFilterCommand(char * com,int & o_n_sets,int ** o_gnos,int ** o_snos,int & n_sets,int ** gnos,int ** snos,int & type,int & realization,double * limits,int * orders,char * x_formula,double & ripple,int & absolute,int & debug,int & point_extension,int & oversampling,int & rno,int & invr);
 void ParseRegression(char * com,int & n_sets,int ** gnos,int ** snos,int & n_n_sets,int ** n_gnos,int ** n_snos,int & ideg,int & iresid,int & rno,int & invr,double & start,double & stop,int & points,int & rx,char * formula);
 int containsSpecialCommand(char * com,char ** parameters);
 int ParseExtractCommand(char * com,char * arg);
 int ParseSpecialFormula(char * com,char * arg);
-
 
 class TestDialog:public QWidget
 {

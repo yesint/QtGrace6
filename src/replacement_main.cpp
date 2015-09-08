@@ -1486,6 +1486,8 @@ void sync_canvas_size(unsigned int *w, unsigned int *h, int inv)
         *h = pg.height;
         ///        SetDimensions(canvas, *w, *h);
     }
+//Page_geometry pg1=get_page_geometry();
+//cout << inv << "(inv) sync_canvas_size=" << pg1.width << " x " << pg1.height << " dpi=" << pg1.dpi << endl;
 }
 
 static int page_layout = PAGE_FIXED;

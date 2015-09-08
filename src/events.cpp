@@ -153,7 +153,7 @@ static VVector shift;
 static view v;
 static world wtmp,wtmp2;
 static int cg, newg, loc;
-static char dummy[256];
+static char dummy[1024];
 static int track_setno;
 static int track_loc;
 static int add_at;
@@ -1024,39 +1024,73 @@ updateRunning=true;
         }
         else if (event->key==Qt::Key_I && event->ctrl==true && event->alt==false)
         {
-        strcpy(dummy,QObject::tr("Report on intersection; visible sets:").toLocal8Bit().constData());
+        strcpy(dummy,QObject::tr("Report on (first) visible intersection:").toLocal8Bit().constData());
         stufftext(dummy);
-        //cout << "Report on intersection; visible sets:" << endl;
-        int * sets=NULL;
-        int nr_of_vis_sets=current_visible_sets(get_cg(),&sets);
-        double cx,cy;
-            for (int klm=0;klm<nr_of_vis_sets;klm++)
+        double * intersection_x=new double[2];
+        double * intersection_y=new double[2];
+        double * intersection_a=new double[4];
+        double cx,cy,ca;
+        bool found_first;
+        int n_intersections,total_n_intersections=0;
+        //cout << "number_of_sets=" << number_of_sets(get_cg()) << endl;
+            for (int klm=0;klm<number_of_sets(get_cg());klm++)
             {
-                for (int klm2=klm+1;klm2<nr_of_vis_sets;klm2++)
+                for (int klm2=klm+1;klm2<number_of_sets(get_cg());klm2++)
                 {
-                sprintf(dummy,"G[%d].S[%d] <--> G[%d].S[%d]",get_cg(),sets[klm],get_cg(),sets[klm2]);
-                stufftext(dummy);
-                //cout << "set " << sets[klm] << " <--> set " << sets[klm2] << endl;
-                if (get_set_crossing(get_cg(),sets[klm],get_cg(),sets[klm2],RESTRICT_WORLD,0,&cx,&cy)==RETURN_FAILURE)
+                if (is_set_active(get_cg(),klm)==FALSE || is_set_active(get_cg(),klm2)==FALSE) continue;
+                    if (getsetlength(get_cg(),klm)<2 || getsetlength(get_cg(),klm2)<2)
+                    {
+                    /*stufftext(QObject::tr("no intersection found").toLocal8Bit().constData());
+                    cout << "no intersection A" << endl;*/
+                    continue;
+                    }
+                get_all_intersection_points_between_two_sets(get_cg(),klm,get_cg(),klm2,&intersection_x,&intersection_y,&n_intersections);
+                //cout << "intersections=" << n_intersections << endl;
+                found_first=false;
+                cx=cy=ca=0.0;
+                for (int klm3=0;klm3<n_intersections;klm3++)//find the first visible intersection point
                 {
-                stufftext(QObject::tr("no intersection found").toLocal8Bit().constData());
-                //cout << "no intersection" << endl;
+                    if (inregion(MAXREGION,intersection_x[klm3],intersection_y[klm3]))
+                    {
+                    found_first=true;
+                    cx=intersection_x[klm3];
+                    cy=intersection_y[klm3];
+                    total_n_intersections++;
+                    break;
+                    }
                 }
-                else
-                {
+                    if (n_intersections<1 || found_first==false)
+                    {
+                    /*stufftext(QObject::tr("no intersection found").toLocal8Bit().constData());
+                    cout << "no intersection inside visible area" << endl;*/
+                    continue;
+                    }
+                    intersection_x[0]=cx;
+                get_intersection_angles(get_cg(),klm,get_cg(),klm2,intersection_x,intersection_a,1);
+                    ca=intersection_a[0];
+                sprintf(dummy,"G%d.S%d <--> G%d.S%d:",get_cg(),klm,get_cg(),klm2);
+                stufftext(dummy);
+                    //cout << dummy << endl;
                     if (DecimalPointToUse=='.')
-                    sprintf(dummy,"[ %g , %g ]",cx,cy);
+                    {
+                    sprintf(dummy,"[ %g , %g ] angle= %g rad | %g degrees",cx,cy,ca,ca*57.295779513082325);
+                    }
                     else//','
                     {
-                    sprintf(dummy,"[ %g | %g ]",cx,cy);
+                    sprintf(dummy,"[ %g | %g ] angle= %g rad | %g degrees",cx,cy,ca,ca*57.295779513082325);
                     SetDecimalSeparatorToUserValue(dummy);
                     }
-                //cout << "(" << cx << "|" << cy << ")" << endl;
+                //cout << "(" << cx << "|" << cy << ") a=" << ca << endl;
                 stufftext(dummy);
                 }
-                }
             }
-        if (sets!=NULL) delete[] sets;
+            if (total_n_intersections<1)
+            {
+            stufftext(QObject::tr("No visible intersections found.").toLocal8Bit().constData());
+            }
+        if (intersection_x!=NULL) delete[] intersection_x;
+        if (intersection_y!=NULL) delete[] intersection_y;
+        if (intersection_a!=NULL) delete[] intersection_a;
         }
         else if (event->key==Qt::Key_U && event->ctrl==true && event->alt==false)
         {

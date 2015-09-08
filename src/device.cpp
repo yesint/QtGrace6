@@ -135,6 +135,7 @@ int set_page_dimensions(int wpp, int hpp, int rescale)
             Page_geometry *pg = &device_table[i].pg;
             pg->width  = (unsigned long) rint_v2((double) wpp*(pg->dpi/72));
             pg->height = (unsigned long) rint_v2((double) hpp*(pg->dpi/72));
+        //cout << "i=" << i << " w=" << pg->width << " h=" << pg->height << " dpi=" << pg->dpi << endl;
             /*if (i==DEVICE_SCREEN)
             {
             orig_page_w=pg->width;

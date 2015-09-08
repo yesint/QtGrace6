@@ -123,6 +123,7 @@ extern int * new_set_nos;
 extern int ReqUpdateColorSel;
 extern graph * g;
 extern QList<QFont> stdFontList;
+extern Device_entry *device_table;
 
 extern int n_linestyles_ini,n_linestyles_tmp,n_linestyles_file;
 extern int *l_linestyle_pat_ini,*l_linestyle_pat_tmp,*l_linestyle_pat_file;
@@ -1535,6 +1536,8 @@ int getdata(int gno, char *fn, int src, int load_type)
     save_version = get_project_version();
     set_project_version(0);
 
+    device_table[DEVICE_SCREEN].pg.dpi=start_dpi;
+
     set_parser_gno(gno);
     
     retval = uniread(fp, load_type, fn2);
@@ -1550,6 +1553,9 @@ int getdata(int gno, char *fn, int src, int load_type)
         autoscale_graph(gno, autoscale_onread);
     }
     set_project_version(save_version);
+
+    //device_table[DEVICE_SCREEN].pg.width*=device_table[DEVICE_SCREEN].pg.dpi/72.0;
+    //device_table[DEVICE_SCREEN].pg.height*=device_table[DEVICE_SCREEN].pg.dpi/72.0;
 
     return retval;
 }

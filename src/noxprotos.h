@@ -46,6 +46,7 @@ extern "C" {
 #endif
 
 int filter_set(int gno, int setno, char *rarray);
+void force_redraw(void);
 
 void do_fourier_command(int gno, int setno, int ftype, int ltype);
 int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *fstr);
@@ -106,6 +107,9 @@ void linearconv(double *x, double *h, double *y, int n, int m);
 int crosscorr(double *x, double *y, int n, int maxlag, int covar, double *xres);
 int transfit(int type, int n, double *x, double *y, double *fitted);
 int linear_regression(int n, double *x, double *y, double *fitted);
+void centereddiff(double *x, double *y, double *resx, double *resy, int n);
+void forwarddiff(double *x, double *y, double *resx, double *resy, int n);
+void backwarddiff(double *x, double *y, double *resx, double *resy, int n);
 
 void spline(int n, double *x, double *y, double *b, double *c, double *d);
 void aspline(int n, double *x, double *y, double *b, double *c, double *d);
@@ -268,6 +272,9 @@ int isleft(double x, double y, double x1, double y1, double x2, double y2);
 int isright(double x, double y, double x1, double y1, double x2, double y2);
 int isabove(double x, double y, double x1, double y1, double x2, double y2);
 int isbelow(double x, double y, double x1, double y1, double x2, double y2);
+int find_section_that_crosses_rectangle(double * xr,double * yr,double * x,double * y,int n,int * n1,int * n2);
+int get_all_intersection_points_between_two_sets(int gno1,int setno1,int gno2,int setno2,double ** x,double ** y,int * n);
+int get_intersection_angles(int gno1,int setno1,int gno2,int setno2,double * x,double * angles,int n);
 void reporton_region(int gno, int rno, int type);
 int isactive_region(int regno);
 char *region_types(int it, int which);
@@ -316,6 +323,7 @@ int current_visible_sets(int gno,int ** list);
 void ShiftSetAxis(int gno,int sno,double value,int axis);
 void MultiplySetAxis(int gno,int sno,double value,int axis);
 void CopySetAxis(int f_gno,int f_sno,int f_axis,int t_gno,int t_sno,int t_axis);
+void SwapSetColumns(int gno,int sno,int column1,int column2);
 
 #ifdef __cplusplus
 }

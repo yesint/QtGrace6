@@ -1077,6 +1077,165 @@ int get_value_crossing2( int gno, int setno, double value, double *crossing )//r
     return RETURN_SUCCESS;
 }
 
+//we do not extrapolate! only visible intersections inside set-restrictions (real region-restrictions have to be applied later)
+int get_all_intersection_points_between_two_sets(int gno1,int setno1,int gno2,int setno2,double ** x,double ** y,int * n)
+{
+if (!is_valid_setno(gno1,setno1) || !is_valid_setno(gno2,setno2)) return RETURN_FAILURE;
+double x1min,x2min;
+double x1max,x2max;
+double y1min,y2min;
+double y1max,y2max;
+double gxmin,gxmax,gymin,gymax;
+int setlen_max=g[gno1].p[setno1].data.len>g[gno2].p[setno2].data.len?g[gno1].p[setno1].data.len:g[gno2].p[setno2].data.len;
+x1min=x1max=g[gno1].p[setno1].data.ex[0][0];
+y1min=y1max=g[gno1].p[setno1].data.ex[1][0];
+x2min=x2max=g[gno2].p[setno2].data.ex[0][0];
+y2min=y2max=g[gno2].p[setno2].data.ex[1][0];
+for (int i=1;i<g[gno1].p[setno1].data.len;i++)
+{
+    if (g[gno1].p[setno1].data.ex[0][i]<x1min) x1min=g[gno1].p[setno1].data.ex[0][i];
+    else if (g[gno1].p[setno1].data.ex[0][i]>x1max) x1max=g[gno1].p[setno1].data.ex[0][i];
+    if (g[gno1].p[setno1].data.ex[1][i]<y1min) y1min=g[gno1].p[setno1].data.ex[1][i];
+    else if (g[gno1].p[setno1].data.ex[1][i]>y1max) y1max=g[gno1].p[setno1].data.ex[1][i];
+}
+for (int i=1;i<g[gno2].p[setno2].data.len;i++)
+{
+    if (g[gno2].p[setno2].data.ex[0][i]<x2min) x2min=g[gno2].p[setno2].data.ex[0][i];
+    else if (g[gno2].p[setno2].data.ex[0][i]>x2max) x2max=g[gno2].p[setno2].data.ex[0][i];
+    if (g[gno2].p[setno2].data.ex[1][i]<y2min) y2min=g[gno2].p[setno2].data.ex[1][i];
+    else if (g[gno2].p[setno2].data.ex[1][i]>y2max) y2max=g[gno2].p[setno2].data.ex[1][i];
+}
+gxmin=x1min>x2min?x1min:x2min;
+gxmax=x1max<x2max?x1max:x2max;
+gymin=y1min>y2min?y1min:y2min;
+gymax=y1max<y2max?y1max:y2max;
+double * xnew=new double[setlen_max];
+double * xnew2=new double[setlen_max];
+double dx=(gxmax-gxmin)/(setlen_max-1);
+for (int i=0;i<setlen_max;i++)
+{
+xnew[i]=dx*i+gxmin;
+}
+double * ynew1=new double[setlen_max];
+double * ynew2=new double[setlen_max];
+double * ynew3=new double[setlen_max];
+interpolate(xnew,ynew1,setlen_max,g[gno1].p[setno1].data.ex[0],g[gno1].p[setno1].data.ex[1],g[gno1].p[setno1].data.len,0);
+interpolate(xnew,ynew2,setlen_max,g[gno2].p[setno2].data.ex[0],g[gno2].p[setno2].data.ex[1],g[gno2].p[setno2].data.len,0);
+for (int i=0;i<setlen_max;i++) ynew3[i]=ynew1[i]-ynew2[i];
+int intersection_counter=0;
+for (int i=1;i<setlen_max;i++)
+{
+    if (!(ynew3[i-1] != 0.0 && ynew3[i-1]*ynew3[i]>0.0))
+    {
+        if (ynew3[i-1] == 0.0)
+        {
+        xnew2[intersection_counter]=xnew[i-1];
+        ynew2[intersection_counter++]=ynew1[i-1];
+        }
+        else
+        {
+        xnew2[intersection_counter]=linear_interp( ynew3[i-1], xnew[i-1], ynew3[i], xnew[i], 0.0 );
+        ynew2[intersection_counter]=linear_interp( xnew[i-1], ynew1[i-1], xnew[i], ynew1[i], xnew2[intersection_counter]);
+        intersection_counter++;
+        }
+    }
+}
+*n=intersection_counter;
+if (*x!=NULL) delete[] *x;
+if (*y!=NULL) delete[] *y;
+*x=new double[2+intersection_counter];
+*y=new double[2+intersection_counter];
+if (intersection_counter>0)
+{
+//cout << "intersections_found=" << intersection_counter << endl;
+//cout << "gxmin=" << gxmin << " gxmax=" << gxmax << endl;
+for (int i=0;i<intersection_counter;i++)
+{
+//cout << i << ": (" << xnew2[i] << "|" << ynew2[i] << ")" << endl;
+(*x)[i]=xnew2[i];
+(*y)[i]=ynew2[i];
+}
+delete[] xnew;
+delete[] xnew2;
+delete[] ynew1;
+delete[] ynew2;
+delete[] ynew3;
+return RETURN_SUCCESS;
+}
+else
+{
+delete[] xnew;
+delete[] xnew2;
+delete[] ynew1;
+delete[] ynew2;
+delete[] ynew3;
+return RETURN_FAILURE;
+}
+}
+
+//find the intersection angles between gno1.setno1 and gno2.setno2 at the positions x (it is not checked whether there is an actual intersection at the specified points)
+int get_intersection_angles(int gno1,int setno1,int gno2,int setno2,double * x,double * angles,int n)
+{
+if (n<1) return RETURN_FAILURE;
+double * m1=new double[n+2];
+double * m2=new double[n+2];
+double * mx=new double[n+2];
+double * mt=new double[n+2];
+if (getsetlength(gno1,setno1)==2)//a simple line
+{
+    if ((g[gno1].p[setno1].data.ex[0][1]-g[gno1].p[setno1].data.ex[0][0])==0.0)
+    {
+    m1[0]=1e15;//not correct, but I can not put infinity here
+    if ((g[gno1].p[setno1].data.ex[1][1]-g[gno1].p[setno1].data.ex[1][0])==0.0) m1[0]=0.0;
+    }
+    else
+    {
+    m1[0]=(g[gno1].p[setno1].data.ex[1][1]-g[gno1].p[setno1].data.ex[1][0])/(g[gno1].p[setno1].data.ex[0][1]-g[gno1].p[setno1].data.ex[0][0]);
+    }
+    for (int i=1;i<n;i++) m1[i]=m1[0];
+}
+else
+{
+    delete[] mx;
+    delete[] mt;
+    mx=new double[2+getsetlength(gno1,setno1)];
+    mt=new double[2+getsetlength(gno1,setno1)];
+forwarddiff(getcol(gno1,setno1,0),getcol(gno1,setno1,1),mx,mt,getsetlength(gno1,setno1));
+interpolate(x,m1,n,mx,mt,getsetlength(gno1,setno1)-1,0);
+}
+if (getsetlength(gno2,setno2)==2)//a simple line
+{
+    if ((g[gno2].p[setno2].data.ex[0][1]-g[gno2].p[setno2].data.ex[0][0])==0.0)
+    {
+    m2[0]=1e15;//not correct, but I can not put infinity here
+    if ((g[gno2].p[setno2].data.ex[1][1]-g[gno2].p[setno2].data.ex[1][0])==0.0) m2[0]=0.0;
+    }
+    else
+    {
+    m2[0]=(g[gno2].p[setno2].data.ex[1][1]-g[gno2].p[setno2].data.ex[1][0])/(g[gno2].p[setno2].data.ex[0][1]-g[gno2].p[setno2].data.ex[0][0]);
+    }
+    for (int i=1;i<n;i++) m2[i]=m2[0];
+}
+else
+{
+    delete[] mx;
+    delete[] mt;
+    mx=new double[2+getsetlength(gno2,setno2)];
+    mt=new double[2+getsetlength(gno2,setno2)];
+forwarddiff(getcol(gno2,setno2,0),getcol(gno2,setno2,1),mx,mt,getsetlength(gno2,setno2));
+interpolate(x,m2,n,mx,mt,getsetlength(gno2,setno2)-1,0);
+}
+    for (int i=0;i<n;i++)
+    {
+    angles[i]=acos((1.0+m1[i]*m2[i])/sqrt(1.0+m1[i]*m1[i])/sqrt(1.0+m2[i]*m2[i]));
+    }
+delete[] m1;
+delete[] m2;
+delete[] mx;
+delete[] mt;
+return RETURN_SUCCESS;
+}
+
 /*
  * get the (first) intersection point between two sets
  */
@@ -1084,6 +1243,32 @@ int get_set_crossing(int gno1,int setno1,int gno2,int setno2,int restriction,int
 {
     /*ofstream ofi;
     ofi.open("debug_info.txt");*/
+/// test get intesection line
+cout << "test set intersection G" << gno2 << ".S" << setno2 << endl;
+world w;
+get_graph_world(gno1,&w);
+double * xw=new double[4];
+double * yw=new double[4];
+xw[0]=w.xg1;
+yw[0]=w.yg1;
+xw[1]=w.xg1;
+yw[1]=w.yg2;
+xw[2]=w.xg2;
+yw[2]=w.yg2;
+xw[3]=w.xg2;
+yw[3]=w.yg1;
+int mn1,mn2;
+
+int ret0=find_section_that_crosses_rectangle(xw,yw,g[gno2].p[setno2].data.ex[0],g[gno2].p[setno2].data.ex[1],g[gno2].p[setno2].data.len,&mn1,&mn2);
+
+    if (ret0==RETURN_SUCCESS)
+    cout << "n1=" << mn1 << " n2=" << mn2 << endl;
+    else
+    cout << "no intersection" << endl;
+delete[] xw;
+delete[] yw;
+/// test get intersectionline end
+
 char * rarray1,*rarray2;
 char errormessage[512],setname[32];
 double * d_tmp;
@@ -2533,4 +2718,42 @@ int len=g[f_gno].p[f_sno].data.len<g[t_gno].p[t_sno].data.len?g[f_gno].p[f_sno].
     }
 }
 
+void SwapSetColumns(int gno,int sno,int column1,int column2)
+{
+if (column1==column2 || column1<0 || column2<0 || column1>=dataset_cols(gno,sno) || column2>=dataset_cols(gno,sno)) return;//nothing to do here
+int len=getsetlength(gno,sno);
+double * tmp_col=new double[len];
+memcpy(tmp_col,getcol(gno,sno,column1),sizeof(double)*len);
+memcpy(getcol(gno,sno,column1),getcol(gno,sno,column2),sizeof(double)*len);
+memcpy(getcol(gno,sno,column2),tmp_col,sizeof(double)*len);
+delete[] tmp_col;
+}
 
+//we only find the first section!
+int find_section_that_crosses_rectangle(double * xr,double * yr,double * x,double * y,int n,int * n1,int * n2)//n1 and n2 will be the index-numbers of the points in x,y that define a line that crosses the rectangle xr,yr (4 points)
+{
+int ret=RETURN_FAILURE;
+int left_pos[4],above_pos[4];
+int sum1,sum2;
+if (n<2) return RETURN_FAILURE;
+*n1=*n2=0;
+for (int i=0;i<n-1;i++)//go through all points in the list
+{
+    sum1=sum2=0;
+    for (int j=0;j<4;j++)
+    {
+    left_pos[j]=isleft(xr[j],yr[j],x[i],y[i],x[i+1],y[i+1]);
+    sum1+=left_pos[j];
+    above_pos[j]=isabove(xr[j],yr[j],x[i],y[i],x[i+1],y[i+1]);
+    sum2+=above_pos[j];
+    }
+    if ((sum1!=0 && sum1!=4) || (sum2!=0 && sum2!=4))
+    {
+    *n1=i;
+    *n2=i+1;
+    ret=RETURN_SUCCESS;
+    break;
+    }
+}
+return ret;
+}

@@ -193,6 +193,7 @@ frmProgressWin * FormProgress;
 frmQuestionDialog * FormQuestion;
 frmSimpleListSelectionDialog * FormSimpleListSel;
 frmReportOnFitParameters * FormReportFitParameters;
+frmGeometricEvaluation * FormGeometricEvaluation;
 
 frmBinaryFormatInput * FormBinaryImportFilter;
 
@@ -498,9 +499,12 @@ extern bool is_diadem(char * file,char ** header_name);
 extern int is_agr_file(char * file);
 extern void read_DIAdem_header(char * header_file,struct DIAdem_Header & header);
 extern void postprocess_diadem_header(struct DIAdem_Header & header,struct importSettings & bin_import,int & nr_of_new_sets,int ** n_gnos,int ** n_snos);
+/*
 extern void read_INI_header(struct importSettings & imp_set,struct importSettings & imp_schema);
-extern void read_BINARY_Header(struct importSettings & imp_set,struct importSettings & imp_schema);
+extern void read_BINARY_header(struct importSettings & imp_set,struct importSettings & imp_schema);
+extern void read_ASCII_header(struct importSettings & imp_set,struct importSettings & imp_schema);
 extern int postprocess_bin_import_data(struct importSettings & imp_set,int & nr_of_new_sets,int ** n_gnos,int ** n_snos);
+*/
 extern void copy_import_settings(struct importSettings * from, struct importSettings * to);
 extern void prependSetID(char * text,int leftset,int leftgraph,int rightset,int rightgraph);
 
@@ -668,6 +672,7 @@ current_bin_import_settings.HeaderFile=QString("");
 cout << "current_bin_import: data=#" << current_bin_import_settings.DataFile.toLocal8Bit().constData() << "#" << endl;
 cout << "current_bin_import: header=#" << current_bin_import_settings.HeaderFile.toLocal8Bit().constData() << "#" << endl;
 
+/*
 if (current_bin_import_settings.header_present)
 {
     if (current_bin_import_settings.header_format==HEADER_FORMAT_INI_FILE)//ini-File
@@ -676,14 +681,14 @@ if (current_bin_import_settings.header_present)
     }
     else if (current_bin_import_settings.header_format==HEADER_FORMAT_DATA_FILE)//binary-header in bin-file
     {
-    read_BINARY_Header(current_bin_import_settings,*imp_set);
+    read_BINARY_header(current_bin_import_settings,*imp_set);
     }
     else if (current_bin_import_settings.header_format==HEADER_FORMAT_ASCII_FILE)//ascii-header-file
     {
-
+    read_ASCII_header(current_bin_import_settings,*imp_set);
     }
 }
-/*
+
 cout << "std=" << imp_set->nr_of_header_values << " current=" << current_bin_import_settings.nr_of_header_values << endl;
 cout << "import_format=" << imp_set->channel_format[0] << "-->" << binaryImportFormatName[imp_set->channel_format[0]] << endl;
 */
@@ -2256,6 +2261,30 @@ cout << "251 = " << 0x23A6 << endl;
     ImportDestination[27]=IMPORT_TO_TRIGGER;
     strcpy(ImportDestinationName[27],"Trigger Channel");
     ImportDestinationType[27]=2;//only for data
+
+    ImportDestination[28]=IMPORT_TO_X_OFFSET;
+    strcpy(ImportDestinationName[28],"X-Offset");
+    ImportDestinationType[28]=1;//only for header
+    ImportDestination[29]=IMPORT_TO_Y_OFFSET;
+    strcpy(ImportDestinationName[29],"Y-Offset");
+    ImportDestinationType[29]=1;//only for header
+    ImportDestination[30]=IMPORT_TO_Y1_OFFSET;
+    strcpy(ImportDestinationName[30],"Y1-Offset");
+    ImportDestinationType[30]=1;//only for header
+    ImportDestination[31]=IMPORT_TO_Y2_OFFSET;
+    strcpy(ImportDestinationName[31],"Y2-Offset");
+    ImportDestinationType[31]=1;//only for header
+    ImportDestination[32]=IMPORT_TO_Y3_OFFSET;
+    strcpy(ImportDestinationName[32],"Y3-Offset");
+    ImportDestinationType[32]=1;//only for header
+    ImportDestination[33]=IMPORT_TO_Y4_OFFSET;
+    strcpy(ImportDestinationName[33],"Y4-Offset");
+    ImportDestinationType[33]=1;//only for header
+    ImportDestination[34]=IMPORT_TO_DATA_START_OFFSET;
+    strcpy(ImportDestinationName[34],"Start offset (bytes)");
+    ImportDestinationType[34]=1;//only for header
+
+    /*
     ImportDestination[28]=IMPORT_TO_TRIGGER_FACTOR;
     strcpy(ImportDestinationName[28],"Factor for Trigger Channel");
     ImportDestinationType[28]=1;//only for header
@@ -2355,6 +2384,7 @@ cout << "251 = " << 0x23A6 << endl;
     ImportDestination[60]=IMPORT_TO_CHANNEL15_OFFSET;
     strcpy(ImportDestinationName[60],"Offset for Channel 15");
     ImportDestinationType[60]=1;//only for header
+    */
 
     strcpy(last_formula,"");
     strcpy(saved_formula,"");
@@ -2511,6 +2541,7 @@ cout << "                warn_on_encoding_change=" << warn_on_encoding_change <<
     Form_AgrInfo=NULL;
     FormSimpleListSel=NULL;
     FormReportFitParameters=NULL;
+    FormGeometricEvaluation=NULL;
 /*
 #!/bin/sh
 #xmgrace-Version mit Punkten statt Kommas
@@ -2605,6 +2636,8 @@ create_line_Patterns();
     allPrefs->beginGroup(QString("ExtraPreferences"));
     autofit_on_load=allPrefs->value(QString("AutoFitPageOnLoad"),QVariant(FALSE)).toInt();
     int sellang=allPrefs->value(QString("language"),QVariant(0)).toInt();
+    useQtFonts=allPrefs->value(QString("useQtFonts"),QVariant(false)).toBool();
+    symbol_font_is_special=allPrefs->value(QString("SymbolFontIsSpecial"),QVariant(true)).toBool();
 
     use_fftw3=allPrefs->value(QString("UseLibFFTW3"),QVariant(FALSE)).toInt();
     path_to_fftw3_lib.setFileName(allPrefs->value(QString("LibFFTW3_Path"),QVariant(path_to_fftw3_lib.fileName())).toString());
@@ -2615,6 +2648,7 @@ create_line_Patterns();
     allPrefs->beginGroup(QString("General"));
     lastPrintDevice=stdOutputFormat=allPrefs->value(QString("lastOutputFormat"),QVariant(1)).toInt();
     default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(DEVICE_PNG)).toInt();//changed from -1 to PNG
+    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(false)).toBool();
 
     warn_on_encoding_change=allPrefs->value(QString("Warn_On_Encoding_Change"),QVariant(TRUE)).toInt();
     DefaultFont=allPrefs->value(QString("DefaultFont"),QVariant(0)).toInt();
@@ -2622,6 +2656,7 @@ create_line_Patterns();
     allPrefs->endGroup();
     allPrefs->beginGroup(QString("Appearance"));
     use_new_icons=allPrefs->value(QString("UseNewIcons"),QVariant(false)).toBool();
+    start_dpi=allPrefs->value(QString("StartDPI"),QVariant(qApp->desktop()->physicalDpiX())).toInt();
     allPrefs->endGroup();
     delete allPrefs;
         if (sellang>0)
@@ -4264,11 +4299,13 @@ cout << endl;
         {
 cout << "GUESSED SCHEMA=" << std_schema_nr << endl;
         copy_std_settings_to_current_bin_import(urls.at(i).toLocalFile(),std_schema_nr,is_header_file);
-
+        //we now have the settings
+        //-->read the header data (if present)
+        readHeaderData(current_bin_import_settings,std_bin_import_settings[std_schema_nr]);
 /*Start Test*/
 /// SaveFileFormat("/Users/andreaswinter/akt_bin_settings_auto.fmt",current_bin_import_settings);
 /*ENDE Test*/
-
+        //now read the actual binary data
             if (i==urls.length()-1)//last file --> allow autoscale, but no replot (stop_repaint=TRUE; prevents replot)
             {
             //read_std_bin_file(filename,std_schema_nr,is_header_file,false);

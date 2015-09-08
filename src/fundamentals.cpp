@@ -337,6 +337,14 @@ void append_to_storage(int * l,int ** storage,int n,int * new_entries)
     *l+=n;
 }
 
+void append_to_storage2(int * l,int ** storage_a,int ** storage_b,int n,int * new_entries_a,int * new_entries_b)
+{
+int tmp_n=*l;//old storage size
+append_to_storage(l,storage_a,n,new_entries_a);
+*l=tmp_n;
+append_to_storage(l,storage_b,n,new_entries_b);
+}
+
 void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true)//we assume a string containing a number like "2.15" and we want to change it to a number with the user selected decimal separator like "2,15"
 {
     if (DecimalPointToUse=='.') return;//Nothing to do here --> everything is as it should be
@@ -2319,6 +2327,7 @@ stdLineEdit::stdLineEdit(QWidget * parent,QString label,bool accLaTex):QWidget(p
         stdTextColor=new QColor(pal.text().color());
     if (acceptLaTex==true)
         add_LaTeX_Line(this);
+    setAcceptDrops(false);
 }
 
 void stdLineEdit::ContentChanged(void)
@@ -2508,6 +2517,11 @@ void stdLineEdit::RedisplayContents(void)
     }
 }
 
+void stdLineEdit::setDoubleValue(double val)
+{
+setDoubleValue(sformat,val);
+}
+
 void stdLineEdit::setDoubleValue(const char * form,double val)
 {
     static char buf[128];
@@ -2591,6 +2605,29 @@ double stdLineEdit::guessDoubleValue(void)
         strcpy(buf,help.toLatin1().constData());
     }
     return atof(buf);
+}
+
+void stdLineEdit::dragEnterEvent(QDragEnterEvent *event)
+{
+    event->accept();
+}
+
+void stdLineEdit::dropEvent(QDropEvent * e)
+{
+e->accept();
+if (!e->mimeData()->hasUrls()) return;
+int len=e->mimeData()->urls().length();
+QList<QUrl> list=e->mimeData()->urls();
+QString n_text;
+n_text.clear();
+for (int i=0;i<len;i++)
+{
+//cout << "file=" << list.at(i).toLocalFile().toLocal8Bit().constData() << endl;
+n_text+=list.at(i).toLocalFile();
+if (i<len-1) n_text+=QString(";");
+}
+lenText->setText(n_text);
+emit(changed());
 }
 
 dirList::dirList(QWidget * parent,int type):QTreeView(parent)
@@ -4615,119 +4652,113 @@ void SetPopup::doUnSelectAll(void)
 
 void SetPopup::doSelectEven(void)
 {
-    int nr,*sel=new int[2];
-    par->get_selection(&nr,&sel);
+QModelIndexList list=par->selectedIndexes();
+int number=list.size();
     int * ne_sel=new int[par->count()+2];
     int counter=0;
+    bool in_list;
     for (int i=0;i<par->count();i++)
     {
-        if (par->entries[i]%2==0)//index is even
+        if (par->entries[i]==-1) continue;
+        in_list=false;
+        for (int j=0;j<number;j++)
+        {
+            if (list.at(j).row()==i)
+            {
+            in_list=true;
+            break;
+            }
+        }
+        if (par->entries[i]%2==0 || in_list==true)//index is even
         {
             ne_sel[counter++]=par->entries[i];
         }
-        else//odd index will be inserted if it has already been selected
-        {
-            for (int j=0;j<nr;j++)
-            {
-                if (sel[j]==par->entries[i])
-                {
-                    ne_sel[counter++]=par->entries[i];
-                    break;
-                }
-            }
-        }
     }
     par->set_new_selection(counter,ne_sel);
-    delete[] sel;
     delete[] ne_sel;
 }
 
 void SetPopup::doSelectOdd(void)
 {
-    int nr,*sel=new int[2];
-    par->get_selection(&nr,&sel);
+QModelIndexList list=par->selectedIndexes();
+int number=list.size();
     int * ne_sel=new int[par->count()+2];
     int counter=0;
+    bool in_list;
     for (int i=0;i<par->count();i++)
     {
-        if (par->entries[i]%2!=0)//index is odd
+        if (par->entries[i]==-1) continue;
+        in_list=false;
+        for (int j=0;j<number;j++)
+        {
+            if (list.at(j).row()==i)
+            {
+            in_list=true;
+            break;
+            }
+        }
+        if (par->entries[i]%2!=0 || in_list==true)//index is odd
         {
             ne_sel[counter++]=par->entries[i];
         }
-        else//even index will be inserted if it has already been selected
-        {
-            for (int j=0;j<nr;j++)
-            {
-                if (sel[j]==par->entries[i])
-                {
-                    ne_sel[counter++]=par->entries[i];
-                    break;
-                }
-            }
-        }
     }
     par->set_new_selection(counter,ne_sel);
-    delete[] sel;
     delete[] ne_sel;
 }
 
 void SetPopup::doSelectVisible(void)
 {
-    int nr,*sel=new int[2];
-    par->get_selection(&nr,&sel);
+QModelIndexList list=par->selectedIndexes();
+int number=list.size();
     int * ne_sel=new int[par->count()+2];
     int counter=0;
+    bool in_list;
     for (int i=0;i<par->count();i++)
     {
-
-        if (is_set_hidden(par->gr_no,par->entries[i])==FALSE)//set is visible
+        if (par->entries[i]==-1) continue;
+        in_list=false;
+        for (int j=0;j<number;j++)
+        {
+            if (list.at(j).row()==i)
+            {
+            in_list=true;
+            break;
+            }
+        }
+        if (is_set_hidden(par->gr_no,par->entries[i])==FALSE || in_list==true)//set is visible
         {
             ne_sel[counter++]=par->entries[i];
         }
-        else//other index will be inserted if it has already been selected
-        {
-            for (int j=0;j<nr;j++)
-            {
-                if (sel[j]==par->entries[i])
-                {
-                    ne_sel[counter++]=par->entries[i];
-                    break;
-                }
-            }
-        }
     }
     par->set_new_selection(counter,ne_sel);
-    delete[] sel;
     delete[] ne_sel;
 }
 
 void SetPopup::doSelectInVisible(void)
 {
-    int nr,*sel=new int[2];
-    par->get_selection(&nr,&sel);
+QModelIndexList list=par->selectedIndexes();
+int number=list.size();
     int * ne_sel=new int[par->count()+2];
     int counter=0;
+    bool in_list;
     for (int i=0;i<par->count();i++)
     {
-
-        if (is_set_hidden(par->gr_no,par->entries[i])==TRUE)//set is visible
+        if (par->entries[i]==-1) continue;
+        in_list=false;
+        for (int j=0;j<number;j++)
+        {
+            if (list.at(j).row()==i)
+            {
+            in_list=true;
+            break;
+            }
+        }
+        if (is_set_hidden(par->gr_no,par->entries[i])==TRUE || in_list==true)//set is visible
         {
             ne_sel[counter++]=par->entries[i];
         }
-        else//other index will be inserted if it has already been selected
-        {
-            for (int j=0;j<nr;j++)
-            {
-                if (sel[j]==par->entries[i])
-                {
-                    ne_sel[counter++]=par->entries[i];
-                    break;
-                }
-            }
-        }
     }
     par->set_new_selection(counter,ne_sel);
-    delete[] sel;
     delete[] ne_sel;
 }
 
@@ -4743,30 +4774,29 @@ if (n==0 || n==1)
 doSelectAll();
 return;
 }
-    int nr,*sel=new int[2];
-    par->get_selection(&nr,&sel);
+QModelIndexList list=par->selectedIndexes();
+int number=list.size();
     int * ne_sel=new int[par->count()+2];
     int counter=0;
+    bool in_list;
     for (int i=0;i<par->count();i++)
     {
-        if ((par->entries[i]+n-1-offset)%n==n-1)
+        if (par->entries[i]==-1) continue;
+        in_list=false;
+        for (int j=0;j<number;j++)
+        {
+            if (list.at(j).row()==i)
+            {
+            in_list=true;
+            break;
+            }
+        }
+        if ((par->entries[i]+n-1-offset)%n==n-1 || in_list==true)
         {
             ne_sel[counter++]=par->entries[i];
         }
-        else//unsuitable indices are selected if they are already selected
-        {
-            for (int j=0;j<nr;j++)
-            {
-                if (sel[j]==par->entries[i])
-                {
-                    ne_sel[counter++]=par->entries[i];
-                    break;
-                }
-            }
-        }
     }
     par->set_new_selection(counter,ne_sel);
-    delete[] sel;
     delete[] ne_sel;
 }
 
@@ -4781,22 +4811,43 @@ void SetPopup::doInvertSelection(void)
     int * n_selected_sets=new int[number];
     int index=0;
     bool in_list;
+    in_list==false;
+    for (int i=0;i<number_of_selected_sets;i++)
+    {
+        if (selected_sets[i]==-1)
+        {
+        in_list=true;
+        break;
+        }
+    }
+    if (in_list==true)//all-sets-entry is selected --> clear selection
+    {
+    par->clearSelection();
+    }
+    else
+    {
+        number=0;
     for (int i=0;i<par->count();i++)
     {
+        if (par->entries[i]==-1) continue;
         in_list=false;
         for (int j=0;j<number_of_selected_sets;j++)
+        {
             if (selected_sets[j]==par->entries[i])
             {
                 in_list=true;
                 break;
             }
+        }
         if (in_list==false)
         {
+            number++;
             n_selected_sets[index]=par->entries[i];
             index++;
         }
     }
     par->set_new_selection(number,n_selected_sets);
+    }
     delete[] n_selected_sets;
 }
 
@@ -5375,7 +5426,7 @@ else
         for (int i=0;i<number_of_entries;i++)
         {
             new QListWidgetItem(text_entries[i], this);
-            cout << "update TEXTLIST: #" << text_entries[i].toLocal8Bit().constData() << "#" << endl;
+        //cout << "update TEXTLIST: #" << text_entries[i].toLocal8Bit().constData() << "#" << endl;
         }
     }
     else
@@ -6551,7 +6602,7 @@ void find_graph_ids(char * str,int * nr,struct FoundSetID ** foundIds)
         if (offset<strlength && offset>=0)
         {
             next_char=original.at(offset).toLatin1();
-            cout << "next_char=#" << next_char << "#" << endl;
+            //cout << "next_char=#" << next_char << "#" << endl;
             if (next_char=='#')
             {
                 found[index].characteristic=2;
@@ -6703,7 +6754,7 @@ void replace_single_formula_tokens(QString old_formula,QString & new_formula)
 {
 QString n_value;
 new_formula=old_formula;
-cout << "tokens=" << nr_of_single_f_tokens << endl;
+//cout << "tokens=" << nr_of_single_f_tokens << endl;
     for (int i=0;i<nr_of_single_f_tokens;i++)
     {
         switch (formula_tokens[i].type)
@@ -6719,9 +6770,9 @@ cout << "tokens=" << nr_of_single_f_tokens << endl;
             break;
         }
     n_value=QString("(")+n_value+QString(")");
-    cout << formula_tokens[i].representation << " type=" << (formula_tokens[i].type==0?"COUNTER":"VALUE") << " --> n_value=" << n_value.toLatin1().constData() << endl;
+    //cout << formula_tokens[i].representation << " type=" << (formula_tokens[i].type==0?"COUNTER":"VALUE") << " --> n_value=" << n_value.toLatin1().constData() << endl;
     new_formula.replace(formula_tokens[i].representation,n_value);
-    cout << "replaced" << endl;
+    //cout << "replaced" << endl;
     }
 }
 
@@ -6922,7 +6973,7 @@ if (representation!=NULL) delete[] representation;
        type=0;
        else if (representation[strlen(representation)-1]=='$')//a double value
        type=1;
-    cout << (type==0?"COUNTER":"VALUE") << " reseting token to " << representation << endl;
+    //cout << (type==0?"COUNTER":"VALUE") << " reseting token to " << representation << endl;
     }
     else
     {
