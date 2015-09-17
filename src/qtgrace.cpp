@@ -240,7 +240,6 @@ extern int maxstr;
 extern double * old_ddata[16];//to store some data temporarely
 extern int * old_idata[16];//to store some data temporarely
 extern int old_data[16];
-extern bool activateLaTeXsupport;
 extern bool immediateUpdate;
 extern bool updateRunning;
 extern int default_Print_Device;
@@ -313,18 +312,18 @@ return binaryImportFormat[nr].size;
 int find_import_destination(char * name,signed char type)
 {
 int ret=-1;
-int size;
+int size,size2=strlen(name);
 for (int i=0;i<NUMBER_OF_IMPORT_DESTINATIONS;i++)
 {
 size=strlen(ImportDestinationName[i]);
 //cout << "destination" << i << "=#"<< ImportDestinationName[i] << "#" << endl;
-    if ((ImportDestinationType[i]&type)!=0 && strncmp(ImportDestinationName[i],name,size)==0)
+    if (size==size2 && (ImportDestinationType[i]&type)!=0 && strncmp(ImportDestinationName[i],name,size)==0)
     {
     ret=i;
     break;
     }
 }
-///cout << "to look for=#"<< name << "# --> ret=" << ret << " Type=" << int(type) << endl;
+//cout << "to look for=#"<< name << "# --> ret=" << ret << " Type=" << int(type) << endl;
 return ret;
 }
 
@@ -669,8 +668,8 @@ current_bin_import_settings.DataFile=f_name;
 current_bin_import_settings.HeaderFile=QString("");
 }
 
-cout << "current_bin_import: data=#" << current_bin_import_settings.DataFile.toLocal8Bit().constData() << "#" << endl;
-cout << "current_bin_import: header=#" << current_bin_import_settings.HeaderFile.toLocal8Bit().constData() << "#" << endl;
+//cout << "current_bin_import: data=#" << current_bin_import_settings.DataFile.toLocal8Bit().constData() << "#" << endl;
+//cout << "current_bin_import: header=#" << current_bin_import_settings.HeaderFile.toLocal8Bit().constData() << "#" << endl;
 
 /*
 if (current_bin_import_settings.header_present)
@@ -770,7 +769,8 @@ readBinaryFromFile(ifi,current_bin_import_settings,&current_bin_import_settings.
 ifi.close();
 int nr_of_new_sets=0;
 int *n_snos=NULL,*n_gnos=NULL;
-cout << "Postprocessing: " << postprocess_bin_import_data(current_bin_import_settings,nr_of_new_sets,&n_gnos,&n_snos) << endl;
+int ret=postprocess_bin_import_data(current_bin_import_settings,nr_of_new_sets,&n_gnos,&n_snos);
+//cout << "Postprocessing: " << ret << endl;
 //cout << "nr_of_new_sets=" << nr_of_new_sets << " NEW sets:" << endl;
 
 ///Undo-Stuff
@@ -2648,7 +2648,7 @@ create_line_Patterns();
     allPrefs->beginGroup(QString("General"));
     lastPrintDevice=stdOutputFormat=allPrefs->value(QString("lastOutputFormat"),QVariant(1)).toInt();
     default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(DEVICE_PNG)).toInt();//changed from -1 to PNG
-    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(false)).toBool();
+    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(false)).toBool()==true?1:0;
 
     warn_on_encoding_change=allPrefs->value(QString("Warn_On_Encoding_Change"),QVariant(TRUE)).toInt();
     DefaultFont=allPrefs->value(QString("DefaultFont"),QVariant(0)).toInt();
@@ -3420,8 +3420,8 @@ strcpy(tmp_sformat,sformat);
     general_behavior=allPrefs->value(QString("Behavior"),QVariant(0)).toInt();
     lastPrintDevice=stdOutputFormat=allPrefs->value(QString("lastOutputFormat"),QVariant(1)).toInt();
     undo_active=allPrefs->value(QString("activateUndoRecords"),QVariant(false)).toBool();///undo deactivated as a default
-    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(false)).toBool();
-    Form_Preferences->chkActivateLaTeXSupport->setChecked(activateLaTeXsupport);
+    activateLaTeXsupport=allPrefs->value(QString("activateLaTeXSupport"),QVariant(false)).toBool()==true?1:0;
+    Form_Preferences->chkActivateLaTeXSupport->setChecked((bool)activateLaTeXsupport);
     immediateUpdate=allPrefs->value(QString("ImmediateUpdates"),QVariant(false)).toBool();
     Form_Preferences->chkImmediateUpdate->setChecked(immediateUpdate);
     default_Print_Device=allPrefs->value(QString("DefaultPrintingDevice"),QVariant(DEVICE_PNG)).toInt();//changed from -1 to PNG
@@ -3671,7 +3671,7 @@ strcpy(ini_sformat,sformat);
     allPrefs->setValue(QString("Behavior"),QVariant(general_behavior));
     allPrefs->setValue(QString("lastOutputFormat"),QVariant(stdOutputFormat));
     allPrefs->setValue(QString("activateUndoRecords"),QVariant(undo_active));
-    allPrefs->setValue(QString("activateLaTeXSupport"),QVariant(activateLaTeXsupport));
+    allPrefs->setValue(QString("activateLaTeXSupport"),QVariant((bool)activateLaTeXsupport));
     allPrefs->setValue(QString("ImmediateUpdates"),QVariant(immediateUpdate));
     allPrefs->setValue(QString("DefaultPrintingDevice"),QVariant(default_Print_Device));
     //allPrefs->setValue(QString("UseNewPrintingDialog"),QVariant(use_new_print_dialog));
@@ -4135,11 +4135,11 @@ void GeneralPaste(const QMimeData * mimeData)
     QFileInfo finfo;
     QString suffix;
     char * header_name;
-    bool is_diadem_file,is_header_file,is_agr;
+    bool is_diadem_file,is_header_file,is_agr,got_dirty=true;
     int std_schema_nr;
     int commas,fullstops,ret;
     char * filename=NULL;
-    int files=0;
+    int files=0,n_of_imp_sets=0,n_of_imp_agrs=0;
     char ** filenames=NULL;
     char dummy[1024];
     ofstream ofi;
@@ -4154,6 +4154,7 @@ for (int i=0;i<sl.length();i++)
 cout << sl.at(i).toLocal8Bit().constData() << endl;
 cout << endl;
 */
+    Form_AgrInfo->reset_import_counters();
     stop_repaint=TRUE;
     set_wait_cursor();
     len=0;
@@ -4245,6 +4246,9 @@ cout << endl;
         Form_AgrInfo->raise();
         Form_AgrInfo->activateWindow();*/
         Form_AgrInfo->exec();
+                /*if (Form_AgrInfo->loaded_something<0)
+                got_dirty=false;
+                cout << "loaded_something=" << Form_AgrInfo->loaded_something << endl;*/
         continue;
         /*
         ret=QMessageBox::question(mainWin,QObject::tr("Load or import agr-file?"),QObject::tr("agr-file detected.\nDo you want to load it as a regular Grace-file (Ok)\nor import the data-sets only (Cancel)?"),QMessageBox::Ok|QMessageBox::Cancel);
@@ -4296,14 +4300,14 @@ cout << endl;
         continue;//next url/file
         }
         else if (guess_bin_format(urls.at(i).toLocalFile(),std_schema_nr,is_header_file)==RETURN_SUCCESS)//look for a std binary format
-        {
-cout << "GUESSED SCHEMA=" << std_schema_nr << endl;
+        {/// std-binary-format
+//cout << "GUESSED SCHEMA=" << std_schema_nr << endl;
         copy_std_settings_to_current_bin_import(urls.at(i).toLocalFile(),std_schema_nr,is_header_file);
         //we now have the settings
         //-->read the header data (if present)
         readHeaderData(current_bin_import_settings,std_bin_import_settings[std_schema_nr]);
 /*Start Test*/
-/// SaveFileFormat("/Users/andreaswinter/akt_bin_settings_auto.fmt",current_bin_import_settings);
+/// SaveFileFormat("/Users/andreaswinter/akt_bin_settings_auto_General_Paste.fmt",current_bin_import_settings);
 /*ENDE Test*/
         //now read the actual binary data
             if (i==urls.length()-1)//last file --> allow autoscale, but no replot (stop_repaint=TRUE; prevents replot)
@@ -4394,7 +4398,12 @@ cout << "GUESSED SCHEMA=" << std_schema_nr << endl;
             delete[] filename;
             filename=NULL;
         }//end of loop trough all files
-        set_dirtystate();
+        Form_AgrInfo->get_import_counts(&n_of_imp_sets,&n_of_imp_agrs);
+        n_of_imp_sets+=len;
+            if (n_of_imp_sets<=0 && n_of_imp_agrs>0)
+            clear_dirtystate();
+            else if (n_of_imp_sets>0)
+            set_dirtystate();
         update_default_props();
         ///mainWin->mainArea->completeRedraw();
     }
@@ -4657,7 +4666,7 @@ void update_grace_string_from_UTF8(char ** string)//assumes string to be a dynam
     static QString temp;
     static char temp2[MAX_STRING_LENGTH];
     temp=QString::fromUtf8(*string);//generate a QString from original c-string in UTF-8
-    if (activateLaTeXsupport==true)
+    if (activateLaTeXsupport==TRUE)
         complete_LaTeX_to_Grace_Translator(temp);//do LaTeX-conversion (if needed)
     generate_string_Qt_aware(temp2,temp);//generate a suitable C-string from the QString
     *string = copy_string(*string, temp2);//copy converted sting to Grace-string-location
@@ -4668,7 +4677,7 @@ void update_grace_string_from_UTF8_static(char * string)//same as above, but wit
     static QString temp;
     static char temp2[MAX_STRING_LENGTH];
     temp=QString::fromUtf8(string);//generate a QString from original c-string in UTF-8
-    if (activateLaTeXsupport==true)
+    if (activateLaTeXsupport==TRUE)
         complete_LaTeX_to_Grace_Translator(temp);//do LaTeX-conversion (if needed)
     generate_string_Qt_aware(temp2,temp);//generate a suitable C-string from the QString
     strcpy(string, temp2);//copy converted sting to Grace-string-location

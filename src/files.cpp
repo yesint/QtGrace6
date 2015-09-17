@@ -151,6 +151,8 @@ extern void complete_channel_settings(struct importSettings & imp_set);
 extern int bin_format_size(int nr);
 extern QString get_text_in_quotations(QString text);
 extern QString get_filename_with_extension(int device);
+extern void generate_string_Qt_aware(char * string,QString text);
+extern void complete_LaTeX_to_Grace_Translator(QString & text);
 extern void copy_line_style_patterns_to_target(int n_length,int * n_style_lengths,char ** n_patterns,int target);
 extern void copy_line_style_patterns_to_current(int n_length,int * n_style_lengths,char ** n_patterns);
 extern void parse_strings_for_linestyles(int len,QString pat_len,QString patterns, int ** lens_of_styles,char *** line_styles);
@@ -2524,8 +2526,17 @@ cur_graph=tmp;
 if (cur_graph>=0)
 {
 len=strlen(dummy_line);
-tmp_str=QString(dummy_line);
+tmp_str=QString::fromLocal8Bit(dummy_line);//::fromLocal8bit
+//tmp_str=tmp_str.toUtf8();
 tmp_str2=get_text_in_quotations(tmp_str);
+
+/*if (tmp_str2.length()>0)
+{
+cout << "in quotations=#" << tmp_str2.toLocal8Bit().constData() << "#" << endl;
+//tmp_str2=tmp_str2.fromLocal8Bit(tmp_str2);
+//cout << "in quotations=#" << tmp_str2.toLocal8Bit().constData() << "#" << endl;
+}*/
+
 //find the set-id
 pos=-1;
 for (int j=0;j<len;j++)
@@ -2676,16 +2687,20 @@ int index_in_afi;//import-informations in afi for the current data set
 int expected_type;
 int gno=afi.target_gno;
 bool import_this;
-QString s_dummy_line;
+char * dummy_string=NULL;
+QString s_dummy_line,s_dummy_single;
 QRegExp regex("@\\s+S\\d+\\s+type\\s+xy");
 QRegExp regex2("@type\\s+");
 QRegExp regex3("@target\\s+G\\d+.S\\d+");
+QRegExp regex4("\\S");
 QStringList i_list;
 QList<double> vals[6];
     for (int i=0;i<6;i++)
     vals[i].clear();
 //cout << "read dataset from agr " << regex.pattern().toLocal8Bit().constData() << endl;
 ifstream ifi;
+
+prepare_strings_for_saving();
 
 if (new_set_nos!=NULL) delete[] new_set_nos;
 new_set_no=0;
@@ -2706,7 +2721,6 @@ index_in_afi=-1;
 while (!ifi.eof())
 {
 ifi.getline(dummy_line,1023);
-//cout << "dummy_line=#" << dummy_line << "#" << endl;
     switch (status)
     {
     case 0:
@@ -2774,8 +2788,27 @@ ifi.getline(dummy_line,1023);
                 g[gno].p[n_set].data.ex[i][j]=vals[i].at(j);
             }
         //add label and set-decorations
-        set_legend_string(gno,n_set,afi.set_legends.at(index_in_afi).toLocal8Bit().data());
-        setcomment(gno,n_set,afi.set_comments.at(index_in_afi).toLocal8Bit().data());
+        //set-legend
+        if (dummy_string!=NULL) delete[] dummy_string;
+        s_dummy_single=afi.set_legends.at(index_in_afi).toUtf8();
+        dummy_string=new char[s_dummy_single.length()*4+8];
+        strcpy(g[gno].p[n_set].orig_lstr,afi.set_legends.at(index_in_afi).toLocal8Bit().constData());
+            if (activateLaTeXsupport==TRUE)
+            complete_LaTeX_to_Grace_Translator(s_dummy_single);
+        generate_string_Qt_aware(dummy_string,s_dummy_single);
+        strcpy(g[gno].p[n_set].lstr,dummy_string);
+        //set-comment
+        delete[] dummy_string;
+        s_dummy_single=afi.set_comments.at(index_in_afi).toUtf8();
+        dummy_string=new char[s_dummy_single.length()*4+8];
+        strcpy(g[gno].p[n_set].orig_comments,afi.set_comments.at(index_in_afi).toLocal8Bit().constData());
+            if (activateLaTeXsupport==TRUE)
+            complete_LaTeX_to_Grace_Translator(s_dummy_single);
+        generate_string_Qt_aware(dummy_string,s_dummy_single);
+        strcpy(g[gno].p[n_set].comments,dummy_string);
+        delete[] dummy_string;
+        dummy_string=NULL;
+        //linestyles
         g[gno].p[n_set].linet=afi.linet.at(index_in_afi);
         g[gno].p[n_set].lines=afi.lines.at(index_in_afi);
         g[gno].p[n_set].linew=afi.linew.at(index_in_afi);
@@ -2793,6 +2826,22 @@ ifi.getline(dummy_line,1023);
         s_dummy_line=QString(dummy_line);
         pos=0;
         i_list=s_dummy_line.split(" ");
+        /*cout << "Before cleanup:" << endl;
+        for (int i=0;i<i_list.length();i++)
+        {
+        cout << i_list.at(i).toLocal8Bit().constData() << " # ";
+        }
+        cout << endl;*/
+        for (int i=0;i<i_list.length();i++)//remove all entries that are just whitespaces
+        {
+            if (!i_list.at(i).contains(regex4)) i_list.removeAt(i--);
+        }
+        /*cout << "After cleanup:" << endl;
+        for (int i=0;i<i_list.length();i++)
+        {
+        cout << i_list.at(i).toLocal8Bit().constData() << " # ";
+        }
+        cout << endl;*/
             for (int i=0;i<i_list.length();i++)
             {
             vals[i] << i_list.at(i).toDouble();
@@ -2810,6 +2859,7 @@ pos=s_dummy_line.indexOf(regex);
 */
 }
 ifi.close();
+resume_strings_after_load_or_save();
 }
 
 int readDataFromClient(char* dataIn, int load_type,char *label)

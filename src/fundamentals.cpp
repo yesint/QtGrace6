@@ -57,7 +57,6 @@ extern QPixmap * Qt_matrixOrder[8];
 extern bool useQtFonts;
 extern QList<QFont> stdFontList;
 extern QFontMetrics * stdFontMetrics;
-extern bool activateLaTeXsupport;
 extern QStringList ListOfChanges;
 extern QStringList ListOfOldStates;
 extern CMap_entry *cmap_table;
@@ -537,7 +536,7 @@ void DynSetMemoryToLineEdit(char * &t1,char * &t2,char *&c1,char * &c2,bool & di
     pal=lenText->palette();
     displayStd=true;
     char * te=new char[MAX_STRING_LENGTH];//longer is not allowed! Do not write essays in Grace ;-) !
-    if (acceptLaTex==true && activateLaTeXsupport==true)
+    if (acceptLaTex==true && activateLaTeXsupport==TRUE)
     {
         complete_LaTeX_to_Grace_Translator(text);//make the LaTeX-to-Grace-Translation
     }
@@ -1053,7 +1052,7 @@ QString axisLine::LabelText(void)
     static QString ref("$$");
     static QString result,intermediate;
     result=str=ledLabel->text();
-    if (activateLaTeXsupport==true)
+    if (activateLaTeXsupport==TRUE)
     {//Latex-Commands-replacements
         complete_LaTeX_to_Grace_Translator(result);
         /*
@@ -1093,13 +1092,13 @@ void axisLine::SetMemoryToText(char * &t1,char * &t2)
 
 void axisLine::LabelClicked(void)
 {
-    if (activateLaTeXsupport==false) return;
+    if (activateLaTeXsupport==FALSE) return;
     ClickedOnLabel(c1,c2,original,ledLabel);
 }
 
 void axisLine::mouseReleaseEvent(QMouseEvent * e)
 {
-    if (activateLaTeXsupport==false) return;
+    if (activateLaTeXsupport==FALSE) return;
     e->accept();
     QPoint pos=e->pos();
     if (lblNr->rect().contains(pos)==true) LabelClicked();
@@ -2398,7 +2397,7 @@ void stdLineEdit::mouseReleaseEvent(QMouseEvent * e)
 
 void stdLineEdit::clickedOnLabel(void)
 {
-    if (acceptLaTex==false || activateLaTeXsupport==false) return;
+    if (acceptLaTex==false || activateLaTeXsupport==FALSE) return;
     ClickedOnLabel(c1,c2,displayStd,lenText);
     /*
 if (c1==NULL || c2==NULL) return;
@@ -2440,7 +2439,7 @@ void appendTextToLegendString(int gno,int sno,QString text)
     old_text=QString::fromUtf8(p->orig_lstr);//original is in UTF8
     old_text+=text;//append text
     strcpy(p->orig_lstr,old_text.toUtf8().constData());
-    if (activateLaTeXsupport==true)
+    if (activateLaTeXsupport==TRUE)
         complete_LaTeX_to_Grace_Translator(old_text);
     generate_string_Qt_aware(p->lstr,old_text);//t1 is the Grace-version of the text
 }
@@ -2462,7 +2461,7 @@ void stdLineEdit::SetMemoryToText(char * t1,char * t2)
     QString text=lenText->text();
     displayStd=true;
     strcpy(t2,text.toUtf8().constData());//t2 is always the original - internally always in UTF8
-    if (acceptLaTex==true && activateLaTeXsupport==true)
+    if (acceptLaTex==true && activateLaTeXsupport==TRUE)
         complete_LaTeX_to_Grace_Translator(text);
     generate_string_Qt_aware(t1,text);//t1 is the Grace-version of the text
     c1=t1;

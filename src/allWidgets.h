@@ -1581,6 +1581,7 @@ public:
 
     struct agr_file_info info;
     bool shButtons,shFilename;
+    int sets_imported,agrs_opened;
 
     QGridLayout * layout0;
     QGridLayout * layout1;
@@ -1598,6 +1599,8 @@ public slots:
     void doCancel(void);
     void doOpenAgr(void);
     void doImportAgr(void);
+    void reset_import_counters(void);
+    void get_import_counts(int * n_o_sets,int * n_o_agrs);
 signals:
 
 };
@@ -3064,6 +3067,7 @@ class inputLine:public QWidget
     Q_OBJECT
 public:
     inputLine(int t,QWidget * parent=0);
+    ~inputLine();
     int type;//type of input line: input from header(0) or input from data
     QHBoxLayout * layout;
     QLabel * lblOffset;
@@ -3195,9 +3199,10 @@ class pageHeaderInfo:public QWidget
 public:
     pageHeaderInfo(QWidget * parent=0);
     QVBoxLayout * grid;
+    QGridLayout * gridLayout;
     QVBoxLayout * layout;
     QWidget * empty;
-    QWidget * empty0;
+    //QWidget * empty0;
     QWidget * empty1;
     QWidget * empty2;
     QScrollArea * scroll;
@@ -3223,7 +3228,7 @@ public:
     int entry_values[NUMBER_OF_IMPORT_DESTINATIONS];
     frmBinaryFormatInput * par_wid;
     inputIniData * inpIniData;
-    QStringList keys;//the ini-imput-keys
+    QStringList keys;//the ini-input-keys
 signals:
     void readHeader(void);
 public slots:
@@ -3260,11 +3265,13 @@ public:
     StdSelector * selOrder;
     LineWidthSelector * selTriggerValue;
     StdSelector * selTriggerType;
+    QSignalMapper * map;
 signals:
     void newChannelCount(int i);
 public slots:
     void channelCountChanged(int i);
     void eofToggled(bool i);
+    void input_target_changed(int t);
     void readDataSettings(importSettings & imp_set);
     void writeDataSettings(importSettings & imp_set);
 };
@@ -3274,6 +3281,7 @@ class pageFileInfo:public QWidget
     Q_OBJECT
 public:
     pageFileInfo(QWidget * parent=0);
+    ~pageFileInfo();
     QVBoxLayout * layout;
     QLabel * lblText;
     QTextEdit * lenText;
@@ -3363,6 +3371,7 @@ public:
     bool auto_transfer_from_header,determine_string_size;
     int headersize;
     int cur_import_scheme;//-1=None, -2=from a format-file, 0....n=std_format_sheme --> to tell the contents of the scheme
+    QString FormatFileLastUsed;//used if cur_import_scheme==-2 to update settings
     QString LoadFormatPath,SaveFormatPath,LoadIniPath,LoadDataPath;
     QString HeaderSuffix,Data_Suffix;
     QString HeaderPath,Data_Path;
@@ -3392,7 +3401,7 @@ public slots:
     void displaySettings(struct importSettings & imp_s);
     void readSettings(struct importSettings & imp_s,int type);//transfer the settings in the gui in the scheme (it is meant to be the scheme - but any import_settings are possible), type=0: just header, type=1: just data, type=2: just auxilliary data, type=3: everything
     void HeaderFormatChanged(int i);
-    void transmitInfos(void);
+    void transmitInfos(void);//this function is used after data has been read from a header to update the settings in the gui
     void convertSettingsToString(void);
     void updateSuffixes(void);
     void newFileEntry(void);//a new file (header or data) has been selected --> complete settings and try to load header (if suitable)
@@ -3408,7 +3417,7 @@ public slots:
 
 void doReadDataFromHeader(ifstream & ifi,struct importSettings & imp_set);
 void readBinaryFromFile(ifstream & ifi,struct importSettings & imp_set,double *** data);
-void get_all_settings_from_ini_file(char * ini_file,QStringList & keys,QStringList & vals);
+void get_all_settings_from_ini_file(QString ini_file,QStringList & keys,QStringList & vals);
 
 void copy_basic_scheme_data(struct importSettings & imp_set,struct importSettings & imp_schema);
 void copy_manual_header_data(struct importSettings & imp_set,struct importSettings & imp_schema);
