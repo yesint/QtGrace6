@@ -595,6 +595,7 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
 
     RGB fg_rgb, bg_rgb, delta_rgb, *prgb;
     CMap_entry cmap;
+    cmap.cname=NULL;
     
     if (cs->len == 0) {
         return NULL;
@@ -653,7 +654,7 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
                 cmap.rgb.red   = bg_rgb.red + i*delta_rgb.red;
                 cmap.rgb.green = bg_rgb.green + i*delta_rgb.green;
                 cmap.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
-                cmap.cname = "";
+                cmap.cname = copy_string(cmap.cname,"");
                 cmap.ctype = COLOR_AUX;
                 aacolors[i] = add_color(cmap);
             }

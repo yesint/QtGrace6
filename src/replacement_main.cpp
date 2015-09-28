@@ -79,9 +79,9 @@
 
 //#include <QtWebKit>
 
-#if QT_VERSION >= 0x050000
+/*#if QT_VERSION >= 0x050000
 #include <QtWebKitWidgets/QWebView>
-#endif
+#endif*/
 
 #ifdef WINDOWS_SYSTEM
 #define O_NONBLOCK 0x0004
@@ -399,7 +399,6 @@ cout << "FontInfo(pixel, sollte 9 sein)=" << fi.pixelSize() << endl;*/
         (*ColorPixmaps)[i]=new QPixmap(templIcon);
         (*ColorNames)[i]=new QString(entries[i].cname);
     }
-
 }
 
 void update_color_selectors(void)
@@ -411,8 +410,10 @@ void update_color_selectors(void)
     for (int i=0;i<map_entries;i++)
     {
         memcpy(local_cmap_table+i,cmap_table+real_colors[i],sizeof(CMap_entry));
-        local_cmap_table[i].cname=new char[strlen(cmap_table[real_colors[i]].cname)+2];
-        strcpy(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);
+        /*local_cmap_table[i].cname=new char[strlen(cmap_table[real_colors[i]].cname)+2];
+        strcpy(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);*/
+        local_cmap_table[i].cname=NULL;
+        copy_string(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);
     //Local colors are only main colors
@@ -424,7 +425,10 @@ void update_color_selectors(void)
         }
     }
     for (int i=0;i<map_entries;i++)
-        delete[] local_cmap_table[i].cname;
+    {
+        //delete[] local_cmap_table[i].cname;
+        copy_string(local_cmap_table[i].cname,NULL);
+    }
     delete[] local_cmap_table;
     delete[] real_colors;
 }
@@ -1734,17 +1738,16 @@ void set_left_footer(char *s)
 
 QBitmap generate_Bitmap_from_Bits(unsigned char * bits,int length,int rows,int cols)//generates a rows x cols-QBitmap(black and white) form the bits[] with length entries (number of bytes)
 {
-    QBitmap result(rows,cols);
+    QBitmap result(cols,rows);
     //result.fill(Qt::white);
-    result.fill(Qt::color0);
+    //result.fill(Qt::color0);
     QPainter painter;//(&result);
     painter.begin(&result);
+    painter.setPen(Qt::color0);
+    painter.setBrush(Qt::color0);
+    painter.drawRect(0,0,cols,rows);
     painter.setPen(Qt::color1);
     painter.setBrush(Qt::color1);
-    /*
-painter.setPen(Qt::black);
-painter.setBrush(Qt::black);
-*/
     unsigned char probe,ref;
     int row=0,col=0;//current number of row and colum
     for (int i=0;i<length;i++)//go through bits-bytes

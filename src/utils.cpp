@@ -407,46 +407,9 @@ ret=true;
 }
 else
 {
-    ret2=yesnosave(0);
-
+ret2=yesnosave(0);
 return ret2;
-/// Function ends here
-
-    if (general_behavior==0)//like Grace
-    {
-//ret=yesno(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data(), NULL, NULL, NULL);
-//ret=yesnosave(QObject::tr("Exit losing unsaved changes?").toLocal8Bit().data());
-//ret=yesnosave();
-FormQuestion->init(QObject::tr("Exit losing unsaved changes?"),QObject::tr("Exit QtGrace"));
-/*FormQuestion->show();
-FormQuestion->raise();
-FormQuestion->activateWindow();*/
-ret=FormQuestion->exec();//ret=1 heißt exit, ret=0 heißt kein exit
-    }
-    else//like QtGrace
-    {
-    ret2=QMessageBox::question(mainWin,QObject::tr("Exit QtGrace"),QObject::tr("Content of current project changed!\nSave project?"),QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel);
-    /*cout << "ret2=" << ret2 << endl;
-    cout << "QMessageBox::Cancel=" << QMessageBox::Cancel << endl;
-    cout << "QMessageBox::Discard=" << QMessageBox::Discard << endl;
-    cout << "QMessageBox::Save=" << QMessageBox::Save << endl;*/
-        if (ret2==int(QMessageBox::Cancel))
-        {ret=false;}
-        else
-        {
-            if (ret2==int(QMessageBox::Save))
-            {
-            FormQuestion->doSaveAs();
-            ret=true;
-            }
-            else
-            {ret=true;}
-        }
-
-    }
-
 }
-
     if (!is_dirtystate() || ret)
     {
         if (resfp)
@@ -456,7 +419,7 @@ ret=FormQuestion->exec();//ret=1 heißt exit, ret=0 heißt kein exit
         //qApp->quit();
         return 1;
     }
-    return 0;
+return 0;
 }
 
 /*

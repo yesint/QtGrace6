@@ -1163,8 +1163,10 @@ int delete_color(int cindex)
     memcpy(saved_map,cmap_table,sizeof(CMap_entry)*maxcolors);
         for (int i=0;i<maxcolors;i++)
         {
-            saved_map[i].cname=new char[2+strlen(cmap_table[i].cname)];
-            strcpy(saved_map[i].cname,cmap_table[i].cname);
+            /*saved_map[i].cname=new char[2+strlen(cmap_table[i].cname)];
+            strcpy(saved_map[i].cname,cmap_table[i].cname);*/
+            saved_map[i].cname=NULL;
+            copy_string(saved_map[i].cname,cmap_table[i].cname);
         }
     realloc_colors(maxcolors-1);
 //int counter=0;
@@ -1173,9 +1175,11 @@ int delete_color(int cindex)
         if (i==cindex) continue;
         memcpy(cmap_table+i,saved_map+i,sizeof(CMap_entry));
         copy_string(cmap_table[i].cname,saved_map[i].cname);
-        delete[] saved_map[i].cname;
+        //delete[] saved_map[i].cname;
+        copy_string(saved_map[i].cname,NULL);
     }
-    delete[] saved_map[cindex].cname;
+    //delete[] saved_map[cindex].cname;
+    copy_string(saved_map[cindex].cname,NULL);
     delete[] saved_map;
     return RETURN_SUCCESS;
 }

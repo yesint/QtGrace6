@@ -909,7 +909,7 @@ public:
     char out_format_float[5];
     QAction * actPrintToFile,*actClose,*dsync_item,*psync_item,*actHelpOnDevSetup,*actHelpOnContext,*actNativePrinterDialog;
     QPrintDialog * printDialog;
-    ofstream ofi;
+    //ofstream ofi;
     Device_entry curdev,tmp_dev;
 
     stdButtonGroup * buttonGroup;
@@ -1629,7 +1629,7 @@ public:
     stdLineEdit * ledFormat2;
     stdLineEdit * ledTitle;
 
-    QLineEdit * ledSelection;
+    stdLineEdit * ledSelection;
 
     StdSelector * selLoadAs;
     StdSelector * selType;

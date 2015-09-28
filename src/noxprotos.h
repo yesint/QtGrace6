@@ -333,5 +333,9 @@ void do_hardcopy_external(char * target_file,int dev_nr,float dpi,unsigned long 
 
 #endif
 
+void convert_single_string_from_encoding_to_UTF8(char ** text);
+void convert_single_string_from_encoding_to_UTF8_static(char * text);
+void convert_single_string_from_UTF8_to_encoding(char ** text);
+void convert_single_string_from_UTF8_to_encoding_static(char * text);
 
 #endif /* __NOXPROTOS_H_ */

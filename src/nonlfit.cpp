@@ -214,7 +214,7 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     double a[MAXPARM],b[MAXPARM];
     bool par_changed;
     int parnum = nonl_opts.parnum;
-    char buf[128];
+    char * buf=new char[1024];
     double cor, chisq, rms_pe, ysq, theil;
     int rms_ok;
 
@@ -379,7 +379,7 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         {
         tmp_var=QString("a")+QString::number(i);
         sprintf(buf,sformat,nonl_parms[i].value);
-        tmp_val=QString(buf);
+        tmp_val=QString("(")+QString(buf)+QString(")");
         formula_used.replace(tmp_var,tmp_val);
         }
         stufftext("Computed values:");
@@ -390,6 +390,11 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
             stufftext(buf);
         }
         stufftext("");
+        if (formula_used.toLatin1().length()>980)
+        {
+        delete[] buf;
+        buf=new char[formula_used.toLatin1().length()*2+30];
+        }
         sprintf(buf, "Resulting formula:\n%s\n", formula_used.toLatin1().constData());
         stufftext(buf);
         sprintf(buf, "Chi-square: %g", chisq);
@@ -408,10 +413,14 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
     }
+    delete[] buf;
     return RETURN_SUCCESS;
     }
     else
+    {
+    delete[] buf;
     return RETURN_FAILURE;
+    }
 }
 
 /*

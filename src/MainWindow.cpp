@@ -1379,11 +1379,11 @@ else
 {
 //if (FormDeviceSetup==NULL)
 ret=FormDeviceSetup->openNativePrinter(DEVICE_PDF);
-}
     if (ret==false)
     {
     cout << "native printing aborted" << endl;
     }
+}
 qApp->processEvents();
 }
 

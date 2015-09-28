@@ -2417,7 +2417,8 @@ cout << "                warn_on_encoding_change=" << warn_on_encoding_change <<
     cout << "Linux" << endl;
 #endif
 */
-    // For Qt > 4.8 plugin search
+
+// For Qt > 4.8 plugin search
         if (getenv("BEAST") && getenv("ABI"))
         {
         //qDebug()<<"START 1";
@@ -2432,17 +2433,24 @@ cout << "                warn_on_encoding_change=" << warn_on_encoding_change <<
             QApplication::setLibraryPaths(list);
         }
 
-    QApplication * a=new QApplication( argc, argv );
+QApplication * a=new QApplication( argc, argv );
 
-    /*a->setStyle("macintosh");
-    "windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"*/
+    /*QStringList k12=QStyleFactory::keys();
+    cout << "keys=" << endl;
+    for (int i=0;i<k12.length();i++)
+    {
+    cout << k12.at(i).toLocal8Bit().constData() << endl;
+    }*/
+
+/*a->setStyle("macintosh");
+"windows", "motif", "cde", "plastique", "windowsxp", or "macintosh"*/
 
     char * wdir1=new char[GR_MAXPATHLEN+1];
     getcwd(wdir1, GR_MAXPATHLEN - 1);
     set_workingdir(wdir1);
     //cout << "A) Working dir=#" << get_workingdir() << "#" << endl;
 
-    initSettings(current_bin_import_settings,false);//for binary import
+    initSettings(current_bin_import_settings,false);//for binary import --> to clear everything
 
     //GuiFont=new QFont();//the stdFont is used for the GUI; size 14 is used because everythings fits neatly this way
     GuiFont=new QFont(a->font());

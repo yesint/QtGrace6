@@ -818,7 +818,7 @@ FileSelector(QWidget * parent=0);
 QLabel * lblFilter;
 QLabel * lblDirs;
 QLabel * lblFiles;
-QLineEdit * ledFilter;
+stdLineEdit * ledFilter;
 QListView * DirList;
 QListView * FileList;
 QCheckBox * chkShowHiddenFiles;

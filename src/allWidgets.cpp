@@ -510,27 +510,27 @@ void restore_set_comments(void)
 void initSettings(struct importSettings & iset,bool remove_old_settings=true)
 {
     iset.valid_status=-1;//uninitialized
-    if (iset.title && remove_old_settings)
+    if (remove_old_settings && iset.title)
         delete[] iset.title;
-    if (iset.subtitle && remove_old_settings)
+    if (remove_old_settings && iset.subtitle)
         delete[] iset.subtitle;
-    if (iset.x_title && remove_old_settings)
+    if (remove_old_settings && iset.x_title)
         delete[] iset.x_title;
-    if (iset.y_title && remove_old_settings)
+    if (remove_old_settings && iset.y_title)
         delete[] iset.y_title;
-    if (iset.first_data && remove_old_settings)
+    if (remove_old_settings && iset.first_data)
         delete[] iset.first_data;
-    if (iset.channel_format && remove_old_settings)
+    if (remove_old_settings && iset.channel_format)
         delete[] iset.channel_format;
-    if (iset.channel_size && remove_old_settings)
+    if (remove_old_settings && iset.channel_size)
         delete[] iset.channel_size;
-    if (iset.channel_target && remove_old_settings)
+    if (remove_old_settings && iset.channel_target)
         delete[] iset.channel_target;
-    if (iset.format_suggestion && remove_old_settings)
+    if (remove_old_settings && iset.format_suggestion)
         delete[] iset.format_suggestion;
     for (int i=0;i<MAX_BIN_IMPORT_CHANNELS;i++)
     {
-        if (iset.set_title[i] && remove_old_settings)
+        if (remove_old_settings && iset.set_title[i])
             delete[] iset.set_title[i];
     }
     iset.format_suggestion=NULL;
@@ -581,15 +581,15 @@ void initSettings(struct importSettings & iset,bool remove_old_settings=true)
     iset.read_to_eof=false;//tabDataInfo->chkReadToEOF->isChecked();
 
     iset.nr_of_import_tokens=0;
-    if (iset.token_target && remove_old_settings) delete[] iset.token_target;
+    if (remove_old_settings && iset.token_target) delete[] iset.token_target;
     iset.token_target=NULL;
     iset.HeaderSuffix=QString("ini");
     iset.DataSuffix=QString("dat");
 
     iset.nr_of_header_values=0;
-    if (iset.header_value_format && remove_old_settings) delete[] iset.header_value_format;
-    if (iset.header_value_size && remove_old_settings) delete[] iset.header_value_size;
-    if (iset.header_value_import && remove_old_settings) delete[] iset.header_value_import;
+    if (remove_old_settings && iset.header_value_format) delete[] iset.header_value_format;
+    if (remove_old_settings && iset.header_value_size) delete[] iset.header_value_size;
+    if (remove_old_settings && iset.header_value_import) delete[] iset.header_value_import;
     iset.header_value_format=NULL;
     iset.header_value_size=NULL;
     iset.header_value_import=NULL;
@@ -8707,7 +8707,7 @@ int ret_val1;*/
 curdev = get_device_props(dev);
 tmp_dev = get_device_props(DEVICE_SCREEN);
 
-ofi.open(QString(QString(user_home_dir)+QDir::separator()+QString("Printer_Debug.txt")).toLocal8Bit().constData());
+//ofi.open(QString(QString(user_home_dir)+QDir::separator()+QString("Printer_Debug.txt")).toLocal8Bit().constData());
 
 FormProgress->init(QObject::tr("Printing..."),5);
 FormProgress->show();
@@ -8737,7 +8737,9 @@ else//Portrait
 {
     stdPrinter->setOrientation(QPrinter::Portrait);
 }
-ofi << "Vor Print Dialog " << endl;
+
+//ofi << "Vor Print Dialog " << endl;
+
 /*
 #ifdef WINDOWS_SYSTEM
 //stdPrinter->setOutputFileName(QString());//on Windows it is often counterproductive to preset the filename - sometimes the printer-dialog is bloked because Windows thinks output to a file is wanted
@@ -8781,14 +8783,14 @@ printDialog->setModal(true);
 connect(printDialog,SIGNAL(rejected()),SLOT(printerRejected()));*/
 qApp->processEvents();
 
-ofi << "nach new PrintDialog" << endl;
-cout << "nach new PrintDialog" << endl;
-//if (printDialog->exec() == QDialog::Accepted)
+/*ofi << "nach new PrintDialog" << endl;
+cout << "nach new PrintDialog" << endl;*/
 
 if (printDialog->exec() == QDialog::Accepted)
 printerAccepted(stdPrinter);
 else
 printerRejected();
+
 /*
 if (printDialog!=NULL)
 {
@@ -8808,8 +8810,8 @@ return true;
 void frmDeviceSetup::printerAccepted(QPrinter * pri)
 {
     if (printDialog==NULL) return;
-ofi << "in PrintDialog - accepted" << endl;
-cout << "in PrintDialog - accepted" << endl;
+/*ofi << "in PrintDialog - accepted" << endl;
+cout << "in PrintDialog - accepted" << endl;*/
 /*
 delete stdPrinter;
 stdPrinter=printDialog->printer();
@@ -8821,9 +8823,10 @@ FormProgress->raise();
 FormProgress->activateWindow();
     if (printDialog->printer()->isValid())
     {
-ofi << "Paper=" << printDialog->printer()->paperRect().width() << "x" << printDialog->printer()->paperRect().height() << endl;
+/*ofi << "Paper=" << printDialog->printer()->paperRect().width() << "x" << printDialog->printer()->paperRect().height() << endl;
 ofi << "Page =" << printDialog->printer()->pageRect().width() << "x" << printDialog->printer()->pageRect().height() << endl;
-ofi << "printing on selected Printer: Name=\"" << printDialog->printer()->printerName().toLatin1().constData() << "\"" << endl;
+ofi << "printing on selected Printer: Name=\"" << printDialog->printer()->printerName().toLatin1().constData() << "\"" << endl;*/
+
 /*         QList<int> resols=stdPrinter->supportedResolutions();
 cout << "Supported resolutions:" << endl;
         for (int k=0;k<resols.length();k++)
@@ -8831,6 +8834,7 @@ cout << "Supported resolutions:" << endl;
             cout << resols.at(k) << " dpi" << endl;
         }
         cout << "---" << endl;*/
+
     curdev = get_device_props(DEVICE_SCREEN);
     curdev.pg.width=stdPrinter->pageRect().width();
     curdev.pg.height=stdPrinter->pageRect().height();
@@ -8859,8 +8863,10 @@ set_device_props(DEVICE_SCREEN,curdev);
         {
             stdPrinter->setOrientation(QPrinter::Portrait);
         }*/
-ofi << "valid PrintDialog - start printing" << endl;
-cout << "valid PrintDialog - start printing" << endl;
+
+/*ofi << "valid PrintDialog - start printing" << endl;
+cout << "valid PrintDialog - start printing" << endl;*/
+
     FormProgress->increase();
         print_target=PRINT_TARGET_PRINTER;
         useQPrinter=true;
@@ -8870,8 +8876,10 @@ cout << "valid PrintDialog - start printing" << endl;
     FormProgress->increase();
         GeneralPainter->end();
 set_device_props(DEVICE_SCREEN,tmp_dev);
-ofi << "valid PrintDialog - stop printing" << endl;
-cout << "valid PrintDialog - stop printing" << endl;
+
+/*ofi << "valid PrintDialog - stop printing" << endl;
+cout << "valid PrintDialog - stop printing" << endl;*/
+
         print_target=PRINT_TARGET_SCREEN;
         useQPrinter=false;
         xdrawgraph();
@@ -8879,12 +8887,14 @@ cout << "valid PrintDialog - stop printing" << endl;
         GeneralPainter->end();
         stdPrinter=NULL;
         stop_repaint=sav_stop_setting;
-ofi << "valid PrintDialog - repaint screen" << endl;
-cout << "valid PrintDialog - repaint screen" << endl;
+
+/*ofi << "valid PrintDialog - repaint screen" << endl;
+cout << "valid PrintDialog - repaint screen" << endl;*/
+
     }
     else//Invalid Printer!?
     {
-ofi << "Invalid PrintDialog" << endl;
+//ofi << "Invalid PrintDialog" << endl;
         if (stdPrinter->outputFileName().isEmpty() || stdPrinter->outputFileName().isNull())
             strcpy(dummy,QString(QString(qt_grace_exe_dir) +QDir::separator()+ QString("QtGracePdfOutput.pdf")).toLocal8Bit());
         else
@@ -8937,15 +8947,15 @@ ofi << "Invalid PrintDialog" << endl;
     }
     this->disconnect(printDialog,SIGNAL(accepted(QPrinter*)));//SLOT(printerAccepted()));
     this->disconnect(printDialog,SIGNAL(rejected()));// SLOT(printerRejected()));
-cout << "ende Accepted A" << endl;
-    ofi.close();
+//cout << "ende Accepted A" << endl;
+//ofi.close();
     FormProgress->hide();
-cout << "ende Accepted B" << endl;
+//cout << "ende Accepted B" << endl;
     printDialog->hide();
-cout << "ende Accepted C" << endl;
+//cout << "ende Accepted C" << endl;
     delete printDialog;
     printDialog=NULL;
-cout << "ende Accepted D" << endl;
+//cout << "ende Accepted D" << endl;
     useQPrinter=false;
 }
 
@@ -8953,16 +8963,16 @@ void frmDeviceSetup::printerRejected(void)
 {
 //ret=false;
     if (printDialog==NULL) return;
-cout << "ende Rejected A" << endl;
+//cout << "ende Rejected A" << endl;
     this->disconnect(printDialog,SIGNAL(accepted(QPrinter*)));//SLOT(printerAccepted()));
     this->disconnect(printDialog,SIGNAL(rejected()));// SLOT(printerRejected()));
-    ofi.close();
+//ofi.close();
     FormProgress->hide();
     printDialog->hide();
     delete printDialog;
     printDialog=NULL;
     useQPrinter=false;
-cout << "ende Rejected B" << endl;
+//cout << "ende Rejected B" << endl;
 }
 
 void frmDeviceSetup::dpiInputChanged(QString text)
@@ -14079,7 +14089,12 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     ledTitle=new stdLineEdit(grpTitle,tr("Title:"));
     ledTitle->lenText->setText(QString("A fit"));
 
-    ledSelection=new QLineEdit(tr(""),this);
+    //ledSelection=new QLineEdit(tr(""),this);
+    ledSelection=new stdLineEdit(this,tr(""));
+    ledSelection->lblText->setVisible(false);
+    ledSelection->layout->setMargin(0);
+    ledSelection->layout->setSpacing(0);
+    ledSelection->setAcceptDrops(true);
     txtDescription=new QTextEdit(this);
     lblProjectContent=new QLabel(QString("--"),this);
 
@@ -28380,13 +28395,15 @@ void pageDataInfo::eofToggled(bool i)
 void pageDataInfo::input_target_changed(int t)
 {
 static int update_running=0;
-if (update_running==1 || inFormats[t]->cmbImportAs->currentIndex()!=7) return;
+if (update_running==1 || !(inFormats[t]->cmbImportAs->currentIndex()==7 || inFormats[t]->cmbImportAs->currentIndex()==1)) return;
 update_running=1;
     for (int j=0;j<number_of_lines;j++)
     {
         if (j==t) continue;
-    if (inFormats[j]->cmbImportAs->currentIndex()==7)
+    if (inFormats[j]->cmbImportAs->currentIndex()==7 && inFormats[t]->cmbImportAs->currentIndex()==7)
     inFormats[j]->cmbImportAs->setCurrentIndex(2);
+    else if (inFormats[j]->cmbImportAs->currentIndex()==1 && inFormats[t]->cmbImportAs->currentIndex()==1)
+    inFormats[j]->cmbImportAs->setCurrentIndex(0);
     }
 update_running=0;
 }
@@ -31761,7 +31778,19 @@ if (*n_snos!=NULL) delete[] *n_snos;
 int number_of_sets_with_column[6]={0,0,0,0,0,0};
 int number_of_x_columns=0;
 int triggerChannel=-1;
+int x_Channel=-1;
 int triggerSet=-1;
+
+for (int i=0;i<imp_set.channels;i++)
+{
+    if (imp_set.channel_target[i]==IMPORT_TO_X)
+    {
+        if (x_Channel==-1)
+        x_Channel=i;
+        else
+        imp_set.channel_target[i]=IMPORT_TO_NONE;
+    }
+}
 
 for (int i=0;i<imp_set.channels;i++)
 {
@@ -31838,6 +31867,9 @@ if (imp_set.y_title!=NULL)
     //set_plotstr_string(&t->label, imp_set.y_title);
     set_plotstr_string(&(g[imp_set.target_gno].t[1]->label), imp_set.y_title);
 }
+
+for (int i=0;i<imp_set.channels;i++)
+cout<< "Channel[" << i << "]=" << imp_set.set_title[i] << endl;
 
 for (int i=0;i<max_nr_of_sets;i++)
 {
@@ -33879,6 +33911,7 @@ void frmColorManagement::generateSpectrum(int nr)
     CMap_entry entry;
     memcpy(&entry,base_colors+6,sizeof(CMap_entry));//copy white as default
     int counter=2;
+    char col_dummy[64];
     double z=0.0;
     int r0,r1,g0,g1,b0,b1;
     /*
@@ -33903,8 +33936,11 @@ cout << "count_ziel=" << (segments-1)*points_per_segment+points_last_segment+2 <
             entry.rgb.red=int(r0*(1.0-z)+r1*z);
             entry.rgb.green=int(g0*(1.0-z)+g1*z);
             entry.rgb.blue=int(b0*(1.0-z)+b1*z);
-            entry.cname=new char[16];
-            sprintf(entry.cname,"Color %d",counter);
+            /*entry.cname=new char[16];
+            sprintf(entry.cname,"Color %d",counter);*/
+            entry.cname=NULL;
+            sprintf(col_dummy,"Color %d",counter);
+            copy_string(entry.cname,col_dummy);
             memcpy(temp_spec+counter,&entry,sizeof(CMap_entry));
             counter++;
         }
@@ -33923,8 +33959,11 @@ cout << "count_ziel=" << (segments-1)*points_per_segment+points_last_segment+2 <
         entry.rgb.red=int(r0*(1.0-z)+r1*z);
         entry.rgb.green=int(g0*(1.0-z)+g1*z);
         entry.rgb.blue=int(b0*(1.0-z)+b1*z);
-        entry.cname=new char[16];
-        sprintf(entry.cname,"Color %d",counter);
+        /*entry.cname=new char[16];
+        sprintf(entry.cname,"Color %d",counter);*/
+        entry.cname=NULL;
+        sprintf(col_dummy,"Color %d",counter);
+        copy_string(entry.cname,col_dummy);
         memcpy(temp_spec+counter,&entry,sizeof(CMap_entry));
         counter++;
         if (counter==temp_spec_lenght) break;
@@ -33935,8 +33974,11 @@ cout << "count_ziel=" << (segments-1)*points_per_segment+points_last_segment+2 <
         entry.rgb.red=int(r1);
         entry.rgb.green=int(g1);
         entry.rgb.blue=int(b1);
-        entry.cname=new char[16];
-        sprintf(entry.cname,"Color %d",counter);
+        /*entry.cname=new char[16];
+        sprintf(entry.cname,"Color %d",counter);*/
+        entry.cname=NULL;
+        sprintf(col_dummy,"Color %d",counter);
+        copy_string(entry.cname,col_dummy);
         memcpy(temp_spec+counter,&entry,sizeof(CMap_entry));
         counter++;
     }
@@ -34026,7 +34068,8 @@ void frmColorManagement::doSetStdColors(void)
 {
     for (int i=0;i<map_entries;i++)
     {
-        delete[] local_cmap_table[i].cname;
+        copy_string(local_cmap_table[i].cname,NULL);
+        //delete[] local_cmap_table[i].cname;
     }
     delete[] local_cmap_table;
     map_entries=sizeof(cmap_init)/sizeof(CMap_entry);
@@ -34035,8 +34078,10 @@ void frmColorManagement::doSetStdColors(void)
     for (int i=0;i<map_entries;i++)
     {
         memcpy(local_cmap_table+i,cmap_init+i,sizeof(CMap_entry));
-        local_cmap_table[i].cname=new char[2+strlen(cmap_init[i].cname)];
-        strcpy(local_cmap_table[i].cname,cmap_init[i].cname);
+        /*local_cmap_table[i].cname=new char[2+strlen(cmap_init[i].cname)];
+        strcpy(local_cmap_table[i].cname,cmap_init[i].cname);*/
+        local_cmap_table[i].cname=NULL;
+        copy_string(local_cmap_table[i].cname,cmap_init[i].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
     colorsel->updateColorIcons(map_entries,locColorPixmaps,locColorNames);
@@ -34049,7 +34094,8 @@ void frmColorManagement::doSetSpectrum(void)
     showTempSpectrum();
     for (int i=0;i<map_entries;i++)
     {
-        delete[] local_cmap_table[i].cname;
+        copy_string(local_cmap_table[i].cname,NULL);
+        //delete[] local_cmap_table[i].cname;
     }
     delete[] local_cmap_table;
     map_entries=temp_spec_lenght;
@@ -34057,8 +34103,10 @@ void frmColorManagement::doSetSpectrum(void)
     for (int i=0;i<map_entries;i++)
     {
         memcpy(local_cmap_table+i,temp_spec+i,sizeof(CMap_entry));
-        local_cmap_table[i].cname=new char[2+strlen(temp_spec[i].cname)];
-        strcpy(local_cmap_table[i].cname,temp_spec[i].cname);
+        /*local_cmap_table[i].cname=new char[2+strlen(temp_spec[i].cname)];
+        strcpy(local_cmap_table[i].cname,temp_spec[i].cname);*/
+        local_cmap_table[i].cname=NULL;
+        copy_string(local_cmap_table[i].cname,temp_spec[i].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
     colorsel->updateColorIcons(map_entries,locColorPixmaps,locColorNames);
@@ -34217,8 +34265,10 @@ CMap_entry frmColorManagement::constructColor(void)
     entry.rgb.green=ledGreen->value();
     entry.ctype=COLOR_MAIN;
     entry.tstamp=0;
-    entry.cname=new char[ledColName->text().length()+2];
-    strcpy(entry.cname,ledColName->text().toLocal8Bit().constData());
+    entry.cname=NULL;
+    copy_string(entry.cname,ledColName->text().toLocal8Bit().constData());
+    /*entry.cname=new char[ledColName->text().length()+2];
+    strcpy(entry.cname,ledColName->text().toLocal8Bit().constData());*/
     return entry;
 }
 
@@ -34246,15 +34296,20 @@ void frmColorManagement::init(void)
     if (local_cmap_table!=NULL)
     {
         for (int i=0;i<map_entries;i++)
-            delete[] local_cmap_table[i].cname;
+        {
+            copy_string(local_cmap_table[i].cname,NULL);
+            //delete[] local_cmap_table[i].cname;
+        }
         delete[] local_cmap_table;
     }
     local_cmap_table=new CMap_entry[map_entries];
     for (int i=0;i<map_entries;i++)
     {
         memcpy(local_cmap_table+i,cmap_table+real_colors[i],sizeof(CMap_entry));
-        local_cmap_table[i].cname=new char[strlen(cmap_table[real_colors[i]].cname)+2];
-        strcpy(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);
+        /*local_cmap_table[i].cname=new char[strlen(cmap_table[real_colors[i]].cname)+2];
+        strcpy(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);*/
+        local_cmap_table[i].cname=NULL;
+        copy_string(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
     //Local colors are only main colors
@@ -34269,9 +34324,9 @@ void frmColorManagement::doApply(void)
         //cout << "apply to color palette" << endl;
         SaveCurrentColorMap();
         //first: save aux colors
-        int * real_colors=new int[4];
-        int nr_of_aux_colors,new_nr_of_colors;
-        int real_map_entries=get_main_color_indices(&real_colors,&nr_of_aux_colors);
+        //int * real_colors=new int[4];
+        int nr_of_aux_colors;//,new_nr_of_colors;
+        //int real_map_entries=get_main_color_indices(&real_colors,&nr_of_aux_colors);
         int * aux_colors=new int[2+nr_of_aux_colors];//the old color-indices of auxilliary colors
         CMap_entry * aux_map_entries=new CMap_entry[2+nr_of_aux_colors];//the auxilliary colors
         //cout << "nr_of_aux_colors=" << nr_of_aux_colors << endl;
@@ -34281,8 +34336,10 @@ void frmColorManagement::doApply(void)
             if (cmap_table[i].ctype!=COLOR_MAIN)
             {
                 memcpy(aux_map_entries+nr_of_aux_colors,cmap_table+i,sizeof(CMap_entry));
-                aux_map_entries[nr_of_aux_colors].cname=new char[2+sizeof(cmap_table[i].cname)];
-                strcpy(aux_map_entries[nr_of_aux_colors].cname,cmap_table[i].cname);
+                /*aux_map_entries[nr_of_aux_colors].cname=new char[2+sizeof(cmap_table[i].cname)];
+                strcpy(aux_map_entries[nr_of_aux_colors].cname,cmap_table[i].cname);*/
+                aux_map_entries[nr_of_aux_colors].cname=NULL;
+                copy_string(aux_map_entries[nr_of_aux_colors].cname,cmap_table[i].cname);
                 aux_colors[nr_of_aux_colors]=i;
                 //cout << i << endl;
                 nr_of_aux_colors++;
@@ -34297,23 +34354,30 @@ void frmColorManagement::doApply(void)
         //cout << "nr_of_aux_colors=" << nr_of_aux_colors << " number_of_new_cols=" << number_of_new_cols << endl;
         realloc_colors(number_of_new_cols);
         int aux_counter=0,colors_counter=0;
+        char * old_cname;
         for (int i=0;i<number_of_new_cols;i++)//fill new color table with new colors
         {
             if (aux_counter>=nr_of_aux_colors)//space for a main color
             {
+                old_cname=cmap_table[i].cname;
                 memcpy(cmap_table+i,local_cmap_table+colors_counter,sizeof(CMap_entry));
+                cmap_table[i].cname=old_cname;
                 cmap_table[i].cname = copy_string(cmap_table[i].cname, local_cmap_table[colors_counter].cname);
                 colors_counter++;
             }
             else if (aux_colors[aux_counter]==i)//current number has been an aux-color
             {
+                old_cname=cmap_table[i].cname;
                 memcpy(cmap_table+i,aux_map_entries+aux_counter,sizeof(CMap_entry));
+                cmap_table[i].cname=old_cname;
                 cmap_table[i].cname = copy_string(cmap_table[i].cname, aux_map_entries[aux_counter].cname);
                 aux_counter++;
             }
             else//space for a main color
             {
+                old_cname=cmap_table[i].cname;
                 memcpy(cmap_table+i,local_cmap_table+colors_counter,sizeof(CMap_entry));
+                cmap_table[i].cname=old_cname;
                 cmap_table[i].cname = copy_string(cmap_table[i].cname, local_cmap_table[colors_counter].cname);
                 colors_counter++;
             }

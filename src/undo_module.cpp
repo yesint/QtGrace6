@@ -137,7 +137,7 @@ struct agr_file_info * afi;
 int findindex;
 char ** old_str;
 struct all_fit_settings * ps;
-int * gnos, * snos, slen, i;
+int * gnos, * snos, slen, kkk;
 int cursource,load;
 gnos=snos=NULL;
     switch (type)
@@ -706,23 +706,23 @@ gnos=snos=NULL;
         //for (int i=id[0][2];i<=id[0][3];i++)//graphs
         for (int l=0;l<origin[3];l++)
         {
-            i=id[0][2+l];//current graph-id
+            kkk=id[0][2+l];//current graph-id
             for (int j=id[0][0];j<=id[0][1];j++)//axes
             {
-            set_graph_tickmarks(i,j,tick[offset]);
+            set_graph_tickmarks(kkk,j,tick[offset]);
             w.xg1=ddata[0][offset];
             w.xg2=ddata[1][offset];
             w.yg1=ddata[2][offset];
             w.yg2=ddata[3][offset];
-            g[i].xscale = id[1][4*offset+0];
-            g[i].yscale = id[1][4*offset+1];
-            g[i].xinvert = id[1][4*offset+2];
-            g[i].yinvert = id[1][4*offset+3];
+            g[kkk].xscale = id[1][4*offset+0];
+            g[kkk].yscale = id[1][4*offset+1];
+            g[kkk].xinvert = id[1][4*offset+2];
+            g[kkk].yinvert = id[1][4*offset+3];
             offset++;
             }
             //set_graph_xscale(i,id[1][4*offset+0]);
             //set_graph_yscale(i,id[1][4*offset+1]);
-            set_graph_world(i, w);
+            set_graph_world(kkk, w);
         }
         if (FormAxisProperties!=NULL)
         FormAxisProperties->update_ticks(get_cg());
@@ -3258,8 +3258,10 @@ DeleteColMapFromMemory(nr,table);
 memcpy((*table),cmap_table,sizeof(CMap_entry)*(*nr));
     for (int i=0;i<(*nr);i++)
     {
-    (*table)[i].cname=new char[2+strlen(cmap_table[i].cname)];
-    strcpy((*table)[i].cname,cmap_table[i].cname);
+    /*(*table)[i].cname=new char[2+strlen(cmap_table[i].cname)];
+    strcpy((*table)[i].cname,cmap_table[i].cname);*/
+    (*table)[i].cname=NULL;
+    copy_string((*table)[i].cname,cmap_table[i].cname);
     }
 }
 
@@ -3267,7 +3269,10 @@ void DeleteColMapFromMemory(int * nr,CMap_entry ** table)
 {
 if ((*table)==NULL) return;
     for (int i=0;i<(*nr);i++)
-    delete[] (*table)[i].cname;
+    {
+    //delete[] (*table)[i].cname;
+    copy_string((*table)[i].cname,NULL);
+    }
 delete[] (*table);
 (*nr)=0;
 (*table)=NULL;
@@ -3281,12 +3286,14 @@ SaveColMapToMemory(&saved_col_table_entries,&sav_col_table);
 void IntstallColorMap(int nr, CMap_entry* colors)
 {
 int number_of_new_cols=nr;
+char * old_cname;
 if (number_of_new_cols>MAXCOLORS) number_of_new_cols=MAXCOLORS;
 realloc_colors(number_of_new_cols);
 //copy color palette
 memcpy(cmap_table,colors,sizeof(CMap_entry)*number_of_new_cols);
     for (int i=0;i<number_of_new_cols;i++)
     {
+    cmap_table[i].cname=NULL;//has to be reset to NULL again, becaus the colors.cname has been copied into it
     cmap_table[i].cname = copy_string(cmap_table[i].cname, colors[i].cname);
     }
 //I copied the main entries, not the aux-entries ... It is expected, that 'colors' contains ALL colors (main + aux)
@@ -3305,7 +3312,7 @@ nn->origin[0]=saved_col_table_entries;
 nn->origin[1]=0;//will be stored below --> must be 0 here because of the auto-deleting
 nn->origin[2]=0;
 nn->origin[3]=0;
-    nn->Description=QObject::tr("Color map changed");
+nn->Description=QObject::tr("Color map changed");
 CMap_entry ** n_entries=new CMap_entry*[2];
 n_entries[0]=sav_col_table;
 sav_col_table=NULL;

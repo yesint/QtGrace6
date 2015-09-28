@@ -2670,7 +2670,12 @@ FileSelector::FileSelector(QWidget * parent):QWidget(parent)
     lblFilter=new QLabel(tr("Filter:"),this);
     lblDirs=new QLabel(tr("Directories:"),this);
     lblFiles=new QLabel(tr("Files:"),this);
-    ledFilter=new QLineEdit("",this);
+    //ledFilter=new QLineEdit("",this);
+    ledFilter=new stdLineEdit(this,tr(""));
+    ledFilter->lblText->setVisible(false);
+    ledFilter->layout->setMargin(0);
+    ledFilter->layout->setSpacing(0);
+    ledFilter->setAcceptDrops(true);
     DirList=new QListView(this);
     FileList=new QListView(this);
     modelDirs=new QDirModel();
@@ -2698,7 +2703,8 @@ FileSelector::FileSelector(QWidget * parent):QWidget(parent)
     connect(FileList,SIGNAL(doubleClicked(const QModelIndex &)),SLOT(FileDoubleClicked(const QModelIndex &)));
     connect(DirList,SIGNAL(clicked(const QModelIndex &)),SLOT(DirSelected(const QModelIndex &)));
     connect(DirList,SIGNAL(doubleClicked(const QModelIndex &)),SLOT(DirDoubleClicked(const QModelIndex &)));
-    connect(ledFilter,SIGNAL(returnPressed()),SLOT(newFilterEntered()));
+    //connect(ledFilter,SIGNAL(returnPressed()),SLOT(newFilterEntered()));
+    connect(ledFilter,SIGNAL(changed()),SLOT(newFilterEntered()));
     connect(chkShowHiddenFiles,SIGNAL(stateChanged(int)),SLOT(toggleHiddenFile(int)));
     connect(cmdSetCwd,SIGNAL(clicked()),SLOT(doSetCWD()));
     //connect(cmdGetCwd,SIGNAL(clicked()),SLOT(doGetCWD()));
