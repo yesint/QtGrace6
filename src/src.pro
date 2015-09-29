@@ -24,11 +24,11 @@ ICON = GraceIcon.icns
 !unix:RC_FILE = qtgrace.rc
 
 # Activate the following options if you have the static libraries for fftw3 and libHaru (otherwise dynamic libraries are to be used)
-DEFINES += USE_STATIC_EXT_LIB_FFTW3
-unix:LIBS += -lfftw3
+#DEFINES += USE_STATIC_EXT_LIB_FFTW3
+#unix:LIBS += -lfftw3
 #win32:LIBS += "C:\path\to\libfftw3.a"
-DEFINES += USE_STATIC_EXT_LIB_HARU
-unix:LIBS += -lhpdf
+#DEFINES += USE_STATIC_EXT_LIB_HARU
+#unix:LIBS += -lhpdf
 #win32:LIBS += "C:\path\to\libhpdfs.a"
 
 win32 {

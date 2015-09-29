@@ -1,16 +1,24 @@
-General Notes on Version 0.2.4:
+General Notes on Version 0.2.5:
 
-This release contains some major and minor bug-fixes. I also included several improvements:
-- the slider-values are now editable (click on the value, enter a new number and press enter)
-- a nonlinear fit can be done on one set as usual; if more then one source-set is selected the data of the different sets will silently be combined and the fit will be done on the combined sets (the combined set will not be visible, only the fit-result)
-- there has been a bug in the filter-dialog, which made the interpolation the only usable option in the point extension (it was possible to select something else, but internally always interpolation was used); I removed the bug and included an option to extend the points with the first and last point before the first point and after the last one
-- I included a new help-page especially for the extensions in QtGrace in comparison with Grace (I removed the respective entries in this readme) and I included a new example especially for data-filtering and edited some of the existing examples to better match the new window-layout and some of the new features. There is also a new example for the advanced scripting options
-- I extended the command-window in order to execute all commands with different set-ids and included special command for regression and filtering and some special operations (see the new help-page concerning the QtGrace-extension for any details)
-- I made the decimal separator selectable (',' or '.') throughout the whole Gui of QtGrace (internally '.' is used all the time) - please note, that this is now a strict setting: if you select ',' as separator you have to enter every number with ',' as separator as well and '.' is ignored.
-- I extended the support for non-ascii-character by improving the usage of QtFonts (activate it in Preferences->Extra); you also have to set the encoding for saving in the Extra-Preferences (UTF-8 recommended) - this feature is the most complicated in the internal processes and may still contain some bugs, so be watchfull and save early and often; there is obviously a limited compatibility with the original Grace if you use this feature (details: see new help-page)
-- some minor stuff I do not remember in every detail has been changed / improved (for example I included a bugfix from Grace 5.1.23 concerning the fit-results)
-
-(Just an excuse for not updating QtGrace earlier or not having included more new features: The compiler on my Windows7-system stopped working after a regular Windows update. I tried several different things to get it working again, but there still remains an error in some basic library concerning a typedef with a pointer which I do not understand. I spent more time trying unsuccessfully to resolve this problem than I spent actually doing improvements on QtGrace. This made me very frustrated! Furthermore I tried to update QtGrace for the use with Qt5. This did also not work as expected and especially on Windows I could not get it to work properly. Therefore I dropped the support for Qt5 for the moment, although QtGrace should be prepared for it. This whole procedure also cost me valueable time and made me frustrated and therefore I was not as motivated as before. With Qt5.1 it seems to be easier to compile QtGrace - but I have not tested this any further (it works on Mac OS X 10.9 but only using XCode and not QtCreator).)
+This release contains major and minor bug-fixes. I also included several improvements:
+- rework of the binary import (this makes it possible to import binary files by drag-and-drop), see in the Qt-Extensions-help-file for an explanation on how it works
+- additions to the regions-dialog (more possibilities to edit regions): the region-master: activate and deactivate regions, edit regions and edit the way how regions are displayed
+- additions to the commands-dialog to extend the scripting possibilities (linear regression, creating of new sets and graphs)
+- increased the number of fit-parameters to 20 and a dialog to edit the parameter values; please remember that all parameter a0-a19 are usable as general purpose variables during all calculations
+- redesign of the file-output-dialog, separation of file-output from physical printer, adding a quick-selection-options to set the resolution
+- added the possibility to use libHaru (for pdf-output) and libFFTW3 (for better fourier-transformation) - either as dlls or statically compileable into QtGrace
+- further extension of the preferences dialog (many things are now user-adjustable) - please use only where needed
+- file-import-selection-lines accept drag-and-drop now
+- dragging-and-dropping a Grace-project-file (agr) into the QtGrace-window now opens a separate dialog to let you either select to open the file or just extract single sets from the file
+- in data-set-operations there is now the possibility to restrict sets to regions and to swap columns of a set (like swap X- and Y-axis)
+- extension of the feature-extraction-dialog (more features like special value crossing settings)
+- project description now visible in the open-projects-dialog and can be edited in the plot-appearance-dialog; the open-project-dialog now also shows how many graphs and sets there are in a selected project file and you can open a dialog that lets you extract single sets from the file
+- apart from the time-stamp you can now add a file-path-stamp to the project
+- you also can change the global font-size by a multiplier in the plot-appearance dialog
+- further options for placing the legend-box (manual and automatic alignment with the graphs borders)
+- changed the apply-to-option for the axis-dialog (the apply-button only applies the settings to the current axis, there is now a separate button if you want to apply settings to different axis as well - just for safety)
+- addition of QLocalSocket-support for remote control (by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB), not working in Qt5.5 correctely at the moment - sorry
+- some minor stuff I do not remember in every detail has been changed / improved
 
 One further request (as always): If you find bugs or missing feature or if you have suggestions for improvements: Let me know immediately!
 Thank you!
@@ -28,15 +36,15 @@ In case you do not know already: Grace is a program to plot data and analyze it.
 Grace is based on xmgrace / xmgr and uses the motif-framework for the graphical user interface.
 The Grace-website is: http://plasma-gate.weizmann.ac.il/Grace/
 QtGrace is based on grace-5.1.22 but uses the Qt-framework (formerly by Nokia, now Open-Source) as a graphical user interface instead (Qt and their respective logos were formerly trademarks of the Nokia Corporation but are now Open-Source as far as I know).
-Although I have tested QtGrace for quite a while now there may still be some problems / bugs present. Therefore give it a try, but be sure to read the Grace documentation (and save often).
+Although I have tested QtGrace for quite a while now there may still be some problems / bugs present. Therefore give it a try, but be sure to read the Grace documentation (and save often) - and tell me when you find a bug so that I may remove it.
 
 I hope this will be useful to someone else as well (I like my Qt-version of Grace :-) ).
 
-My motivation: I had problems using Grace on different operating systems. Since I had written some applications using the Qt-framework (which can be found on http://qt-project.org/) I decided to modify the latest stable version of Grace (5.1.22) and replace all dialogs by equally looking Qt-replacements. I wanted to conserve the "look and feel" of Grace 5.1.22 because I wanted all Grace-users to be able to work with QtGrace immediately without having to adjust their workflow.
+My motivation: I had problems using Grace on different operating systems. Since I had written some applications using the Qt-framework (which can be found on http://www.qt.io/) I decided to modify the latest stable version of Grace (5.1.22) and replace all dialogs by equally looking Qt-replacements. I wanted to conserve the "look and feel" of Grace 5.1.22 because I wanted all Grace-users to be able to work with QtGrace immediately without having to adjust their workflow.
 
 I altered most of the source-files and therefore changes in Grace have to be implemented manually. Since there seems to be no major development around Grace-5.1.22 I believe that this approach is acceptable for now. All development on Grace seems to be focused on version 6 (or 5.99) which has a fundamentally different internal architecture. QtGrace is not compatible with Grace 5.99. There are other implementations of Grace 5.99 with newer graphic-libraries (like Qt and GTK) - just do a websearch if you want these.
 
-This version 0.2.4 of QtGrace is capable of nearly all of the operations Grace 5.1.22 is able to do. Some minor functions are missing or work only on some platforms (see below). I have inserted a few extra functions I found helpful (see help-page on QtGrace-Extensions). There are a few minor known problems (see below).
+This version 0.2.5 of QtGrace is capable of nearly all of the operations Grace 5.1.22 is able to do. Some minor functions are missing or work only on some platforms (see below). I have inserted a few extra functions I found helpful (see help-page on QtGrace-Extensions). There are a few minor known problems (see below).
 
 The internal procedures are the ones from Grace 5.1.22 (internal data management, calculations and so on). I have only recreated the user interface in Qt which makes it possible to compile QtGrace natively (!) on Windows, Mac OS X and Linux. You can load your old Grace-project files (usual extension: '.agr'). With Qt it is also possible to easily translate the user interface and make the language of the interface selectable (I have made an attempt for a test-translation to German. The file is included but very far (!!) from being complete. If there is someone out there willing to complete the german translation or generate a translation to any other language feel free to do so using the "Linguist" program included in the Qt-installation. If you send me the translation I will include it into the downloadable zip-file.).
 
@@ -53,7 +61,7 @@ Andreas Winter (andwin)
 
 Copyright and License-Terms:
 
-Copyright (C) 2008-2013 by Andreas Winter
+Copyright (C) 2008-2015 by Andreas Winter
 andreas.f.winter@web.de
 
 This program is free software; you can redistribute it and/or modify
@@ -74,36 +82,35 @@ Free Software Foundation, Inc.,
 
 How to build QtGrace:
 
-QtGrace is based on the Qt-Framework which has to be obtained via http://qt-project.org/.
-Please use at least version 4.6 (or newer; I am not sure about Qt5 or higher, it should work but I have not tested it extensively - sorry) of Qt to compile QtGrace!
-Please install the Qt-SDK which includes the Qt-Creator IDE. If you are an experienced developer, you may also be able to compile QtGrace without the Qt-Creator, but I will not describe how to do so here. (On Mac OS X 10.9 with Qt5.1 you may have to use XCode 5 or you will have no debugger. In order to do so you have to generate a XCode-project file using qmake - see help-pages of Qt.)
+QtGrace is based on the Qt-Framework which has to be obtained via http://www.qt.io/.
+Please use at least version 4.6 of Qt to compile QtGrace (Qt5.5 or higher, should work also, please do not use 5.0 because it seems problematic)!
+Please install the Qt-SDK which includes the Qt-Creator IDE. If you are an experienced developer, you may also be able to compile QtGrace without the Qt-Creator, but I will not describe how to do so here.
 Since you have extracted this folder you may notice, that there are some sub-folders. It is important for QtGrace to keep the structure of this folder in order to find some files at runtime. I have also included the original source-code-zip-file from grace-5.1.22 as a tar-archive. You will not have to extract it. This is included just for completeness and for developers use in case someone needs it. 
 I assume in the following part, that you have installed Qt and you have got a fully functional Qt-Creator. 
 To compile QtGrace: 
-First step: Open Qt-Creator and do File->"Open File or Project..." (you may have to specify the file format as "Qt Project file (*.pro)"). Select the file "src.pro" in the 'src'-sub-folder. On the left hand side of the IDE-window you should now be able to see all source-files that are part of QtGrace.
-Second step: At the left hand side of the Qt-Creator-window you find some icons. Click on the "Projects"-icon and make sure a suitable path for the Qt-Installation is set at the general section. (You may have to consult the Qt-Manual on some systems on how to do so correctly. Especially in newer versions of QtCreator you have to prepare the compiler settings in a special way, so please consult the Qt-documentation.) You have two options now: either set the build-path in the general build settings to the 'bin'-subfolder or remember the build path that has been set automatically and copy the executable after the compilation to the 'bin'-subfolder. You will also have to set the destination of the executable to be executed from within Qt Creator in the settings in order to run QtGrace after the compilation from within Qt Creator.
+First step: Open Qt-Creator and do File->"Open File or Project..." (you may have to specify the file format as "Qt Project file (*.pro)"). Select the file "src.pro" in the 'src'-sub-folder. On the left hand side of the IDE-window you should now be able to see all source-files that are part of QtGrace. (On newer version of QtCreator you may be asked to specify the target to compile QtGrace for - use the 'Desktop'-version in this case.)
+Second step: At the left hand side of the Qt-Creator-window you find some icons. Click on the "Projects"-icon and make sure a suitable path for the Qt-Installation is set at the general section. (You may have to consult the Qt-Manual on some systems on how to do so correctly. Especially in newer versions of QtCreator you have to prepare the compiler settings in a special way, so please consult the Qt-documentation.) You have two options now: either set the build-path in the general build settings to the 'bin'-subfolder or remember the build path that has been set automatically and copy the executable after the compilation to the 'bin'-subfolder. You will also have to set the destination of the executable to be executed from within Qt Creator in the settings in order to run QtGrace after the compilation from within Qt Creator. On newer version of the QtCreator you have to manage the different kits.
 Third step: Click the 'Edit'-icon on the left side. Click on the 'Build All'-Icon (the one with the hammer in the left hand lower corner). This will initiate the process of compilation and may take a while. You may also see a few thousand warnings which can be ignored (hopefully) but there should be no errors (if you get errors, report them to me and I will provide information on how to solve this problem). (Special platform specific notes: see below)
 Fourth step: Everything has been compiled now and you should be able to start QtGrace. Either you double-click on the qtgrace icon (or qtgrace.exe) in the bin-folder or you set the execution path in the project settings to this file and run it from within the Qt Creator.
 Done! 
 
 On Windows:
-You have to set the path to the Qt-dlls in your PATH-variable or copy the dlls to the bin-folder (look for 'QtCore4.dll' and use the path thereof). Otherwise you can only run qtgrace from within the QtCreator. (You need the following dlls: QtCore4.dll, QtGui4.dll, QtNetwork4.dll, mingwm10.dll, libgcc_s_dw2-1.dll; The path where they can be found is usually something like 'C:\Qt\2010.05\qt\bin\' or 'C:\Qt\4.8.3\bin\'.)
+You have to set the path to the Qt-dlls in your PATH-variable or copy the dlls to the bin-folder (if you have a complete Qt-installation you can run the 'windeployqt'-tool -- see the Qt-documentation for how to do so)
 
 On Linux:
 If you continue getting messages like: invalid viewport coordinates --> please contact me.
 
 On Mac OS X:
-Executables are organized as disguised folders on such systems. Therefore after compilation in order to work in a MacOS-way you have to open the package-contents of qtgrace (right-click on qtgrace in the 'bin'-folder and select 'show package contents'). Then go to 'Contents'. Copy the contents of the original unzipped folder except the 'bin'-subfolder and the grace-5.1.22.tar.gz into this 'Contents-folder'. Copy the contents (except 'qtgrace') of the 'bin'-subfolder into the 'MacOS'-folder. Now you should be able to execute qtgrace by clicking on qtgrace in the 'bin'-subfolder. It should also be possible to move/copy qtGrace in every folder you like just like any other MacOS-application (put it for example in your Applications-folder). 
+Executables are organized as disguised folders on such systems. Therefore after compilation in order to work in a MacOS-way you have to open the package-contents of qtgrace (right-click on qtgrace in the 'bin'-folder and select 'show package contents'). Then go to 'Contents'. Copy the contents of the original unzipped folder except the 'bin'-subfolder and the grace-5.1.22.tar.gz into this 'Contents-folder'. Copy the contents (except 'qtgrace') of the 'bin'-subfolder into the 'MacOS'-folder. Now you should be able to execute qtgrace by clicking on qtgrace in the 'bin'-subfolder. It should also be possible to move/copy qtGrace in every folder you like just like any other MacOS-application (put it for example in your Applications-folder). There is also a deployment-tool: 'macdeployqt' (see Qt-documentation).
 
 
 Known Problems:
 
-- Printing directly to a printer via the native printer-dialog is possible but I have not tested it extensively (but it seem to work in an acceptable way). Most settings are not mirrored in the native dialog. Direct printing without the native printer-dialog is only possible on systems that support the 'lpr' printing command (or any other printer-command like 'kprinter' on some linux-systems) and accept postscript files (i.e. a system command like 'lpr file.ps' will actually print the contents of 'file.ps' on the standard-(line)-printer). Printing to files is always possible. You have to physically print the file-contents via a different/external program (like OpenOffice). You may also copy the whole page in the clipboard via View->PageSetup and paste it into your external program. Printing on Mac-system without a physical printer present can be tricky if you use Qt5 - sorry (previously the pdf-option was always accessable)
+- Printing directly to a printer via the native printer-dialog is possible but I have not tested it extensively (but it seem to work in an acceptable way). Most settings are not mirrored in the native dialog. Direct printing without the native printer-dialog is only possible on systems that support the 'lpr' printing command (or any other printer-command like 'kprinter' on some linux-systems) and accept postscript files (i.e. a system command like 'lpr file.ps' will actually print the contents of 'file.ps' on the standard-(line)-printer). Printing to files is always possible. You have to physically print the file-contents via a different/external program (like OpenOffice/LibreOffice). You may also copy the whole page in the clipboard via View->PageSetup and paste it into your external program. Printing on Mac-system without a physical printer present can be tricky if you use Qt5 - sorry (previously the pdf-option was always accessable)
 - On some Linux-systems the scrollbars are not displayed correctly but they still stay usable (I don't know why, yet. Seems to be a Qt-problem...; I also don't know whether this bug is still present, since I have not seen it in a while).
-- On Windows systems the usage of the internal html-viewer for help-files has been disabled (the option is present, but internally discarded). I had to do this, because the webkit- and phonon-packages of Qt don't seem to work together on Windows. (For developers who want to give it a try: remove the preprocess directives in 'replacement_main.cpp' at lines 1736, 1739, 1741 and 1750.) This may also be true for some Linux-systems (In this case remove everything between the directives mentioned).
 - Pipes not working on Windows.
-- The switching between Grace-fonts and QtFonts is not adviceable. It is possible in most cases, but especially for the Symbol-font problems are to be expected - sorry. This has several reasons especially with the ordering of characters in the T1-Symbol-font in Grace and UTF-8-fonts. At the moment I do not know how to solve this problem.
-- Loading files (especially old ones) relies heavily on the encoding setting in the Extra-Preferences-dialog. For loading example-files it is often adviceable to use the Latin1-encoding (or something similar). Newer file should contain the encoding used during saving and should be loadable without problems.
+- The switching between Grace-fonts and QtFonts is not adviceable. It is possible in most cases, but especially for the Symbol-font problems are to be expected - sorry. This has several reasons especially with the ordering of characters in the T1-Symbol-font in Grace and UTF-8-fonts. At the moment I do not know how to solve this problem. I made an attempt by making the symbol-font special (a separate setting in the preferences).
+- Loading files (especially old ones) relies heavily on the encoding setting in the Extra-Preferences-dialog. For loading example-files it is often adviceable to use the Latin1-encoding (or something similar). Newer files should contain the encoding used during saving and should be loadable without problems.
 
 
 Things that work in Grace, but not in qtGrace:
@@ -140,9 +147,10 @@ v0.1.8		bug fixes; several improvements; addition of color management; filling t
 v0.1.9		bug fixes(some severe ones); transparency added for printing in files; spread-sheet editor rewritten
 v0.2		Page-zoom, selecting multiple graphs for zooming, reactivating pipes (non-Windows-systems)
 v0.2.1		Support for csv-import
-v0.2.2		'-free' option and 'immediate update' reactivated, experimental support for non-latin-characters and different fonts;support for multiple files in binary import and the use of a trigger channel ; bug fixes
+v0.2.2		'-free' option and 'immediate update' reactivated, experimental support for non-latin-characters and different fonts; support for multiple files in binary import and the use of a trigger channel ; bug fixes
 v0.2.3		minor bugfixes; print-command saved in preferences; selection of odd or even set-ids; addition of fit-button for page-zoom-slider; minor changes to improve UTF-8-support in file-paths
 v0.2.4		several bugfixes (major and minor); further improvement in UTF-8-support (very extensive internal changes); made decimal-separator selectable throughout the whole QtGrace-Gui; improvement in the script-generation (execution of scripts with automatically replaced set-ids); slider-value made editable; QtGrace-help-page; QtGrace-examples
+v0.2.5		rework of the binary import (incl. drag-and-drop); addition of regions-master-dialog; additions to the commands-dialog to extend the scripting possibilities; increased the number of fit-parameters to 20; redesign of the output-dialog, separation of file-output from physical printer, adding a quick-selection-options to set the resolution; added the possibility to use libHaru (for pdf-output) and libFFTW3 (for better fourier-transformation); further extension of the preferences dialog (many things are now user-adjustable); drag-and-drop for file-import-selection-lines; more comfortable dragging-and-dropping of Grace-project-files (agr); separate dialog to let you extract single sets from an agr-file; restrict sets to regions and swap columns of a set (like swap X- and Y-axis); extension of the feature-extraction-dialog (more features); project description now visible in the open-projects-dialog and editable in the plot-appearance-dialog; addition of a file-path-stamp to the project; global font-size-multiplier; further options for placing the legend-box (manual and automatic alignment with the graphs borders); changed the apply-to-option for the axis-dialog; addition of QLocalSocket-support for remote control (by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB); bug-fixes
 
 Have fun using QtGrace!
 

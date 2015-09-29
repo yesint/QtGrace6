@@ -1655,11 +1655,14 @@ pr1->setOutputFileName(QString("/Users/andreaswinter/test_pdf_out_b.pdf"));
 textDoc->print(pr1);
 */
 
+/*
 #if QT_VERSION >= 0x050000
 QPdfWriter * writer=new QPdfWriter("D:\\PdfWriterTest.pdf");
 QMessageBox::information(0,QString("filename="),QString("D:\\PdfWriterTest.pdf"));
 //writer->setPageLayout(QPageLayout::Portrait);
+#if QT_VERSION >= 0x050300
 writer->setResolution(300);
+#endif
 writer->setPageSizeMM(QSizeF(120.0,290.0));
 writer->newPage();
 
@@ -1675,6 +1678,7 @@ paint->end();
 delete paint;
 delete writer;
 #endif
+*/
 }
 
 void test_write_svg(void)

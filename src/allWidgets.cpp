@@ -13581,7 +13581,7 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     layout0=new QVBoxLayout();
     layout0->setMargin(STD_MARGIN);
     layout0->setSpacing(STD_SPACING);
-    lblInfo[index]=new QLabel(QString(bi_version_string())+QString(" / QtGrace v0.2.5 (beta)"),grpGrace);
+    lblInfo[index]=new QLabel(QString(bi_version_string())+QString(" / QtGrace v0.2.5"),grpGrace);
     layout0->addWidget(lblInfo[index++]);
 #ifdef DEBUG
     lblInfo[index]=new QLabel(tr("Debugging is enabled"),grpGrace);
