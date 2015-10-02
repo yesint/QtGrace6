@@ -2707,7 +2707,7 @@ stdFontMetrics=new QFontMetrics(*stdFont);
     //Here setup socket connection.
     if (enableServerMode)
     {
-        mainWin->SocketConnection = new LocalSocketIpcServer(sendToBeast,readFromBeast,mainWin);
+        mainWin->SocketConnection = new QtGraceTcpServer(sendToBeast,readFromBeast,mainWin);
     }
     else// if (enableServerMode )
     {

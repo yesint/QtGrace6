@@ -22,8 +22,6 @@
 
 #endif // SERVER_H
 
-#include <QtNetwork/QLocalServer>
-#include <QtNetwork/QLocalSocket>
 #include <stdlib.h>
 #include <stdio.h>
 #include "globals.h"
@@ -39,7 +37,7 @@
 #include <sys/stat.h>
 #include <QFile>
 #include <QTextStream>
-
+#include <QTcpSocket>
 #include "graphutils.h"
 #include "files.h"
 #include "ssdata.h"
@@ -99,14 +97,16 @@ enum readCommands{
     READ_PLOT_SETTINGS_2_FROM_CLIENT
 };
 
+QT_BEGIN_NAMESPACE
+class QTcpServer;
+QT_END_NAMESPACE
 
-
-class LocalSocketIpcServer: public QObject
+class QtGraceTcpServer: public QObject
 {
     Q_OBJECT
 public:
-    LocalSocketIpcServer(QString receiveClientSocketName, QString sendServerSocketName, QObject *parent);
-    ~LocalSocketIpcServer();
+    QtGraceTcpServer(QString readTcpPort, QString sendServerSocketName, QObject *parent);
+    ~QtGraceTcpServer();
 
 
     void getCommandFromClient(int commandFromsocket);
@@ -124,13 +124,10 @@ private slots:
     //! Send data from QtGrace to client
     void    sendDataToClient();
     //! Check if socket is disconnected (for debug)
-    void    socketDisconnected();
     //! Check if socket is ready to be read from (for debug)
-    void    socketReadReady();
-    //! Returns any socket errors (for debug)
-    void    socketError(QLocalSocket::LocalSocketError);
 
-    void    createNewSocketConnection();
+    //! Returns any socket errors (for debug)
+    void    socketError(QAbstractSocket::SocketError);
 
 private:
     //! Read .ps filename from socket and set the QtGrace document name.
@@ -214,21 +211,59 @@ private:
     QBuffer             buffer_m;
     //! Number of bytes available on the socket
     qint64              availableBytesFromSocket_m;
-    //! New local server to read data from client
-    QLocalServer*       messageFromClienttPtr_m;
-    //! New local socket to send data to client
-    QLocalSocket*       messageToServerPtr_;
-    //! Name on the server (used to estabilish communication between Client and QtGrace
-    QString             sendServerSocketName_m;
+      //! Name on the server (used to estabilish communication between Client and QtGrace
+    QString             sendTcpPort_m;
     //! Name on the client (used to estabilish communication between Server and QtGrace
-    QString             receiveClientSocketName_m;
+    QString             readTcpPort_m;
     //! Save the numbers of data sets
     QList<int>          saveCountNoOfDataSets_m;
 
-    QLocalSocket *clientConnection;
     QByteArray dataFromSocket;
 
+protected:
+    void sendData(const char *data, int bytesToSend);
+    void readData(QTcpSocket *readConnection);
 
+protected slots:
+    void talkToClient();
+
+private slots:
+
+    void initReadServer();
+    void initWriteServer();
+    void dataWritten(qint64 iData);
+
+    void writeSocketDisconnected();    
+    void readSocketDisconnected();
+
+    void writeSocketConnected();
+
+    void readSocketConnected();
+
+private:
+
+    //! New TCP server to read data from client
+    QTcpServer *readServer;
+
+    //! New TCP socket to send data to client
+    QTcpServer *writeServer;
+
+
+    QTcpSocket *writeConnection;
+    QStringList fortunes;
+
+    enum ComMode {
+        initComm,
+        endComm,
+        readDataComm,
+        sendDataCom,
+        dataSizeComm
+    };
+
+    ComMode comMode;
+    int remainingDataSize;
+int sendPlotData;
+    void writeToDebugFile(QString message);
 };
 
 

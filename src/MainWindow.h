@@ -150,7 +150,7 @@ public:
     QAction *actHistory[MAX_HISTORY],*actClearHistory;
 
     QTimer * rtiTimer;//for monitoring real time input
-    LocalSocketIpcServer *SocketConnection;
+    QtGraceTcpServer *SocketConnection;
 
     MainArea * mainArea;
 
