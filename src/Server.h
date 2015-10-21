@@ -41,6 +41,8 @@
 #include "graphutils.h"
 #include "files.h"
 #include "ssdata.h"
+#include <strstream>
+
 #define MAXERR 5
 /*
  * number of rows to allocate for each call to realloc
@@ -116,11 +118,7 @@ public:
 private slots:
 
     //! Create a unique file name
-    const char *createUniqueFileName();
-    //! Read data from socket (client) and process the data.
-    void    readFromClient();
-    //! Connect to client to send data from QtGrace
-    void    ConnectToClient(const char* sendParam, int sendLen);
+    const char *createUniqueFileName(); 
     //! Send data from QtGrace to client
     void    sendDataToClient();
     //! Check if socket is disconnected (for debug)
@@ -141,13 +139,15 @@ private:
     //! Send graph data to client (for PD files)
     void    sendParam();
     //! Copy data from socket received from client
-    char*   copyDataFromSocket(int availableBytes, char* dataFromSocket);
+    char*   copyDataFromSocket(int availableBytes, char* dataFromSocket_m);
     //! Read graph data and plot settings from client
-    void    readDataFromSocket(char *dataFromSocket, int availableBytes, readCommands readMode);
+    void    readDataFromSocket(char *dataFromSocket_m, int availableBytes, readCommands readMode);
     //! Save the data read from the socket
     void    saveDataFromSocket(int numberOfRead);
     //! Read and clean x and y plot data
     void    readXYData(char* xData, char* yData);
+    //! Read data from socket (client) and process the data.
+    void    readFromClient(std::istrstream *dataFromClient);
 
 private:
     //! To enable debug
@@ -210,7 +210,7 @@ private:
     //! The buffer is then loaded to QtGrace
     QBuffer             buffer_m;
     //! Number of bytes available on the socket
-    qint64              availableBytesFromSocket_m;
+    qint64              bytesNeededFromSocket_m;
       //! Name on the server (used to estabilish communication between Client and QtGrace
     QString             sendTcpPort_m;
     //! Name on the client (used to estabilish communication between Server and QtGrace
@@ -218,7 +218,8 @@ private:
     //! Save the numbers of data sets
     QList<int>          saveCountNoOfDataSets_m;
 
-    QByteArray dataFromSocket;
+
+    QByteArray dataFromSocket_m;
 
 protected:
     void sendData(const char *data, int bytesToSend);
@@ -250,7 +251,6 @@ private:
 
 
     QTcpSocket *writeConnection;
-    QStringList fortunes;
 
     enum ComMode {
         initComm,
@@ -263,7 +263,8 @@ private:
     ComMode comMode;
     int remainingDataSize;
 int sendPlotData;
-    void writeToDebugFile(QString message);
+void writeToDebugFile(QString message);
+void handleDataFromViewBeast();
 };
 
 

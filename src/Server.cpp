@@ -71,21 +71,26 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     ,rows_m(0)
     ,qtGraceDocStrName_m("Untitled")
     ,dataFromBuffer_m(" ")
-    ,availableBytesFromSocket_m(0)
-    ,sendTcpPort_m(sendTcpPort)
-    ,readTcpPort_m(readTcpPort)
+    ,bytesNeededFromSocket_m(0)
+    ,sendTcpPort_m("4000")
+    ,readTcpPort_m("3000")
     ,readServer(0)
     ,writeServer(0)
     ,writeConnection(0)
     ,comMode(endComm)
     ,remainingDataSize(0)
     ,sendPlotData(0)
+    ,dataFromSocket_m(0)
 
 {
     if(getenv("QTGRACEDEBUG")) {
         cout<<"QTGRACEDEBUG flag detected and writes to QTGRACEDEBUG.txt\n";
         isDebugFlagOn_m = true;
     }
+
+
+    std::cerr << "Server: write " << sendTcpPort_m.toStdString() << std::endl;
+    std::cerr << "Server: read " << readTcpPort_m.toStdString() << std::endl;
 
     if(isDebugFlagOn_m){
         debugFile_m = new QFile("QTGRACEDEBUG.txt");
@@ -103,7 +108,6 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
         saveCountNoOfDataSets_m.append(0);
     }
 
-    //! [0] //! [1]
     readServer = new QTcpServer(this);
     if (!readServer->listen( QHostAddress("127.0.0.1"),readTcpPort_m.toInt())) {//Listen on LocalHost
         writeToDebugFile("Unable to start the read server: "+ readServer->errorString());
@@ -121,18 +125,7 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     }
 
     writeToDebugFile("The server is running on: (" + QString::number(readServer->serverPort()) + "," + QString::number(writeServer->serverPort()) + ")");
-    std::cerr << "The server is running on " <<readServer->serverPort()<< "," << writeServer->serverPort()<<"\n" << std::endl;
-
-
-
-    //! [2]
-    fortunes << tr("You've been leading a dog's life. Stay off the furniture.")
-             << tr("You've got to think about tomorrow.")
-             << tr("You will be surprised by a loud noise.")
-             << tr("You will feel hungry again in another hour.")
-             << tr("You might have mail.")
-             << tr("You cannot kill time without injuring eternity.")
-             << tr("Computers are not intelligent. They only think they are.");
+   // std::cerr << "The server is running on " <<readServer->serverPort()<< "," << writeServer->serverPort()<<"\n" << std::endl;
 
     //Read and write from/to Client
     connect(readServer, SIGNAL(newConnection()), this, SLOT(initReadServer()));
@@ -158,7 +151,7 @@ void QtGraceTcpServer::initReadServer()
     connect(clientConnection, SIGNAL(readyRead()), this, SLOT(talkToClient()));
     connect(clientConnection, SIGNAL(disconnected()), this, SLOT(readSocketDisconnected()));
     connect(clientConnection, SIGNAL(connected()), this, SLOT(readSocketConnected()));
-    //std::cerr << "Read Server: connected" << std::endl;
+    std::cerr << "Read Server: connected" << std::endl;
 
 }
 
@@ -173,7 +166,7 @@ void QtGraceTcpServer::initWriteServer()
     connect(writeConnection, SIGNAL(connected()), this, SLOT(writeSocketConnected()));
     connect(writeConnection, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(socketError(QAbstractSocket::SocketError)));
 
-    //std::cerr << "Write Server: connected" << std::endl;
+    std::cerr << "Write Server: connected" << std::endl;
 
 }
 
@@ -183,11 +176,11 @@ void QtGraceTcpServer::talkToClient()
     QTcpSocket *readConnection = dynamic_cast<QTcpSocket*>(sender());
     assert(readConnection);
 
-    //std::cerr << "Read Server: read data" << std::endl;
+    std::cerr << "Read Server: read data" << std::endl;
 
     do {
         if(comMode != readDataComm){
-            //std::cerr << "Server: going to read command" << std::endl;
+            std::cerr << "Server: going to read command" << std::endl;
             int rc = readConnection->read(reinterpret_cast<char*>(&comMode), sizeof(comMode));
             assert(rc == sizeof(comMode));
 
@@ -210,14 +203,13 @@ void QtGraceTcpServer::talkToClient()
 
             if( sendPlotData <= 3 ){
                 // Send next data packet
-                std::cerr << "sendPlotData: " << QString::number(sendPlotData).toStdString() << std::endl;
+                //std::cerr << "sendPlotData: " << QString::number(sendPlotData).toStdString() << std::endl;
 
                 emit sendParam();
             }
             else {
-                // We are done, we reset the button and the data counter.
-                std::cerr << "sendPlotData reset : " << QString::number(sendPlotData).toStdString() << std::endl;
-
+                // We are done, we reset the the data counter.
+                // std::cerr << "sendPlotData reset : " << QString::number(sendPlotData).toStdString() << std::endl;
                 sendPlotData = 0;
                 emit sendParam();
             }
@@ -240,12 +232,6 @@ void QtGraceTcpServer::sendData(const char* data, int bytesToSend)
     comMode = sendDataCom;
     int rc = writeConnection->write(reinterpret_cast<char*>(&comMode), sizeof(comMode));
     assert(rc == sizeof(comMode));
-
-    //int bytesToSend = 94321;
-    //char* data = new char[bytesToSend];
-
-    // Not really important, but we fill that array to 0x01 in order to check the content if needed.
-   // memset(data, 0x02, bytesToSend);
 
     //std::cerr << "Server: " << " going to send packet with " << bytesToSend << " bytes" << std::endl;
 
@@ -283,37 +269,34 @@ void QtGraceTcpServer::readData(QTcpSocket *readConnection)
     // If remaining data size is 0 then we need to read total data size from the client.
     if( remainingDataSize == 0 ){
         rc = readConnection->read(reinterpret_cast<char*>(&bytesToRead), sizeof(int));
-        assert(rc == sizeof(int));
-        assert(bytesToRead>0 && bytesToRead<100000);
     }
 
-    dataFromSocket.clear();
     char* data = new char[bytesToRead];
 
-    //std::cerr << "Server: " << " going to read packet with " << bytesToRead << " bytes" << std::endl;
+    std::cerr << "Server: " << " going to read packet with " << bytesToRead << " bytes" << std::endl;
 
     int bytesRead = 0;
 
     while(bytesToRead > 0 && readConnection->bytesAvailable() > 0){
         int packetSize = readConnection->read(&data[bytesRead], bytesToRead);
         assert(packetSize >= 0 && packetSize <= bytesToRead);
-        //std::cerr << "Server: " << " read packet with " << packetSize << " bytes" << std::endl;
-        dataFromSocket.append(data,packetSize);
+        std::cerr << "Server: " << " read packet with " << packetSize << " bytes" << std::endl;
+        dataFromSocket_m.append(data,packetSize);
 
         bytesRead += packetSize;
         bytesToRead -= packetSize;
     }
 
-    //std::cerr << "Client: read data packet " << std::endl;
+    std::cerr << "Client: read data packet " << std::endl;
 
 
     delete [] data;
 
     if( bytesToRead == 0){
-        //  std::cerr << "Server: done sending, send end command\n" << std::endl;
+        std::cerr << "Server: done sending, send end command\n" << std::endl;
         //  std::cerr << dataFromSocket.toStdString() << std::endl;
-        countNoOfRead_m++;
-        emit readFromClient();
+        handleDataFromViewBeast();
+        dataFromSocket_m.clear();
         comMode = endComm;
         rc = writeConnection->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
         assert(rc == sizeof(ComMode));
@@ -325,37 +308,10 @@ void QtGraceTcpServer::readData(QTcpSocket *readConnection)
     remainingDataSize = bytesToRead;
 }
 
-void QtGraceTcpServer::ConnectToClient( const char* sendParam, int sendLen) {
-    if(isDebugFlagOn_m){
-        *debugOut_m<< "2) Connect to Server\n"+sendTcpPort_m;
-        *debugOut_m<< "sendParam as int="<< *(int*)(sendParam)<<"\n";
-        debugOut_m->flush();
-    }
-
-
-    //Wait to write to QLocalSocket buffer until previous data has been analysed by client and sends a disconnect signal.
-    /*while(messageToServerPtr_->state()==QLocalSocket::ConnectedState)
-    {
-        if(!messageToServerPtr_->waitForDisconnected(60000)){
-            //We don't want to wait for a disconnect signal from client forever.
-            QMessageBox::information(0,"Communication Error",messageToServerPtr_->errorString() + ". Try to restart QtGrace");
-            exit(0);
-        }
-
-    }
-
-    messageSendGraphParam_m = sendParam;
-    messageParamGraphLength_m = sendLen;
-    messageToServerPtr_->abort();
-    messageToServerPtr_->connectToServer(sendTcpPort_m);*/
-
-}
 
 QtGraceTcpServer::~QtGraceTcpServer() {
-    if(isDebugFlagOn_m){
-        *debugOut_m<<"Server deletion\n";
-        debugOut_m->flush();
-    }
+
+    writeToDebugFile("Server deletion\n");
 
     if(isDebugFlagOn_m){
         debugFile_m->close();
@@ -365,65 +321,67 @@ QtGraceTcpServer::~QtGraceTcpServer() {
 
 }
 
-void QtGraceTcpServer::readFromClient() {
+void QtGraceTcpServer::handleDataFromViewBeast(){
+
+    std::istrstream dataStreamFromSocket(dataFromSocket_m.data(),dataFromSocket_m.size());
+
+    //std::cerr <<  "dataFromSocket.size(): "<< dataFromSocket_m.size() << std::endl;
+
+    while((int)dataStreamFromSocket.tellg() < dataFromSocket_m.size()){
+        bytesNeededFromSocket_m = 0;
+        countNoOfRead_m++;
+        readFromClient(&dataStreamFromSocket);
+
+        //std::cerr << dataStreamFromSocket.tellg() << std::endl;
+    }
+}
+
+
+void QtGraceTcpServer::readFromClient( std::istrstream *dataFromClient) {
 
     conditionToExitFunction_m = 0;
 
     //Specifiy the amount of bytes to be read
 
-    int bytesNeeded;
     if(countNoOfRead_m==1 ||
             countNoOfRead_m==2 ||
             (command_m == SET_SCALING_MODE && countNoOfRead_m==3) ||
             command_m == SET_LAYOUT_MODE){
-        bytesNeeded=(int)sizeof(quint32);
-        availableBytesFromSocket_m = 0;
+        bytesNeededFromSocket_m=(int)sizeof(quint32);
+
     }else if (command_m==WRITE_DATAVEC){
-        bytesNeeded= dataLength_m*8;
-        availableBytesFromSocket_m = 0;
-    }else if(command_m == SET_SCALING_MODE && (mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY || mode_m==AUTOSCALE_X_AXIS_OR_OVERLAY)){
-        bytesNeeded=(int)sizeof(double);
-        availableBytesFromSocket_m = 0;
+        bytesNeededFromSocket_m= dataLength_m*8;
+
+    }else if(command_m == SET_SCALING_MODE &&
+             (mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY ||
+              mode_m==AUTOSCALE_X_AXIS_OR_OVERLAY)){
+        bytesNeededFromSocket_m=(int)sizeof(double);
+
     }else{
-
-        bytesNeeded= dataLength_m;
+        bytesNeededFromSocket_m= dataLength_m;
     }
 
-    availableBytesFromSocket_m = dataFromSocket.size();
+    // ensure that
+    // 0-terminated character strings
+    // come here correctly.
+    messagePtr_m=new char[bytesNeededFromSocket_m+1];
+    messagePtr_m[bytesNeededFromSocket_m]=0;
 
-    if(bytesNeeded==availableBytesFromSocket_m){
+    // Read all data from socket
+    dataFromClient->read(messagePtr_m,bytesNeededFromSocket_m);
+    // Save data from socket
+    saveDataFromSocket(countNoOfRead_m);
 
+    delete[] messagePtr_m;
 
-        messagePtr_m=new char[availableBytesFromSocket_m+1];
-
-        // ensure that
-        // 0-terminated character strings
-        // come here correctly.
-        messagePtr_m[availableBytesFromSocket_m]=0;
-
-        memcpy(messagePtr_m, dataFromSocket.data(),dataFromSocket.size());
-
-        if (dataFromSocket.size()==-1 ||bytesNeeded!=dataFromSocket.size() ) {
-            std::cerr << "readSocket() FAIL 2\n" << std::endl;
-            return;
-        }
-
-        // Read all data from socket
-
-        saveDataFromSocket(countNoOfRead_m);
-        delete[] messagePtr_m;
-
-        if (conditionToExitFunction_m) {
-            return;
-        }
-
-        //Execute task from client
-        writeToDebugFile("Executing command no :" +  QString::number(command_m) +"\n");
-        executeTaskFromClient();
-        writeToDebugFile("Command was performed :" +  QString::number(command_m) +"\n");
-
-        availableBytesFromSocket_m = 0;
+    if (conditionToExitFunction_m) {
+        return;
     }
+
+    //Execute task from client
+    writeToDebugFile("Executing command no :" +  QString::number(command_m) +"\n");
+    executeTaskFromClient();
+    writeToDebugFile("Command was performed :" +  QString::number(command_m) +"\n");
 
 }
 
@@ -434,7 +392,7 @@ void QtGraceTcpServer::executeTaskFromClient()
 
     case PLOT_INFO://Read PLOT_INFO(1)
     {
-        std::cerr << "Command was performed:  (PLOT_INFO)\n" << std::endl;
+        // std::cerr << "Command was performed:  (PLOT_INFO)\n" << std::endl;
 
         if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
@@ -449,7 +407,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     case WRITE_DATAVEC://WRITE_DATAVEC(2)
 
     {
-        std::cerr << "Command was performed:  (WRITE_DATAVEC)\n" << std::endl;
+        //std::cerr << "Command was performed:  (WRITE_DATAVEC)\n" << std::endl;
 
         if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
@@ -463,7 +421,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     case WRITE_DATAVEC_FINISHED:
 
     {
-        std::cerr << "Command was performed:  (WRITE_DATAVEC_FINISHED)\n" << std::endl;
+        //std::cerr << "Command was performed:  (WRITE_DATAVEC_FINISHED)\n" << std::endl;
 
         if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
@@ -479,7 +437,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     case READ_MODE:
 
     {
-        std::cerr << "Command was performed:  (READ_MODE)\n" << std::endl;
+        // std::cerr << "Command was performed:  (READ_MODE)\n" << std::endl;
 
         if(isDebugFlagOn_m){    *debugOut_m<<"Run Command" << command_m<<"\n";
             debugOut_m->flush();
@@ -490,7 +448,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
     case REDRAW:
     {
-        std::cerr << "Command was performed:  (REDRAW)\n" << std::endl;
+        // std::cerr << "Command was performed:  (REDRAW)\n" << std::endl;
 
         if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
@@ -539,7 +497,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
     case PS_FILENAME:
     {
-        std::cerr << "Command was performed:  (PS_FILENAME)\n" << std::endl;
+        // std::cerr << "Command was performed:  (PS_FILENAME)\n" << std::endl;
 
 
         if(isDebugFlagOn_m){
@@ -553,7 +511,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
     case SET_SCALING_MODE:
     {
-        std::cerr << "Command was performed:  (SET_SCALING_MODE)\n" << std::endl;
+        // std::cerr << "Command was performed:  (SET_SCALING_MODE)\n" << std::endl;
 
 
         if(isDebugFlagOn_m){
@@ -578,7 +536,7 @@ void QtGraceTcpServer::executeTaskFromClient()
 
     case REDRAW_AND_WRITEPS://REDRAW_AND_WRITEPS(7)
     {
-        std::cerr << "Command was performed:  (REDRAW_AND_WRITEPS)\n" << std::endl;
+        //std::cerr << "Command was performed:  (REDRAW_AND_WRITEPS)\n" << std::endl;
 
 
         if(isDebugFlagOn_m){
@@ -605,7 +563,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     case SET_LAYOUT_MODE:
     {
 
-        std::cerr << "Command was performed:  (SET_LAYOUT_MODE)\n" << std::endl;
+        //std::cerr << "Command was performed:  (SET_LAYOUT_MODE)\n" << std::endl;
 
         if(isDebugFlagOn_m){
             *debugOut_m<<"Run Command" << command_m<<"\n";
@@ -627,7 +585,7 @@ void QtGraceTcpServer::executeTaskFromClient()
 
     case KILL_CHILD:
     {
-        std::cerr << "Command was performed:  (KILL_CHILD)\n" << std::endl;
+        //std::cerr << "Command was performed:  (KILL_CHILD)\n" << std::endl;
 
 
         if(isDebugFlagOn_m){
@@ -649,7 +607,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
     case END_COMM:
     {
-        std::cerr << "Command was performed:  (END_COMM)\n" << std::endl;
+        //std::cerr << "Command was performed:  (END_COMM)\n" << std::endl;
 
 
         if(isDebugFlagOn_m){
@@ -673,7 +631,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
     case TEST_CONNECTION:
     {
-        std::cerr << "Command was performed:  (TEST_CONNECTION)\n" << std::endl;
+        // std::cerr << "Command was performed:  (TEST_CONNECTION)\n" << std::endl;
 
 
         if(isDebugFlagOn_m){
@@ -687,7 +645,7 @@ void QtGraceTcpServer::executeTaskFromClient()
     default:
     {
 
-        std::cerr << "Command was performed:  (default)\n" << std::endl;
+        //  std::cerr << "Command was performed:  (default)\n" << std::endl;
 
         if(isDebugFlagOn_m){
             *debugOut_m<<"INVALID COMMAND STOP" << command_m<<"\n";
@@ -878,7 +836,7 @@ void QtGraceTcpServer::saveDataFromSocket(int numberOfRead){
 
     case 1:
     {
-        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m,  START_READ);
+        readDataFromSocket(messagePtr_m,bytesNeededFromSocket_m,  START_READ);
 
         if(command_m == READ_MODE || command_m == REDRAW ||
                 command_m == REDRAW_AND_WRITEPS || command_m == KILL_CHILD ||
@@ -893,13 +851,13 @@ void QtGraceTcpServer::saveDataFromSocket(int numberOfRead){
     }
     case 2:
     {
-        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_DATALENGTH);
+        readDataFromSocket(messagePtr_m,bytesNeededFromSocket_m, READ_DATALENGTH);
         conditionToExitFunction_m = 1;
         break;
     }
     case 3:
     {
-        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_DATASET_1);
+        readDataFromSocket(messagePtr_m,bytesNeededFromSocket_m, READ_DATASET_1);
 
         if(isDebugFlagOn_m){
             *debugOut_m<< " Analysing(3) mode= "<< mode_m<<"\n" ;
@@ -916,7 +874,7 @@ void QtGraceTcpServer::saveDataFromSocket(int numberOfRead){
 
     case 4:
     {
-        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_PLOT_SETTINGS_1_FROM_CLIENT);
+        readDataFromSocket(messagePtr_m,bytesNeededFromSocket_m, READ_PLOT_SETTINGS_1_FROM_CLIENT);
 
         if(isDebugFlagOn_m){
             *debugOut_m<< " Analysing(4) mode= "<< mode_m<<"\n" ;
@@ -932,7 +890,7 @@ void QtGraceTcpServer::saveDataFromSocket(int numberOfRead){
     }
     case 5:
     {
-        readDataFromSocket(messagePtr_m,availableBytesFromSocket_m, READ_PLOT_SETTINGS_2_FROM_CLIENT);
+        readDataFromSocket(messagePtr_m,bytesNeededFromSocket_m, READ_PLOT_SETTINGS_2_FROM_CLIENT);
         break;
     }
 
@@ -1268,7 +1226,7 @@ void QtGraceTcpServer::sendParam(){
         emit sendData(( const char *)(&qtGraceDocStrNameLength),sizeof(int));
         break;
     case 1:
-         emit sendData(qtGraceDocStrName_m.data(),qtGraceDocStrNameLength);
+        emit sendData(qtGraceDocStrName_m.data(),qtGraceDocStrNameLength);
         break;
 
     case 2:
@@ -1326,26 +1284,36 @@ void QtGraceTcpServer::writeToDebugFile(QString message){
 
 void QtGraceTcpServer::writeSocketDisconnected()
 {
+    std::cerr << "Server: " << " write socket disconnected " << std::endl;
+
     writeToDebugFile("write socket disconnected");
 }
 
 void QtGraceTcpServer::readSocketDisconnected()
 {
+    std::cerr << "Server: " << " read socket disconnected " << std::endl;
+
     writeToDebugFile("read socket disconnected");
 }
 
 void QtGraceTcpServer::writeSocketConnected()
 {
+    std::cerr << "Server: " << " write socket connected " << std::endl;
+
     writeToDebugFile("write socket connected");
 }
 
 void QtGraceTcpServer::readSocketConnected()
 {
+    std::cerr << "Server: " << " read socket connected " << std::endl;
+
     writeToDebugFile("read socket connected");
 }
 
 void QtGraceTcpServer::dataWritten(qint64 iData)
 {
+    std::cerr << "Server: " << " data written: " << iData << std::endl;
+
     writeToDebugFile("data written: " + iData );
 }
 
