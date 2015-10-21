@@ -385,13 +385,14 @@ void init_color_icons(int nr_of_cols,CMap_entry * entries,int & allocated_colors
         templPainter.begin(&templIcon);
         templPainter.setPen(pen1);
         templPainter.setBrush(pen1.color());
-        /*strcpy(dummy,cmap_table[i].cname);
-QFontInfo fi(standardfont);
+//strcpy(dummy,cmap_table[i].cname);
+//QFontInfo fi(standardfont);
+        standardfont.setPixelSize(9);
+/*
 cout << "Text-Groesse zum Zeichnen(pixel)=" << standardfont.pixelSize() << endl;
 cout << "Text-Groesse zum Zeichnen(points)=" << standardfont.pointSize() << " | ";
 cout << "STANDARD IST 9" << endl;
-cout << "FontInfo(pixel, sollte 9 sein)=" << fi.pixelSize() << endl;*/
-        standardfont.setPixelSize(9);
+qDebug() << "FontInfo(pixel, sollte 9 sein)=" << fi.pixelSize() << " Name=" << entries[i].cname <<endl;*/
         templPainter.setFont(standardfont);
         templPainter.drawText(4,15,QString(entries[i].cname));//4,13
         templPainter.end();
@@ -412,8 +413,7 @@ void update_color_selectors(void)
         memcpy(local_cmap_table+i,cmap_table+real_colors[i],sizeof(CMap_entry));
         /*local_cmap_table[i].cname=new char[strlen(cmap_table[real_colors[i]].cname)+2];
         strcpy(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);*/
-        local_cmap_table[i].cname=NULL;
-        copy_string(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);
+        local_cmap_table[i].cname=copy_string(NULL,cmap_table[real_colors[i]].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);
     //Local colors are only main colors
@@ -1579,6 +1579,7 @@ void update_all(void)
 {
     static int gno;
     bool sav_imm_upd;
+//qDebug() << "Update All updateRunning=" << updateRunning << endl;
     if (updateRunning==true) return;
     sav_imm_upd=immediateUpdate;
     immediateUpdate=false;
@@ -1595,6 +1596,7 @@ void update_all(void)
     update_ss_editors(ALL_GRAPHS);
     if (ReqUpdateColorSel == TRUE)
     {
+        //qDebug() << "ReqUpdateColorSel=" << ReqUpdateColorSel << endl;
         update_color_selectors();
         ReqUpdateColorSel = FALSE;
     }

@@ -1611,12 +1611,13 @@ int load_project_file(char *fn, int as_n_template)
     int retval;
     bool old_dec_sep=exchange_point_comma;
     bool old_useQtFonts=useQtFonts;
-
+//qDebug() << "load project file=" << fn << endl;
     if (wipeout())
     {
         /*exchange_point_comma=old_dec_sep;
         reset_default_states();
         useQtFonts=old_useQtFonts;*/
+//qDebug() << "wipeout==False" << endl;
         return RETURN_FAILURE;//do not load!
     }
     else//really load a new file
@@ -1627,7 +1628,7 @@ int load_project_file(char *fn, int as_n_template)
         exchange_point_comma=false;
         timestamp.path=FALSE;
 
-    //cout << "BEFORE LOAD: FONT=" << grdefaults.font << endl;
+//qDebug() << "BEFORE LOAD: FONT=" << grdefaults.font << endl;
     tmp_defaults=grdefaults;//save the current defaults
     tmp_view=grview;
     strcpy(tmp_sformat,sformat);
@@ -1924,6 +1925,22 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
     return RETURN_SUCCESS;
 }
 
+int is_Gould_file(char * file)
+{
+QFileInfo fi(file);
+//cout << "GOULD suffix#" << fi.suffix().toLatin1().constData() << "#" << endl;
+if (fi.suffix().compare("DAT",Qt::CaseInsensitive)!=0) return FALSE;
+FILE * ifi;
+char dummy[4];
+dummy[4]='\0';
+ifi=fopen(file,"r");
+        for (int i=0;i<3;i++) dummy[i]=(char)fgetc(ifi);
+fclose(ifi);
+//cout << "GOULD suffix#" << dummy << "#" << endl;
+if (dummy[0]=='|' && dummy[1]=='C' && dummy[2]=='F') return TRUE;
+else return FALSE;
+}
+
 int is_agr_file(char * file)
 {
 ifstream ifi;
@@ -1950,7 +1967,7 @@ if (file==NULL) return false;
     if (*header_name!=NULL) delete[] header_name;
     *header_name=new char[strlen(file)+8];
     strcpy(*header_name,file);
-    char dummy[128],dummy2[128],dummy3[256];
+    char dummy[128],dummy2[128],dummy3[1024];
 QFileInfo finfo(*header_name);
 QString dat_suffix("dat");
 ifstream ifi;
@@ -1985,6 +2002,13 @@ strcpy(*header_name,new_header_file.toLocal8Bit().constData());
     //else: dat-suffix, but no diadem-header
 }
 return false;
+}
+
+int is_csv_file(char * file)
+{
+QFileInfo fi(file);
+if (fi.suffix().compare("CSV",Qt::CaseInsensitive)!=0) return FALSE;
+else return TRUE;
 }
 
 int read_one_line_from_diadem_header(ifstream & ifi,int & number,char * text)

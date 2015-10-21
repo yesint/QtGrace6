@@ -85,7 +85,9 @@ int readnetcdf(int gno,
 int write_netcdf(char *fname);
 
 char *grace_fgets(char *s, int size, FILE *stream);
+int is_Gould_file(char * file);
 int is_agr_file(char * file);
+int is_csv_file(char * file);
 
 #ifdef __cplusplus
 }

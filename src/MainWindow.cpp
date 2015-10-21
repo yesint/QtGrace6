@@ -475,7 +475,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     menuBar->addMenu( mnuHelp );
 
     stdBarHeight=menuBar->height()-7;
-    stdRowHeight=148+70;//+25;
+    stdRowHeight=218;
     stdColWidth=68;
     stdDistance1=5;
     stdDistance2=6;
@@ -499,6 +499,14 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     //toolBar1->setGeometry(0,stdBarHeight+statLocBar->height(),70,130);
     toolBar1->setFrameStyle(QFrame::Box | QFrame::Raised);
     //toolBar1->setMinimumHeight(137);
+
+    tool_empty=new QWidget();
+    tool_layout=new QVBoxLayout();
+    tool_layout->setMargin(0);
+    tool_layout->setSpacing(0);
+    scroll=new QScrollArea(this);
+    scroll->setWidget(tool_empty);
+    tool_empty->setLayout(tool_layout);
 
     cmdDraw=new QPushButton(tr("Draw"),toolBar1);
     cmdDraw->setToolTip(tr("Redraw project"));
@@ -561,7 +569,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     lstGraphs->setBehavior(true,true,true);
     lstGraphs->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     lstGraphs->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    lstGraphs->setGeometry(cmdDraw->x()+stdDistance2-4,cmdUp->y()+cmdUp->height()+stdDistance1,62,68);//60x68
+    lstGraphs->setGeometry(cmdDraw->x()+stdDistance2-4,cmdUp->y()+cmdUp->height()+stdDistance1,60,68);//60x68 or 62x68
     connect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
     /*End: QtGrace-addition*/
 
@@ -674,8 +682,29 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
     mainGrid->addWidget(statLocBar,1,0,1,2);
     mainGrid->setRowMinimumHeight(1,stdBarHeight);
     mainGrid->setRowStretch(1,0);
-    mainGrid->addWidget(toolBar1,2,0,1,1);
+
+    /*mainGrid->addWidget(toolBar1,2,0,1,1);
     mainGrid->addWidget(toolBar2,3,0,1,1);
+    scroll->setVisible(false);*/
+
+    tool_layout->addWidget(toolBar1);
+    tool_layout->addWidget(toolBar2);
+    tool_layout->setStretch(0,0);
+    tool_layout->setStretch(1,1);
+
+    toolBar1->setMinimumWidth(stdColWidth);
+    toolBar1->setMaximumWidth(stdColWidth);
+    toolBar2->setMinimumWidth(stdColWidth);
+
+    toolBar1->setMinimumHeight(stdRowHeight);
+    toolBar1->setMaximumHeight(stdRowHeight);
+
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //scroll->setGeometry(0,0,stdColWidth,600);
+    scroll->setMaximumWidth(stdColWidth+2);
+    tool_empty->setGeometry(0,0,stdColWidth,600);
+    mainGrid->addWidget(scroll,2,0,2,1);
+
     mainGrid->addWidget(mainArea,2,1,2,1);
     mainGrid->setRowStretch(2,0);
     mainGrid->setRowStretch(3,1);
@@ -2980,6 +3009,16 @@ void MainWindow::resizeEvent( QResizeEvent * e)
 {
     windowWidth=e->size().width();
     windowHeight=e->size().height();
+int min_height=cmdExit->y()+cmdExit->height()+toolBar1->height();
+int c_height=mainArea->height()-2;
+int d_width=scroll->verticalScrollBar()->width()+1;
+
+    if (c_height<min_height) c_height=min_height;
+    else d_width=0;
+    tool_empty->setGeometry(0,0,stdColWidth,c_height);
+    scroll->setMinimumWidth(stdColWidth+2+d_width);
+    scroll->setMaximumWidth(stdColWidth+2+d_width);
+
     if (get_pagelayout() != PAGE_FIXED)
         mainArea->completeRedraw();
 /*

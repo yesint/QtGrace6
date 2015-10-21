@@ -449,6 +449,21 @@ kB=fi.size()/1024;
 return fi.exists();
 }
 
+void Replace_Dec_Sep_In_Single_String(QString & te)
+{
+    if (te.isEmpty()) return;
+    if (OldDecimalPoint=='.')//.-->,
+    {
+    te.replace(QChar(','),QChar('|'));
+    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    }
+    else//,-->.
+    {
+    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    te.replace(QChar('|'),QChar(','));
+    }
+}
+
 QString get_text_in_quotations(QString text)//returns only the text inside the quotation marks
 {
 QString ret("");
@@ -818,7 +833,7 @@ int nr_of_true_changes(QStringList & list)
 
 void prependAllSetID(QString * text,int sno,int gno)
 {
-    static char * tosuppl[7]={"X","Y","Y0","Y1","Y2","Y3","Y4"};
+static char * tosuppl[7]={"X","Y","Y0","Y1","Y2","Y3","Y4"};
     QString str(text->toLocal8Bit());
     QString l1;
     QString toinsert;
@@ -887,6 +902,7 @@ void prependAllSetID(QString * text,int sno,int gno)
                     }
                 }
             }
+            //cout << "pos=" << pos << endl;
             //ok, we ignored the ones with '_' in front or after
             if (pos==-1)//nothing found
             {
@@ -900,7 +916,8 @@ void prependAllSetID(QString * text,int sno,int gno)
                 {
                     p1=regex2.indexIn(l1);
                     t_pos=regex3.indexIn(l1);
-                        if (p1==t_pos)//S0N and S0 are at the same position --> ignore this!
+                    //cout << "p1=" << p1 << " t_pos=" << t_pos << endl;
+                        if (p1==t_pos && p1!=-1)//S0N and S0 are at the same position --> ignore this!
                         {
                         pos++;
                         continue;
@@ -913,7 +930,7 @@ void prependAllSetID(QString * text,int sno,int gno)
                     }
                     if (p1==-1)//expression not found --> no id at all
                     {
-                        //cout << "expression found at#" << str.mid(pos).toLatin1().constData() << "#" << endl;
+                    //cout << "expression found at#" << str.mid(pos).toLatin1().constData() << "#" << endl;
                         c1='\0';
                         if (pos>0)//there are characters in front
                         {
@@ -979,14 +996,14 @@ void prependSetID(char * text,int leftset,int leftgraph,int rightset,int rightgr
         else
         leftpart=original.left(eq_pos);
     QString rightpart=original.right(len-eq_pos-1);
-    //cout << "G[" << leftgraph << "].S[" << leftset << "]" << endl;
-    //cout << "G[" << rightgraph << "].S[" << rightset << "]" << endl;
-    //cout << "#" << leftpart.toLocal8Bit().constData() << "#=#" << rightpart.toLocal8Bit().constData() << "#" << endl;
+//cout << "Left:  G[" << leftgraph << "].S[" << leftset << "]" << endl;
+//cout << "Right: G[" << rightgraph << "].S[" << rightset << "]" << endl;
+//cout << "#" << leftpart.toLocal8Bit().constData() << "#=#" << rightpart.toLocal8Bit().constData() << "#" << endl;
     prependAllSetID(&leftpart,leftset,leftgraph);
     prependAllSetID(&rightpart,rightset,rightgraph);
     QString result=leftpart+QString("=")+rightpart;
     strcpy(text,result.toLocal8Bit().constData());
-    //cout << "result=#" << text << "#" << endl;
+//cout << "result=#" << text << "#" << endl;
 }
 
 /*int find_pos_of_inclomplete_setid(char * text,char * tofind,char ** pos)
@@ -1969,7 +1986,6 @@ void frmSpreadSheet2::resizeEvent(QResizeEvent * event)
     event->accept();
     //QSize si=event->size();
     real_height=Items[0][0]->tableWidget()->height();
-
     //cout << si.width() << " x " << si.height() << "/" << real_height << " one line=" << table->horizontalHeader()->height() << "/";
     //cout << "rowHeight()=" << table->rowHeight(1) << " WidgetHeight=" << table->height() << " scrollHeight=" << table->horizontalScrollBar()->height();
     guessed_number_of_rows=(table->height()-table->horizontalHeader()->height()-table->horizontalScrollBar()->height()-STD_SPACING)*1.0/(table->rowHeight(1));
@@ -2022,7 +2038,6 @@ void frmSpreadSheet2::update_entries(void)
         }
     }
     table->setVerticalHeaderLabels(vertHeads);
-
 }
 
 void frmSpreadSheet2::doApply(void)
@@ -6440,7 +6455,7 @@ void frmCommands::doClear(void)
 void frmCommands::doReplay(void)
 {
     int errpos;
-    char ts[512],ts2[32];
+    char ts[512];//,ts2[32];
     int i;
     int hc=list->count();
     QListWidgetItem * lwid;
@@ -6451,11 +6466,12 @@ void frmCommands::doReplay(void)
     {
         lwid=list->item(i);
         strcpy(ts,lwid->text().toLatin1());//commands should be representable in Latin1-encoding
-        strncpy(ts2,ts,16);
+        /*strncpy(ts2,ts,16);
         ts2[16]='\0';
-        /*if (strcmp(ts2,"#QTGRACE_SPECIAL") == 0)
+        if (strcmp(ts2,"#QTGRACE_SPECIAL") == 0)
             errpos = special_Scanner(ts+17,false);
             else*/
+        //cout << "Replay: ts=#" << ts << "#" << endl;
         errpos = scanner(ts);//the scanner is able to process the #QTGRACE_SPECIAL-commands
         if (errpos)
         {
@@ -6720,13 +6736,15 @@ void frmCommands::doReplayWithReplace(void)
         current_target_set=replace_n_snos[0];
         current_target_graph=replace_n_gnos[0];
 
+        //set_parser_setno(current_origin_graph,current_origin_set);
+
         for (i = 0; i < hc; i++)//do every command in the list
         {
             //lwid=list->item(i);
             //strcpy(ts,lwid->text().toLocal8Bit());
                 //commandString=lwid->text();
             strcpy(ts,ListOfCommands.at(i).toLatin1().constData());
-//cout << "Command=" << ts << endl;
+//cout << "Command=#" << ts << "#" << endl;
             prependSetID(ts,replace_n_snos[0],replace_n_gnos[0],replace_o_snos[0],replace_o_gnos[0]);
 //cout << "prep set ids: Command=" << ts << endl;
             specialType=containsSpecialCommand(ts,&parameters);
@@ -6802,7 +6820,7 @@ void frmCommands::doReplayWithReplace(void)
                     replacedString=ReplaceSetIds(ts,nr,foundIDs);//do the replacing
                         commandString+=replacedString;
                     strcpy(ts,commandString.toLatin1().constData());//copy the replaced string into a C-string
-                    //cout << "new command=#" << ts << "#" << endl;
+//cout << "new command A=#" << ts << "#" << endl;
                     errpos = scanner(ts);//execute the new command
                     //}
                 }//end contains(=)
@@ -6831,7 +6849,7 @@ void frmCommands::doReplayWithReplace(void)
                     }
                     replacedString=ReplaceSetIds(ts,nr,foundIDs);//do the replacing
                     strcpy(ts,replacedString.toLatin1().constData());//copy the replaced string into a C-string
-//cout << "new command=#" << ts << "#" << endl;
+//cout << "new command B=#" << ts << "#" << endl;
                     errpos = scanner(ts);//execute the new command
                     //}
                 }
@@ -6846,7 +6864,7 @@ void frmCommands::doReplayWithReplace(void)
                         }
                         replacedString=ReplaceGraphIds(ts,nr,foundIDs);//do the replacing
                         strcpy(ts,replacedString.toLatin1().constData());//copy the replaced string into a C-string
-                        //cout << "new command=#" << ts << "#" << endl;
+//cout << "new command C=#" << ts << "#" << endl;
                         errpos = scanner(ts);//execute the new command
                     }
                     else
@@ -10206,7 +10224,8 @@ diaDevAct=NULL;
 
 cmdTest=new QPushButton(tr("DEBUG: TestDialog"),this);
 connect(cmdTest,SIGNAL(clicked()),SLOT(doTest()));
-//cmdTest->hide();
+cmdTest->hide();
+
 frmTest=new TestDialog(0);
 frmTest->hide();
 
@@ -14095,6 +14114,7 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     ledSelection->layout->setMargin(0);
     ledSelection->layout->setSpacing(0);
     ledSelection->setAcceptDrops(true);
+    connect(ledSelection,SIGNAL(changed()),SLOT(newFileEnteredManually()));
     txtDescription=new QTextEdit(this);
     lblProjectContent=new QLabel(QString("--"),this);
 
@@ -14129,6 +14149,11 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
 
     graphList=new uniList(GRAPHLIST,grpRead);
     setList=new uniList(SETLIST,grpWrite);
+
+    number=1;
+    entr[0]=tr("G0");
+    selExportGraph=new StdSelector(this,tr("Graph:"),number,entr);
+    selExportGraph->setVisible(false);
 
     //Specials for Binary-File-Interaction
     if (type==READ_BINARY_FILE || type==WRITE_BINARY_FILE)
@@ -14228,6 +14253,7 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     layout2=new QVBoxLayout;
     layout2->setMargin(STD_MARGIN);
     layout2->addWidget(lblWriteSet);
+    layout2->addWidget(selExportGraph);
     layout2->addWidget(setList);
     layout2->addWidget(ledFormat);
     grpWrite->setLayout(layout2);
@@ -14318,11 +14344,13 @@ ledFormat2->setVisible(false);
         stdExtension=QString("*.dat");
         layout->addWidget(grpWrite,6,0,1,4);
         offset=1;
+        selExportGraph->setVisible(TRUE);
         grpRead->setVisible(FALSE);
         grpDescription->setVisible(FALSE);
         grpTitle->setVisible(FALSE);
         grpParamGraph->setVisible(FALSE);
         selector->forRead=false;
+        connect(selExportGraph,SIGNAL(currentIndexChanged(int)),SLOT(exportGraphChanged(int)));
         break;
     case WRITE_PROJECT_FORM:
         setWindowTitle(tr("QtGrace: Save project"));
@@ -14425,6 +14453,7 @@ ledFormat2->setVisible(false);
         stdExtension=QString("*.dat");
         layout->addWidget(grpWrite,6,0,1,4);
         offset=1;
+        selExportGraph->setVisible(TRUE);
         grpRead->setVisible(FALSE);
         grpBinary->setVisible(FALSE);
         ledFormat->setVisible(false);
@@ -14435,6 +14464,7 @@ ledFormat2->setVisible(false);
         grpTitle->setVisible(FALSE);
         grpParamGraph->setVisible(FALSE);
         selector->forRead=false;
+        connect(selExportGraph,SIGNAL(currentIndexChanged(int)),SLOT(exportGraphChanged(int)));
         break;
     }
     layout->addWidget(lblSelection,6+offset,0,1,4);
@@ -14538,6 +14568,27 @@ QString a,b;
     setList->update_number_of_entries();
     int gno=get_cg();
     graphList->set_new_selection(1,&gno);
+    if (formType==WRITE_BINARY_FILE || formType==WRITE_SET_FORM)
+    {
+    int number=number_of_graphs();
+    QString * entr=new QString[2+number];
+    int *entr_v=new int[2+number];
+        for (int i=0;i<number;i++)
+        {
+        entr[i]=QString("G")+QString::number(i);
+        entr_v[i]=i;
+        }
+    selExportGraph->setNewEntries(number,entr,entr_v);
+    selExportGraph->setCurrentValue(cg);
+    delete[] entr;
+    delete[] entr_v;
+    }
+}
+
+void frmIOForm::exportGraphChanged(int g)
+{
+setList->set_graph_number(selExportGraph->currentValue(),false);
+setList->update_number_of_entries();
 }
 
 void frmIOForm::doOK(void)
@@ -14647,6 +14698,7 @@ QMessageBox::information(this,"encoded",encodedString);
                 ///Undo-Stuff
                 if (new_set_no==1)//only one new set
                 {
+                    set_set_hidden(graphno,new_set_nos[0],FALSE);
                     SetImported(graphno,new_set_nos[0],filename,cursource,load,autoscale_onread);
                 }
                 else if (new_set_no>1)//more than one set imported
@@ -14656,6 +14708,7 @@ QMessageBox::information(this,"encoded",encodedString);
                     for (int i=0;i<new_set_no;i++)
                     {
                         gnos[i]=graphno;
+                        set_set_hidden(graphno,new_set_nos[i],FALSE);
                     }
                     filenames[0]=new char[2+strlen(filename)];
                     strcpy(filenames[0],filename);
@@ -14687,7 +14740,7 @@ QMessageBox::information(this,"encoded",encodedString);
         if (cd < 1) {
             errmsg(tr("No set selected!").toLocal8Bit().constData());
         } else {
-            gno = get_cg();
+            gno = selExportGraph->currentValue();//get_cg();
             strncpy(format, xv_getstr(ledFormat), 31);
             for(i = 0; i < cd; i++) {
                 setno = selset[i];
@@ -14789,7 +14842,8 @@ QMessageBox::information(this,"encoded",encodedString);
         if (cd < 1) {
             errmsg(tr("No set selected!").toLocal8Bit().constData());
         } else {
-            gno = get_cg();
+            //gno = get_cg();
+            gno = selExportGraph->currentValue();
             plotarr pa;
             get_graph_plotarr(gno, selset[0], &pa);
             ofstream ofi;
@@ -14864,6 +14918,24 @@ strcpy(filename,ledSelection->text().toLocal8Bit().constData());
     errmsg(tr("Selected file is not a project file.").toLocal8Bit().constData());
     }
 delete[] filename;
+}
+
+void frmIOForm::newFileEnteredManually(void)
+{
+QString text=ledSelection->text();
+QFileInfo fi(text);
+//qDebug() << "New File Selected=#" << text << "#";
+if (fi.exists()==false) return;
+//QString name_only=fi.completeBaseName();
+QString path_only=fi.absolutePath()+QDir::separator();
+QString suffix_only=fi.suffix();
+/*qDebug() << "Name  =#" << name_only << "#";
+qDebug() << "Path  =#" << path_only << "#";
+qDebug() << "Suffix=#" << suffix_only << "#";*/
+selector->ledFilter->setText(path_only+QString("*.")+suffix_only);
+selector->setFilterFromExtern(path_only,suffix_only);
+selector->setFileSelectionFromExtern(text);
+gotNewSelection(text);
 }
 
 void frmIOForm::headerChecked(int c)
@@ -18540,7 +18612,16 @@ void frmLoadEval::Redisplay(void)
     for (int i=0;i<MAX_SET_COLS;i++)
     {
         te=ledText[i]->text();
+        if (OldDecimalPoint=='.')//.-->,
+        {
+        te.replace(QChar(','),QChar('|'));
         te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+        }
+        else//,-->.
+        {
+        te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+        te.replace(QChar('|'),QChar(','));
+        }
         ledText[i]->setText(te);
     }
 }
@@ -18860,8 +18941,14 @@ void frmEvalExpr::update(void)
 void frmEvalExpr::init(void)
 {
     update();
-    grpSource->listGraph->setCurrentItem(grpSource->listGraph->item(0));
-    grpDestination->listGraph->setCurrentRow(0);
+    int nr=1;
+    int n_gr[2]={cg,cg};
+    grpSource->set_graph_nr(cg);
+    grpSource->listGraph->set_new_selection(nr,n_gr);
+    grpDestination->set_graph_nr(cg);
+    grpDestination->listGraph->set_new_selection(nr,n_gr);
+        //grpSource->listGraph->setCurrentItem(grpSource->listGraph->item(0));
+        //grpDestination->listGraph->setCurrentRow(0);
     //grpSource->listGraph->setCurrentIndex(0);
 }
 
@@ -19424,6 +19511,9 @@ return erro;
 
 void frmNonlinCurveFit::doApply(void)
 {
+static int ApplyRunning=false;
+if (ApplyRunning==true) return;
+ApplyRunning=true;
     int i,itmp;
     int src_gno,dest_gno, src_setno;
     int resno,newset;
@@ -19442,6 +19532,7 @@ void frmNonlinCurveFit::doApply(void)
     {
         errmsg(tr("No source graph selected").toLocal8Bit().constData());
         ApplyError=true;
+        ApplyRunning=false;
         return;
     }
     grpSource->listSet->get_selection(&ns1,&svalues1);
@@ -19450,6 +19541,7 @@ void frmNonlinCurveFit::doApply(void)
     {
         errmsg(tr("No source set selected").toLocal8Bit().constData());
         ApplyError=true;
+        ApplyRunning=false;
         return;
     }
     newset=-1;
@@ -19468,6 +19560,7 @@ void frmNonlinCurveFit::doApply(void)
         if (ApplyError==true)
         {
             errmsg(tr("Please select source sets with the same column-count.").toLocal8Bit().constData());
+            ApplyRunning=false;
             return;
         }
         ApplyError=false;
@@ -19493,8 +19586,11 @@ void frmNonlinCurveFit::doApply(void)
 
     ApplyError=read_fit_options();
 
-    if (ApplyError==true) return;
-
+    if (ApplyError==true)
+    {
+        ApplyRunning=false;
+        return;
+    }
     save_formula=QString(nonl_opts.formula);
 
     ///Undo-Stuff
@@ -19516,6 +19612,7 @@ void frmNonlinCurveFit::doApply(void)
                 if (ytmp[i] == 0.0) {
                     errmsg(tr("Divide by zero while calculating weights").toLocal8Bit().constData());
                     ApplyError=true;
+                    ApplyRunning=false;
                     return;// RETURN_FAILURE;
                 }
             }
@@ -19523,6 +19620,7 @@ void frmNonlinCurveFit::doApply(void)
             if (warray == NULL) {
                 errmsg(tr("xmalloc failed in do_nonl_proc()").toLocal8Bit().constData());
                 ApplyError=true;
+                ApplyRunning=false;
                 return;// RETURN_FAILURE;
             }
             for (i = 0; i < nlen; i++) {
@@ -19538,12 +19636,14 @@ void frmNonlinCurveFit::doApply(void)
             if (ytmp == NULL) {
                 errmsg(tr("The set doesn't have dY data column").toLocal8Bit().constData());
                 ApplyError=true;
+                ApplyRunning=false;
                 return;// RETURN_FAILURE;
             }
             for (i = 0; i < nlen; i++) {
                 if (ytmp[i] == 0.0) {
                     errmsg(tr("Divide by zero while calculating weights").toLocal8Bit().constData());
                     ApplyError=true;
+                    ApplyRunning=false;
                     return;// RETURN_FAILURE;
                 }
             }
@@ -19551,6 +19651,8 @@ void frmNonlinCurveFit::doApply(void)
             if (warray == NULL) {
                 errmsg(tr("xmalloc failed in do_nonl_proc()").toLocal8Bit().constData());
                 ApplyError=true;
+                ApplyRunning=false;
+                return;
             }
             for (i = 0; i < nlen; i++) {
                 warray[i] = 1/(ytmp[i]*ytmp[i]);
@@ -19560,6 +19662,7 @@ void frmNonlinCurveFit::doApply(void)
             if (set_parser_setno(src_gno, src_setno) != RETURN_SUCCESS) {
                 errmsg(tr("Bad set").toLocal8Bit().constData());
                 ApplyError=true;
+                ApplyRunning=false;
                 return;// RETURN_FAILURE;
             }
             fstr = xv_getstr(tabAdvanced->ledFunction);// nonl_wfunc_item);
@@ -19567,12 +19670,14 @@ void frmNonlinCurveFit::doApply(void)
             if (v_scanner(fstr, &wlen, &warray) != RETURN_SUCCESS) {
                 errmsg(tr("Error evaluating expression for weights").toLocal8Bit().constData());
                 ApplyError=true;
+                ApplyRunning=false;
                 return;// RETURN_FAILURE;
             }
             if (wlen != nlen) {
                 errmsg(tr("The array of weights has different length").toLocal8Bit().constData());
                 xfree(warray);
                 ApplyError=true;
+                ApplyRunning=false;
                 return;// RETURN_FAILURE;
             }
             break;
@@ -19612,6 +19717,7 @@ void frmNonlinCurveFit::doApply(void)
             errmsg(tr("Error in restriction evaluation").toLocal8Bit().constData());
             xfree(warray);
             ApplyError=true;
+            ApplyRunning=false;
             return;// RETURN_FAILURE;
         }
         sprintf(dummy,"with G%d",src_gno);
@@ -19645,6 +19751,7 @@ void frmNonlinCurveFit::doApply(void)
         if (resno != RETURN_SUCCESS) {
             errmsg(tr("Fatal error in do_nonlfit()").toLocal8Bit().constData());
             ApplyError=true;
+            ApplyRunning=false;
             return;// RETURN_FAILURE;
         }
 
@@ -19740,6 +19847,7 @@ last_fit_falues[i]=nonl_parms[i].value;*/
     grpDestination->listSet->set_new_selection(ns2,svalues2);
     ///Undo-Stuff
     SaveFitAfter();
+    ApplyRunning=false;
     return;// RETURN_SUCCESS;
 }
 
@@ -23110,7 +23218,7 @@ void frmSet_Appearance::redisplayContents(void)
         tabErBa->spnbarWidth->spnLineWidth->setLocale(*comma_locale);
         tabErBa->spnRiserWidth->spnLineWidth->setLocale(*comma_locale);
     }
-    if (OldDecimalPoint==DecimalPointToUse) return;
+if (OldDecimalPoint==DecimalPointToUse) return;
     tabMa->spnLineWidth->setValue(tabMa->spnLineWidth->value());
     tabSy->spnSymbWidth->setValue(tabSy->spnSymbWidth->value());
     tabAnVa->ledXOffs->ReplaceNumberContents();
@@ -26572,10 +26680,12 @@ void frmAxis_Prop::redisplayContents(void)
     RedisplayFormula(dummy);
     tabTickLabels->ledAxisTransform->setText(QString(dummy));/// Formula-transformation???
     te=tabTickLabels->ledStart->text();
-    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    Replace_Dec_Sep_In_Single_String(te);
+    //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
     tabTickLabels->ledStart->setText(te);/// Formula-transformation???
     te=tabTickLabels->ledStop->text();
-    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    Replace_Dec_Sep_In_Single_String(te);
+    //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
     tabTickLabels->ledStop->setText(te);/// Formula-transformation???
     tabTickMarks->selMajTickWidth->setValue(tabTickMarks->selMajTickWidth->value());
     tabTickMarks->selMinTickWidth->setValue(tabTickMarks->selMinTickWidth->value());
@@ -26586,7 +26696,8 @@ void frmAxis_Prop::redisplayContents(void)
         te=tabSpecial->ledLocation[i]->text();
         if (!te.isEmpty())
         {
-            te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+            //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+            Replace_Dec_Sep_In_Single_String(te);
             tabSpecial->ledLocation[i]->setText(te);
             //tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(te);
         }
@@ -28710,7 +28821,7 @@ frmBinaryFormatInput::frmBinaryFormatInput(QWidget * parent):QDialog(parent)
     cmbHeaderFileFormat=new QComboBox(this);
     cmbHeaderFileFormat->addItem(tr("binary-file"));
     cmbHeaderFileFormat->addItem(tr("ini-file"));
-    cmbHeaderFileFormat->addItem(tr("ascii-file"));
+    /// cmbHeaderFileFormat->addItem(tr("ascii-file"));///deactivated at the moment
     connect(cmbHeaderFileFormat,SIGNAL(currentIndexChanged(int)),SLOT(HeaderFormatChanged(int)));
 
     tabs=new QTabWidget;
@@ -31867,10 +31978,10 @@ if (imp_set.y_title!=NULL)
     //set_plotstr_string(&t->label, imp_set.y_title);
     set_plotstr_string(&(g[imp_set.target_gno].t[1]->label), imp_set.y_title);
 }
-
+/*
 for (int i=0;i<imp_set.channels;i++)
 cout<< "Channel[" << i << "]=" << imp_set.set_title[i] << endl;
-
+*/
 for (int i=0;i<max_nr_of_sets;i++)
 {
 setno = nextset(imp_set.target_gno);//allocate new sets
@@ -33177,7 +33288,16 @@ void frmSetEditor::convertText(char oldDecSep,char newDecSep)
             else
             {
                 st2=l1.at(i);
+                if (oldDecSep=='.')//.-->,
+                {
+                st2.replace(QChar(','),QChar('|'));
                 st2.replace(oldDecSep,newDecSep);
+                }
+                else
+                {
+                st2.replace(oldDecSep,newDecSep);
+                st2.replace(QChar('|'),QChar(','));
+                }
                 st.append(st2+nl);
             }
     }
@@ -35681,6 +35801,7 @@ lblValue[1]=new QLabel(tr("Value"),this);
     layout->addWidget(lblName[1],line,2);
     layout->addWidget(lblValue[0],line,1);
     layout->addWidget(lblValue[1],line++,3);
+setWindowTitle(tr("Report on fit parameters"));
 
 /// Decimaltrennzeichen umwandeln (auch in report!)
 

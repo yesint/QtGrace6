@@ -98,6 +98,9 @@ public:
     QMenuBar * menuBar;
     QStatusBar * statusBar;
     QLabel * statLocBar;
+    QWidget * tool_empty;
+    QVBoxLayout * tool_layout;
+    QScrollArea * scroll;
     QFrame * toolBar1,*toolBar2;
 
     QGridLayout * mainGrid;

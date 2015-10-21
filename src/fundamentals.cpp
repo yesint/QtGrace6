@@ -132,6 +132,8 @@ extern void reinstallSet(int gno,int setno,plotarr * pa,int what);
 extern void deleteSavedSet(plotarr * pa,int what);
 extern bool dont_delete_saved_set_memory;
 
+extern void Replace_Dec_Sep_In_Single_String(QString & te);
+
 int nr_of_set_app_saved=0;
 int nr_of_set_app_allocated=0;
 plotarr * saved_set_app=NULL;
@@ -346,30 +348,38 @@ append_to_storage(l,storage_b,n,new_entries_b);
 
 void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true)//we assume a string containing a number like "2.15" and we want to change it to a number with the user selected decimal separator like "2,15"
 {
-    if (DecimalPointToUse=='.') return;//Nothing to do here --> everything is as it should be
-    QString chain(str);
+QString chain(str);
     if (remove_space)
-        chain.remove(QString(" "));//remove any useless spaces
+    chain.remove(QString(" "));//remove any useless spaces
+    if (DecimalPointToUse=='.')
+    {
+        //chain.replace(QString(","),QString("|"));
+        return;//Nothing to do here --> everything is as it should be
+    }
+    chain.replace(QString(","),QString("|"));//replace the ','s
     chain.replace(QString("."),QString(","));//replace the '.'s
-    strcpy(str,chain.toLatin1());
+strcpy(str,chain.toLatin1().constData());
 }
 
 void ReplaceDecimalSeparator(char * str,bool remove_space=true)//replace current user specified decimal separator with the internally used '.'
 {
-    QString chain(str);
+QString chain(str);
     //cout << "to replace = " << str << endl;
     if (remove_space)
-        chain.remove(QString(" "));//remove any useless spaces
+    chain.remove(QString(" "));//remove any useless spaces
     if (DecimalPointToUse!='.')//the input contains ',' instead of '.' - but the system always expects '.'
     {
-        chain.remove(QString("."));//at first: remove '.'
-        chain.replace(QString(","),QString("."));//replace the ',' with '.'
+        //chain.remove(QString("."));//at first: remove '.'
+        chain.replace(QString(","),QString("."));
+        chain.replace(QString("|"),QString(","));//replace the ',' with '.'
     }
     else//DecimalPoint is '.' - any ',' are not useful
     {
-        chain.remove(QString(","));//just remove all ','
+        //chain.remove(QString(","));//just remove all ','
+        //chain.replace(QString(","),QString("|"));
+        ;//should be ok as it is!
     }
-    strcpy(str,chain.toLatin1().constData());
+strcpy(str,chain.toLatin1().constData());
     //cout << "result = " << str << endl;
 }
 
@@ -377,7 +387,7 @@ void RedisplayString(char * str)//replaces the old decimal separator with the ne
 {
     if (OldDecimalPoint==DecimalPointToUse) return;
     QString chain(str);
-    chain.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    Replace_Dec_Sep_In_Single_String(chain);
     strcpy(str,chain.toLatin1().constData());
 }
 
@@ -388,6 +398,7 @@ void PrepareFormula(char * str)//replaces the decimal separator in a formula wit
     if (DecimalPointToUse==',')//if '.' is set --> nothing to do
     {//if ',' is used --> just replace ','-->'.'
         chain.replace(QChar(','),QChar('.'));
+        chain.replace(QChar('|'),QChar(','));
     }
     strcpy(str,chain.toLatin1().constData());
 }
@@ -402,9 +413,11 @@ void RedisplayFormula(char * str)//replaces the decimal separator except in the 
     if (OldDecimalPoint==',' && DecimalPointToUse=='.')//the simple case
     {
         chain.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+        chain.replace(QChar('|'),QChar(','));
     }
     else if (OldDecimalPoint=='.' && DecimalPointToUse==',')//the complicated case
     {
+        chain.replace(QChar(','),QChar('|'));
         chain.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));//this replaces the decimal separators as well as the set-id-separators: G0.S4.Y-->G0,S4,Y
         while ((pos=rex1.indexIn(chain))>=0)
         {
@@ -995,13 +1008,16 @@ void fitLine::Redisplay(void)
     if (OldDecimalPoint==DecimalPointToUse) return;
     QString te;
     te=ledValue->text();
-    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    Replace_Dec_Sep_In_Single_String(te);
+    //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
     ledValue->setText(te);
     te=ledLowerBound->text();
-    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    Replace_Dec_Sep_In_Single_String(te);
+    //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
     ledLowerBound->setText(te);
     te=ledHighterBound->text();
-    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    Replace_Dec_Sep_In_Single_String(te);
+    //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
     ledHighterBound->setText(te);
 }
 
@@ -2498,10 +2514,10 @@ delete[] te;
 
 void stdLineEdit::ReplaceNumberContents(void)
 {
-    if (OldDecimalPoint==DecimalPointToUse) return;//nothing to change!
-    QString te=lenText->text();
-    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
-    lenText->setText(te);
+if (OldDecimalPoint==DecimalPointToUse) return;//nothing to change!
+QString te=lenText->text();
+Replace_Dec_Sep_In_Single_String(te);
+lenText->setText(te);
 }
 
 void stdLineEdit::RedisplayContents(void)
@@ -3081,10 +3097,10 @@ void stdStartStop::Redisplay(void)
     QString te;
     if (OldDecimalPoint==DecimalPointToUse) return;
     te=ledStart->text();
-    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    Replace_Dec_Sep_In_Single_String(te);
     ledStart->setText(te);
     te=ledStop->text();
-    te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
+    Replace_Dec_Sep_In_Single_String(te);
     ledStop->setText(te);
 }
 

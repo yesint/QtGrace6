@@ -112,6 +112,7 @@ extern void replace_single_formula_tokens(QString old_formula,QString & new_form
 extern bool init_fftw3_library(void);
 extern void check_external_lib_usability(void);
 extern QString get_filename_with_extension(int device);
+void try_loading_Gould(char * filename, int &nr_of_points, double **x, double **y);
 
 QLocale * cur_loc;//the Locale-settings as set in the operating system
 QTextCodec * FileCodec;//standard codec of the operating system (depends on user settings in the operating system)
@@ -3045,6 +3046,9 @@ int gno=0,sno=0,column=0;
 strcpy(text,"G15.S4.Y3");
 getSetIDFromText(text,gno,sno,column);
 */
+
+//try_loading_Gould("/Users/andreaswinter/Downloads/UNNAMED.RUN/TR1_500.DAT");
+
     stop_repaint=FALSE;
 mainWin->mainArea->completeRedraw();
 
@@ -3900,7 +3904,6 @@ void UpdateAllWindowContents(void)//a "repaint"-funktion for all widgets
         FormExplorer->EllipseProperties->init(FormExplorer->EllipseProperties->obj_id);
         FormExplorer->BoxProperties->ellip_linew_item->setLocale(newLocale);
         FormExplorer->BoxProperties->init(FormExplorer->BoxProperties->obj_id);
-
     }
     if (FormRTIManage)
     {
@@ -4124,7 +4127,7 @@ void UpdateAllWindowContents(void)//a "repaint"-funktion for all widgets
         {
             ///The comment is not preserved! --> try to preserve this --> change encoding...
             ///latest inputs are not preserved either...
-            FormSpreadSheets[i]->init(FormSpreadSheets[i]->gno,FormSpreadSheets[i]->sno);
+        FormSpreadSheets[i]->init(FormSpreadSheets[i]->gno,FormSpreadSheets[i]->sno);
         }
     }
     if (FormReportFitParameters)
@@ -4144,11 +4147,11 @@ void GeneralPaste(const QMimeData * mimeData)
 {
     QTemporaryFile * temp_file=new QTemporaryFile;
     QString str,str2;
-    QFileInfo finfo;
-    QString suffix;
+    //QFileInfo finfo;
+    //QString suffix;
     char * header_name;
-    bool is_diadem_file,is_header_file,is_agr,got_dirty=true;
-    int std_schema_nr;
+    bool is_diadem_file,is_header_file,is_agr,is_gould,is_csv,got_dirty=true;
+    int std_schema_nr,t_id;
     int commas,fullstops,ret;
     char * filename=NULL;
     int files=0,n_of_imp_sets=0,n_of_imp_agrs=0;
@@ -4241,15 +4244,30 @@ cout << endl;
         filename=new char[urls.at(i).toLocalFile().length()+2];
         strcpy(filename,urls.at(i).toLocalFile().toLocal8Bit().constData());
         /// Todo: check every file for beeing agr or header file
-        finfo=QFileInfo(filename);
-        suffix=finfo.suffix();
-        is_diadem_file=false;
+        //finfo=QFileInfo(filename);
+        //suffix=finfo.suffix();
+        is_gould=is_agr=is_csv=is_diadem_file=false;
         header_name=NULL;
 //at first: test for diadem-format and binary data
-        is_diadem_file=is_diadem(filename,&header_name);
+        is_gould=(bool)is_Gould_file(filename);
+        if (is_gould==false)
+        {
         is_agr=(bool)is_agr_file(filename);
+            if (is_agr==false)
+            {
+                is_csv=(bool)is_csv_file(filename);
+                if (is_csv==false)
+                {
+                is_diadem_file=is_diadem(filename,&header_name);
+                }
+            }
+        }
 
-        if (is_diadem_file==false && header_name!=NULL) delete[] header_name;
+        if (is_diadem_file==false && header_name!=NULL)
+        {
+        delete[] header_name;
+        header_name=NULL;
+        }
 
         if (is_agr==true)//QString::compare(suffix,QString("agr"),Qt::CaseInsensitive)==0)//it is an .agr-file
         {
@@ -4277,6 +4295,37 @@ cout << endl;
             }
         */
         //cout << "file=#" << filename << "# ret=" << ret << " --> treat it as data stream" << endl;
+        }
+        else if (is_gould==true)//special case Gould-Trace
+        {
+        //cout << "Gould-File" << endl;
+        int nr_of_trace_points=0;
+        double * trace_x=new double[2];
+        double * trace_y=new double[2];
+        try_loading_Gould(filename,nr_of_trace_points,&trace_x,&trace_y);
+        /*cout << "legend1=" << dummy << endl;
+        cout << "legend2=" << dummy2 << endl;*/
+        if (nr_of_trace_points>0)
+        t_id=nextset(get_cg());
+        setlength(get_cg(),t_id,nr_of_trace_points);
+        set_legend_string(get_cg(),t_id,dummy2);
+        //cout << "legend=" << dummy << endl;
+            for (int ijk=0;ijk<nr_of_trace_points;ijk++)
+            {
+            g[get_cg()].p[t_id].data.ex[0][ijk]=trace_x[ijk];
+            g[get_cg()].p[t_id].data.ex[1][ijk]=trace_y[ijk];
+            }
+            delete[] trace_x;
+            delete[] trace_y;
+        mainWin->doAutoScale();
+        continue;
+        }
+        else if (is_csv==true)
+        {
+        mainWin->ImportCSV();
+        FormCSVImport->ledFileName->setText(urls.at(i).toLocalFile());
+        FormCSVImport->doReguess();
+        continue;
         }
         else if (is_diadem_file==true)//special case: diadem file
         {
@@ -5436,4 +5485,369 @@ set_exportname(s);
 set_left_footer(NULL);
 FormDeviceSetup->printfile_item->setText(QString(s));
 }
+
+class Gould_token
+{
+public:
+Gould_token(QByteArray contents,int version=-1);
+
+char ident[3];
+int nr_parameters;
+int * p_length;
+char ** parameters;
+int v;
+};
+
+Gould_token::Gould_token(QByteArray contents,int version)
+{
+ident[0]=ident[1]=ident[2]='\0';
+nr_parameters=0;
+parameters=NULL;
+v=version;
+if (contents.length()<3) return;
+    ident[0]=contents.at(1);
+    ident[1]=contents.at(2);
+int pos1=0;
+int pos2=0;
+int n_target_params=0;
+bool cs=false;
+    if (ident[0]=='C')
+    {
+        if (ident[1]=='F' || ident[1]=='T' || ident[1]=='E') n_target_params=1;
+        else if (ident[1]=='D') n_target_params=7;
+        else if (ident[1]=='R') n_target_params=13;
+        else if (ident[1]=='P') n_target_params=4;
+        else if (ident[1]=='J' || ident[1]=='A') n_target_params=2;
+        else if (ident[1]=='S')
+        {
+        n_target_params=3;
+        cs=true;
+        }
+    }
+    else if (ident[0]=='K' && ident[0]=='S')
+    {
+    n_target_params=0;
+    }
+    else if (ident[0]=='N')
+    {
+        if (ident[1]=='L' || ident[1]=='O') n_target_params=2;
+        else if (ident[1]=='T') n_target_params=5;
+    }
+    else if (ident[0]=='U')
+    {
+    n_target_params=3;
+    }
+    if (n_target_params<1) return;
+nr_parameters=n_target_params;
+parameters=new char*[nr_parameters];
+p_length=new int[nr_parameters];
+pos1=contents.indexOf(",");
+pos2=contents.indexOf(",",pos1+1);
+if (pos2==-1) pos2=contents.length()-1;
+for (int i=0;i<nr_parameters;i++)
+{
+    parameters[i]=new char[pos2-pos1];
+    parameters[i][pos2-pos1-1]='\0';
+    p_length[i]=pos2-pos1-1;
+    for (int j=pos1+1;j<pos2;j++)
+    {
+    parameters[i][j-(pos1+1)]=contents.at(j);
+    }
+pos1=pos2;
+pos2=contents.indexOf(",",pos1+1);
+if (pos2==-1) pos2=contents.length()-1;
+cout << "subtoken length=" << p_length[i] << endl;
+cout << "subtoken " << i << " #" << parameters[i] << "#" << endl;
+}
+
+if (cs==true)
+{
+ofstream ofi;
+ofi.open("gould_trace_text.txt");
+int min=0,max=0;
+min=max=parameters[2][0];
+for (int i=0;i<p_length[2];i++)
+{
+ofi << i << " " << (int)(parameters[2][i]) << endl;
+if (min>(int)(parameters[2][i])) min=(int)(parameters[2][i]);
+if (max<(int)(parameters[2][i])) max=(int)(parameters[2][i]);
+}
+/*cout << "min=" << min << endl;
+cout << "max=" << max << endl;*/
+ofi.close();
+}
+
+}
+
+void find_data_in_Gould_tokens(int nr,Gould_token ** gt,double ** x,double ** y,int & nr_of_points)
+{
+int data_index=0;
+int format_version=-1;
+//cout << "nr_of_tokens=" << nr << endl;
+//first: look for the data
+    for (int i=0;i<nr;i++)
+    {
+    //cout << gt[i]->ident << endl;
+        if (gt[i]->ident[0]=='C' && gt[i]->ident[1]=='S')
+        {
+        data_index=i;
+        break;
+        }
+    }
+//cout << "Data is in " << data_index << endl;
+nr_of_points=gt[data_index]->p_length[2];
+if (*x!=NULL) delete[] *x;
+if (*y!=NULL) delete[] *y;
+*x=new double[nr_of_points];
+*y=new double[nr_of_points];
+//second: extract raw-data
+int min=0,max=0;
+min=max=gt[data_index]->parameters[2][0];
+for (int i=0;i<gt[data_index]->p_length[2];i++)
+{
+(*x)[i]=(double)i;
+(*y)[i]=(double)(gt[data_index]->parameters[2][i]);
+if (min>(int)(gt[data_index]->parameters[2][i])) min=(int)(gt[data_index]->parameters[2][i]);
+if (max<(int)(gt[data_index]->parameters[2][i])) max=(int)(gt[data_index]->parameters[2][i]);
+}
+cout << "min=" << min << endl;
+cout << "max=" << max << endl;
+//third: find and include t-axis
+    for (int i=0;i<nr;i++)
+    {
+    //cout << gt[i]->ident << endl;
+        if (gt[i]->ident[0]=='C' && gt[i]->ident[1]=='D')
+        {
+        data_index=i;
+        break;
+        }
+    }
+//cout << "t-data is in " << data_index << endl;
+double x0,dx;
+x0=-atof(gt[data_index]->parameters[3]);
+dx=atof(gt[data_index]->parameters[1]);
+    for (int i=0;i<nr_of_points;i++)
+    {
+    (*x)[i]=x0+dx*((*x)[i]);
+    }
+//fourth: find and include y-axis
+    for (int i=0;i<nr;i++)
+    {
+    //cout << gt[i]->ident << endl;
+        if (gt[i]->ident[0]=='C' && gt[i]->ident[1]=='R')
+        {
+        data_index=i;
+        break;
+        }
+    }
+//cout << "y-Data is in " << data_index << endl;
+double y0,dy;
+y0=atof(gt[data_index]->parameters[9]);
+dy=atof(gt[data_index]->parameters[8]);
+    for (int i=0;i<nr_of_points;i++)
+    {
+    (*y)[i]=y0+dy*((*y)[i]-min);
+    }
+
+}
+
+void try_loading_Gould(char * filename,int & nr_of_points,double ** x,double ** y)
+{
+QFileInfo info(filename);
+QFile fi(filename);
+fi.open(QIODevice::ReadOnly);
+//QByteArray ba=fi.read(info.size());
+QByteArray ba=fi.readAll();
+QByteArray Probe,Probe2,Probe3;
+QList<QByteArray> subtokenlist;
+fi.close();
+//cout << "filename=" << filename << " size=" << info.size() << endl;
+//cout << "ba.length()=" << ba.length() << endl;
+int max_nr_of_tokens=ba.count("|");
+//cout << "Tokens=" << max_nr_of_tokens << endl;
+if (max_nr_of_tokens<1) return;
+Gould_token ** g_tokens=new Gould_token*[1+max_nr_of_tokens];
+int g_token_count=0;
+int pos1=0,pos2=0,pos3=0;
+int komma_pos=0,komma_count=0,coun=0,index;
+int format_version=-1;
+bool is_cf,is_cs,is_cr,is_cd;
+char dummy22[64];
+double samplerate,trigger_delay,v1,offset;
+int samplecount;
+
+while (pos1<ba.length() && pos1>=0)
+{
+pos1=ba.indexOf("|",pos1);
+if (pos1==-1) break;
+pos2=ba.indexOf(";",pos1+1);
+if (pos2==-1) pos2=ba.length();
+else pos2++;
+
+is_cf=is_cs=is_cr=is_cd=false;
+
+Probe.clear();
+for (int j=pos1;j<pos2;j++)
+{
+Probe.append(ba.at(j));
+}
+if (Probe.length()>=5)
+{
+    if (Probe.at(1)=='C')
+    {
+        if (Probe.at(2)=='F') is_cf=true;
+        else if (Probe.at(2)=='S') is_cs=true;
+        else if (Probe.at(2)=='R') is_cr=true;
+        else if (Probe.at(2)=='D') is_cd=true;
+    }
+}
+if (is_cf==true)
+{
+dummy22[0]=Probe.at(4);
+dummy22[1]='\0';
+format_version=atoi(dummy22);
+//cout << "Version found: " << format_version << endl;
+}
+else if (format_version==2 || is_cs==true)//reread using the size_convention
+{
+Probe.clear();
+Probe2.clear();
+Probe3.clear();
+index=pos1+6;
+    while (ba.at(index)!=',')
+    {
+    Probe2.append(ba.at(index));
+    index++;
+    }
+Probe2.append('\0');
+samplecount=Probe2.toInt();
+//cout << "number of remaining chars: " << Probe2.toInt() << endl;
+for (int i=pos1;i<=index;i++) Probe.append(ba.at(i));
+for (int i=0;i<=samplecount;i++) Probe.append(ba.at(index+1+i));
+    if (format_version==1)
+    {
+    index++;
+    for (int i=0;i<samplecount;i++) Probe3.append(ba.at(index+i));
+    }
+    else if (format_version==2)
+    {
+    index+=3;
+    samplecount-=2;
+    for (int i=0;i<samplecount;i++) Probe3.append(ba.at(index+i));
+    }
+}
+
+if (is_cd)//time-settings
+{
+    //cout << "CD" << endl;
+    subtokenlist=Probe.split(',');
+    if (format_version==1)
+    {
+    //|CD,1,1.000000E-05,1,0.000000E+000,1,1,s;
+    samplerate=subtokenlist.at(2).toDouble();
+    trigger_delay=subtokenlist.at(4).toDouble();
+    }
+    else if (format_version==2)
+    {
+    //|CD,1,32,4.000000330961484E-7,1,1,s,0,0,0;
+    samplerate=subtokenlist.at(3).toDouble();
+    trigger_delay=subtokenlist.at(7).toDouble();
+    }
+    //cout << "samplerate=" << samplerate << " trigger=" << trigger_delay << endl;
+}
+else if (is_cr)//y-settings
+{
+    //cout << "CR" << endl;
+    subtokenlist=Probe.split(',');
+    if (format_version==1)
+    {
+    //|CR,1,1,0,1,0,255,0,255,8.533333e-02,-5.060000e-02,1,1,V;
+    v1=subtokenlist.at(9).toDouble();
+    offset=subtokenlist.at(10).toDouble();
+    }
+    else if (format_version==2)
+    {
+    //|CR,1,50,1,1.286069429388233E-2,-3.061960697174072E+0,1,1,V;
+    v1=subtokenlist.at(4).toDouble();
+    offset=subtokenlist.at(5).toDouble();
+    }
+    //cout << "v1=" << v1 << " offset=" << offset << endl;
+}
+else if (is_cs)//the actual data
+{
+    //cout << "CS" << endl;
+    //cout << "Probe3.length=" << Probe3.length() << endl;
+    nr_of_points=samplecount=Probe3.length();
+    delete[] *x;
+    delete[] *y;
+    (*x)=new double[samplecount];
+    (*y)=new double[samplecount];
+    for (int i=0;i<samplecount;i++)
+    {
+    //(*x)[i]=samplerate * i - trigger_delay;
+    //(*y)[i]=2.0 * v1 * (double)((unsigned char)Probe3.at(i))/256.0 - v1 - offset;
+    (*x)[i]=samplerate * i;
+    (*y)[i]=(double)((unsigned char)Probe3.at(i));
+    }
+sprintf(dummy2,"Gould-trace-file: %s\\ndelay=%g,y-formula=2.0/256.0*Y*(%g)-(%g)-(%g)",filename,trigger_delay,v1,v1,offset);
+//cout << "in file:" << dummy2 << endl;
+}
+
+/*cout << "Version=" << format_version << " Gould_Token:" << endl;
+for (int j=0;j<Probe.length();j++)
+cout << Probe.at(j);
+cout << endl;*/
+
+/*g_tokens[g_token_count]=new Gould_token(Probe);
+g_token_count++;
+cout << "Token so far = " << g_token_count << endl;*/
+
+/*
+    Probe.clear();
+    Probe2.clear();
+    komma_pos=komma_count=0;
+    coun=0;
+    for (int j=pos1+1;j<pos2;j++)
+    {
+    Probe2+=ba.at(j);
+    coun++;
+        if (ba.at(j)==',')
+        {
+        komma_count++;
+        if (komma_count==4) komma_pos=coun;
+        }
+    }
+    //Probe << ba.at(j);
+//Probe2=QString(Probe);
+Probe3=Probe2.split(",");
+    for (int j=0;j<Probe3.length();j++)
+    cout << "#" << Probe3.at(j).toLocal8Bit().constData();
+    if (Probe3.at(0).compare("CS")==0)
+    {
+    cout << "found: komma_pos=" << komma_pos << " count=" << coun-komma_pos << " pos3-pos1=" << pos3-pos1 << endl;
+    }
+cout << endl;*/
+
+if (is_cs==true) break;
+
+if (pos2>=0 && pos1>=0)
+pos1=pos2;
+else pos1=pos2=-1;
+}
+
+/*
+find_data_in_Gould_tokens(g_token_count,g_tokens,x,y,nr_of_points);
+ofstream ofi;
+ofi.open("gould_trace_text_conv.txt");
+for (int i=0;i<nr_of_points;i++)
+{
+ofi << (*x)[i] << " " << (*y)[i] << endl;
+}
+ofi.close();
+*/
+
+/*delete[] x;
+delete[] y;*/
+}
+
 

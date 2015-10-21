@@ -353,7 +353,12 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
     memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
 
     zero_set_data(&g[gnofrom].p[setfrom].data);
-        
+
+    g[gnofrom].p[setfrom].lstr[0]='\0';
+    g[gnofrom].p[setfrom].orig_lstr[0]='\0';
+    g[gnofrom].p[setfrom].comments[0]='\0';
+    g[gnofrom].p[setfrom].orig_comments[0]='\0';
+
     g[gnofrom].p[setfrom].hidden = TRUE;
     
     set_dirtystate();
@@ -507,8 +512,9 @@ int swapset(int gno1, int setno1, int gno2, int setno2)
  */
 void killset(int gno, int setno)
 {
-    if (is_valid_setno(gno, setno)) {
-	killsetdata(gno, setno);
+    if (is_valid_setno(gno, setno))
+    {
+    killsetdata(gno, setno);
 	set_default_plotarr(&g[gno].p[setno]);
         ///close_ss_editor(gno,setno);
     }

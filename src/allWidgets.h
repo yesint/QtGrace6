@@ -1640,6 +1640,7 @@ public:
     QCheckBox * chkExchangeCommaPoint;
 
     uniList * graphList;
+    StdSelector * selExportGraph;
     uniList * setList;
 
     QPushButton * cmdOK;
@@ -1690,11 +1691,13 @@ public slots:
     void gotNewSelection(QString selection);
     void gotNewSelectionDoubleClick(QString selection);
     void init(char * f_name=NULL);
+    void exportGraphChanged(int g);
     void doOK(void);
     void doFilter(void);
     void doCancel(void);
     void doHelp(void);
     void doOpenSetImport(void);
+    void newFileEnteredManually(void);
     void headerChecked(int c);
     void readUntilEOFChecked(int c);
     void setTypeChanged(int c);

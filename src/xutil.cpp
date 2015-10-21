@@ -237,7 +237,7 @@ void set_title(char *ts)
             buf1 = concat_strings(buf1, " (modified)");
         }
         ///XtVaSetValues(app_shell, XtNtitle, buf1, XtNiconName, buf2, NULL);
-mainWin->setWindowTitle(QString(buf1));
+mainWin->setWindowTitle(QString::fromLocal8Bit(buf1));
         xfree(buf1);
         xfree(buf2);
     }
