@@ -72,8 +72,8 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     ,qtGraceDocStrName_m("Untitled")
     ,dataFromBuffer_m(" ")
     ,bytesNeededFromSocket_m(0)
-    ,sendTcpPort_m("4000")
-    ,readTcpPort_m("3000")
+    ,sendTcpPort_m(readTcpPort)
+    ,readTcpPort_m(sendTcpPort)
     ,readServer(0)
     ,writeServer(0)
     ,writeConnection(0)
@@ -81,6 +81,7 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     ,remainingDataSize(0)
     ,sendPlotData(0)
     ,dataFromSocket_m(0)
+    ,graphDataStreamToSend_m(NULL)
 
 {
     if(getenv("QTGRACEDEBUG")) {
@@ -125,7 +126,7 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     }
 
     writeToDebugFile("The server is running on: (" + QString::number(readServer->serverPort()) + "," + QString::number(writeServer->serverPort()) + ")");
-   // std::cerr << "The server is running on " <<readServer->serverPort()<< "," << writeServer->serverPort()<<"\n" << std::endl;
+    // std::cerr << "The server is running on " <<readServer->serverPort()<< "," << writeServer->serverPort()<<"\n" << std::endl;
 
     //Read and write from/to Client
     connect(readServer, SIGNAL(newConnection()), this, SLOT(initReadServer()));
@@ -200,19 +201,10 @@ void QtGraceTcpServer::talkToClient()
             readData(readConnection);
         }
         else if( comMode == sendDataCom ){
+            sendParam();
+            sendData(graphDataStreamToSend_m->str(),graphDataStreamToSend_m->pcount());
+            delete graphDataStreamToSend_m;
 
-            if( sendPlotData <= 3 ){
-                // Send next data packet
-                //std::cerr << "sendPlotData: " << QString::number(sendPlotData).toStdString() << std::endl;
-
-                emit sendParam();
-            }
-            else {
-                // We are done, we reset the the data counter.
-                // std::cerr << "sendPlotData reset : " << QString::number(sendPlotData).toStdString() << std::endl;
-                sendPlotData = 0;
-                emit sendParam();
-            }
         }
         else {
             assert(false);
@@ -223,6 +215,15 @@ void QtGraceTcpServer::talkToClient()
     // thus we need to check if data is avaiable.
 
 }
+
+
+void QtGraceTcpServer::writeToDataStream(const char *data, int len)
+{
+    graphDataStreamToSend_m->write(data,len);
+
+}
+
+
 
 void QtGraceTcpServer::sendData(const char* data, int bytesToSend)
 {
@@ -295,7 +296,7 @@ void QtGraceTcpServer::readData(QTcpSocket *readConnection)
     if( bytesToRead == 0){
         std::cerr << "Server: done sending, send end command\n" << std::endl;
         //  std::cerr << dataFromSocket.toStdString() << std::endl;
-        handleDataFromViewBeast();
+        handleDataFromClient();
         dataFromSocket_m.clear();
         comMode = endComm;
         rc = writeConnection->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
@@ -321,7 +322,7 @@ QtGraceTcpServer::~QtGraceTcpServer() {
 
 }
 
-void QtGraceTcpServer::handleDataFromViewBeast(){
+void QtGraceTcpServer::handleDataFromClient(){
 
     std::istrstream dataStreamFromSocket(dataFromSocket_m.data(),dataFromSocket_m.size());
 
@@ -438,7 +439,7 @@ void QtGraceTcpServer::executeTaskFromClient()
 
     {
         // std::cerr << "Command was performed:  (READ_MODE)\n" << std::endl;
-
+       //NIMAL ANVENDES IKKE LÄNGERE
         if(isDebugFlagOn_m){    *debugOut_m<<"Run Command" << command_m<<"\n";
             debugOut_m->flush();
         }
@@ -1203,6 +1204,7 @@ void QtGraceTcpServer::setLayoutMode(){
 }
 
 void QtGraceTcpServer::sendParam(){
+    graphDataStreamToSend_m = new std::ostrstream();
 
     int qtGraceDocStrNameLength = qtGraceDocStrName_m.length();
     //Send QtGrace graph parameters settings (PD file)
@@ -1217,41 +1219,13 @@ void QtGraceTcpServer::sendParam(){
     putparmbeast(-1,pp,TRUE);
 
     int paramLength = strlen(pp);
-    //ConnectToClient((const char *)(&paramLength),sizeof(int));
 
+    writeToDataStream(( const char *)(&qtGraceDocStrNameLength),sizeof(int));
+    writeToDataStream(qtGraceDocStrName_m.data(),qtGraceDocStrNameLength);
+    writeToDataStream((const char *)(&paramLength), sizeof(int));
+    writeToDataStream(pp, paramLength);
 
-    switch (sendPlotData) {
-    case 0:
-
-        emit sendData(( const char *)(&qtGraceDocStrNameLength),sizeof(int));
-        break;
-    case 1:
-        emit sendData(qtGraceDocStrName_m.data(),qtGraceDocStrNameLength);
-        break;
-
-    case 2:
-        emit sendData((const char *)(&paramLength), sizeof(int));
-        delete[] pp;
-        break;
-
-    case 3:
-        emit sendData(pp, paramLength);
-        delete[] pp;
-
-        break;
-    default:
-        break;
-    }
-
-
-
-    sendPlotData = sendPlotData+1;
-
-
-
-
-
-
+    delete[] pp;
 }
 
 

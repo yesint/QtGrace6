@@ -220,6 +220,8 @@ private:
 
 
     QByteArray dataFromSocket_m;
+    std::ostrstream *graphDataStreamToSend_m;
+
 
 protected:
     void sendData(const char *data, int bytesToSend);
@@ -264,7 +266,8 @@ private:
     int remainingDataSize;
 int sendPlotData;
 void writeToDebugFile(QString message);
-void handleDataFromViewBeast();
+void handleDataFromClient();
+void writeToDataStream(const char *data, int len);
 };
 
 
