@@ -57,6 +57,7 @@
 #  define PIPE_BUF 4096
 #endif
 #define CHUNKSIZE 2*PIPE_BUF
+#define  DEBUGDETAILS (QString("\nFile: ")+ __FILE__+ QString("\nFunction:")+ __FUNCTION__ + QString("\nLine: ") + QString::number(__LINE__))
 
 
 enum dataCommands{
@@ -118,7 +119,7 @@ public:
 private slots:
 
     //! Create a unique file name
-    const char *createUniqueFileName(); 
+    const char *createUniqueFileName();
     //! Send data from QtGrace to client
     void    sendDataToClient();
     //! Check if socket is disconnected (for debug)
@@ -212,9 +213,9 @@ private:
     //! Number of bytes available on the socket
     qint64              bytesNeededFromSocket_m;
       //! Name on the server (used to estabilish communication between Client and QtGrace
-    QString             sendTcpPort_m;
+    QString             writeTcpPortFromClient_m;
     //! Name on the client (used to estabilish communication between Server and QtGrace
-    QString             readTcpPort_m;
+    QString             readTcpPortFromClient_m;
     //! Save the numbers of data sets
     QList<int>          saveCountNoOfDataSets_m;
 
@@ -228,7 +229,7 @@ protected:
     void readData(QTcpSocket *readConnection);
 
 protected slots:
-    void talkToClient();
+    void communicateWithClient();
 
 private slots:
 
@@ -236,7 +237,7 @@ private slots:
     void initWriteServer();
     void dataWritten(qint64 iData);
 
-    void writeSocketDisconnected();    
+    void writeSocketDisconnected();
     void readSocketDisconnected();
 
     void writeSocketConnected();
@@ -265,7 +266,7 @@ private:
     ComMode comMode;
     int remainingDataSize;
 int sendPlotData;
-void writeToDebugFile(QString message);
+void writeToDebugFile(QString message,  QString debugDetails ="", bool isSkipLineNr = false);
 void handleDataFromClient();
 void writeToDataStream(const char *data, int len);
 };
