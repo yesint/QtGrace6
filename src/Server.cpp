@@ -420,12 +420,10 @@ void QtGraceTcpServer::executeTaskFromClient()
 
     case PLOT_INFO://Read PLOT_INFO(1)
     {
-        // std::cerr << "Command was performed:  (PLOT_INFO)\n" << std::endl;
+        writeToDebugFile("Command was performed:  (PLOT_INFO) "
+                         + QString::number(command_m),DEBUGDETAILS);
 
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
+
         buffer_m.write(dataSet1Ptr);
         isWriteToTmpFile_m=true;
         countNoOfRead_m = 0;
@@ -435,12 +433,9 @@ void QtGraceTcpServer::executeTaskFromClient()
     case WRITE_DATAVEC://WRITE_DATAVEC(2)
 
     {
-        //std::cerr << "Command was performed:  (WRITE_DATAVEC)\n" << std::endl;
+        writeToDebugFile("Command was performed:  (WRITE_DATAVEC) "
+                         + QString::number(command_m),DEBUGDETAILS);
 
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
         readXYData(dataSet1Ptr, dataSet2Ptr_m);
         countNoOfRead_m = 0;
         newDataSetReady_m=0;
@@ -449,11 +444,9 @@ void QtGraceTcpServer::executeTaskFromClient()
     case WRITE_DATAVEC_FINISHED:
 
     {
-        //std::cerr << "Command was performed:  (WRITE_DATAVEC_FINISHED)\n" << std::endl;
+        writeToDebugFile("Command was performed:  (WRITE_DATAVEC_FINISHED) "
+                         + QString::number(command_m),DEBUGDETAILS);
 
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();}
         countNoOfRead_m = 0;
         buffer_m.write("\n");
         newDataSetReady_m=1;
@@ -462,29 +455,18 @@ void QtGraceTcpServer::executeTaskFromClient()
         break;
     }
 
-    case READ_MODE:
-
+    case READ_MODE:        //This command is not used anymore
     {
-        // std::cerr << "Command was performed:  (READ_MODE)\n" << std::endl;
-        //NIMAL ANVENDES IKKE LÄNGERE
-        if(isDebugFlagOn_m){    *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
+        writeToDebugFile("Command was performed:  (READ_MODE) "
+                         + QString::number(command_m),DEBUGDETAILS);
         sendParam();
         countNoOfRead_m = 0;
         break;
     }
     case REDRAW:
     {
-        // std::cerr << "Command was performed:  (REDRAW)\n" << std::endl;
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-        }
-
-        //set_page_dimensions(733,538,1);
-        //set_page_geometry()
-
+        writeToDebugFile("Command was performed:  (REDRAW) "
+                         + QString::number(command_m),DEBUGDETAILS);
         startupphase=1;
         oldNoask_m=noask;
         noask=true; // prevent questions
@@ -493,7 +475,6 @@ void QtGraceTcpServer::executeTaskFromClient()
         set_graph_selectors(0); // In order to update QtGrace plot window (there is always one graph, therefore 0).
 
         setScalingMode();
-        //autotick_axis(get_cg(), ALL_AXES);
         noask=oldNoask_m;
         startupphase=0;
 
@@ -525,13 +506,9 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
     case PS_FILENAME:
     {
-        // std::cerr << "Command was performed:  (PS_FILENAME)\n" << std::endl;
+        writeToDebugFile("Command was performed:  (PS_FILENAME) "
+                         + QString::number(command_m),DEBUGDETAILS);
 
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
         readPsFileName();
 
         countNoOfRead_m = 0;
@@ -539,21 +516,14 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
     case SET_SCALING_MODE:
     {
-        // std::cerr << "Command was performed:  (SET_SCALING_MODE)\n" << std::endl;
-
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
+        writeToDebugFile("Command was performed:  (SET_SCALING_MODE) "
+                         + QString::number(command_m),DEBUGDETAILS);
         startupphase=1;
         oldNoask_m=noask;
         noask=true; // prevent questions
         writeDataToTmpFile();
-        // set_graph_selectors(0);
 
         setScalingMode();
-        // autotick_axis(get_cg(), ALL_AXES);
         noask=oldNoask_m;
         startupphase=0;
 
@@ -564,15 +534,8 @@ void QtGraceTcpServer::executeTaskFromClient()
 
     case REDRAW_AND_WRITEPS://REDRAW_AND_WRITEPS(7)
     {
-        //std::cerr << "Command was performed:  (REDRAW_AND_WRITEPS)\n" << std::endl;
-
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            *debugOut_m<<"fileName" <<   get_docname()<<"\n";
-            debugOut_m->flush();
-        }
-
+        writeToDebugFile("Command was performed:  (REDRAW_AND_WRITEPS) "
+                         + QString::number(command_m),DEBUGDETAILS);
 
         /* force a hardcopy */
         set_pagelayout(PAGE_FIXED);
@@ -591,37 +554,20 @@ void QtGraceTcpServer::executeTaskFromClient()
     case SET_LAYOUT_MODE:
     {
 
-        //std::cerr << "Command was performed:  (SET_LAYOUT_MODE)\n" << std::endl;
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
+        writeToDebugFile("Command was performed:  (SET_LAYOUT_MODE) "
+                         + QString::number(command_m),DEBUGDETAILS);
         startupphase=1;
-        //  set_graph_selectors(0);
-
         setLayoutMode();
 
         startupphase=0;
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Was setLayoutMode" << command_m<<"\n";
-            debugOut_m->flush();
-        }
         countNoOfRead_m = 0;
         break;
     }
 
     case KILL_CHILD:
     {
-        std::cerr << "Command was performed:  (KILL_CHILD)\n" << std::endl;
-
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
-        /* kill me */
-        /* printf("got killed"); */
+        writeToDebugFile("Command was performed:  (KILL_CHILD) "
+                         + QString::number(command_m),DEBUGDETAILS);
 
         if(isDebugFlagOn_m){
             debugFile_m->close();
@@ -635,37 +581,24 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
     case END_COMM:
     {
-        //std::cerr << "Command was performed:  (END_COMM)\n" << std::endl;
-
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
+        writeToDebugFile("Command was performed:  (END_COMM) "
+                         + QString::number(command_m),DEBUGDETAILS);
         update_all();
         startupphase=1;
         xdrawgraph();
         doPlotFit();
-        // set_graph_selectors(0);
 
         startupphase=0;
 
         isWriteToTmpFile_m=true;
         countNoOfRead_m = 0;
-        //  mode_m = DEFAULT_LAYOUT;
-
-
         break;
     }
-    case TEST_CONNECTION:
+    case TEST_CONNECTION: //Not in use anymore
     {
-        // std::cerr << "Command was performed:  (TEST_CONNECTION)\n" << std::endl;
+        writeToDebugFile("Command was performed:  (TEST_CONNECTION) "
+                         + QString::number(command_m),DEBUGDETAILS);
 
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"Run Command" << command_m<<"\n";
-            debugOut_m->flush();
-        }
         countNoOfRead_m = 0;
         break;
     }
@@ -673,12 +606,8 @@ void QtGraceTcpServer::executeTaskFromClient()
     default:
     {
 
-        //  std::cerr << "Command was performed:  (default)\n" << std::endl;
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"INVALID COMMAND STOP" << command_m<<"\n";
-            debugOut_m->flush();
-        }
+        writeToDebugFile("Command was performed:  (default) "
+                         + QString::number(command_m),DEBUGDETAILS);
 
         writeToDebugFile("Communication error: try to restart");
         QMessageBox::information(0,"Communication Error","Communication error: try to restart");
@@ -690,12 +619,6 @@ void QtGraceTcpServer::executeTaskFromClient()
     }
 }
 
-
-void QtGraceTcpServer::sendDataToClient(){
-
-    //  messageToServerPtr_->write(messageSendGraphParam_m,messageParamGraphLength_m);  //Produces a QT warning: QWinEventNotifier: Cannot have more than 62 enabled at one time - Maybe a QT bug?
-
-}
 
 char* QtGraceTcpServer::copyDataFromSocket(int availableBytes, char* dataFromSocket){
 

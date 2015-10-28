@@ -100,6 +100,14 @@ enum readCommands{
     READ_PLOT_SETTINGS_2_FROM_CLIENT
 };
 
+enum ComMode {
+    initComm,
+    endComm,
+    readDataComm,
+    sendDataCom,
+    dataSizeComm
+};
+
 QT_BEGIN_NAMESPACE
 class QTcpServer;
 QT_END_NAMESPACE
@@ -120,10 +128,6 @@ private slots:
 
     //! Create a unique file name
     const char *createUniqueFileName();
-    //! Send data from QtGrace to client
-    void    sendDataToClient();
-    //! Check if socket is disconnected (for debug)
-    //! Check if socket is ready to be read from (for debug)
 
     //! Returns any socket errors (for debug)
     void    socketError(QAbstractSocket::SocketError);
@@ -212,7 +216,7 @@ private:
     QBuffer             buffer_m;
     //! Number of bytes available on the socket
     qint64              bytesNeededFromSocket_m;
-      //! Name on the server (used to estabilish communication between Client and QtGrace
+    //! Name on the server (used to estabilish communication between Client and QtGrace
     QString             writeTcpPortFromClient_m;
     //! Name on the client (used to estabilish communication between Server and QtGrace
     QString             readTcpPortFromClient_m;
@@ -255,20 +259,14 @@ private:
 
     QTcpSocket *writeConnection;
 
-    enum ComMode {
-        initComm,
-        endComm,
-        readDataComm,
-        sendDataCom,
-        dataSizeComm
-    };
+
 
     ComMode comMode;
     int remainingDataSize;
-int sendPlotData;
-void writeToDebugFile(QString message,  QString debugDetails ="", bool isSkipLineNr = false);
-void handleDataFromClient();
-void writeToDataStream(const char *data, int len);
+    int sendPlotData;
+    void writeToDebugFile(QString message,  QString debugDetails ="", bool isSkipLineNr = false);
+    void handleDataFromClient();
+    void writeToDataStream(const char *data, int len);
 };
 
 
