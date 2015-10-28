@@ -76,8 +76,8 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     ,writeConnectionPtr_m(0)
     ,dataFromSocket_m(0)
     ,graphDataStreamToSendPtr_m(NULL)
-    ,comMode(endComm)
-    ,remainingDataSize(0)
+    ,comMode_m(endComm)
+    ,remainingDataSize_m(0)
 
 
 {
@@ -189,33 +189,33 @@ void QtGraceTcpServer::communicateWithClient()
     writeToDebugFile("Communicate with client",DEBUGDETAILS);
 
     do {
-        if(comMode != readDataComm){
+        if(comMode_m != readDataComm){
             writeToDebugFile("Server going to read command",DEBUGDETAILS);
 
-            int rc = readConnection->read(reinterpret_cast<char*>(&comMode), sizeof(comMode));
-            assert(rc == sizeof(comMode));
+            int rc = readConnection->read(reinterpret_cast<char*>(&comMode_m), sizeof(comMode_m));
+            assert(rc == sizeof(comMode_m));
 
             writeToDebugFile("Server read: " +
                              QString::number(rc) +
                              " bytes, with command: "
-                             + QString::number(comMode),DEBUGDETAILS);
+                             + QString::number(comMode_m),DEBUGDETAILS);
 
         }
         else {
-            assert(remainingDataSize>0);
+            assert(remainingDataSize_m>0);
         }
 
-        if( comMode == initComm ){
+        if( comMode_m == initComm ){
             writeToDebugFile("Server send ready signal",DEBUGDETAILS);
-            int rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
+            int rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode_m), sizeof(ComMode));
             assert(rc == sizeof(ComMode));
             writeConnectionPtr_m->flush();
         }
-        else if( comMode == readDataComm ){
+        else if( comMode_m == readDataComm ){
             writeToDebugFile("Server ready to read data from client",DEBUGDETAILS);
             readData(readConnection);
         }
-        else if( comMode == sendDataCom ){
+        else if( comMode_m == sendDataCom ){
             writeToDebugFile("Server send data to client",DEBUGDETAILS);
             sendParam();
             sendData(graphDataStreamToSendPtr_m->str(),graphDataStreamToSendPtr_m->pcount());
@@ -245,9 +245,9 @@ void QtGraceTcpServer::sendData(const char* data, int bytesToSend)
     writeToDebugFile("Server is sending data to client",DEBUGDETAILS);
 
     // First we need to tell the client what we are going to do.
-    comMode = sendDataCom;
-    int rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode), sizeof(comMode));
-    assert(rc == sizeof(comMode));
+    comMode_m = sendDataCom;
+    int rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode_m), sizeof(comMode_m));
+    assert(rc == sizeof(comMode_m));
 
     writeToDebugFile("Server is going to send packet with " +
                      QString::number(bytesToSend) +
@@ -269,8 +269,8 @@ void QtGraceTcpServer::sendData(const char* data, int bytesToSend)
 
     writeToDebugFile("Server is done sending, send end command",DEBUGDETAILS);
 
-    comMode = endComm;
-    rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
+    comMode_m = endComm;
+    rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode_m), sizeof(ComMode));
     assert(rc == sizeof(ComMode));
     writeConnectionPtr_m->flush();
 
@@ -278,15 +278,15 @@ void QtGraceTcpServer::sendData(const char* data, int bytesToSend)
 
 void QtGraceTcpServer::readData(QTcpSocket *readConnection)
 {
-    assert(remainingDataSize>=0);
+    assert(remainingDataSize_m>=0);
 
-    int bytesToRead = remainingDataSize;
+    int bytesToRead = remainingDataSize_m;
     int rc = 0;
 
     writeToDebugFile("Server is reading data from client",DEBUGDETAILS);
 
     // If remaining data size is 0 then we need to read total data size from the client.
-    if( remainingDataSize == 0 ){
+    if( remainingDataSize_m == 0 ){
         rc = readConnection->read(reinterpret_cast<char*>(&bytesToRead), sizeof(int));
     }
 
@@ -319,15 +319,15 @@ void QtGraceTcpServer::readData(QTcpSocket *readConnection)
 
         processDataFromClient();
         dataFromSocket_m.clear();
-        comMode = endComm;
-        rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
+        comMode_m = endComm;
+        rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode_m), sizeof(ComMode));
         assert(rc == sizeof(ComMode));
         writeConnectionPtr_m->flush();
     }
 
     // Note, there might be remaining bytes to read, if so, there will be another readyRead signal send.
     // Therefore we store the amount of data that we still need to read and read it with the next signal.
-    remainingDataSize = bytesToRead;
+    remainingDataSize_m = bytesToRead;
 }
 
 

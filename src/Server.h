@@ -57,7 +57,7 @@
 #  define PIPE_BUF 4096
 #endif
 #define CHUNKSIZE 2*PIPE_BUF
-#define  DEBUGDETAILS (QString("\nFile: ")+ __FILE__+ QString("\nFunction:")+ __FUNCTION__ + QString("\nLine: ") + QString::number(__LINE__))
+#define  DEBUGDETAILS (QString("\nFile: ")+ __FILE__+ QString("\nFunction: ")+ __FUNCTION__ + QString("\nLine: ") + QString::number(__LINE__))
 
 
 enum dataCommands{
@@ -274,10 +274,10 @@ private:
     std::ostrstream *graphDataStreamToSendPtr_m;
 
     //! Internal state to receive and send data from/to client
-    ComMode comMode;
+    ComMode comMode_m;
 
     //! Remaining data on socket
-    int remainingDataSize;
+    int remainingDataSize_m;
 
 protected:
 
