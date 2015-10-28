@@ -43,7 +43,7 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
                                    QString sendTcpPort,
                                    QObject *parent)
     :QObject(parent)
-    ,isDebugFlagOn_m(true)
+    ,isDebugFlagOn_m(false)
     ,messageSendGraphParam_m(NULL)
     ,messageParamGraphLength_m(0)
     ,messagePtr_m(NULL)
@@ -609,7 +609,7 @@ void QtGraceTcpServer::executeTaskFromClient()
         writeToDebugFile("Command was performed:  (default) "
                          + QString::number(command_m),DEBUGDETAILS);
 
-        writeToDebugFile("Communication error: try to restart");
+        writeToDebugFile("Communication error: try to restart",DEBUGDETAILS);
         QMessageBox::information(0,"Communication Error","Communication error: try to restart");
 
         exit(0);
@@ -669,6 +669,10 @@ void QtGraceTcpServer::getCommandFromClient(int commandFromsocket)
         command_m = TEST_CONNECTION;
         break;
     default:
+        writeToDebugFile("Communication error: Command ("
+                         + QString::number(commandFromsocket)
+                         +") notfound",DEBUGDETAILS);
+
         QMessageBox::information(0,"Communication Error","Communication error: Command not found");
         exit(0);
         break;
@@ -686,23 +690,25 @@ void QtGraceTcpServer::readDataFromSocket(char *newDataFromSocket, int available
 
         getCommandFromClient(commandFromsocket);
 
-        if(isDebugFlagOn_m){*debugOut_m<< " The command is int, 4 bytes are "<<
-                                          (int)(newDataFromSocket[0]) << " " <<
-                                                                         (int)(newDataFromSocket[1]) << " " <<
-                                                                                                        (int)(newDataFromSocket[2]) << " " <<
-                                                                                                                                       (int)(newDataFromSocket[3]) << " ";
-            debugOut_m->flush();
-        }
+        writeToDebugFile(" The command is int, 4 bytes are " +
+                          QString::number((int)(newDataFromSocket[0])) + " " +
+                          QString::number((int)(newDataFromSocket[1])) + " " +
+                          QString::number((int)(newDataFromSocket[2])) + " " +
+                          QString::number((int)(newDataFromSocket[3])) + " "
+                          ,DEBUGDETAILS);
+
+
+
         break;
     }
 
     case READ_DATALENGTH: //Read data length
     {
+        writeToDebugFile(" Got data length = " +
+                          QString::number(dataLength_m),DEBUGDETAILS);
+
         dataLength_m = *((int*)(newDataFromSocket));
-        if(isDebugFlagOn_m){
-            *debugOut_m<< " Got data length= "<< dataLength_m <<"\n";
-            debugOut_m->flush();
-        }
+
         break;
     }
 
@@ -735,28 +741,34 @@ void QtGraceTcpServer::readDataFromSocket(char *newDataFromSocket, int available
                 break;
             }
 
-            if(isDebugFlagOn_m){
-                *debugOut_m<< " Got mode= "<< mode_m<<"\n" ;
-                debugOut_m->flush();
-            }
+            writeToDebugFile(" Got mode = " +
+                              QString::number(mode_m),DEBUGDETAILS);
 
         }
         break;
     }
 
-    case READ_PLOT_SETTINGS_1_FROM_CLIENT: //Read Plot settings from client dialogue
+    case READ_PLOT_SETTINGS_1_FROM_CLIENT: //Read Plot settings from client
 
     {
         if(command_m == SET_SCALING_MODE){ //Min x-axis length
             xminPtr_m = (double *)newDataFromSocket;
             xmin_m = xminPtr_m[0];
+            writeToDebugFile("Read Plot settings 1. Got SET_SCALING_MODE command",DEBUGDETAILS);
+
         }
         else if(command_m == SET_LAYOUT_MODE){ // Numbers of columns
             columns_m = *((int*)(newDataFromSocket));
+            writeToDebugFile("Read Plot settings 1. Got SET_LAYOUT_MODE command",DEBUGDETAILS);
+
         }
         else{
             dataSet2Ptr_m = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
+
+        writeToDebugFile("Read Plot settings 1 from. Got command = " +
+                          QString::number(command_m),DEBUGDETAILS);
+
         break;
     }
 
@@ -765,16 +777,19 @@ void QtGraceTcpServer::readDataFromSocket(char *newDataFromSocket, int available
         if(command_m == SET_SCALING_MODE){  //Max x-axis length
             xmaxPtr_m = (double *)newDataFromSocket;
             xmax_m = xmaxPtr_m[0];
-
+            writeToDebugFile("Read Plot settings 2. Got SET_SCALING_MODE command",DEBUGDETAILS);
         }
-        if(command_m == SET_LAYOUT_MODE) //numbers of graphs
+        else if(command_m == SET_LAYOUT_MODE) //numbers of graphs
         {
             numGraphs_m = *((int*)(newDataFromSocket));
+            writeToDebugFile("Read Plot settings 2. Got SET_LAYOUT_MODE command",DEBUGDETAILS);
         }
+
 
         break;
     }
     default:
+        writeToDebugFile("Communication error: Command not found",DEBUGDETAILS);
         QMessageBox::information(0,"Communication Error","Communication error: Command not found");
         exit(0);
         break;
@@ -809,11 +824,7 @@ void QtGraceTcpServer::saveDataFromSocket(int numberOfRead){
     case 3:
     {
         readDataFromSocket(messagePtr_m,bytesNeededFromSocket_m, READ_DATASET_1);
-
-        if(isDebugFlagOn_m){
-            *debugOut_m<< " Analysing(3) mode= "<< mode_m<<"\n" ;
-            debugOut_m->flush();
-        }
+        writeToDebugFile("Analysing(3) mode = "+QString::number(mode_m),DEBUGDETAILS);
 
         if((command_m == SET_SCALING_MODE && (mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY || mode_m==AUTOSCALE_X_AXIS_OR_OVERLAY))||
                 (command_m == SET_LAYOUT_MODE && mode_m == GRAPH_POSITION) ||
@@ -827,10 +838,8 @@ void QtGraceTcpServer::saveDataFromSocket(int numberOfRead){
     {
         readDataFromSocket(messagePtr_m,bytesNeededFromSocket_m, READ_PLOT_SETTINGS_1_FROM_CLIENT);
 
-        if(isDebugFlagOn_m){
-            *debugOut_m<< " Analysing(4) mode= "<< mode_m<<"\n" ;
-            debugOut_m->flush();
-        }
+        writeToDebugFile("Analysing(4) mode = "+QString::number(mode_m),DEBUGDETAILS);
+
 
         if((command_m == SET_SCALING_MODE && (mode_m==AUTOSCALE_Y_AXIS_OR_OVERLAY || mode_m==AUTOSCALE_X_AXIS_OR_OVERLAY))||
                 (command_m == SET_LAYOUT_MODE && mode_m == GRAPH_POSITION))
@@ -1016,10 +1025,8 @@ void QtGraceTcpServer::writeDataToTmpFile()
 
     if (isWriteToTmpFile_m){
 
-        if(isDebugFlagOn_m){*debugOut_m<<"******START READ FROM TEMP FILE***********\n";
-            *debugOut_m<<dataFromBuffer_m;
-            debugOut_m->flush();
-        }
+        writeToDebugFile("\n******START READ FROM TEMP FILE***********"+
+                         (QString)dataFromBuffer_m,DEBUGDETAILS);
 
         //Read data from tmp file and update QtGrace plot
         readDataFromClient(dataFromBuffer_m.data(),0,"plot");
@@ -1028,10 +1035,9 @@ void QtGraceTcpServer::writeDataToTmpFile()
         buffer_m.close();
         dataFromBuffer_m.clear();
         buffer_m.open(QIODevice::Append);
-        if(isDebugFlagOn_m){
-            *debugOut_m<<"******END READ FROM TEMP FILE***********\n";
-            debugOut_m->flush();
-        }
+
+        writeToDebugFile("\n******END READ FROM TEMP FILE***********", DEBUGDETAILS,true);
+
     }
 
 }
