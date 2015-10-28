@@ -101,6 +101,7 @@ enum readCommands{
 };
 
 enum ComMode {
+    //! Internal communication states
     initComm,
     endComm,
     readDataComm,
@@ -119,154 +120,206 @@ public:
     QtGraceTcpServer(QString readTcpPort, QString sendServerSocketName, QObject *parent);
     ~QtGraceTcpServer();
 
-
-    void getCommandFromClient(int commandFromsocket);
-
-    void executeTaskFromClient();
-
 private slots:
-
-    //! Create a unique file name
-    const char *createUniqueFileName();
 
     //! Returns any socket errors (for debug)
     void    socketError(QAbstractSocket::SocketError);
 
 private:
+
+    //! Convert the data received from the client to a plot command
+    void getCommandFromClient(int commandFromsocket);
+
+    //! Based on the received plot command from the client execute task.
+    void executeTaskFromClient();
+
     //! Read .ps filename from socket and set the QtGrace document name.
     void    readPsFileName();
+
     //! Set layout settings received from client
     void    setLayoutMode();
+
     //! Set graph scalling received from client
     void    setScalingMode();
+
     //! Writes all the data received from client to a temp file. Following the data is read to QtGrace
     void    writeDataToTmpFile();
+
     //! Send graph data to client (for PD files)
     void    sendParam();
+
     //! Copy data from socket received from client
     char*   copyDataFromSocket(int availableBytes, char* dataFromSocket_m);
+
     //! Read graph data and plot settings from client
     void    readDataFromSocket(char *dataFromSocket_m, int availableBytes, readCommands readMode);
+
     //! Save the data read from the socket
     void    saveDataFromSocket(int numberOfRead);
+
     //! Read and clean x and y plot data
     void    readXYData(char* xData, char* yData);
+
     //! Read data from socket (client) and process the data.
     void    readFromClient(std::istrstream *dataFromClient);
 
 private:
+
     //! To enable debug
     bool isDebugFlagOn_m;
-    //! Graph data and settings (PD file)
-    const char*         messageSendGraphParam_m;
-    //! Length of: "messageSendGraphParam"
-    int                 messageParamGraphLength_m;
+
     //! Message from client
     char                *messagePtr_m;
+
     //! The data received from the client part1
-    char                *dataSet1Ptr;
+    char                *dataSet1Ptr_m;
+
     //! The data received from the client part2
     char                *dataSet2Ptr_m;
+
     //! What to read command
     dataCommands        command_m;
+
     //! Length of data received from Client
     int                 dataLength_m;
+
     //! Graph number
     int                 graphNo_m;
+
     //! Min plot x-axis length
     double              xmin_m;
+
     //! Max plot x-axis length
     double              xmax_m;
+
     //! Condition to exit read function
     int                 conditionToExitFunction_m;
+
     //! Count the number of time there has been read from the socket.
-    //! Depending on the number different taks are performed
+    //! Depending on the number, different tasks are performed
     quint16             countNoOfRead_m;
+
     //! Indicator to new data is ready on the socket to be read
     quint16             newDataSetReady_m;
+
     //! Flag to tell QtGrace when to write data received from client to a temporary file
     bool                isWriteToTmpFile_m;
+
     //! Total numbers of graphs
     int                 numGraphs_m;
+
     //! Counter to count the numbers of dataset received from the client
     int                 countNoOfDataSets_m;
+
     //! Status of QtGrace warning messages (should there be a warning or not)
     int                 oldNoask_m;
+
     //! File for debug messages
-    QFile               *debugFile_m;
+    QFile               *debugFilePtr_m;
+
     //! Stream for debugging
-    QTextStream         *debugOut_m;
+    QTextStream         *debugOutPtr_m;
+
     //! Graph layout is given by the mode send by Client
     plotModes            mode_m;
+
     //! Pointer to min plot x-axis length
     double              *xminPtr_m;
+
     //! Point to max plot x-axis length
     double              *xmaxPtr_m;
+
     //! Numbers of columns for the plot
     int                 columns_m;
+
     //! Numbers of rows for the plot
     int                 rows_m;
+
     //! QtGrace document name. The name is used for the plot to
     //! file and when exporting to a PD file
     string              qtGraceDocStrName_m;
+
     //! Buffer to save data from client
     QByteArray          dataFromBuffer_m;
+
     //! buffer contains all the data received from client.
     //! The buffer is then loaded to QtGrace
     QBuffer             buffer_m;
+
     //! Number of bytes available on the socket
     qint64              bytesNeededFromSocket_m;
+
     //! Name on the server (used to estabilish communication between Client and QtGrace
     QString             writeTcpPortFromClient_m;
+
     //! Name on the client (used to estabilish communication between Server and QtGrace
     QString             readTcpPortFromClient_m;
+
     //! Save the numbers of data sets
     QList<int>          saveCountNoOfDataSets_m;
 
+    //! New TCP server to read data from client
+    QTcpServer *readServerPtr_m;
 
+    //! New TCP socket to send data to client
+    QTcpServer *writeServerPtr_m;
+
+    //! Socket to write to client
+    QTcpSocket *writeConnectionPtr_m;
+
+    //! Save the data received from socket
     QByteArray dataFromSocket_m;
-    std::ostrstream *graphDataStreamToSend_m;
 
+    //! Send data from QtGrace to client as a stream
+    std::ostrstream *graphDataStreamToSendPtr_m;
+
+    //! Internal state to receive and send data from/to client
+    ComMode comMode;
+
+    //! Remaining data on socket
+    int remainingDataSize;
 
 protected:
+
+    //!Function to write to a debug text file
+    void writeToDebugFile(QString message,  QString debugDetails ="", bool isSkipLineNr = false);
+
+    //! Read the data from the socket and process it
+    void processDataFromClient();
+
+    //! Write data to a data stream
+    void writeToDataStream(const char *data, int len);
+
+    //! Send data to client
     void sendData(const char *data, int bytesToSend);
+
+    //! Read data from client
     void readData(QTcpSocket *readConnection);
 
 protected slots:
+    //! Main communication protocol function
     void communicateWithClient();
 
-private slots:
-
+    //! Initialize server to read data from client
     void initReadServer();
+
+    //! Initialize server to send data to client
     void initWriteServer();
+
+    //! Number of bytes written to socket
     void dataWritten(qint64 iData);
 
-    void writeSocketDisconnected();
-    void readSocketDisconnected();
-
+    //! Server to write has been connected to client socket
     void writeSocketConnected();
 
+    //! Server to write has been disconnected to client socket
+    void writeSocketDisconnected();
+
+    //! Server to read has been connected to client socket
     void readSocketConnected();
 
-private:
-
-    //! New TCP server to read data from client
-    QTcpServer *readServer;
-
-    //! New TCP socket to send data to client
-    QTcpServer *writeServer;
-
-
-    QTcpSocket *writeConnection;
-
-
-
-    ComMode comMode;
-    int remainingDataSize;
-    int sendPlotData;
-    void writeToDebugFile(QString message,  QString debugDetails ="", bool isSkipLineNr = false);
-    void handleDataFromClient();
-    void writeToDataStream(const char *data, int len);
+    //! Server to read has been disconnected to client socket
+    void readSocketDisconnected();
 };
 
 

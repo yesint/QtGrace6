@@ -44,10 +44,8 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
                                    QObject *parent)
     :QObject(parent)
     ,isDebugFlagOn_m(false)
-    ,messageSendGraphParam_m(NULL)
-    ,messageParamGraphLength_m(0)
     ,messagePtr_m(NULL)
-    ,dataSet1Ptr(NULL)
+    ,dataSet1Ptr_m(NULL)
     ,dataSet2Ptr_m(NULL)
     ,command_m(READ_MODE)
     ,dataLength_m(0)
@@ -61,8 +59,8 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     ,numGraphs_m(0)
     ,countNoOfDataSets_m(0)
     ,oldNoask_m(0)
-    ,debugFile_m(NULL)
-    ,debugOut_m(NULL)
+    ,debugFilePtr_m(NULL)
+    ,debugOutPtr_m(NULL)
     ,mode_m(DEFAULT_LAYOUT)
     ,xminPtr_m(NULL)
     ,xmaxPtr_m(NULL)
@@ -73,14 +71,14 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     ,bytesNeededFromSocket_m(0)
     ,writeTcpPortFromClient_m(readTcpPort)
     ,readTcpPortFromClient_m(sendTcpPort)
-    ,readServer(0)
-    ,writeServer(0)
-    ,writeConnection(0)
+    ,readServerPtr_m(0)
+    ,writeServerPtr_m(0)
+    ,writeConnectionPtr_m(0)
+    ,dataFromSocket_m(0)
+    ,graphDataStreamToSendPtr_m(NULL)
     ,comMode(endComm)
     ,remainingDataSize(0)
-    ,sendPlotData(0)
-    ,dataFromSocket_m(0)
-    ,graphDataStreamToSend_m(NULL)
+
 
 {
     if(getenv("QTGRACEDEBUG")) {
@@ -88,12 +86,12 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
     }
 
     if(isDebugFlagOn_m){
-        debugFile_m = new QFile("QTGRACEDEBUG.txt");
+        debugFilePtr_m = new QFile("QTGRACEDEBUG.txt");
 
-        QFileInfo info1(debugFile_m->fileName());
+        QFileInfo info1(debugFilePtr_m->fileName());
         qDebug()<<"QTGRACEDEBUG flag detected and writes to: "+ info1.absoluteFilePath() +"\n";
-        debugFile_m->open(QIODevice::WriteOnly | QIODevice::Text);
-        debugOut_m = new QTextStream(debugFile_m);
+        debugFilePtr_m->open(QIODevice::WriteOnly | QIODevice::Text);
+        debugOutPtr_m = new QTextStream(debugFilePtr_m);
 
         writeToDebugFile("*******************************************************************","",true);
         writeToDebugFile("DEBUG MODE ENABLED","",true);
@@ -115,33 +113,33 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
 
     //Initialize read and write servers
 
-    readServer = new QTcpServer(this);
+    readServerPtr_m = new QTcpServer(this);
 
-    if (!readServer->listen( QHostAddress("127.0.0.1"),readTcpPortFromClient_m.toInt())) {//Listen on LocalHost
+    if (!readServerPtr_m->listen( QHostAddress("127.0.0.1"),readTcpPortFromClient_m.toInt())) {//Listen on LocalHost
         writeToDebugFile("Unable to start the write server: "
-                         + readServer->errorString(),DEBUGDETAILS);
+                         + readServerPtr_m->errorString(),DEBUGDETAILS);
         return;
     }else{
         writeToDebugFile("The read server is started to listen"
-                         " on address: " + readServer->serverAddress().toString()
-                         + " and port: " + QString::number(readServer->serverPort()),DEBUGDETAILS);
+                         " on address: " + readServerPtr_m->serverAddress().toString()
+                         + " and port: " + QString::number(readServerPtr_m->serverPort()),DEBUGDETAILS);
     }
 
-    writeServer = new QTcpServer(this);
+    writeServerPtr_m = new QTcpServer(this);
 
-    if (!writeServer->listen( QHostAddress("127.0.0.1"),writeTcpPortFromClient_m.toInt())) {//Listen on LocalHost
-        writeToDebugFile("Unable to start the write server: "+ writeServer->errorString(),DEBUGDETAILS);
+    if (!writeServerPtr_m->listen( QHostAddress("127.0.0.1"),writeTcpPortFromClient_m.toInt())) {//Listen on LocalHost
+        writeToDebugFile("Unable to start the write server: "+ writeServerPtr_m->errorString(),DEBUGDETAILS);
         return;
     }else{
         writeToDebugFile("The write server is started to listen"
-                         " on address: " + writeServer->serverAddress().toString()
-                         + " and port: " + QString::number(writeServer->serverPort()),DEBUGDETAILS);
+                         " on address: " + writeServerPtr_m->serverAddress().toString()
+                         + " and port: " + QString::number(writeServerPtr_m->serverPort()),DEBUGDETAILS);
     }
 
 
     //Read and write from/to Client
-    connect(readServer, SIGNAL(newConnection()), this, SLOT(initReadServer()));
-    connect(writeServer, SIGNAL(newConnection()), this, SLOT(initWriteServer()));
+    connect(readServerPtr_m, SIGNAL(newConnection()), this, SLOT(initReadServer()));
+    connect(writeServerPtr_m, SIGNAL(newConnection()), this, SLOT(initWriteServer()));
 
     //Buffer to save data from socket
     buffer_m.setBuffer(&dataFromBuffer_m);
@@ -157,7 +155,7 @@ QtGraceTcpServer::QtGraceTcpServer(QString readTcpPort,
 void QtGraceTcpServer::initReadServer()
 {
     // Accept connection
-    QTcpSocket *clientConnection = readServer->nextPendingConnection();
+    QTcpSocket *clientConnection = readServerPtr_m->nextPendingConnection();
     connect(clientConnection, SIGNAL(disconnected()),
             clientConnection, SLOT(deleteLater()));
 
@@ -171,13 +169,13 @@ void QtGraceTcpServer::initReadServer()
 void QtGraceTcpServer::initWriteServer()
 {
     // Accept connection
-    writeConnection = writeServer->nextPendingConnection();
-    connect(writeConnection, SIGNAL(disconnected()),
-            writeConnection, SLOT(deleteLater()));
-    connect(writeConnection, SIGNAL(bytesWritten(qint64)), this, SLOT(dataWritten(qint64)));
-    connect(writeConnection, SIGNAL(disconnected()), this, SLOT(writeSocketDisconnected()));
-    connect(writeConnection, SIGNAL(connected()), this, SLOT(writeSocketConnected()));
-    connect(writeConnection, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(socketError(QAbstractSocket::SocketError)));
+    writeConnectionPtr_m = writeServerPtr_m->nextPendingConnection();
+    connect(writeConnectionPtr_m, SIGNAL(disconnected()),
+            writeConnectionPtr_m, SLOT(deleteLater()));
+    connect(writeConnectionPtr_m, SIGNAL(bytesWritten(qint64)), this, SLOT(dataWritten(qint64)));
+    connect(writeConnectionPtr_m, SIGNAL(disconnected()), this, SLOT(writeSocketDisconnected()));
+    connect(writeConnectionPtr_m, SIGNAL(connected()), this, SLOT(writeSocketConnected()));
+    connect(writeConnectionPtr_m, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(socketError(QAbstractSocket::SocketError)));
 
     writeToDebugFile("Write Server: connected\n",DEBUGDETAILS);
 }
@@ -209,9 +207,9 @@ void QtGraceTcpServer::communicateWithClient()
 
         if( comMode == initComm ){
             writeToDebugFile("Server send ready signal",DEBUGDETAILS);
-            int rc = writeConnection->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
+            int rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
             assert(rc == sizeof(ComMode));
-            writeConnection->flush();
+            writeConnectionPtr_m->flush();
         }
         else if( comMode == readDataComm ){
             writeToDebugFile("Server ready to read data from client",DEBUGDETAILS);
@@ -220,8 +218,8 @@ void QtGraceTcpServer::communicateWithClient()
         else if( comMode == sendDataCom ){
             writeToDebugFile("Server send data to client",DEBUGDETAILS);
             sendParam();
-            sendData(graphDataStreamToSend_m->str(),graphDataStreamToSend_m->pcount());
-            delete graphDataStreamToSend_m;
+            sendData(graphDataStreamToSendPtr_m->str(),graphDataStreamToSendPtr_m->pcount());
+            delete graphDataStreamToSendPtr_m;
 
         }
         else {
@@ -237,7 +235,7 @@ void QtGraceTcpServer::communicateWithClient()
 
 void QtGraceTcpServer::writeToDataStream(const char *data, int len)
 {
-    graphDataStreamToSend_m->write(data,len);
+    graphDataStreamToSendPtr_m->write(data,len);
 }
 
 
@@ -248,33 +246,33 @@ void QtGraceTcpServer::sendData(const char* data, int bytesToSend)
 
     // First we need to tell the client what we are going to do.
     comMode = sendDataCom;
-    int rc = writeConnection->write(reinterpret_cast<char*>(&comMode), sizeof(comMode));
+    int rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode), sizeof(comMode));
     assert(rc == sizeof(comMode));
 
     writeToDebugFile("Server is going to send packet with " +
                      QString::number(bytesToSend) +
                      " bytes",DEBUGDETAILS);
 
-    rc = writeConnection->write(reinterpret_cast<char*>(&bytesToSend), sizeof(int));
+    rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&bytesToSend), sizeof(int));
     assert(rc == sizeof(int));
 
     writeToDebugFile("Server has send data packet",DEBUGDETAILS);
 
     int bytesWritten = 0;
     do {
-        rc = writeConnection->write(reinterpret_cast<const char*>(&data[bytesWritten]), bytesToSend-bytesWritten);
+        rc = writeConnectionPtr_m->write(reinterpret_cast<const char*>(&data[bytesWritten]), bytesToSend-bytesWritten);
         if( rc >= 0) bytesWritten += rc;
     }while( rc >=0 && bytesWritten < bytesToSend);
 
     // Make sure data has been send before we delete memory.
-    writeConnection->flush();
+    writeConnectionPtr_m->flush();
 
     writeToDebugFile("Server is done sending, send end command",DEBUGDETAILS);
 
     comMode = endComm;
-    rc = writeConnection->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
+    rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
     assert(rc == sizeof(ComMode));
-    writeConnection->flush();
+    writeConnectionPtr_m->flush();
 
 }
 
@@ -319,12 +317,12 @@ void QtGraceTcpServer::readData(QTcpSocket *readConnection)
     if( bytesToRead == 0){
         writeToDebugFile("Server is done reading, send end command",DEBUGDETAILS);
 
-        handleDataFromClient();
+        processDataFromClient();
         dataFromSocket_m.clear();
         comMode = endComm;
-        rc = writeConnection->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
+        rc = writeConnectionPtr_m->write(reinterpret_cast<char*>(&comMode), sizeof(ComMode));
         assert(rc == sizeof(ComMode));
-        writeConnection->flush();
+        writeConnectionPtr_m->flush();
     }
 
     // Note, there might be remaining bytes to read, if so, there will be another readyRead signal send.
@@ -339,14 +337,14 @@ QtGraceTcpServer::~QtGraceTcpServer() {
 
 
     if(isDebugFlagOn_m){
-        debugFile_m->close();
-        delete debugFile_m;
-        delete debugOut_m;
+        debugFilePtr_m->close();
+        delete debugFilePtr_m;
+        delete debugOutPtr_m;
     }
 
 }
 
-void QtGraceTcpServer::handleDataFromClient(){
+void QtGraceTcpServer::processDataFromClient(){
 
     std::istrstream dataStreamFromSocket(dataFromSocket_m.data(),dataFromSocket_m.size());
 
@@ -424,7 +422,7 @@ void QtGraceTcpServer::executeTaskFromClient()
                          + QString::number(command_m),DEBUGDETAILS);
 
 
-        buffer_m.write(dataSet1Ptr);
+        buffer_m.write(dataSet1Ptr_m);
         isWriteToTmpFile_m=true;
         countNoOfRead_m = 0;
         break;
@@ -436,7 +434,7 @@ void QtGraceTcpServer::executeTaskFromClient()
         writeToDebugFile("Command was performed:  (WRITE_DATAVEC) "
                          + QString::number(command_m),DEBUGDETAILS);
 
-        readXYData(dataSet1Ptr, dataSet2Ptr_m);
+        readXYData(dataSet1Ptr_m, dataSet2Ptr_m);
         countNoOfRead_m = 0;
         newDataSetReady_m=0;
         break;
@@ -570,9 +568,9 @@ void QtGraceTcpServer::executeTaskFromClient()
                          + QString::number(command_m),DEBUGDETAILS);
 
         if(isDebugFlagOn_m){
-            debugFile_m->close();
-            delete debugFile_m;
-            delete debugOut_m;
+            debugFilePtr_m->close();
+            delete debugFilePtr_m;
+            delete debugOutPtr_m;
         }
 
         exit(0);
@@ -716,7 +714,7 @@ void QtGraceTcpServer::readDataFromSocket(char *newDataFromSocket, int available
 
     {
         if(command_m!=SET_SCALING_MODE && command_m!=SET_LAYOUT_MODE){
-            dataSet1Ptr = copyDataFromSocket(availableBytes,newDataFromSocket);
+            dataSet1Ptr_m = copyDataFromSocket(availableBytes,newDataFromSocket);
         }
         else{
 
@@ -925,18 +923,18 @@ void QtGraceTcpServer::readXYData(char* xData, char* yData){
 void QtGraceTcpServer::readPsFileName(){
 
     // Read the item name from socket
-    dataSet1Ptr[dataLength_m] = '\0';
+    dataSet1Ptr_m[dataLength_m] = '\0';
 
     // Printstring length is 128, be careful
     if(dataLength_m > 125){ // three bytes for .ps
         printf("\nItem name for QtGrace document couldn't be read, line to long!\n"); // BZ629-3 beep removed
-        delete[]dataSet1Ptr;
+        delete[]dataSet1Ptr_m;
         return;
     }
 
     // set the document name
-    if(dataSet1Ptr[0] != '\0'){
-        qtGraceDocStrName_m = (string)dataSet1Ptr;
+    if(dataSet1Ptr_m[0] != '\0'){
+        qtGraceDocStrName_m = (string)dataSet1Ptr_m;
         QString docNameWithFullPath = QDir::currentPath()+ QString("/") +QString::fromStdString(qtGraceDocStrName_m);
         QString exportNameWithFullPath = QDir::currentPath()+ QString("/") +QString::fromStdString(qtGraceDocStrName_m);
 
@@ -947,7 +945,7 @@ void QtGraceTcpServer::readPsFileName(){
 
     }
 
-    delete[]dataSet1Ptr;
+    delete[]dataSet1Ptr_m;
     set_ptofile(TRUE);
 
 }
@@ -1160,7 +1158,7 @@ void QtGraceTcpServer::setLayoutMode(){
 }
 
 void QtGraceTcpServer::sendParam(){
-    graphDataStreamToSend_m = new std::ostrstream();
+    graphDataStreamToSendPtr_m = new std::ostrstream();
 
     int qtGraceDocStrNameLength = qtGraceDocStrName_m.length();
     //Send QtGrace graph parameters settings (PD file)
@@ -1184,38 +1182,20 @@ void QtGraceTcpServer::sendParam(){
     delete[] pp;
 }
 
-
-
-
-const char* QtGraceTcpServer::createUniqueFileName(){
-
-    //get current date and time
-    QDateTime dateTime = QDateTime::currentDateTime();
-    QString dateTimeString = dateTime.toString("hhmmsszzz");
-
-    QString sendToBeast = "qtGrace"+dateTimeString;
-    QByteArray fileNameBa1 = sendToBeast.toLocal8Bit();
-
-    return fileNameBa1.data();
-
-
-
-}
-
 void QtGraceTcpServer::writeToDebugFile(QString message, QString debugDetails,bool isSkipLineNr){
 
     if(isDebugFlagOn_m){
         if(isSkipLineNr){
-            *debugOut_m<<message<<endl;
+            *debugOutPtr_m<<message<<endl;
             cerr << message.toStdString()<<endl;
 
         }else{
-            *debugOut_m<< debugDetails <<" \nmessage: "<< message<<endl;
+            *debugOutPtr_m<< debugDetails <<" \nmessage: "<< message<<endl;
             cerr << debugDetails.toStdString() <<" \nmessage: "<< message.toStdString()<<endl;
 
         }
 
-        debugOut_m->flush();
+        debugOutPtr_m->flush();
     }
 
 }
@@ -1248,11 +1228,11 @@ void QtGraceTcpServer::dataWritten(qint64 iData)
 
 void QtGraceTcpServer::socketError(QAbstractSocket::SocketError) {
 
-    if(writeConnection->error()!=QAbstractSocket::RemoteHostClosedError)
+    if(writeConnectionPtr_m->error()!=QAbstractSocket::RemoteHostClosedError)
     {
-        writeToDebugFile("The following communicaton error occurred: " + writeConnection->errorString());
+        writeToDebugFile("The following communicaton error occurred: " + writeConnectionPtr_m->errorString());
         QMessageBox::information(0,"Communication Error",tr("The following error occurred: %1.")
-                                 .arg(writeConnection->errorString()));
+                                 .arg(writeConnectionPtr_m->errorString()));
     }
 
 }
