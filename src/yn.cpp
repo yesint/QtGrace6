@@ -58,8 +58,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 #ifndef HAVE_YN
 
-extern "C" double MAXNUM;
-extern double  MAXLOG;
+extern double MAXNUM, MAXLOG;
 
 double yn(int n,double x )
 {

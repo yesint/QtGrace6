@@ -957,6 +957,10 @@ gnos=snos=NULL;
                 {
                 pstr[nid].s_plotstring=copy_string(NULL,(st[i])->s_plotstring);
                 }
+                if (pstr[nid].alt_plotstring!=NULL)
+                {
+                pstr[nid].alt_plotstring=copy_string(NULL,(st[i])->alt_plotstring);
+                }
             }
         break;
         }
@@ -2073,7 +2077,7 @@ else//set exists or has existed (in any way: memory already allocated)
             {
             ///g[gno].p[setno].data.s[i]=(char*)xrealloc(g[gno].p[setno].data.s[i], (strlen(pa->data.s[i]) + 1)*sizeof(char));
             ///strcpy(g[gno].p[setno].data.s[i],pa->data.s[i]);
-            g[gno].p[setno].data.s[i]=copy_string(g[gno].p[setno].data.s[i],pa->data.s[i]);
+            g[gno].p[setno].data.s[i] = copy_string(g[gno].p[setno].data.s[i],pa->data.s[i]);
             }
         }
     }//end UNDO_APPEARANCE
@@ -3038,7 +3042,7 @@ Datapoint * ps=new Datapoint[2*len];
         {
             memcpy(ps+i,p+i,sizeof(Datapoint));
             if (p[i].s!=NULL)
-            ps[i].s=copy_string(NULL,p[i].s);
+            ps[i].s = copy_string(NULL,p[i].s);
         }
         else
         {
@@ -3060,8 +3064,8 @@ Datapoint * ps=new Datapoint[2*len];
         for (int i=0;i<len;i++)
         {
         memcpy(ps+i+len,p+i,sizeof(Datapoint));
-        if (p[i].s!=NULL)
-        ps[i+len].s=copy_string(NULL,p[i].s);
+            if (p[i].s!=NULL)
+            ps[i+len].s = copy_string(NULL,p[i].s);
         }
     }
 nn->data=(void*)ps;
@@ -3260,8 +3264,8 @@ memcpy((*table),cmap_table,sizeof(CMap_entry)*(*nr));
     {
     /*(*table)[i].cname=new char[2+strlen(cmap_table[i].cname)];
     strcpy((*table)[i].cname,cmap_table[i].cname);*/
-    (*table)[i].cname=NULL;
-    copy_string((*table)[i].cname,cmap_table[i].cname);
+    (*table)[i].cname = NULL;
+    (*table)[i].cname = copy_string((*table)[i].cname,cmap_table[i].cname);
     }
 }
 
@@ -3271,7 +3275,7 @@ if ((*table)==NULL) return;
     for (int i=0;i<(*nr);i++)
     {
     //delete[] (*table)[i].cname;
-    copy_string((*table)[i].cname,NULL);
+    (*table)[i].cname = copy_string((*table)[i].cname,NULL);
     }
 delete[] (*table);
 (*nr)=0;
@@ -3286,14 +3290,14 @@ SaveColMapToMemory(&saved_col_table_entries,&sav_col_table);
 void IntstallColorMap(int nr, CMap_entry* colors)
 {
 int number_of_new_cols=nr;
-char * old_cname;
+//char * old_cname;
 if (number_of_new_cols>MAXCOLORS) number_of_new_cols=MAXCOLORS;
 realloc_colors(number_of_new_cols);
 //copy color palette
 memcpy(cmap_table,colors,sizeof(CMap_entry)*number_of_new_cols);
     for (int i=0;i<number_of_new_cols;i++)
     {
-    cmap_table[i].cname=NULL;//has to be reset to NULL again, becaus the colors.cname has been copied into it
+    cmap_table[i].cname = NULL;//has to be reset to NULL again, becaus the colors.cname has been copied into it
     cmap_table[i].cname = copy_string(cmap_table[i].cname, colors[i].cname);
     }
 //I copied the main entries, not the aux-entries ... It is expected, that 'colors' contains ALL colors (main + aux)

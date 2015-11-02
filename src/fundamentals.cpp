@@ -545,7 +545,7 @@ void DynSetMemoryToLineEdit(char * &t1,char * &t2,char *&c1,char * &c2,bool & di
     static QPalette pal;
     static QString text;
     text=lenText->text();
-    t2=copy_string(t2,lenText->text().toUtf8().constData());//t2 is always the original - always internally in UTF8
+    t2 = copy_string(t2,lenText->text().toUtf8().constData());//t2 is always the original - always internally in UTF8
     pal=lenText->palette();
     displayStd=true;
     char * te=new char[MAX_STRING_LENGTH];//longer is not allowed! Do not write essays in Grace ;-) !
@@ -554,7 +554,7 @@ void DynSetMemoryToLineEdit(char * &t1,char * &t2,char *&c1,char * &c2,bool & di
         complete_LaTeX_to_Grace_Translator(text);//make the LaTeX-to-Grace-Translation
     }
     generate_string_Qt_aware(te,text);
-    t1=copy_string(t1,te);//t1 is the Grace-version of the text
+    t1 = copy_string(t1,te);//t1 is the Grace-version of the text
     c1=t1;
     c2=t2;
     pal.setColor(QPalette::Text,*stdTextColor);
@@ -2753,6 +2753,13 @@ FileSelector::FileSelector(QWidget * parent):QWidget(parent)
     filterExtension=QString("*.dat");
     filter=currentDir+separator+filterExtension;
     ledFilter->setText(filter);
+
+    cmdSetCwd->setAutoDefault(false);
+    cmdSetCwd->setDefault(false);
+    cmdGoUp->setAutoDefault(false);
+    cmdGoUp->setDefault(false);
+    cmdStdDialog->setAutoDefault(false);
+    cmdStdDialog->setDefault(false);
 }
 
 void FileSelector::FileSelected(const QModelIndex & index )
@@ -2763,8 +2770,11 @@ void FileSelector::FileSelected(const QModelIndex & index )
         return;
     }
     selectedFile=index.data().toString();
+//qDebug() << "FileSelected (raw)=" << selectedFile;
     QString toEmit=QDir::cleanPath(currentDir+separator+selectedFile);
+//qDebug() << "FileSelected (path complete)=" << toEmit;
     toEmit=QDir::toNativeSeparators(toEmit);
+//qDebug() << "FileSelected (path corrected)=" << toEmit;
     emit(newSelection(toEmit));
 }
 
@@ -2788,8 +2798,9 @@ void FileSelector::DirSelected(const QModelIndex & index )
     QDir curDir(currentDir+separator+selectedDir);
     QString newFilter,newDir;
     GeneratePathWithExtension(curDir,newFilter,newDir);
+    newFilter=QDir::toNativeSeparators(newFilter);
     filter=newFilter;
-    ledFilter->setText(filter);
+    ledFilter->lenText->setText(filter);
 }
 
 void FileSelector::DirDoubleClicked( const QModelIndex & index )
@@ -2804,8 +2815,9 @@ void FileSelector::DirDoubleClicked( const QModelIndex & index )
     QDir d1(currentDir);
     d1.makeAbsolute();
     currentDir=d1.path();
+    newFilter=QDir::toNativeSeparators(newFilter);
     filter=newFilter;
-    ledFilter->setText(filter);
+    ledFilter->lenText->setText(filter);
 
     showFilesLikeFilter();
 
@@ -2828,11 +2840,11 @@ void FileSelector::showFilesLikeFilter(void)
 void FileSelector::newFilterEntered(void)
 {
     ///test for "exists"???
-    QString entered=ledFilter->text();
+    QString entered=ledFilter->lenText->text();
     if (entered.isEmpty())
     {
-    ledFilter->setText(QDir::toNativeSeparators(QString(user_home_dir)+QDir::separator()+QString("*")));
-    entered=ledFilter->text();
+    ledFilter->lenText->setText(QDir::toNativeSeparators(QString(user_home_dir)+QDir::separator()+QString("*")));
+    entered=ledFilter->lenText->text();
     }
     QDir d1(entered);
     QChar last_char=entered.at(entered.length()-1);
@@ -2842,7 +2854,7 @@ void FileSelector::newFilterEntered(void)
     if ( !entered.contains(QString("*")) && !entered.contains(QString("?")) && last_char==separator.at(0))
     {
         filterExtension=QString("*");
-        ledFilter->setText(QDir::toNativeSeparators(entered + filterExtension));
+        ledFilter->lenText->setText(QDir::toNativeSeparators(entered + filterExtension));
     }
     else
     {
@@ -2857,7 +2869,7 @@ void FileSelector::newFilterEntered(void)
     QDir d2(p);
     d2.makeAbsolute();
     currentDir=d2.path();
-
+/// qDebug() << "newFilterEntered=" << filter;
     showFilesLikeFilter();
 }
 
@@ -2877,6 +2889,7 @@ QString n_dir=QDir::toNativeSeparators(fi.absolutePath());
 setFilterFromExtern(n_dir,ext);
 
 QModelIndex mi=modelFiles->index(n_file);
+/// qDebug() << "Extern: file=" << n_file << " index=" << mi.row() << "" << modelFiles->rowCount();
 FileList->setCurrentIndex(mi);
 /*
 cout << "Files: rows=" << modelFiles->rowCount() << endl;
@@ -3042,27 +3055,54 @@ emit(newSelection(toEmit));*/
 
 void FileSelector::doStdDialog(void)
 {
-    QString s;
+QString s;
     if (forRead==true)
         s=QFileDialog::getOpenFileName(this,currentDir);
     else
         s=QFileDialog::getSaveFileName(this,currentDir);
     if (!s.isNull())
     {
+        QFileInfo fi1(QDir::toNativeSeparators(s));
+        QString suffix=fi1.completeSuffix();
+        QString path_only=fi1.path();
+        ledFilter->lenText->setText(fi1.absolutePath()+QDir::separator()+QString("*.")+fi1.suffix());
+        setFilterFromExtern(path_only,suffix);
+        setFileSelectionFromExtern(s);
+        emit(newSelection(s));
+        qApp->processEvents();
+        emit(newSelectinManually());
+        //qApp->processEvents();
+        //emit(newSelection(s));
+        return;
+/// qDebug() << "StdDialog: s=" << s;
         /*lazy method of finding filename and directory*/
-        ledFilter->setText(QDir::toNativeSeparators(s));
+        ledFilter->lenText->setText(QDir::toNativeSeparators(s));
         newFilterEntered();
         //set and announce new selection and filters
         selectedFile=filter;
-        filterExtension=QString("*");
+        //QFileInfo fi1(selectedFile);
+        filterExtension=QString("*.")+fi1.completeSuffix();
         filter=currentDir+separator+filterExtension;
         emit(newSelection(selectedFile));
         //show selection again
         ///modify to do this only for existing files!!!
-        ledFilter->setText(QDir::toNativeSeparators(filter));
+        ledFilter->lenText->setText(QDir::toNativeSeparators(filter));
         newFilterEntered();
+/// qDebug() << "StdDialog: selectedFile=" << selectedFile;
         QModelIndex index=modelFiles->index(selectedFile);
+        /*if (index.row()<0)
+        {
+        QModelIndex sav_index=index;
+        index=modelFiles->index(fi1.fileName());
+qDebug() << "StdDialog: Filename only=" << fi1.fileName();
+        if (index.row()<0) index=sav_index;
+        }*/
+/// qDebug() << "index=" << index.row();
         FileList->setCurrentIndex(index);
+        /*QString suffix=fi1.completeSuffix();
+        QString path_only=fi1.path();
+        setFilterFromExtern(path_only,suffix);
+        setFileSelectionFromExtern(s);*/
     }
 }
 
@@ -3165,7 +3205,6 @@ stdSetTypeSelector::stdSetTypeSelector(QWidget * parent):StdSelector(parent)
     entryValues[1]=1;
     cmbSelect->addItem(entries[0]);
     cmbSelect->addItem(entries[1]);
-
     layout=new QHBoxLayout;
     layout->setMargin(2);
     layout->addWidget(lblText);

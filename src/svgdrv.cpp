@@ -980,7 +980,7 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
     if ((dash = strchr(fontalias, '-')) == NULL) {
         family = copy_string(family, fontalias);
     } else {
-        family    = (char*)xrealloc(family, dash - fontalias + 1);
+        family = (char*)xrealloc(family, dash - fontalias + 1);
         strncpy(family, fontalias, dash - fontalias);
         family[dash - fontalias] = '\0';
     }
@@ -991,7 +991,7 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
         fprintf(prstream, ",'%s'",familyff);
     }
     
-    copy_string(family, NULL);
+    family = copy_string(family, NULL);
 
     if (get_italic_angle(font) != 0) {
         if ((strstr(fontfullname, "Obliqued") != NULL) ||

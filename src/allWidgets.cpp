@@ -491,6 +491,8 @@ text[len-1]='\0';
 QList<int> comments_from_set,comments_from_graph;
 QStringList orig_saved_comment;
 QStringList std_saved_comment;
+QStringList orig_saved_legend;
+QStringList std_saved_legend;
 
 void save_set_comments(QList<int> & gnos,QList<int> & snos)
 {
@@ -498,12 +500,16 @@ comments_from_set.clear();
 comments_from_graph.clear();
 orig_saved_comment.clear();
 std_saved_comment.clear();
+orig_saved_legend.clear();
+std_saved_legend.clear();
     for (int i=0;i<gnos.length();i++)
     {
         if (is_set_active(gnos.at(i),snos.at(i)))
         {
-        orig_saved_comment << g[gnos.at(i)].p[snos.at(i)].orig_lstr;
-        std_saved_comment << g[gnos.at(i)].p[snos.at(i)].lstr;
+        orig_saved_legend << g[gnos.at(i)].p[snos.at(i)].orig_lstr;
+        std_saved_legend << g[gnos.at(i)].p[snos.at(i)].lstr;
+        orig_saved_comment << g[gnos.at(i)].p[snos.at(i)].orig_comments;
+        std_saved_comment << g[gnos.at(i)].p[snos.at(i)].comments;
         comments_from_set << snos.at(i);
         comments_from_graph << gnos.at(i);
         }
@@ -516,8 +522,12 @@ void restore_set_comments(void)
     {
         if (is_set_active(comments_from_graph.at(i),comments_from_set.at(i)))
         {
-        copy_string(g[comments_from_graph.at(i)].p[comments_from_set.at(i)].orig_lstr,orig_saved_comment.at(i).toLocal8Bit().constData());
-        copy_string(g[comments_from_graph.at(i)].p[comments_from_set.at(i)].lstr,std_saved_comment.at(i).toLocal8Bit().constData());
+        strcpy(g[comments_from_graph.at(i)].p[comments_from_set.at(i)].orig_comments,orig_saved_comment.at(i).toLocal8Bit().constData());
+        strcpy(g[comments_from_graph.at(i)].p[comments_from_set.at(i)].comments,std_saved_comment.at(i).toLocal8Bit().constData());
+        strcpy(g[comments_from_graph.at(i)].p[comments_from_set.at(i)].orig_lstr,orig_saved_legend.at(i).toLocal8Bit().constData());
+        strcpy(g[comments_from_graph.at(i)].p[comments_from_set.at(i)].lstr,std_saved_legend.at(i).toLocal8Bit().constData());
+        //g[comments_from_graph.at(i)].p[comments_from_set.at(i)].orig_lstr=copy_string(g[comments_from_graph.at(i)].p[comments_from_set.at(i)].orig_lstr,orig_saved_comment.at(i).toLocal8Bit().constData());
+        //g[comments_from_graph.at(i)].p[comments_from_set.at(i)].lstr=copy_string(g[comments_from_graph.at(i)].p[comments_from_set.at(i)].lstr,std_saved_comment.at(i).toLocal8Bit().constData());
         }
     }
 }
@@ -783,10 +793,10 @@ QString get_filename_with_extension(int device)//generates a filename from the n
     /*char printfile[GR_MAXPATHLEN];
 strcpy(printfile,get_docname());*/
 
-    QFileInfo fi(get_docname());
+    QFileInfo fi(QString::fromLocal8Bit(get_docname()));
 
-    /*cout << endl;
-cout << "DocName = #" << printfile << "# abs=" << fi.isAbsolute() << endl;
+/*cout << endl;
+//cout << "DocName = #" << printfile << "# abs=" << fi.isAbsolute() << endl;
 cout << "AbsFilePath = #" << fi.absoluteFilePath().toLocal8Bit().constData() << "#" << endl;
 cout << "FileNameOnly = #" << fi.fileName().toLocal8Bit().constData() << "#" << endl;
 cout << "PathOnly = #" << fi.absolutePath().toLocal8Bit().constData() << "#" << endl;
@@ -5196,7 +5206,8 @@ void frmPlot_Appearance::doAccept(void)
 
 void frmPlot_Appearance::doClose(void)
 {
-    parentWidget()->hide();
+//parentWidget()->hide();
+    emit(closeWish());
 }
 
 void frmPlot_Appearance::init(void)
@@ -5219,17 +5230,24 @@ void frmPlot_Appearance::init(void)
 frmPlotAppearance::frmPlotAppearance(QWidget * parent):QDialog(parent)
 {
 //setFont(*stdFont);
+    min_w=326;
+    min_h=549;
+    bar_w=bar_h=20;
     setWindowTitle(tr("QtGrace: Plot appearance"));
     setWindowIcon(QIcon(*GraceIcon));
-
     QVBoxLayout * layout=new QVBoxLayout;
     layout->setMargin(0);
     layout->setSpacing(0);
     flp=new frmPlot_Appearance(this);
-    layout->addWidget(flp);
+    connect(flp,SIGNAL(closeWish()),SLOT(doClose()));
+    scroll=new QScrollArea;
+    scroll->setWidget(flp);
+    layout->addWidget(scroll);
+    //layout->addWidget(flp);
     setLayout(layout);
     /// flp->buttonGroup->cmdAccept->setDefault(true); //deactivated --> apply is default (otherwise the editable slider behave strange)
     /// flp->buttonGroup->cmdAccept->setFocus();
+    resize(QSize(min_w+5,min_h+5));
 }
 
 void frmPlotAppearance::init(void)
@@ -5253,6 +5271,38 @@ void frmPlotAppearance::doClose(void)
     hide();
 }
 
+void frmPlotAppearance::resizeEvent(QResizeEvent * event)
+{
+//cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
+int n_size_w=event->size().width(),n_size_h=event->size().height();
+int actual_space_w=n_size_w,actual_space_h=n_size_h;
+    for (int i=0;i<2;i++)
+    {
+        if (actual_space_w<min_w)
+        {
+            n_size_w=min_w;
+            actual_space_h=event->size().height()-bar_h;
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+        if (actual_space_h<min_h)
+        {
+            n_size_h=min_h;
+            actual_space_w=event->size().width()-bar_w;
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+    }
+if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
+if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+flp->resize(QSize(n_size_w,n_size_h));
+}
 
 frmLocatorProps::frmLocatorProps(QWidget * parent):QDialog(parent)
 {
@@ -6058,7 +6108,19 @@ void frmSetOp::doHelpOnSetOp(void)
 frmCommands::frmCommands(QWidget * parent):QDialog(parent)
 {
 //setFont(*stdFont);
+    min_w=500;
+    min_h=500;
+    bar_w=bar_h=20;
+    scroll=new QScrollArea();
+    flp=new QWidget();
+    scroll->setWidget(flp);
+    QVBoxLayout * m_layout=new QVBoxLayout();
+    m_layout->setMargin(0);
+    m_layout->setSpacing(0);
+    m_layout->addWidget(scroll);
+
     setWindowTitle(tr("QtGrace: Commands"));
+
     setWindowIcon(QIcon(*GraceIcon));
 
     FormReadHistory=NULL;
@@ -6186,8 +6248,10 @@ frmCommands::frmCommands(QWidget * parent):QDialog(parent)
     layout->setStretchFactor(grpBox2,0);
     layout->setStretchFactor(lblCommand,0);
     layout->setStretchFactor(lenCommand,0);
-    setLayout(layout);
-    this->resize(500,600);
+
+flp->setLayout(layout);
+setLayout(m_layout);
+    this->resize(QSize(min_w+5,min_h+5));
 }
 
 void frmCommands::doAdd(void)
@@ -6444,6 +6508,40 @@ int frmCommands::next_unused_new_set(void)
 return nex;
 }
 
+void frmCommands::resizeEvent(QResizeEvent * event)
+{
+//cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
+//return;
+int n_size_w=event->size().width(),n_size_h=event->size().height();
+int actual_space_w=n_size_w,actual_space_h=n_size_h;
+    for (int i=0;i<2;i++)
+    {
+        if (actual_space_w<min_w)
+        {
+            n_size_w=min_w;
+            actual_space_h=event->size().height()-bar_h;
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+        if (actual_space_h<min_h)
+        {
+            n_size_h=min_h;
+            actual_space_w=event->size().width()-bar_w;
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+    }
+if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
+if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+flp->resize(QSize(n_size_w,n_size_h));
+}
+
 void frmCommands::doClear(void)
 {
     int ret=QMessageBox::question(this,tr("Are you sure?"),tr("Delete all entries from list of commands?"),QMessageBox::Yes,QMessageBox::No);
@@ -6664,8 +6762,8 @@ void frmCommands::doReplayWithReplace(void)
         errmsg(tr("Number of destination sets does not match number of source sets!").toLocal8Bit().constData());
         goto end_of_replay_with_replace;
     }
+
     /// do we need this?
-    /*
     if (nr_dest>0)
     {
     QList<int> sets_to_save;
@@ -6678,7 +6776,7 @@ void frmCommands::doReplayWithReplace(void)
         sets_to_save << destSets[i];
         }
     save_set_comments(gnos_to_save,sets_to_save);
-    }*/
+    }
 
     replace_o_set_ids=nr_src;
     replace_n_set_ids=nr_src;//the number of sets in source and destination have to be the same -- set-id=-1 if no destination has been selected
@@ -6895,10 +6993,10 @@ void frmCommands::doReplayWithReplace(void)
 
 end_of_replay_with_replace:
     /// do we need this?
-    /*if (nr_dest>0)
+    if (nr_dest>0)
     {
     restore_set_comments();
-    }*/
+    }
     mainWin->mainArea->completeRedraw();
     activate_id_replacing=false;
     delete[] srcSets;
@@ -7891,7 +7989,7 @@ void frmDeviceSetup::DeviceChanged(int device_id)//output-device changed (screen
             strcat(print_file, dev.fext);*/
     /// sprintf(print_file,"%s.%s",get_docbname(),dev.fext);
 
-    QString pf1=printfile_item->text();
+    QString pf1=printfile_item->lenText->text();
     if (!pf1.isEmpty())
     {
     replaceSuffix(pf1,QString(dev.fext));
@@ -7906,7 +8004,11 @@ void frmDeviceSetup::DeviceChanged(int device_id)//output-device changed (screen
     strcpy(print_file,print_file_with_extension.toLocal8Bit().constData());
 */
     strcpy(print_file,pf1.toLocal8Bit().constData());
-    xv_setstr(printfile_item, print_file);
+
+    //qDebug() << "pf1=" << pf1;
+
+    printfile_item->lenText->setText(pf1);
+    //xv_setstr(printfile_item, print_file);
     xv_setstr(print_string_item, get_print_cmd());
 
     switch (dev.type) {
@@ -8377,7 +8479,8 @@ void frmDeviceSetup::doApply(void)
     {
         hdevice = seldevice;
         set_ptofile(GetToggleButtonState(printto_item));
-        strcpy(print_file, xv_getstr(printfile_item));
+        //strcpy(print_file, xv_getstr(printfile_item));
+        strcpy(print_file,printfile_item->lenText->text().toLocal8Bit().constData());
         if (get_ptofile())
         {
             //strcpy(print_file, xv_getstr(printfile_item));
@@ -8572,7 +8675,7 @@ void frmDeviceSetup::doBrowse(void)
         connect(FormSelectOutputFile,SIGNAL(newFileSelectedForIO(int,QString,bool,bool,bool)),SLOT(IOrequested(int,QString,bool,bool,bool)));
     }
 
-    QFileInfo qf(printfile_item->text());
+    QFileInfo qf(printfile_item->lenText->text());
 
     int seldevice = GetOptionChoice(devices_item);
     Device_entry dev = get_device_props(seldevice);
@@ -9021,7 +9124,7 @@ void frmDeviceSetup::replaceFileNameOnly(QString nname)
 {
 QString oldName;
 QString newName;
-oldName=printfile_item->text();
+oldName=printfile_item->lenText->text();
 //cout << "oldName=#" << oldName.toLocal8Bit().constData() << "#" << endl;
 QFileInfo fi2(oldName);
 newName=fi2.absolutePath();
@@ -9030,7 +9133,7 @@ newName+=QDir::separator()+nname;
     if (!fi2.completeSuffix().isEmpty())
     newName+=QString(".")+fi2.completeSuffix();
 //cout << "newName=#" << newName.toLocal8Bit().constData() << "#" << endl;
-printfile_item->setText(newName);
+printfile_item->lenText->setText(newName);
 }
 
 tabLinestyles::tabLinestyles(QWidget * parent):QWidget(parent)
@@ -10132,6 +10235,19 @@ frm_Preferences::frm_Preferences(QWidget * parent):QDialog(parent)
 {
 QFont fntPref;
 //setFont(*stdFont);
+min_w=680;
+min_h=625;
+bar_w=bar_h=20;
+
+QVBoxLayout * m_layout=new QVBoxLayout();
+m_layout->setMargin(0);
+m_layout->setSpacing(0);
+
+flp=new QWidget(this);
+scroll=new QScrollArea;
+m_layout->addWidget(scroll);
+scroll->setWidget(flp);
+
     setWindowTitle(tr("QtGrace: Preferences"));
     setWindowIcon(QIcon(*GraceIcon));
 
@@ -10139,7 +10255,7 @@ QFont fntPref;
     vbox->setMargin(STD_MARGIN);
     vbox->setSpacing(STD_SPACING);
 
-tabs=new QTabWidget(this);
+tabs=new QTabWidget(flp);
 
 tab_prefs=new frmPreferences();
 tab_prefs->buttonGroup->hide();
@@ -10677,7 +10793,6 @@ miscLayout->setStretch(4,3);
 
 tab_Misc->setLayout(miscLayout);
 
-
 tabs->addTab(tab_prefs,tr("Grace"));                    //0
 tabs->addTab(tab_GUI,tr("QtGrace-GUI"));
 tabs->addTab(tab_Behaviour,tr("QtGrace-Behavior"));
@@ -10698,7 +10813,7 @@ connect(buttons->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
 
 vbox->addWidget(buttons);
 
-setLayout(vbox);
+flp->setLayout(vbox);
 
 connect(tab_prefs,SIGNAL(close_wish()),SLOT(doClose()));
 //connect(tab_extra,SIGNAL(close_wish()),SLOT(doClose()));
@@ -10712,6 +10827,10 @@ connect(chkUsePrintCommand,SIGNAL(stateChanged(int)),SLOT(togglePrintCommand(int
 
 delete[] entr;
 delete[] i_entr;
+
+setLayout(m_layout);
+
+resize(QSize(min_w+5,min_h+5));
 }
 
 void frm_Preferences::init(void)
@@ -11222,6 +11341,40 @@ init();
 void frm_Preferences::doTest(void)
 {
 frmTest->show();
+}
+
+void frm_Preferences::resizeEvent(QResizeEvent *event)
+{
+//cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
+//return;
+int n_size_w=event->size().width(),n_size_h=event->size().height();
+int actual_space_w=n_size_w,actual_space_h=n_size_h;
+    for (int i=0;i<2;i++)
+    {
+        if (actual_space_w<min_w)
+        {
+            n_size_w=min_w;
+            actual_space_h=event->size().height()-bar_h;
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+        if (actual_space_h<min_h)
+        {
+            n_size_h=min_h;
+            actual_space_w=event->size().width()-bar_w;
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+    }
+if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
+if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+flp->resize(QSize(n_size_w,n_size_h));
 }
 
 int yesnowin(char * msg,char * s1,char * s2,char * help_anchor)
@@ -13929,7 +14082,7 @@ selTargetGno->setNewEntries(nr,entr,vals);
 delete[] entr;
 delete[] vals;
 read_header_from_agr(filen,info);
-lblFilenText->setText(filen);
+lblFilenText->setText(QString::fromLocal8Bit(filen));
 lblDescrText->setText(info.project_description);
 if (allocated_controls>0)
 {
@@ -14106,7 +14259,7 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     //ledFormat2->lenText->setText(QString("\%.8g"));
     ledFormat2->lenText->setText(QString(sformat));
     ledTitle=new stdLineEdit(grpTitle,tr("Title:"));
-    ledTitle->lenText->setText(QString("A fit"));
+    ledTitle->lenText->setText(tr("A fit"));
 
     //ledSelection=new QLineEdit(tr(""),this);
     ledSelection=new stdLineEdit(this,tr(""));
@@ -14115,6 +14268,8 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     ledSelection->layout->setSpacing(0);
     ledSelection->setAcceptDrops(true);
     connect(ledSelection,SIGNAL(changed()),SLOT(newFileEnteredManually()));
+    connect(ledSelection->lenText,SIGNAL(returnPressed()),SLOT(newFileEnteredManually()));
+
     txtDescription=new QTextEdit(this);
     lblProjectContent=new QLabel(QString("--"),this);
 
@@ -14128,6 +14283,7 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     entr[1]=tr("NXY");
     entr[2]=tr("Block data");
     selLoadAs=new StdSelector(grpRead,tr("Load as:"),number,entr);
+
     number=4;
     entr[0]=tr("None");
     entr[1]=tr("X");
@@ -14135,6 +14291,7 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     entr[3]=tr("XY");
     selAutoscale=new StdSelector(grpRead,tr("Autoscale on read:"),number,entr);
     selAutoscale->setCurrentIndex(3);
+
     number=NUMBER_OF_SETTYPES;
     for (int i=0;i<number;i++)
     {
@@ -14225,15 +14382,24 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
         grpBinary->setVisible(false);
     }
 
-    cmdFilter=new QPushButton(tr("Filter"),this);
-    cmdFilter->setDefault(true);
-    connect(cmdFilter,SIGNAL(clicked()),SLOT(doFilter()));
     cmdOK=new QPushButton(tr("OK"),this);
     connect(cmdOK,SIGNAL(clicked()),SLOT(doOK()));
+    cmdFilter=new QPushButton(tr("Filter"),this);
+    connect(cmdFilter,SIGNAL(clicked()),SLOT(doFilter()));
     cmdCancel=new QPushButton(tr("Cancel"),this);
     connect(cmdCancel,SIGNAL(clicked()),SLOT(doCancel()));
     cmdHelp=new QPushButton(tr("Help"),this);
     connect(cmdHelp,SIGNAL(clicked()),SLOT(doHelp()));
+
+    cmdOK->setDefault(false);
+    cmdFilter->setDefault(false);
+    cmdCancel->setDefault(false);
+    cmdHelp->setDefault(false);
+
+    cmdOK->setAutoDefault(false);
+    cmdFilter->setAutoDefault(false);
+    cmdCancel->setAutoDefault(false);
+    cmdHelp->setAutoDefault(false);
 
     chkExchangeCommaPoint=new QCheckBox(tr("Use ',' instead of '.' as decimal seperator"),this);
 
@@ -14284,6 +14450,7 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     selector=new FileSelector(this);
     connect(selector,SIGNAL(newSelection(QString)),SLOT(gotNewSelection(QString)));
     connect(selector,SIGNAL(newSelectionDoubleClick(QString)),SLOT(gotNewSelectionDoubleClick(QString)));
+    connect(selector,SIGNAL(newSelectinManually()),SLOT(newFileEnteredManually()));
 
     layout->addWidget(selector,0,0,1,4);
 
@@ -14334,6 +14501,9 @@ ledFormat2->setVisible(false);
         cmdOpenSetImport=new QPushButton(tr("Open set extraction dialog"),this);
         connect(cmdOpenSetImport,SIGNAL(clicked()),SLOT(doOpenSetImport()));
         layout->addWidget(cmdOpenSetImport,6+1,0,1,4);
+
+        cmdOpenSetImport->setDefault(false);
+        cmdOpenSetImport->setAutoDefault(false);
 
         grpTitle->setVisible(FALSE);
         grpParamGraph->setVisible(FALSE);
@@ -14481,13 +14651,17 @@ ledFormat2->setVisible(false);
 
 void frmIOForm::gotNewSelection(QString selection)
 {
-ledSelection->setText(selection);
+static bool function_running=false;
+if (function_running==true) return;
+function_running=true;
+/// qDebug() << "gotNewSelection=" << selection;
+ledSelection->lenText->setText(selection);
+/// selector->setFileSelectionFromExtern(selection);
     if (formType!=READ_PROJECT_FORM) return;
-char * filename=new char[selection.length()+8];
+char * filename=new char[selection.toLocal8Bit().length()+8];
 strcpy(filename,selection.toLocal8Bit().constData());
 //struct agr_file_info afi;
-//cout << "new File=" << filename << " isAGR=" << is_agr_file(filename) << endl;
-
+//qDebug() << "new File=" << filename << " isAGR=" << is_agr_file(filename);
     if (is_agr_file(filename))
     {
         if (Form_AgrInfo==NULL)
@@ -14510,8 +14684,14 @@ strcpy(filename,selection.toLocal8Bit().constData());
     lblProjectContent->setText(tr("No project file."));
     cmdOpenSetImport->setEnabled(false);
     }
-
+    //newFileEnteredManually();
 delete[] filename;
+    function_running=false;
+    /*QFileInfo fi1(selection);
+    QString suffix=fi1.completeSuffix();
+    QString path_only=fi1.path();
+    selector->setFilterFromExtern(path_only,suffix);*/
+/// selector->setFileSelectionFromExtern(selection);
 }
 
 void frmIOForm::gotNewSelectionDoubleClick(QString selection)
@@ -14883,6 +15063,7 @@ end_fromIOFormOK:
 
 void frmIOForm::doFilter(void)
 {
+/// cout << "Filter pressed" << endl;
     selector->newFilterEntered();
 }
 
@@ -14924,7 +15105,7 @@ void frmIOForm::newFileEnteredManually(void)
 {
 QString text=ledSelection->text();
 QFileInfo fi(text);
-//qDebug() << "New File Selected=#" << text << "#";
+/// qDebug() << "New File Selected Manually=#" << text << "#";
 if (fi.exists()==false) return;
 //QString name_only=fi.completeBaseName();
 QString path_only=fi.absolutePath()+QDir::separator();
@@ -14935,6 +15116,7 @@ qDebug() << "Suffix=#" << suffix_only << "#";*/
 selector->ledFilter->setText(path_only+QString("*.")+suffix_only);
 selector->setFilterFromExtern(path_only,suffix_only);
 selector->setFileSelectionFromExtern(text);
+//qDebug() << "NewFileEnteredManually=" << text;
 gotNewSelection(text);
 }
 
@@ -15990,7 +16172,7 @@ frmFourier2::frmFourier2(QWidget * parent):QDialog(parent)
     }
     number=8;
     selOversampling=new StdSelector(this,tr("Oversampling:"),number,entr);
-    chkAbsValue=new QCheckBox(tr("only absolute value of transfer-function"),this);
+    chkAbsValue=new QCheckBox(tr("use absolute value of transfer-function"),this);
     chkDebug=new QCheckBox(tr("Debug"),this);
     lenRipple=new stdLineEdit(this,tr("Ripples in transfer-function in dB:"));
 
@@ -16108,7 +16290,7 @@ void frmFourier2::doFilter(void)
         factor=1.0/sqrt(2.0);
     }
     int error, resno;
-    int i, g1_ok, g2_ok, ns1, ns2, * svalues1=new int[2], * svalues2=new int[2],gno1, gno2, setno1, setno2;
+    int g1_ok, g2_ok, ns1, ns2, * svalues1=new int[2], * svalues2=new int[2],gno1, gno2, setno1, setno2;
     char fstr[256];
     int restr_type, restr_negate;
     char * rarray;
@@ -16228,12 +16410,12 @@ void frmFourier2::doFilter(void)
         SaveSetStatesPrevious(n_n_sets,gnos,snos,UNDO_COMPLETE);
         n_n_sets=0;
         //actually do the filtering
-        for (i = 0; i < ns1; i++) ///go through all source-sets
+        for (int i = 0; i < ns1; i++)//go through all source-sets
         {
             strcpy(old_comment,g[gno1].p[svalues1[i]].comments);
             strcpy(old_orig_comment,g[gno1].p[svalues1[i]].orig_comments);
 
-            sprintf(fstr,"X=X*%s",lenTimeFormula->text().toLatin1().constData());
+            sprintf(fstr,"X=X*(%s)",lenTimeFormula->text().toLatin1().constData());
             ReplaceDecimalSeparator(fstr);//replacing wrong decimal separators in the formula
             setno1 = svalues1[i];
             if (ns2 != 0)//do replace existing sets
@@ -16273,7 +16455,7 @@ void frmFourier2::doFilter(void)
                 strcpy(g[gno1].p[svalues1[i]].orig_comments,old_orig_comment);
                 continue;
             }
-/// warning: while loop ends here!
+/// warning: for loop ends here!
             //first set to be created is setno2 which will be the set number for the result
             resno = get_restriction_array(gno1, setno1,restr_type, restr_negate, &rarray);//generate restriction array
             if (resno != RETURN_SUCCESS)
@@ -16511,7 +16693,7 @@ void frmFourier2::doFilter(void)
             //interpolate result to original X-values
             //delete worksets if necessary
             do_copyset(gno2, workset2, gno2, workset1);//save workset2 to workset1
-            sprintf(fstr,"X=X/%s",lenTimeFormula->text().toLatin1().constData());
+            sprintf(fstr,"X=X/(%s)",lenTimeFormula->text().toLatin1().constData());
             ReplaceDecimalSeparator(fstr);
             set_parser_setno(gno2,workset3);
             resno = do_compute(gno2, workset3, gno2, workset2, NULL, fstr);//transform X-axis back to original scale-->resulting data present in workset2 but probably to many points
@@ -16916,7 +17098,7 @@ void frmHotLinks::update_hotlinks(void)
             hotlink_list_item->add_Item(xms);
         }
     }
-    cout << "number_f_entries=" << hotlink_list_item->number_of_entries << " count=" << hotlink_list_item->count() << endl;
+//cout << "number_f_entries=" << hotlink_list_item->number_of_entries << " count=" << hotlink_list_item->count() << endl;
     /// hotlink_list_item->update_number_of_entries_preserve_selection();
     unset_wait_cursor();
     //}
@@ -22745,7 +22927,8 @@ void frmSet_Appearance::doAccept(void)
 
 void frmSet_Appearance::doClose(void)
 {
-    parentWidget()->hide();
+//parentWidget()->hide();
+    emit(closeWish());
 }
 
 void frmSet_Appearance::doHelpOnContext(void)
@@ -23231,16 +23414,24 @@ if (OldDecimalPoint==DecimalPointToUse) return;
 frmSetAppearance::frmSetAppearance(QWidget * parent):QDialog(parent)
 {
 //setFont(*stdFont);
+    min_w=502;
+    min_h=600;
+    bar_w=bar_h=20;//15
     setWindowTitle(tr("QtGrace: Set Appearance"));
     setWindowIcon(QIcon(*GraceIcon));
     QVBoxLayout * layout=new QVBoxLayout;
     layout->setMargin(0);
     layout->setSpacing(0);
     flp=new frmSet_Appearance(this);
+    connect(flp,SIGNAL(closeWish()),SLOT(close()));
     layout->addWidget(flp->menuBar);
-    layout->addWidget(flp);
+    //layout->addWidget(flp);
+    scroll=new QScrollArea(this);
+    scroll->setWidget(flp);
+    layout->addWidget(scroll);
     listSet=flp->listSet;
     setLayout(layout);
+    resize(min_w+5,min_h+5);
 }
 
 void frmSetAppearance::init(void)
@@ -23266,6 +23457,43 @@ void frmSetAppearance::doAccept(void)
 void frmSetAppearance::doClose(void)
 {
     hide();
+}
+
+void frmSetAppearance::resizeEvent(QResizeEvent * event)
+{
+//cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
+
+int n_size_w=event->size().width(),n_size_h=event->size().height();
+int actual_space_w=n_size_w,actual_space_h=n_size_h;
+    for (int i=0;i<2;i++)
+    {
+        if (actual_space_w<min_w)
+        {
+            n_size_w=min_w;
+            actual_space_h=event->size().height()-bar_h;
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+        if (actual_space_h<min_h)
+        {
+            n_size_h=min_h;
+            actual_space_w=event->size().width()-bar_w;
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+    }
+if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
+if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+#ifdef WINDOWS_SYSTEM
+n_size_h-=flp->menuBar->height();
+#endif
+flp->resize(QSize(n_size_w,n_size_h));
 }
 
 GrTabMain::GrTabMain(QWidget * parent):QWidget(parent)
@@ -23943,7 +24171,8 @@ void frmGraph_App::doAccept(void)
 
 void frmGraph_App::doClose(void)
 {
-    parentWidget()->hide();
+//parentWidget()->hide();
+    emit(closeWish());
 }
 
 void frmGraph_App::doApply(void)
@@ -24680,17 +24909,24 @@ void frmGraph_App::update4(double v)
 frmGraphApp::frmGraphApp(QWidget * parent):QDialog(parent)
 {
 //setFont(*stdFont);
+    min_w=484;
+    min_h=594;
+    bar_w=bar_h=20;//15
     setWindowTitle(tr("QtGrace: Graph Appearance"));
     setWindowIcon(QIcon(*GraceIcon));
-
     QVBoxLayout * layout=new QVBoxLayout;
     layout->setMargin(0);
     layout->setSpacing(0);
     flp=new frmGraph_App(this);
+    connect(flp,SIGNAL(closeWish()),SLOT(close()));
     layout->addWidget(flp->menuBar);
-    layout->addWidget(flp);
+    //layout->addWidget(flp);
+    scroll=new QScrollArea(this);
+    scroll->setWidget(flp);
+    layout->addWidget(scroll);
     listGraph=flp->listGraph;
     setLayout(layout);
+    resize(min_w+5,min_h+5);
 }
 
 void frmGraphApp::init(void)
@@ -24728,6 +24964,42 @@ void frmGraphApp::doClose(void)
     hide();
 }
 
+void frmGraphApp::resizeEvent(QResizeEvent * event)
+{
+//cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
+int n_size_w=event->size().width(),n_size_h=event->size().height();
+int actual_space_w=n_size_w,actual_space_h=n_size_h;
+    for (int i=0;i<2;i++)
+    {
+        if (actual_space_w<min_w)
+        {
+            n_size_w=min_w;
+            actual_space_h=event->size().height()-bar_h;
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+        if (actual_space_h<min_h)
+        {
+            n_size_h=min_h;
+            actual_space_w=event->size().width()-bar_w;
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+    }
+if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
+if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+#ifdef WINDOWS_SYSTEM
+n_size_h-=flp->menuBar->height();
+#endif
+flp->resize(QSize(n_size_w,n_size_h));
+}
+
 AxisTabMain::AxisTabMain(QWidget * parent):QWidget(parent)
 {
     int number;
@@ -24743,7 +25015,7 @@ AxisTabMain::AxisTabMain(QWidget * parent):QWidget(parent)
     grpTickProp=new QGroupBox(tr("Tick properties"),this);
     ledMajorSpacing=new stdLineEdit(grpTickProp,tr("Major spacing:"));
     selMinTicks=new stdIntSelector(grpTickProp,tr("Minor ticks:"),0,MAX_TICKS - 1);
-    number=32;
+    number=33;
     for (int i=0;i<number;i++)
     {
         entr[i]=QString(fmt_option_items[i].label);
@@ -25364,7 +25636,8 @@ void frmAxis_Prop::doApplyTo(void)
 
 void frmAxis_Prop::doClose(void)
 {
-    parentWidget()->hide();
+//parentWidget()->hide();
+    emit(closeWish());
 }
 
 /*
@@ -26756,14 +27029,26 @@ void frmAxis_Prop::update4(double v)
 frmAxisProp::frmAxisProp(QWidget * parent):QDialog(parent)
 {
 //setFont(*stdFont);
+     min_w=545;
+     min_h=623;
     setWindowTitle(tr("QtGrace: Axis"));
     setWindowIcon(QIcon(*GraceIcon));
     QVBoxLayout * layout=new QVBoxLayout;
     layout->setMargin(0);
     layout->setSpacing(0);
     flp=new frmAxis_Prop(this);
-    layout->addWidget(flp);
+    connect(flp,SIGNAL(closeWish()),SLOT(close()));
+    //layout->addWidget(flp);
+
+    scroll=new QScrollArea(this);
+    scroll->setWidget(flp);
+    layout->addWidget(scroll);
+
+     //bar_w=scroll->verticalScrollBar()->width();
+     //bar_h=scroll->horizontalScrollBar()->height();
+     bar_w=bar_h=20;//15
     setLayout(layout);
+    resize(min_w+5,min_h+5);
 }
 
 void frmAxisProp::update_ticks(int gno)
@@ -26784,6 +27069,39 @@ void frmAxisProp::doAccept(void)
 void frmAxisProp::doClose(void)
 {
     hide();
+}
+
+void frmAxisProp::resizeEvent(QResizeEvent * event)
+{
+//cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
+int n_size_w=event->size().width(),n_size_h=event->size().height();
+int actual_space_w=n_size_w,actual_space_h=n_size_h;
+for (int i=0;i<2;i++)
+{
+        if (actual_space_w<min_w)
+        {
+        n_size_w=min_w;
+        actual_space_h=event->size().height()-bar_h;
+        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        }
+        else
+        {
+        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        }
+    if (actual_space_h<min_h)
+    {
+    n_size_h=min_h;
+    actual_space_w=event->size().width()-bar_w;
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    }
+    else
+    {
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    }
+}
+if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
+if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+flp->resize(QSize(n_size_w,n_size_h));
 }
 
 frmNetCDF::frmNetCDF(QWidget * parent):QDialog(parent)
@@ -33554,6 +33872,10 @@ frmExplorer::frmExplorer(QWidget * parent):QDialog(parent)
     connect(aac->cmdClose,SIGNAL(clicked()),SLOT(doClose()));
     layout->addWidget(tree,0,0,1,1);
 
+    connect(AxisProperties,SIGNAL(closeWish()),SLOT(doClose()));
+    connect(SetProperties,SIGNAL(closeWish()),SLOT(doClose()));
+    connect(GraphProperties,SIGNAL(closeWish()),SLOT(doClose()));
+
     layout->addWidget(lblTest,0,1,1,1);
     layout->addWidget(LineProperties,0,1,1,1);
     layout->addWidget(TextProperties,0,1,1,1);
@@ -34060,7 +34382,7 @@ cout << "count_ziel=" << (segments-1)*points_per_segment+points_last_segment+2 <
             sprintf(entry.cname,"Color %d",counter);*/
             entry.cname=NULL;
             sprintf(col_dummy,"Color %d",counter);
-            copy_string(entry.cname,col_dummy);
+            entry.cname = copy_string(entry.cname,col_dummy);
             memcpy(temp_spec+counter,&entry,sizeof(CMap_entry));
             counter++;
         }
@@ -34083,7 +34405,7 @@ cout << "count_ziel=" << (segments-1)*points_per_segment+points_last_segment+2 <
         sprintf(entry.cname,"Color %d",counter);*/
         entry.cname=NULL;
         sprintf(col_dummy,"Color %d",counter);
-        copy_string(entry.cname,col_dummy);
+        entry.cname = copy_string(entry.cname,col_dummy);
         memcpy(temp_spec+counter,&entry,sizeof(CMap_entry));
         counter++;
         if (counter==temp_spec_lenght) break;
@@ -34098,7 +34420,7 @@ cout << "count_ziel=" << (segments-1)*points_per_segment+points_last_segment+2 <
         sprintf(entry.cname,"Color %d",counter);*/
         entry.cname=NULL;
         sprintf(col_dummy,"Color %d",counter);
-        copy_string(entry.cname,col_dummy);
+        entry.cname = copy_string(entry.cname,col_dummy);
         memcpy(temp_spec+counter,&entry,sizeof(CMap_entry));
         counter++;
     }
@@ -34188,7 +34510,7 @@ void frmColorManagement::doSetStdColors(void)
 {
     for (int i=0;i<map_entries;i++)
     {
-        copy_string(local_cmap_table[i].cname,NULL);
+        local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,NULL);
         //delete[] local_cmap_table[i].cname;
     }
     delete[] local_cmap_table;
@@ -34200,8 +34522,8 @@ void frmColorManagement::doSetStdColors(void)
         memcpy(local_cmap_table+i,cmap_init+i,sizeof(CMap_entry));
         /*local_cmap_table[i].cname=new char[2+strlen(cmap_init[i].cname)];
         strcpy(local_cmap_table[i].cname,cmap_init[i].cname);*/
-        local_cmap_table[i].cname=NULL;
-        copy_string(local_cmap_table[i].cname,cmap_init[i].cname);
+        local_cmap_table[i].cname = NULL;
+        local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,cmap_init[i].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
     colorsel->updateColorIcons(map_entries,locColorPixmaps,locColorNames);
@@ -34214,7 +34536,7 @@ void frmColorManagement::doSetSpectrum(void)
     showTempSpectrum();
     for (int i=0;i<map_entries;i++)
     {
-        copy_string(local_cmap_table[i].cname,NULL);
+        local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,NULL);
         //delete[] local_cmap_table[i].cname;
     }
     delete[] local_cmap_table;
@@ -34225,8 +34547,8 @@ void frmColorManagement::doSetSpectrum(void)
         memcpy(local_cmap_table+i,temp_spec+i,sizeof(CMap_entry));
         /*local_cmap_table[i].cname=new char[2+strlen(temp_spec[i].cname)];
         strcpy(local_cmap_table[i].cname,temp_spec[i].cname);*/
-        local_cmap_table[i].cname=NULL;
-        copy_string(local_cmap_table[i].cname,temp_spec[i].cname);
+        local_cmap_table[i].cname = NULL;
+        local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,temp_spec[i].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
     colorsel->updateColorIcons(map_entries,locColorPixmaps,locColorNames);
@@ -34385,8 +34707,8 @@ CMap_entry frmColorManagement::constructColor(void)
     entry.rgb.green=ledGreen->value();
     entry.ctype=COLOR_MAIN;
     entry.tstamp=0;
-    entry.cname=NULL;
-    copy_string(entry.cname,ledColName->text().toLocal8Bit().constData());
+    entry.cname = NULL;
+    entry.cname = copy_string(entry.cname,ledColName->text().toLocal8Bit().constData());
     /*entry.cname=new char[ledColName->text().length()+2];
     strcpy(entry.cname,ledColName->text().toLocal8Bit().constData());*/
     return entry;
@@ -34417,7 +34739,7 @@ void frmColorManagement::init(void)
     {
         for (int i=0;i<map_entries;i++)
         {
-            copy_string(local_cmap_table[i].cname,NULL);
+            local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,NULL);
             //delete[] local_cmap_table[i].cname;
         }
         delete[] local_cmap_table;
@@ -34428,8 +34750,8 @@ void frmColorManagement::init(void)
         memcpy(local_cmap_table+i,cmap_table+real_colors[i],sizeof(CMap_entry));
         /*local_cmap_table[i].cname=new char[strlen(cmap_table[real_colors[i]].cname)+2];
         strcpy(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);*/
-        local_cmap_table[i].cname=NULL;
-        copy_string(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);
+        local_cmap_table[i].cname = NULL;
+        local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
     //Local colors are only main colors
@@ -34458,8 +34780,8 @@ void frmColorManagement::doApply(void)
                 memcpy(aux_map_entries+nr_of_aux_colors,cmap_table+i,sizeof(CMap_entry));
                 /*aux_map_entries[nr_of_aux_colors].cname=new char[2+sizeof(cmap_table[i].cname)];
                 strcpy(aux_map_entries[nr_of_aux_colors].cname,cmap_table[i].cname);*/
-                aux_map_entries[nr_of_aux_colors].cname=NULL;
-                copy_string(aux_map_entries[nr_of_aux_colors].cname,cmap_table[i].cname);
+                aux_map_entries[nr_of_aux_colors].cname = NULL;
+                aux_map_entries[nr_of_aux_colors].cname = copy_string(aux_map_entries[nr_of_aux_colors].cname,cmap_table[i].cname);
                 aux_colors[nr_of_aux_colors]=i;
                 //cout << i << endl;
                 nr_of_aux_colors++;
@@ -34481,7 +34803,7 @@ void frmColorManagement::doApply(void)
             {
                 old_cname=cmap_table[i].cname;
                 memcpy(cmap_table+i,local_cmap_table+colors_counter,sizeof(CMap_entry));
-                cmap_table[i].cname=old_cname;
+                cmap_table[i].cname = old_cname;
                 cmap_table[i].cname = copy_string(cmap_table[i].cname, local_cmap_table[colors_counter].cname);
                 colors_counter++;
             }
@@ -34489,7 +34811,7 @@ void frmColorManagement::doApply(void)
             {
                 old_cname=cmap_table[i].cname;
                 memcpy(cmap_table+i,aux_map_entries+aux_counter,sizeof(CMap_entry));
-                cmap_table[i].cname=old_cname;
+                cmap_table[i].cname = old_cname;
                 cmap_table[i].cname = copy_string(cmap_table[i].cname, aux_map_entries[aux_counter].cname);
                 aux_counter++;
             }
@@ -34497,7 +34819,7 @@ void frmColorManagement::doApply(void)
             {
                 old_cname=cmap_table[i].cname;
                 memcpy(cmap_table+i,local_cmap_table+colors_counter,sizeof(CMap_entry));
-                cmap_table[i].cname=old_cname;
+                cmap_table[i].cname = old_cname;
                 cmap_table[i].cname = copy_string(cmap_table[i].cname, local_cmap_table[colors_counter].cname);
                 colors_counter++;
             }
@@ -36331,7 +36653,7 @@ int do_filter_on_one_set(int n_gno,int n_sno,int o_gno,int o_sno,int type,int re
     set_parser_setno(o_gno,o_sno);
     ///STEPS TO DO:
     //Calculate the real X-values (has to be time in seconds) and save them in new set (using the restriction) --> n_sno
-    sprintf(fstr,"X=X*%s",formula);
+    sprintf(fstr,"X=X*(%s)",formula);
     ReplaceDecimalSeparator(fstr);
     resno = do_compute(o_gno,o_sno,n_gno,workset0,rarray,fstr);
     //--> n_sno not interpolated yet! --> x-values will be needed at the end (but restriction has already been applied)
@@ -36532,7 +36854,7 @@ int do_filter_on_one_set(int n_gno,int n_sno,int o_gno,int o_sno,int type,int re
     //delete worksets if necessary
     do_copyset(n_gno, workset2, n_gno, workset1);//save workset2 to workset1
 
-    sprintf(fstr,"X=X/%s",formula);
+    sprintf(fstr,"X=X/(%s)",formula);
     ReplaceDecimalSeparator(fstr);
     set_parser_setno(n_gno,workset3);
     resno = do_compute(n_gno, workset3, n_gno, workset2, NULL, fstr);//transform X-axis back to original scale --> resulting data present in workset2 but probably to many points

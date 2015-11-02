@@ -274,9 +274,7 @@ MainWindow::MainWindow( QWidget *parent):QWidget( parent )
 {
     QPixmap HelpPixmap;
 
-    SocketConnection=NULL;
-
-/// setFont(*stdFont);
+    /// SocketConnection=NULL;
 
     setWindowTitle(tr("QtGrace: untitled"));
 
@@ -783,7 +781,7 @@ MainWindow::~MainWindow()
     delete move_cursor;
     delete text_cursor;
     delete kill_cursor;
-    if (SocketConnection) delete SocketConnection;
+    /// if (SocketConnection) delete SocketConnection;
 }
 
 void MainWindow::redisplayIcons(void)
@@ -1207,7 +1205,7 @@ cout << "readable? = " << readable << endl;*/
             LoadProject(dummy);
             if (FormOpenProject)
                 FormOpenProject->doCancel();
-            if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+            if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->lenText->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
         }
         break;
     case WRITE_SET_FORM:
@@ -1224,7 +1222,7 @@ cout << "readable? = " << readable << endl;*/
 if (FormDeviceSetup!=NULL) dev = get_device_props(FormDeviceSetup->cur_dev);
 sprintf(print_file,"%s.%s",get_docbname(),dev.fext);
 if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(QString(print_file));*/
-            if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+            if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->lenText->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
         }
         break;
     case READ_PARAMETERS:
@@ -1331,7 +1329,7 @@ bool initiate=false;
 
         if (lastPrintDevice<=0) lastPrintDevice=FormDeviceSetup->devices_item->currentValue();
 
-        FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+        FormDeviceSetup->printfile_item->lenText->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
     initiate=true;
     }
     FormDeviceSetup->changeDeviceList(2);
@@ -3042,7 +3040,7 @@ int use_dev=hdevice;
     if (FormDeviceSetup!=NULL) use_dev=FormDeviceSetup->cur_dev;
     QString fwe=get_filename_with_extension(use_dev);
     strcpy(print_file,fwe.toLocal8Bit().constData());
-    if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->setText(fwe);
+    if (FormDeviceSetup!=NULL) FormDeviceSetup->printfile_item->lenText->setText(fwe);
 
     /*Device_entry dev = get_device_props(hdevice);
 if (FormDeviceSetup!=NULL) dev = get_device_props(FormDeviceSetup->cur_dev);
@@ -3491,7 +3489,7 @@ void MainWindow::addToHistory(char * entry)
 {
     char sep=QDir::separator().toLatin1();
     int found=-1,len;
-    QString to_find=QString(entry);
+    QString to_find=QString::fromLocal8Bit(entry);
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
     strcpy(buf,entry);
@@ -3520,14 +3518,14 @@ void MainWindow::addToHistory(char * entry)
     {
         for (int i=found;i>0;i--)
             history[i]=history[i-1];
-        history[0]=QString(entry);
+        history[0]=QString::fromLocal8Bit(entry);
     }
     else
     {
         for (int i=MAX_HISTORY-1;i>0;i--)
             history[i]=history[i-1];
 
-        history[0]=QString(entry);
+        history[0]=QString::fromLocal8Bit(entry);
         current_history++;
         if (current_history>max_history) current_history=max_history;
     }

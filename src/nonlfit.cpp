@@ -43,6 +43,7 @@
 #include "parser.h"
 #include "noxprotos.h"
 #include <iostream>
+#include <QObject>
 
 /* Needed only for `integer' and `doublereal' definitions */
 #include "f2c.h"
@@ -82,7 +83,7 @@ void reset_nonl(void)
     	nonl_parms[i].max = 1.0;
     }
     
-    nonl_opts.title   = copy_string(nonl_opts.title, "A fit");
+    nonl_opts.title   = copy_string(nonl_opts.title, QObject::tr("A fit").toLocal8Bit().constData());
     nonl_opts.formula = copy_string(nonl_opts.formula, "y = ");
     nonl_opts.parnum = 0;
     nonl_opts.tolerance = 0.01;

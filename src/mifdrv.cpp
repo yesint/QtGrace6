@@ -696,7 +696,7 @@ void mif_puttext(VPoint vp, char *s, int len, int font,
     }
 
     fprintf(prstream, "    <FFamily `%s'>\n", family);
-    copy_string(family, NULL);
+    family = copy_string(family, NULL);
     
     fprintf(prstream, "    <FWeight `%s'>\n", get_fontweight(font));
 

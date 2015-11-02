@@ -216,17 +216,17 @@ void init_cursors(void)
 /*
  * put a string in the title bar
  */
-void set_title(char *ts)
+void set_title(char * ts)
 {
     static char *ts_save = NULL;
     static int dstate_save = 0;
     int dstate = is_dirtystate();
+    char *buf1, *buf2;
     /*if (!inwin || ts == NULL) {
 	cout << "set title" << endl;
         return;
     } else*/
     if (ts_save == NULL || strcmp(ts_save, ts) != 0 || dstate != dstate_save) {
-        char *buf1, *buf2;
         ts_save = copy_string(ts_save, ts);
         dstate_save = dstate;
         buf1 = copy_string(NULL, "QtGrace: ");

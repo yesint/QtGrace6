@@ -119,6 +119,7 @@ static void rereadConfig(void);
 /*static RETSIGTYPE actOnSignal(int signo);*/
 static void bugwarn(char *signame);
 extern void replaceSuffix(QString & fpath,QString n_suffix);
+extern QString getFileNameOnly(QString filepath);
 
 #ifndef WINDOWS_SYSTEM
 struct utsname u_info;
@@ -879,6 +880,10 @@ char *create_fstring(int form, int prec, double loc, int type)
             sprintf(s, format, monthl[m - 1]);
         }
         break;
+    case FORMAT_YYYY:
+        jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
+        sprintf(s, "%4d", y);
+        break;
     case FORMAT_DAYOFWEEKS:
         strcpy(format, "%s");
         sprintf(s, format, dayofweekstrs[dayofweek(loc + get_ref_date())]);
@@ -1262,7 +1267,7 @@ void set_docname(const char *s)
 {
     if (s != NULL) {
         strncpy(docname, s, GR_MAXPATHLEN - 1);
-    QString pf1(s);
+    QString pf1(QString::fromLocal8Bit(s));
     Device_entry dev = get_device_props(hdevice);
     replaceSuffix(pf1,QString(dev.fext));
 
@@ -1443,7 +1448,7 @@ void stufftext(const char *s)
 char *mybasename(const char *s)
 {
 static char basename[GR_MAXPATHLEN];
-QFileInfo fi(s);
+QFileInfo fi(QString::fromLocal8Bit(s));
 strcpy(basename,fi.fileName().toLocal8Bit().data());
 return basename;
 //FUNCTION ENDS HERE
@@ -1630,7 +1635,7 @@ void update_timestamp(void)
     char *str;
     char dummy[GR_MAXPATHLEN+32];
     QDir doc_path;
-    QString doc_str=doc_path.absoluteFilePath(get_docname());
+    QString doc_str=doc_path.absoluteFilePath(QString::fromLocal8Bit(get_docname()));
     doc_str=QDir::toNativeSeparators(doc_str);
     doc_str.replace("\\","\\\\");
     (void) time(&time_value);
@@ -1659,6 +1664,7 @@ void update_timestamp(void)
 void update_app_title(void)
 {
     //#ifndef NONE_GUI
+///QString getFileNameOnly(QString filepath)
     set_title(mybasename(get_docname()));
     //#endif
 }

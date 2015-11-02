@@ -73,7 +73,7 @@ char **copy_string_column(char **src, int nrows)
     dest = (char **)xmalloc(nrows*sizeof(char *));
     if (dest != NULL) {
         for (i = 0; i < nrows; i++)
-            dest[i] =copy_string(NULL, src[i]);
+            dest[i] = copy_string(NULL, src[i]);
     }
     return dest;
 }

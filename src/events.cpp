@@ -749,9 +749,9 @@ updateRunning=true;
                 undo_nrs[1]=undo_nrs[0]=loc;
                 memcpy(undo_dp,&dpoint,sizeof(Datapoint));
                     if (dpoint.s!=NULL)
-                    undo_dp[0].s=copy_string(NULL,dpoint.s);
+                    undo_dp[0].s = copy_string(NULL,dpoint.s);
                     else
-                    undo_dp[0].s=NULL;
+                    undo_dp[0].s = NULL;
                 DataPointEdited(cg,track_setno,&loc,1,undo_dp,0);
                 if (add_point_at(cg, track_setno, loc, &dpoint) == RETURN_SUCCESS)
                 {

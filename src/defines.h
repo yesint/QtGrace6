@@ -267,6 +267,7 @@ typedef enum {
 #define FORMAT_DEGREESMMLAT    29
 #define FORMAT_DEGREESMMSSLAT  30
 #define FORMAT_MMSSLAT         31
+#define FORMAT_YYYY            32
 
 /* Focus policy */
 #define FOCUS_CLICK     0
@@ -819,7 +820,7 @@ typedef struct {
     const char *label;
 } OptionItem;
 
-static OptionItem fmt_option_items[32] =
+static OptionItem fmt_option_items[33] =
 {
     {FORMAT_DECIMAL,        "Decimal"             },
     {FORMAT_EXPONENTIAL,    "Exponential"         },
@@ -852,7 +853,8 @@ static OptionItem fmt_option_items[32] =
     {FORMAT_DEGREESLAT,     "Degrees (lat)"       },
     {FORMAT_DEGREESMMLAT,   "DD MM' (lat)"        },
     {FORMAT_DEGREESMMSSLAT, "DD MM' SS.s\" (lat)" },
-    {FORMAT_MMSSLAT,        "MM' SS.s\" (lat)"    }
+    {FORMAT_MMSSLAT,        "MM' SS.s\" (lat)"    },
+    {FORMAT_YYYY,           "Year (YYYY)"         }
 };
 
 static OptionItem as_option_items[4] = 

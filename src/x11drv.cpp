@@ -384,7 +384,7 @@ stdPDFWriter->setResolution(pg.dpi);
 stdPDFWriter->setPageSizeMM(QSizeF(xsize,ysize));
 stdPDFWriter->newPage();
 
-QMessageBox::information(0,QString("filename="),QString(print_file));
+//QMessageBox::information(0,QString("filename="),QString(print_file));
 
 GeneralPainter->begin(stdPDFWriter);
 }

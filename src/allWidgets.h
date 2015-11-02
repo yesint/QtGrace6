@@ -595,6 +595,8 @@ public slots:
     void doAccept(void);
     void doClose(void);
     void init(void);
+signals:
+    void closeWish(void);
 };
 
 class frmPlotAppearance:public QDialog
@@ -603,11 +605,14 @@ class frmPlotAppearance:public QDialog
 public:
     frmPlotAppearance(QWidget * parent=0);
     frmPlot_Appearance * flp;
+    QScrollArea * scroll;
+    int min_w,min_h,bar_w,bar_h;
 public slots:
     void init(void);
     void doApply(void);
     void doAccept(void);
     void doClose(void);
+    virtual void resizeEvent(QResizeEvent * event);
 };
 
 class frmLocatorProps:public QDialog
@@ -721,7 +726,9 @@ class frmCommands:public QDialog
     Q_OBJECT
 public:
     frmCommands(QWidget * parent=0);
-
+    int min_w,min_h,bar_w,bar_h;
+    QScrollArea * scroll;
+    QWidget * flp;
     grpSelect * grpSource;
     grpSelect * grpDestination;
     QPushButton * cmdReplayWithReplace;
@@ -775,6 +782,7 @@ public slots:
     void getListSelection(int * number,int ** selection);
     void IOrequested(int type,QString file,bool exists,bool writeable,bool readable);
     int next_unused_new_set(void);
+    virtual void resizeEvent(QResizeEvent * event);
 };
 
 class frmDeviceOptions:public QDialog
@@ -1034,7 +1042,6 @@ class frmPreferences:public QWidget
     Q_OBJECT
 public:
     frmPreferences(QWidget * parent=0);
-
     QGroupBox * grpResponciveness;
     QCheckBox * noask_item;//chkDontAskQuestions;
     QCheckBox * dc_item;//chkAllowDoubleClick;
@@ -1131,8 +1138,10 @@ class frm_Preferences:public QDialog
 public:
     frm_Preferences(QWidget * parent=0);
 
+    QWidget * flp;
     QTabWidget * tabs;
-
+    QScrollArea * scroll;
+    int min_w,min_h,bar_w,bar_h;
     frmPreferences * tab_prefs;
 
     frmDefaults * tab_defaults;
@@ -1298,8 +1307,8 @@ public slots:
     void toggleQtFonts(bool check);
     void doBrowseFFTW3_dll(void);
     void doBrowseHaru_dll(void);
-
     void doTest(void);
+    virtual void resizeEvent(QResizeEvent * event);
 };
 
 void showSetInSpreadSheet(int gno,int setno);
@@ -2533,6 +2542,8 @@ public slots:
     void SyncColors2(int val);
     void setapp_data_proc(int dat);
     void redisplayContents(void);
+signals:
+    void closeWish(void);
 };
 
 class frmSetAppearance:public QDialog
@@ -2541,13 +2552,16 @@ class frmSetAppearance:public QDialog
 public:
     frmSetAppearance(QWidget * parent=0);
     frmSet_Appearance * flp;
+    QScrollArea * scroll;
     uniList * listSet;
+    int min_w,min_h,bar_w,bar_h;
 public slots:
     void init(void);
     void ShowSetData_external(int graph_number,int set_number);
     void doApply(void);
     void doAccept(void);
     void doClose(void);
+    virtual void resizeEvent(QResizeEvent * event);
 };
 
 class GrTabMain:public QWidget
@@ -2780,6 +2794,8 @@ public slots:
     void update2(QString v);
     void update3(bool v);
     void update4(double v);
+signals:
+    void closeWish(void);
 };
 
 class frmGraphApp:public QDialog
@@ -2788,7 +2804,9 @@ class frmGraphApp:public QDialog
 public:
     frmGraphApp(QWidget * parent=0);
     frmGraph_App * flp;
+    QScrollArea * scroll;
     uniList * listGraph;
+    int min_w,min_h,bar_w,bar_h;
 public slots:
     void init(void);
     void show_graph_data_external(int n_gno);
@@ -2797,6 +2815,7 @@ public slots:
     void doApply(void);
     void doAccept(void);
     void doClose(void);
+    virtual void resizeEvent(QResizeEvent * event);
 };
 
 class AxisTabMain:public QWidget
@@ -3013,6 +3032,8 @@ public slots:
     void update2(QString v);
     void update3(bool v);
     void update4(double v);
+signals:
+    void closeWish(void);
 };
 
 class frmAxisProp:public QDialog
@@ -3021,11 +3042,14 @@ class frmAxisProp:public QDialog
 public:
     frmAxisProp(QWidget * parent=0);
     frmAxis_Prop * flp;
+    QScrollArea * scroll;
+    int min_w,min_h,bar_w,bar_h;
 public slots:
     void update_ticks(int gno);
     void create_axes_dialog(int axisno);
     void doAccept(void);
     void doClose(void);
+    virtual void resizeEvent(QResizeEvent * event);
 };
 
 #ifndef HAVE_NETCDF

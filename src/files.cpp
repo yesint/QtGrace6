@@ -1699,7 +1699,7 @@ int load_project_file(char *fn, int as_n_template)
         /// mainWin->mainArea->completeRedraw();
 
         if (FormDeviceSetup!=NULL)
-        FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+        FormDeviceSetup->printfile_item->lenText->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
 
         if (auto_set_cwd)
         {
@@ -2496,7 +2496,8 @@ int pos,status,tmp,len,index;
 int cur_graph,cur_set;
 
     init_agr_file_info(afi);
-    QFileInfo fi(filename);
+QFileInfo fi(QString::fromLocal8Bit(filename));
+
     if (fi.exists()==false) return;
     strcpy(afi.filename,filename);
 

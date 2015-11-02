@@ -2709,10 +2709,12 @@ stdFontMetrics=new QFontMetrics(*stdFont);
     if (enableServerMode)
     {
         mainWin->SocketConnection = new QtGraceTcpServer(sendToBeast,readFromBeast,mainWin);
+        /// mainWin->SocketConnection = new LocalSocketIpcServer(sendToBeast,readFromBeast,mainWin);
     }
     else// if (enableServerMode )
     {
-        fprintf(stderr, QObject::tr("QtGrace not connected to a client.\n").toLocal8Bit().constData());
+        cerr << QObject::tr("QtGrace not connected to a client.").toLocal8Bit().constData() << endl;
+        //fprintf(stderr, QObject::tr("QtGrace not connected to a client.\n").toLocal8Bit().constData());
     }
 
 /*  if (enableServerMode==TRUE)
@@ -3451,7 +3453,7 @@ strcpy(tmp_sformat,sformat);
     mainWin->connect(mainWin->sldPageZoom,SIGNAL(valueChanged(int)),mainWin,SLOT(doPageZoom(int)));
     GeneralPageZoomFactor=pow(10.0,mainWin->sldPageZoom->value()*mainWin->sldPageZoom->ScalingFactor);
     }
-    QString codName=allPrefs->value(QString("FileCodec"),QVariant("System")).toString();
+    QString codName=allPrefs->value(QString("FileCodec"),QVariant("UTF-8")).toString();
     int index=0;
     for (int i=0;i<avcod.length();i++)
     {
@@ -3487,7 +3489,7 @@ strcpy(tmp_sformat,sformat);
         /*cout << "default_Print_Device=" << default_Print_Device << endl;
         cout << "stdOutput=" << stdOutputFormat << endl;*/
         lastPrintDevice=FormDeviceSetup->devices_item->currentValue();
-        FormDeviceSetup->printfile_item->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
+        FormDeviceSetup->printfile_item->lenText->setText(get_filename_with_extension(FormDeviceSetup->cur_dev));
     }
     FormDeviceSetup->hide();
     FormDeviceSetup->print_string_item->setText( allPrefs->value(QString("PrintCommand"),QVariant("lpr")).toString() );
@@ -5476,14 +5478,14 @@ void set_docname_external(const char *s)//set docfilename and update the dialogs
 {
 set_docname(s);
 set_left_footer(NULL);
-FormDeviceSetup->printfile_item->setText(QString(s));
+FormDeviceSetup->printfile_item->lenText->setText(QString(s));
 }
 
 void set_exportname_external(const char *s)//set exportfilename and update the dialogs
 {
 set_exportname(s);
 set_left_footer(NULL);
-FormDeviceSetup->printfile_item->setText(QString(s));
+FormDeviceSetup->printfile_item->lenText->setText(QString(s));
 }
 
 class Gould_token

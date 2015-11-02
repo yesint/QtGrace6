@@ -413,7 +413,7 @@ void update_color_selectors(void)
         memcpy(local_cmap_table+i,cmap_table+real_colors[i],sizeof(CMap_entry));
         /*local_cmap_table[i].cname=new char[strlen(cmap_table[real_colors[i]].cname)+2];
         strcpy(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);*/
-        local_cmap_table[i].cname=copy_string(NULL,cmap_table[real_colors[i]].cname);
+        local_cmap_table[i].cname = copy_string(NULL,cmap_table[real_colors[i]].cname);
     }
     init_color_icons(map_entries,local_cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);
     //Local colors are only main colors
@@ -427,7 +427,7 @@ void update_color_selectors(void)
     for (int i=0;i<map_entries;i++)
     {
         //delete[] local_cmap_table[i].cname;
-        copy_string(local_cmap_table[i].cname,NULL);
+        local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,NULL);
     }
     delete[] local_cmap_table;
     delete[] real_colors;
@@ -1696,11 +1696,11 @@ void set_left_footer(char *s)
     {
         if (displ_project_filename==1)
         {
-        dispText+=QString(get_docname());
+        dispText+=QString::fromLocal8Bit(get_docname());
         }
         else
         {
-        dispText+=QString(get_docfilename());
+        dispText+=QString::fromLocal8Bit(get_docfilename());
         }
         if (displ_export_filename>0)
         {
@@ -1711,11 +1711,11 @@ void set_left_footer(char *s)
     {
         if (displ_export_filename==1)
         {
-        dispText+=QString(get_exportname());
+        dispText+=QString::fromLocal8Bit(get_exportname());
         }
         else
         {
-        dispText+=QString(get_exportfilename());
+        dispText+=QString::fromLocal8Bit(get_exportfilename());
         }
     }
         /*
