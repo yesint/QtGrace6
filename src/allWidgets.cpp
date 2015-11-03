@@ -23490,10 +23490,31 @@ int actual_space_w=n_size_w,actual_space_h=n_size_h;
     }
 if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
 if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
-#ifdef WINDOWS_SYSTEM
+#if defined(WINDOWS_SYSTEM) || defined(LINUX_SYSTEM)
 n_size_h-=flp->menuBar->height();
 #endif
 flp->resize(QSize(n_size_w,n_size_h));
+}
+
+void frmSetAppearance::showEvent(QShowEvent * event)
+{
+int * selected=new int[2];
+int nr_sel=0;
+flp->listSet->get_selection(&nr_sel,&selected);
+if (nr_sel<1)
+{
+flp->listSet->set_graph_number(cg,false);
+//cout << "no set selected" << endl;
+    if (number_of_sets(cg)>0)
+    {
+    delete[] selected;
+    selected=new int[2];
+    selected[0]=selected[1]=first_set(cg,1,0);
+    ShowSetData_external(cg,selected[0]);
+    //cout << "selecting G[" << cg << "].S[" << selected[0] << "]" << endl;
+    }
+}
+delete[] selected;
 }
 
 GrTabMain::GrTabMain(QWidget * parent):QWidget(parent)
@@ -24994,7 +25015,7 @@ int actual_space_w=n_size_w,actual_space_h=n_size_h;
     }
 if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
 if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
-#ifdef WINDOWS_SYSTEM
+#if defined(WINDOWS_SYSTEM) || defined(LINUX_SYSTEM)
 n_size_h-=flp->menuBar->height();
 #endif
 flp->resize(QSize(n_size_w,n_size_h));

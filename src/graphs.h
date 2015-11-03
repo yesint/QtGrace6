@@ -287,6 +287,7 @@ int set_set_hidden(int gno, int setno, int flag);
 
 int number_of_sets(int gno);
 int number_of_real_sets(int gno);
+int first_set(int gno,int active, int vis);//returns the index of the first set in gno that is active and visible (if active=1 and vis=1); is vis=0, then hidden sets are ok too, if active=0 then even inactive sets are ok
 
 int load_comments_to_legend(int gno, int setno);
 

@@ -3013,9 +3013,16 @@ int d_width=scroll->verticalScrollBar()->width()+1;
 
     if (c_height<min_height) c_height=min_height;
     else d_width=0;
+
+#ifdef WINDOWS_SYSTEM
+    tool_empty->setGeometry(0,0,stdColWidth+2*WIN_SIZE_CORR,c_height);
+    scroll->setMinimumWidth(stdColWidth+2+d_width+2*WIN_SIZE_CORR);
+    scroll->setMaximumWidth(stdColWidth+2+d_width+2*WIN_SIZE_CORR);
+#else
     tool_empty->setGeometry(0,0,stdColWidth,c_height);
     scroll->setMinimumWidth(stdColWidth+2+d_width);
     scroll->setMaximumWidth(stdColWidth+2+d_width);
+#endif
 
     if (get_pagelayout() != PAGE_FIXED)
         mainArea->completeRedraw();

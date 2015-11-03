@@ -1442,6 +1442,32 @@ int number_of_real_sets(int gno)
     }
 }
 
+int first_set(int gno,int active,int vis)
+{
+int nr_of_sets=number_of_sets(gno);
+int index=-1;
+//cout << "gno=" << gno << " nr_of_sets=" << nr_of_sets << endl;
+//cout << "active=" << active << " vis=" << vis << endl;
+for (int i=0;i<nr_of_sets;i++)
+{
+//cout << "i=" << i << " active=" << is_set_active(gno,i) << " hidden=" << is_set_hidden(gno,i) << endl;
+    if (active==1 && is_set_active(gno,i))
+    {
+        if (vis==0 || (vis==1 && is_set_hidden(gno,i)==FALSE))
+        {
+        index=i;
+        break;
+        }
+    }
+    else if (active==0 && is_valid_setno(gno,i))
+    {
+    index=i;
+    break;
+    }
+}
+return index;
+}
+
 int graph_world_stack_size(int gno)
 {
     if (is_valid_gno(gno) == TRUE)

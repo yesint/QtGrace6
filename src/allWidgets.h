@@ -2562,6 +2562,7 @@ public slots:
     void doAccept(void);
     void doClose(void);
     virtual void resizeEvent(QResizeEvent * event);
+    virtual void showEvent(QShowEvent * event);
 };
 
 class GrTabMain:public QWidget
