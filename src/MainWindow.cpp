@@ -3011,8 +3011,24 @@ int min_height=cmdExit->y()+cmdExit->height()+toolBar1->height();
 int c_height=mainArea->height()-2;
 int d_width=scroll->verticalScrollBar()->width()+1;
 
-    if (c_height<min_height) c_height=min_height;
-    else d_width=0;
+if (small_screen_adjustments & 1)
+{
+    if (c_height<min_height)
+    {
+    c_height=min_height;
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    }
+    else
+    {
+    d_width=0;
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    }
+}
+else
+{
+d_width=0;
+scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+}
 
 #ifdef WINDOWS_SYSTEM
     tool_empty->setGeometry(0,0,stdColWidth+2*WIN_SIZE_CORR,c_height);

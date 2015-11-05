@@ -1274,6 +1274,9 @@ public:
     QCheckBox * chkExternalHelpViewer;
     stdLineEdit * lenHelpViewer;
     QCheckBox * chkShowHideException;
+    QLabel * lblSmallScreen;
+    QCheckBox * chkSmallScreenMain;
+    QCheckBox * chkSmallScreenDialogs;
 
     stdButtonGroup * buttons;
 

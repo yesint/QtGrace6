@@ -2890,7 +2890,7 @@ resume_strings_after_load_or_save();
 int readDataFromClient(char* dataIn, int load_type,char *label)
 {
     int save_version, cur_version;
-
+    prepare_strings_for_saving();
     save_version = get_project_version();
     set_project_version(0);
 
@@ -2904,7 +2904,6 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
    char *linebuf=NULL;
    int linelen=0;   /* a misleading name ... */
    int linecount;
-
 
    //we have to reserve some memory here for input-data
    int * maj_new_nrs=NULL;
@@ -2964,6 +2963,7 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
                if (store_data(&ssd, load_type, label) != RETURN_SUCCESS)
                {
                    xfree(linebuf);
+                   resume_strings_after_load_or_save();
                    return RETURN_FAILURE;
                }
 
@@ -2991,6 +2991,7 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
                {
                    errmsg("Can't parse data");
                    xfree(linebuf);
+                   resume_strings_after_load_or_save();
                    return RETURN_FAILURE;
                }
 
@@ -3010,6 +3011,7 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
                    {
                        errmsg("Column count incorrect");
                        xfree(linebuf);
+                       resume_strings_after_load_or_save();
                        return RETURN_FAILURE;
                    }
                }
@@ -3021,6 +3023,7 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
                {
                    errmsg("Malloc failed in uniread()");
                    xfree(linebuf);
+                   resume_strings_after_load_or_save();
                    return RETURN_FAILURE;
                }
 
@@ -3033,6 +3036,7 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
                    errmsg("Malloc failed in uniread()");
                    free_ss_data(&ssd);
                    xfree(linebuf);
+                   resume_strings_after_load_or_save();
                    return RETURN_FAILURE;
                }
            }
@@ -3048,6 +3052,7 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
                    {
                        free_ss_data(&ssd);
                        xfree(linebuf);
+                       resume_strings_after_load_or_save();
                        return RETURN_FAILURE;
                    }
                    else
@@ -3079,6 +3084,7 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
        if (store_data(&ssd, load_type, label) != RETURN_SUCCESS)
        {
            xfree(linebuf);
+           resume_strings_after_load_or_save();
            return RETURN_FAILURE;
        }
 
@@ -3104,7 +3110,7 @@ int readDataFromClient(char* dataIn, int load_type,char *label)
        }
    }
    set_project_version(save_version);
-
+   resume_strings_after_load_or_save();
    return RETURN_SUCCESS;
 }
 

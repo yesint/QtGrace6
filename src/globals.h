@@ -251,6 +251,7 @@ GLOBAL(auto_set_cwd,int,TRUE);
 
 GLOBAL(universal_font_size_factor,double,1.0);
 GLOBAL(warn_on_encoding_change,int,TRUE);
+GLOBAL(small_screen_adjustments,int,3);
 
 GLOBALARR(qt_grace_exe_dir,char,1024,"");
 GLOBALARR(user_home_dir,char,1024,"");

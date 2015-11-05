@@ -131,6 +131,7 @@ extern frmCommands * FormCommands;
 extern bool useQPrinter;
 extern QPrinter * stdPrinter;
 extern frmDeviceSetup * FormDeviceSetup;
+extern frmPlotAppearance * FormPlotAppearance;
 extern frmTextProps * TextProps;
 extern frmTextProps * EditTextProps;
 extern frmLineProps * LineProps;
@@ -157,6 +158,7 @@ extern void HelpCB(char *data);
 extern int get_cg(void);
 extern frmSetOperations * FormSetOPS;
 extern frmSetAppearance * FormSetAppearance;
+extern frmGraphApp * FormGraphAppearance;
 extern frmSetEditor * FormSetEditor;
 extern frmAxisProp * FormAxisProperties;
 extern frm_Preferences * Form_Preferences;
@@ -5247,7 +5249,7 @@ frmPlotAppearance::frmPlotAppearance(QWidget * parent):QDialog(parent)
     setLayout(layout);
     /// flp->buttonGroup->cmdAccept->setDefault(true); //deactivated --> apply is default (otherwise the editable slider behave strange)
     /// flp->buttonGroup->cmdAccept->setFocus();
-    resize(QSize(min_w+5,min_h+5));
+    resize(QSize(min_w,min_h));
 }
 
 void frmPlotAppearance::init(void)
@@ -5276,6 +5278,8 @@ void frmPlotAppearance::resizeEvent(QResizeEvent * event)
 //cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
 int n_size_w=event->size().width(),n_size_h=event->size().height();
 int actual_space_w=n_size_w,actual_space_h=n_size_h;
+if (small_screen_adjustments & 2)
+{
     for (int i=0;i<2;i++)
     {
         if (actual_space_w<min_w)
@@ -5299,8 +5303,16 @@ int actual_space_w=n_size_w,actual_space_h=n_size_h;
             scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         }
     }
+this->setMinimumSize(0,0);
 if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
 if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+}
+else
+{
+this->setMinimumSize(min_w,min_h);
+scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+}
 flp->resize(QSize(n_size_w,n_size_h));
 }
 
@@ -10233,10 +10245,10 @@ void frmPreferences::doClose(void)
 
 frm_Preferences::frm_Preferences(QWidget * parent):QDialog(parent)
 {
-QFont fntPref;
+//QFont fntPref;
 //setFont(*stdFont);
 min_w=680;
-min_h=625;
+min_h=630;
 bar_w=bar_h=20;
 
 QVBoxLayout * m_layout=new QVBoxLayout();
@@ -10735,6 +10747,9 @@ chkExternalHelpViewer=new QCheckBox(tr("Show help-files in external html-viewer"
 lenHelpViewer=new stdLineEdit(this,tr("Help viewer:"));
 lenHelpViewer->setEnabled(false);
 chkShowHideException=new QCheckBox(tr("Show/Hide workaround"),this);
+lblSmallScreen=new QLabel(tr("Activate scroll-bars for small screen:"),this);
+chkSmallScreenMain=new QCheckBox(tr("Main window"),this);
+chkSmallScreenDialogs=new QCheckBox(tr("Large dialogs"),this);
 
 grpPrinting=new QGroupBox(tr("Printing"),this);
 /*fntPref=grpPrinting->font();
@@ -10771,10 +10786,15 @@ chkHDPrinterOutput->setToolTip(tr("Use high-quality-output on physical printer\n
 chkExternalHelpViewer->setToolTip(tr("Use a different external html-viewer to display help-files\n(the default viewer of the operating system is used otherwise)"));
 lenHelpViewer->setToolTip(tr("Specify alternative external html-viewer"));
 chkShowHideException->setToolTip(tr("A workaround to dectivates and reactivates the plot-area on every redraw\n(this was neccessary on some Linux-systems)\nThis should not be needed any more"));
+chkSmallScreenMain->setToolTip(tr("Activate a scrollbar for the tool bar\nif the height of the main window is too small.\nIf deactivated, the lower buttons may not be accessable on small screens."));
+chkSmallScreenDialogs->setToolTip(tr("Activate scrollbars in some of the larger dialogs\nif the dialog is too small to display everything.\nIf deactivated, large dialogs have a minimal size."));
 
 misc2Layout->addWidget(chkExternalHelpViewer);
 misc2Layout->addWidget(lenHelpViewer);
 misc2Layout->addWidget(chkShowHideException);
+misc2Layout->addWidget(lblSmallScreen);
+misc2Layout->addWidget(chkSmallScreenMain);
+misc2Layout->addWidget(chkSmallScreenDialogs);
 
 misc3Layout->addWidget(chkHDPrinterOutput);
 misc3Layout->addWidget(chkUsePrintCommand);
@@ -10830,7 +10850,7 @@ delete[] i_entr;
 
 setLayout(m_layout);
 
-resize(QSize(min_w+5,min_h+5));
+resize(QSize(min_w,min_h));
 }
 
 void frm_Preferences::init(void)
@@ -10998,6 +11018,16 @@ void frm_Preferences::init_Misc(void)
     chkUsePrintCommand->setChecked(use_print_command);
     lenPrintCommand->setText(get_print_cmd());
     chkHDPrinterOutput->setChecked(useHDPrinterOutput);
+
+    if (small_screen_adjustments & 1)
+    chkSmallScreenMain->setChecked(true);
+    else
+    chkSmallScreenMain->setChecked(false);
+
+    if (small_screen_adjustments & 2)
+    chkSmallScreenDialogs->setChecked(true);
+    else
+    chkSmallScreenDialogs->setChecked(false);
 }
 
 void frm_Preferences::read(void)
@@ -11101,6 +11131,72 @@ void frm_Preferences::read_Misc(void)
     useHDPrinterOutput=chkHDPrinterOutput->isChecked()==true?TRUE:FALSE;
     display_help_externally=chkExternalHelpViewer->isChecked();
     showhideworkaround=chkShowHideException->isChecked();
+
+    int old_small_screen=small_screen_adjustments;
+    small_screen_adjustments=0;
+    if (chkSmallScreenMain->isChecked()==true) small_screen_adjustments|=1;
+    if (chkSmallScreenDialogs->isChecked()==true) small_screen_adjustments|=2;
+
+    if (small_screen_adjustments!=old_small_screen)
+    {
+        if (FormPlotAppearance!=NULL)
+        {
+            if (small_screen_adjustments & 2)
+            {
+            FormPlotAppearance->setMinimumSize(0,0);
+            }
+            else
+            {
+            FormPlotAppearance->setMinimumSize(FormPlotAppearance->min_w,FormPlotAppearance->min_h);
+            }
+        FormPlotAppearance->resize(FormPlotAppearance->min_w,FormPlotAppearance->min_h);
+        }
+        if (FormAxisProperties!=NULL)
+        {
+            if (small_screen_adjustments & 2)
+            {
+            FormAxisProperties->setMinimumSize(0,0);
+            }
+            else
+            {
+            FormAxisProperties->setMinimumSize(FormAxisProperties->min_w,FormAxisProperties->min_h);
+            }
+        FormAxisProperties->resize(FormAxisProperties->min_w,FormAxisProperties->min_h);
+        }
+        if (FormGraphAppearance!=NULL)
+        {
+            if (small_screen_adjustments & 2)
+            {
+            FormGraphAppearance->setMinimumSize(0,0);
+            }
+            else
+            {
+            FormGraphAppearance->setMinimumSize(FormGraphAppearance->min_w,FormGraphAppearance->min_h);
+            }
+        FormGraphAppearance->resize(FormGraphAppearance->min_w,FormGraphAppearance->min_h);
+        }
+        if (FormSetAppearance!=NULL)
+        {
+            if (small_screen_adjustments & 2)
+            {
+            FormSetAppearance->setMinimumSize(0,0);
+            }
+            else
+            {
+            FormSetAppearance->setMinimumSize(FormSetAppearance->min_w,FormSetAppearance->min_h);
+            }
+        FormSetAppearance->resize(FormSetAppearance->min_w,FormSetAppearance->min_h);
+        }
+            if (small_screen_adjustments & 2)
+            {
+            this->setMinimumSize(0,0);
+            }
+            else
+            {
+            this->setMinimumSize(this->min_w,this->min_h);
+            }
+            this->resize(min_w,min_h);
+    }
 }
 
 void frm_Preferences::tab_changed(int nr)
@@ -11349,6 +11445,8 @@ void frm_Preferences::resizeEvent(QResizeEvent *event)
 //return;
 int n_size_w=event->size().width(),n_size_h=event->size().height();
 int actual_space_w=n_size_w,actual_space_h=n_size_h;
+if (small_screen_adjustments & 2)
+{
     for (int i=0;i<2;i++)
     {
         if (actual_space_w<min_w)
@@ -11374,6 +11472,14 @@ int actual_space_w=n_size_w,actual_space_h=n_size_h;
     }
 if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
 if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+this->setMinimumSize(0,0);
+}
+else
+{
+scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+this->setMinimumSize(min_w,min_h);
+}
 flp->resize(QSize(n_size_w,n_size_h));
 }
 
@@ -23431,7 +23537,7 @@ frmSetAppearance::frmSetAppearance(QWidget * parent):QDialog(parent)
     layout->addWidget(scroll);
     listSet=flp->listSet;
     setLayout(layout);
-    resize(min_w+5,min_h+5);
+    resize(min_w,min_h);
 }
 
 void frmSetAppearance::init(void)
@@ -23465,6 +23571,8 @@ void frmSetAppearance::resizeEvent(QResizeEvent * event)
 
 int n_size_w=event->size().width(),n_size_h=event->size().height();
 int actual_space_w=n_size_w,actual_space_h=n_size_h;
+if (small_screen_adjustments & 2)
+{
     for (int i=0;i<2;i++)
     {
         if (actual_space_w<min_w)
@@ -23493,6 +23601,14 @@ if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
 #if defined(WINDOWS_SYSTEM) || defined(LINUX_SYSTEM)
 n_size_h-=flp->menuBar->height();
 #endif
+setMinimumSize(0,0);
+}
+else
+{
+scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+setMinimumSize(min_w,min_h);
+}
 flp->resize(QSize(n_size_w,n_size_h));
 }
 
@@ -24947,7 +25063,7 @@ frmGraphApp::frmGraphApp(QWidget * parent):QDialog(parent)
     layout->addWidget(scroll);
     listGraph=flp->listGraph;
     setLayout(layout);
-    resize(min_w+5,min_h+5);
+    resize(min_w,min_h);
 }
 
 void frmGraphApp::init(void)
@@ -24990,6 +25106,8 @@ void frmGraphApp::resizeEvent(QResizeEvent * event)
 //cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
 int n_size_w=event->size().width(),n_size_h=event->size().height();
 int actual_space_w=n_size_w,actual_space_h=n_size_h;
+if (small_screen_adjustments & 2)
+{
     for (int i=0;i<2;i++)
     {
         if (actual_space_w<min_w)
@@ -25018,6 +25136,14 @@ if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
 #if defined(WINDOWS_SYSTEM) || defined(LINUX_SYSTEM)
 n_size_h-=flp->menuBar->height();
 #endif
+setMinimumSize(0,0);
+}
+else
+{
+scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+setMinimumSize(min_w,min_h);
+}
 flp->resize(QSize(n_size_w,n_size_h));
 }
 
@@ -27069,7 +27195,7 @@ frmAxisProp::frmAxisProp(QWidget * parent):QDialog(parent)
      //bar_h=scroll->horizontalScrollBar()->height();
      bar_w=bar_h=20;//15
     setLayout(layout);
-    resize(min_w+5,min_h+5);
+    resize(min_w,min_h);
 }
 
 void frmAxisProp::update_ticks(int gno)
@@ -27097,6 +27223,8 @@ void frmAxisProp::resizeEvent(QResizeEvent * event)
 //cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
 int n_size_w=event->size().width(),n_size_h=event->size().height();
 int actual_space_w=n_size_w,actual_space_h=n_size_h;
+if (small_screen_adjustments & 2)
+{
 for (int i=0;i<2;i++)
 {
         if (actual_space_w<min_w)
@@ -27122,6 +27250,14 @@ for (int i=0;i<2;i++)
 }
 if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
 if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
+this->setMinimumSize(0,0);
+}
+else
+{
+scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+this->setMinimumSize(min_w,min_h);
+}
 flp->resize(QSize(n_size_w,n_size_h));
 }
 
