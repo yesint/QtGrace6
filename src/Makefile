@@ -149,8 +149,10 @@ install: $(BIN)
 		fi
 	if [ -f  $(INSTDIR)/bin/qtgrace$(FEXT) ] ; then rm $(INSTDIR)/bin/qtgrace$(FEXT); fi
 	cp -v -r ../fonts ../bin ../doc ../examples $(INSTDIR)
+
+# Note that in repo we have one file. Depending on $ABI we install it differently. So QtGrace works. 
 	if [ $(ABI) == "LINUX64" ] ; then \
-		cp -v ../bin/.QtGrace_Settings.ini $(HOME);\
+		cp -v ../bin/QtGrace_Settings.ini $(HOME)/.QtGrace_Settings.ini;\
 	fi
 	if [ $(ABI) == "WINDOWS64" ] ; then \
 		cp -v ../bin/QtGrace_Settings.ini "$(USERPROFILE)";\
