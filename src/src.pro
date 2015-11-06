@@ -17,9 +17,6 @@ QT += widgets
 QT += printsupport
 }
 
-#QT += webkit
-#QT += webkitwidgets
-
 ICON = GraceIcon.icns
 !unix:RC_FILE = qtgrace.rc
 
@@ -44,7 +41,6 @@ QMAKE_CXXFLAGS_RELEASE -= -Zc:strictStrings
 #    debug_and_release
 #CONFIG += release
 #CONFIG -= x86_64
-#QMAKE_CXXFLAGS += -Wno-deprecated
 
 HEADERS += MainWindow.h \
     allWidgets.h \

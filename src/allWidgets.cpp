@@ -11915,11 +11915,13 @@ frmArrangeGraphs::frmArrangeGraphs(QWidget * parent):QDialog(parent)
     selHGap->spnLineWidth->setRange(0.0,9.0);
     selHGap->spnLineWidth->setSingleStep(0.1);
     selHGap->spnLineWidth->setValue(0.2);
+    selHGap->spnLineWidth->setDecimals(2);
     selVGap=new LineWidthSelector(grpSpacing);
     selVGap->lblText->setText(tr("Vgap/height:"));
     selVGap->spnLineWidth->setRange(0.0,9.0);
     selVGap->spnLineWidth->setSingleStep(0.1);
     selVGap->spnLineWidth->setValue(0.2);
+    selVGap->spnLineWidth->setDecimals(2);
 
     chkAddGraphs=new QCheckBox(tr("Add graphs as needed to fill the matrix"),grpArrGraphs);
     chkAddGraphs->setChecked(TRUE);
