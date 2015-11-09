@@ -3045,6 +3045,8 @@ scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 /*
 cout << "ResizeEvent: w=" << windowWidth << " h=" << windowHeight << endl;
 cout << "mainArea:    w=" << mainArea->scroll->width() << " h=" << mainArea->scroll->height() << endl;
+cout << "Draw_width=" << cmdDraw->width() << " auto_t_width=" << cmdAutoT->width() << " fit_width=" << cmdFitPage->width() << endl;
+cout << "draw_x=" << cmdDraw->x() << " auto_t.x=" << cmdAutoT->x() << endl;
 */
 }
 

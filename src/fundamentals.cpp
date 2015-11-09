@@ -2801,6 +2801,7 @@ void FileSelector::DirSelected(const QModelIndex & index )
     newFilter=QDir::toNativeSeparators(newFilter);
     filter=newFilter;
     ledFilter->lenText->setText(filter);
+    emit(newSelection(newDir));
 }
 
 void FileSelector::DirDoubleClicked( const QModelIndex & index )
@@ -2869,8 +2870,10 @@ void FileSelector::newFilterEntered(void)
     QDir d2(p);
     d2.makeAbsolute();
     currentDir=d2.path();
-/// qDebug() << "newFilterEntered=" << filter;
+//qDebug() << "newFilterEntered=" << filter;
     showFilesLikeFilter();
+    QFileInfo fi1(filter);
+emit(newSelection(fi1.absoluteDir().absolutePath()+QDir::separator()));
 }
 
 void FileSelector::setFilterFromExtern(QString & directory,QString & extension)
@@ -3070,7 +3073,7 @@ QString s;
         setFileSelectionFromExtern(s);
         emit(newSelection(s));
         qApp->processEvents();
-        emit(newSelectinManually());
+        emit(newSelectionManually());
         //qApp->processEvents();
         //emit(newSelection(s));
         return;

@@ -14558,7 +14558,7 @@ frmIOForm::frmIOForm(int type,QWidget * parent):QDialog(parent)
     selector=new FileSelector(this);
     connect(selector,SIGNAL(newSelection(QString)),SLOT(gotNewSelection(QString)));
     connect(selector,SIGNAL(newSelectionDoubleClick(QString)),SLOT(gotNewSelectionDoubleClick(QString)));
-    connect(selector,SIGNAL(newSelectinManually()),SLOT(newFileEnteredManually()));
+    connect(selector,SIGNAL(newSelectionManually()),SLOT(newFileEnteredManually()));
 
     layout->addWidget(selector,0,0,1,4);
 
@@ -15211,9 +15211,9 @@ delete[] filename;
 
 void frmIOForm::newFileEnteredManually(void)
 {
-QString text=ledSelection->text();
+QString text=ledSelection->lenText->text();
 QFileInfo fi(text);
-/// qDebug() << "New File Selected Manually=#" << text << "#";
+//qDebug() << "New File Selected Manually=#" << text << "#";
 if (fi.exists()==false) return;
 //QString name_only=fi.completeBaseName();
 QString path_only=fi.absolutePath()+QDir::separator();

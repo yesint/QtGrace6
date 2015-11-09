@@ -6,8 +6,8 @@ This release contains major and minor bug-fixes. I also included several improve
 - additions to the commands-dialog to extend the scripting possibilities (linear regression, creating of new sets and graphs)
 - increased the number of fit-parameters to 20 and a dialog to edit the parameter values; please remember that all parameter a0-a19 are usable as general purpose variables during all calculations
 - redesign of the file-output-dialog, separation of file-output from physical printer, adding a quick-selection-options to set the resolution
-- added the possibility to use libHaru (for pdf-output) and libFFTW3 (for better fourier-transformation) - either as dlls or statically compileable into QtGrace
-- further extension of the preferences dialog (many things are now user-adjustable) - please use only where needed
+- added the possibility to use libHaru (for pdf-output) and libFFTW3 (for better fourier-transformation) - either as dlls or statically compileable into QtGrace (see below)
+- further extension of the preferences dialog (many things are now user-adjustable)
 - file-import-selection-lines accept drag-and-drop now
 - dragging-and-dropping a Grace-project-file (agr) into the QtGrace-window now opens a separate dialog to let you either select to open the file or just extract single sets from the file
 - in data-set-operations there is now the possibility to restrict sets to regions and to swap columns of a set (like swap X- and Y-axis)
@@ -17,7 +17,9 @@ This release contains major and minor bug-fixes. I also included several improve
 - you also can change the global font-size by a multiplier in the plot-appearance dialog
 - further options for placing the legend-box (manual and automatic alignment with the graphs borders)
 - changed the apply-to-option for the axis-dialog (the apply-button only applies the settings to the current axis, there is now a separate button if you want to apply settings to different axis as well - just for safety)
-- addition of QLocalSocket-support for remote control (by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB), not working in Qt5.5 correctely at the moment - sorry
+- addition of QTcpSocket-support for remote control (by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB), see qtclient-example in example folder, documentation still very basic
+- added a new dialog to be able to determine intersection points between sets as well as intersection angles (Geometric evaluation...)
+- added a new option in the preferences: "QtGrace-Behavior"->"General Behavior like" QtGrace or Grace; at the moment this only effects the question that is asked when QtGrace is closed and some changes have not been saved. With "Grace" the question is "Exit losing unsaved changes?" with QtGrace it is "Content of current project changed! Save project?" (Beware of the changed meaning!). The question now has the additional option to save the changes with a Save-button.
 - some minor stuff I do not remember in every detail has been changed / improved
 
 One further request (as always): If you find bugs or missing feature or if you have suggestions for improvements: Let me know immediately!
@@ -63,6 +65,7 @@ Copyright and License-Terms:
 
 Copyright (C) 2008-2015 by Andreas Winter
 andreas.f.winter@web.de
+QtGraceTcpServer- and -Client-code (C) 2014-2105 by by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -79,11 +82,13 @@ along with this program; if not, write to the
 Free Software Foundation, Inc.,
 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+libharu and fftw3 are included unmodified to be easily accessable. See QTGRACE_EXTENSIONS.html for further informations and copyright notice.
+For the recompiled releases for Windows and MacOSX I include dlls and frameworks that are part of Qt. These files are under the same copyright as the Qt-library. I included the files for convenience unmodified.
 
 How to build QtGrace:
 
 QtGrace is based on the Qt-Framework which has to be obtained via http://www.qt.io/.
-Please use at least version 4.6 of Qt to compile QtGrace (Qt5.5 or higher, should work also, please do not use 5.0 because it seems problematic)!
+Please use at least version 4.6 of Qt to compile QtGrace (Qt5.5 or higher, is recommended, especially for QTcpSocket, please do not use 5.0 because it seems problematic)!
 Please install the Qt-SDK which includes the Qt-Creator IDE. If you are an experienced developer, you may also be able to compile QtGrace without the Qt-Creator, but I will not describe how to do so here.
 Since you have extracted this folder you may notice, that there are some sub-folders. It is important for QtGrace to keep the structure of this folder in order to find some files at runtime. I have also included the original source-code-zip-file from grace-5.1.22 as a tar-archive. You will not have to extract it. This is included just for completeness and for developers use in case someone needs it. 
 I assume in the following part, that you have installed Qt and you have got a fully functional Qt-Creator. 
@@ -101,8 +106,12 @@ On Linux:
 If you continue getting messages like: invalid viewport coordinates --> please contact me.
 
 On Mac OS X:
-Executables are organized as disguised folders on such systems. Therefore after compilation in order to work in a MacOS-way you have to open the package-contents of qtgrace (right-click on qtgrace in the 'bin'-folder and select 'show package contents'). Then go to 'Contents'. Copy the contents of the original unzipped folder except the 'bin'-subfolder and the grace-5.1.22.tar.gz into this 'Contents-folder'. Copy the contents (except 'qtgrace') of the 'bin'-subfolder into the 'MacOS'-folder. Now you should be able to execute qtgrace by clicking on qtgrace in the 'bin'-subfolder. It should also be possible to move/copy qtGrace in every folder you like just like any other MacOS-application (put it for example in your Applications-folder). There is also a deployment-tool: 'macdeployqt' (see Qt-documentation).
+Executables are organized as disguised folders on such systems. Therefore after compilation in order to work in a MacOS-way you have to open the package-contents of qtgrace (right-click on qtgrace in the 'bin'-folder and select 'show package contents'). Then go to 'Contents'. Copy the contents of the original unzipped folder except the 'bin'-subfolder and the grace-5.1.22.tar.gz into this 'Contents-folder'. Copy the contents (except 'qtgrace') of the 'bin'-subfolder into the 'MacOS'-folder. Now you should be able to execute qtgrace by clicking on qtgrace in the 'bin'-subfolder. It should also be possible to move/copy QtGrace in every folder you like just like any other MacOS-application (put it for example in your Applications-folder). There is also a deployment-tool: 'macdeployqt' (see Qt-documentation).
 
+
+Activate FFTW3- and libHaru(PDF)-support:
+See Preferences-->Micellaneous and see whether the libraries are usable and activated.
+If the libraries are not compiled into QtGrace statically you have to tell QtGrace where the dynamic library is located. This should usually be the bin-subfolder in the QtGrace-directory. The name of the library is usually libfftw3-3.dll and libhpdf.dll. If everything is ok you should see green instead of red boxes on the right hand side of the dialog.
 
 Known Problems:
 
@@ -110,23 +119,23 @@ Known Problems:
 - On some Linux-systems the scrollbars are not displayed correctly but they still stay usable (I don't know why, yet. Seems to be a Qt-problem...; I also don't know whether this bug is still present, since I have not seen it in a while).
 - Pipes not working on Windows.
 - The switching between Grace-fonts and QtFonts is not adviceable. It is possible in most cases, but especially for the Symbol-font problems are to be expected - sorry. This has several reasons especially with the ordering of characters in the T1-Symbol-font in Grace and UTF-8-fonts. At the moment I do not know how to solve this problem. I made an attempt by making the symbol-font special (a separate setting in the preferences).
-- Loading files (especially old ones) relies heavily on the encoding setting in the Extra-Preferences-dialog. For loading example-files it is often adviceable to use the Latin1-encoding (or something similar). Newer files should contain the encoding used during saving and should be loadable without problems.
+- Loading files (especially old ones) relies heavily on the encoding setting in the Preferences-dialog (QtGrace->Behavior). For loading example-files it is often adviceable to use the Latin1-encoding (or something similar). Newer files should contain the encoding used during saving and should be loadable without problems.
 
 
-Things that work in Grace, but not in qtGrace:
+Things that work in Grace, but not in QtGrace:
 
 - I have rewritten the spreadsheet-editor. Therefore it may not work as you are used to it (or maybe you won't even notice).
 - I have written a simple text-editor for creating and editing sets. On Unix the default in Grace is to open 'vi' ('Create new->In text editor'). This option is not portable (at least not in a way I would like). I used an internal text-editor because this seems to be comfortable enough (suggestions for improvements are welcome).
 - The pipes may work a bit differently in QtGrace, because I could not include the 'pipe-contents-changed' signal into the main-application loop like Grace does. Pipes also do not work on Windows, yet.
 
 
-Additions to qtGrace (not present in Grace): see help-page on QtGrace-extensions
+Additions to QtGrace (not present in Grace): see help-page on QtGrace-Extensions
 
 
 Pipes (I include this here and not in the help-file, because I do not want to advertise this feature due to it's incompleteness):
 
 The use of named pipes via the '-npipe' option or starting QtGrace in a pipe via '-pipe' or opening a pipe from Data->Import->Ascii is supported now. The drawback at the moment is: This does not work on Windows, yet. The usage of pipes is a bit different on Windows and I have to find out how to reliably use them there, sorry. Any helpful advice is welcome here! 
-For the pipes (also called "Real time input") I included a new window/widget. In 'Window->Monitor real time inputs...' you can see which pipes are currently monitored for input. You can also activate or deactivate the monitoring here via a checkbox. Internally in order not to block the other operations of QtGrace the input via pipes is not real time but in specified intervals. The time between updates of the real time input can be set here. I set it to 1 second by default. You can also open and close pipes via this dialog. I hope this is helpful for some people.
+For the pipes (also called "Real time input") I included a new dialog. In 'Window->Monitor real time inputs...' you can see which pipes are currently monitored for input. You can also activate or deactivate the monitoring here via a checkbox. Internally in order not to block the other operations of QtGrace the input via pipes is not real time but in specified intervals. The time between updates of the real time input can be set here. I set it to 1 second by default. You can also open and close pipes via this dialog. I hope this is helpful for some people.
 
 Any suggestions for improvements, any bug reports or other comments are welcome.
 Thank you.
@@ -150,7 +159,7 @@ v0.2.1		Support for csv-import
 v0.2.2		'-free' option and 'immediate update' reactivated, experimental support for non-latin-characters and different fonts; support for multiple files in binary import and the use of a trigger channel ; bug fixes
 v0.2.3		minor bugfixes; print-command saved in preferences; selection of odd or even set-ids; addition of fit-button for page-zoom-slider; minor changes to improve UTF-8-support in file-paths
 v0.2.4		several bugfixes (major and minor); further improvement in UTF-8-support (very extensive internal changes); made decimal-separator selectable throughout the whole QtGrace-Gui; improvement in the script-generation (execution of scripts with automatically replaced set-ids); slider-value made editable; QtGrace-help-page; QtGrace-examples
-v0.2.5		rework of the binary import (incl. drag-and-drop); addition of regions-master-dialog; additions to the commands-dialog to extend the scripting possibilities; increased the number of fit-parameters to 20; redesign of the output-dialog, separation of file-output from physical printer, adding a quick-selection-options to set the resolution; added the possibility to use libHaru (for pdf-output) and libFFTW3 (for better fourier-transformation); further extension of the preferences dialog (many things are now user-adjustable); drag-and-drop for file-import-selection-lines; more comfortable dragging-and-dropping of Grace-project-files (agr); separate dialog to let you extract single sets from an agr-file; restrict sets to regions and swap columns of a set (like swap X- and Y-axis); extension of the feature-extraction-dialog (more features); project description now visible in the open-projects-dialog and editable in the plot-appearance-dialog; addition of a file-path-stamp to the project; global font-size-multiplier; further options for placing the legend-box (manual and automatic alignment with the graphs borders); changed the apply-to-option for the axis-dialog; addition of QLocalSocket-support for remote control (by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB); bug-fixes
+v0.2.5		rework of the binary import (incl. drag-and-drop); addition of regions-master-dialog; additions to the commands-dialog to extend the scripting possibilities; increased the number of fit-parameters to 20; redesign of the output-dialog, separation of file-output from physical printer, adding a quick-selection-options to set the resolution; added the possibility to use libHaru (for pdf-output) and libFFTW3 (for better fourier-transformation); further extension of the preferences dialog (many things are now user-adjustable); drag-and-drop for file-import-selection-lines; more comfortable dragging-and-dropping of Grace-project-files (agr); separate dialog to let you extract single sets from an agr-file; restrict sets to regions and swap columns of a set (like swap X- and Y-axis); extension of the feature-extraction-dialog (more features); project description now visible in the open-projects-dialog and editable in the plot-appearance-dialog; addition of a file-path-stamp to the project; global font-size-multiplier; further options for placing the legend-box (manual and automatic alignment with the graphs borders); changed the apply-to-option for the axis-dialog; additional dialog to determine set-intersection-points and -angles; addition of QTcpSocket-support for remote control (by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB); bug-fixes
 
 Have fun using QtGrace!
 

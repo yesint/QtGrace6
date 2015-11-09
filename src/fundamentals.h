@@ -866,7 +866,7 @@ void setFilterFromExtern(QString & directory,QString & extension);
 void setFileSelectionFromExtern(QString n_file);
 void currentDirChanged(int i);
 signals:
-void newSelectinManually(void);
+void newSelectionManually(void);
 void newSelection(QString selection);
 void newSelectionDoubleClick(QString selection);
 };
