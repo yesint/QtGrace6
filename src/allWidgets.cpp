@@ -14759,6 +14759,9 @@ ledFormat2->setVisible(false);
 
 void frmIOForm::gotNewSelection(QString selection)
 {
+
+ledSelection->lenText->setText(selection);
+
 static bool function_running=false;
 if (function_running==true) return;
 function_running=true;
@@ -14847,10 +14850,11 @@ QString a,b;
     qDebug() << "extension=" << b.toLatin1() << endl;*/
     }
     selector->ledFilter->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator+selector->filterExtension);
-    ledSelection->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator);
+     ledSelection->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator);
         if (selFileInfo.isFile())
         ledSelection->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator+selFileInfo.fileName());
-    /*qDebug() << "Set1=" << selector->ledFilter->text() << endl;
+
+        /*qDebug() << "Set1=" << selector->ledFilter->text() << endl;
     qDebug() << "Set2=" << ledSelection->text() << endl;*/
     graphList->update_number_of_entries();
     setList->update_number_of_entries();
