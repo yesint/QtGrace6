@@ -490,11 +490,18 @@ else phase=1.5*pi;
 
 void SetLineEditToMemory(char * t1,char * t2,char * &c1,char * &c2,bool &displayStd,QLineEdit * lenText)
 {
+    assert(lenText!=NULL);
+
     static QPalette pal;
+
     c1=t1;//t1 and c1 are the grace-version of a string that is used internally!
     c2=t2;//t2 and c2 are the originals -- internally the original is always stored in UTF8 (this only changes before saving and after loading in which case the selected codec for external usage is used)
     displayStd=true;
+
+
     pal=lenText->palette();
+
+
     if (stdTextColor==NULL)
         stdTextColor=new QColor(pal.text().color());
     pal.setColor(QPalette::Text,*stdTextColor);
