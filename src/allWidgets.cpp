@@ -7617,7 +7617,7 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
     strcpy(out_format_int,"%.0f");
     strcpy(out_format_float,"%.2f");
 //setFont(*stdFont);
-    setWindowTitle(tr("QtGrace: Device setup"));
+    setWindowTitle(tr("QtGrace: File Export Setup"));
     setWindowIcon(QIcon(*GraceIcon));
     cur_dev=0;
     parent_of_print_dialog=0;
@@ -7829,6 +7829,9 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
 
     cmdDoPrint=new QPushButton(tr("Export to File"),this);
     connect(cmdDoPrint,SIGNAL(clicked()),SLOT(doPrintToFile()));
+    QFont ExportCmdFont=cmdDoPrint->font();
+    ExportCmdFont.setBold(true);
+    cmdDoPrint->setFont(ExportCmdFont);
 
     cmdUseScreenResolution=new QPushButton(tr("Use screen resolution"),this);
     connect(cmdUseScreenResolution,SIGNAL(clicked()),SLOT(doUseScreenResolution()));
@@ -7880,9 +7883,9 @@ cout << "DeviceSetup_Ende: " << actNativePrinterDialog << endl;*/
 
     layout=new QVBoxLayout();
     layout->setMargin(STD_MARGIN);
-//#ifndef MAC_SYSTEM
+#ifndef MAC_SYSTEM
     layout->addWidget(menuBar);
-//#endif
+#endif
     layout->addWidget(grpDevSetup);
     layout->addWidget(grpOutput);
     layout->addWidget(grpPage);
@@ -8082,18 +8085,18 @@ void frmDeviceSetup::DeviceChanged(int device_id)//output-device changed (screen
     switch (page_units) {
     case 0:     /* pixels */
         out_format=out_format_int;
-        page_x = (float) pg.width;
-        page_y = (float) pg.height;
+        page_x = (double) pg.width;
+        page_y = (double) pg.height;
         break;
     case 1:      /* inches */
         out_format=out_format_float;
-        page_x = (float) (pg.width / pg.dpi);
-        page_y = (float) (pg.height / pg.dpi);
+        page_x = ((double) pg.width / pg.dpi);
+        page_y = ((double) pg.height / pg.dpi);
         break;
     case 2:      /* cm */
         out_format=out_format_float;
-        page_x = (float) (CM_PER_INCH * pg.width / pg.dpi);
-        page_y = (float) (CM_PER_INCH * pg.height / pg.dpi);
+        page_x = (CM_PER_INCH * (double)pg.width / pg.dpi);
+        page_y = (CM_PER_INCH * (double)pg.height / pg.dpi);
         break;
     default:
         errmsg(tr("Internal error").toLocal8Bit().constData());
@@ -8118,7 +8121,7 @@ void frmDeviceSetup::OrientationChanged(int value)//change the page orientation
 {
     int orientation = value;
     double px, py;
-    float px1,py1;
+    //float px1,py1;
     int px2,py2;
     char buf[256];
     int page_units = GetOptionChoice(page_size_unit_item);
@@ -8138,21 +8141,21 @@ if (format!=PAGE_FORMAT_CUSTOM)
     {
     case 0:     /* pixels */
         out_format=out_format_int;
-        return_Page_Dimensions_pix(format,orientation,(float)dpis,&px2,&py2);
+        return_Page_Dimensions_pix(format,orientation,dpis,&px2,&py2);
         px=px2;
         py=py2;
         break;
     case 1:      /* inches */
         out_format=out_format_float;
-        return_Page_Dimensions_in(format,orientation,&px1,&py1);
-        px=px1;
-        py=py1;
+        return_Page_Dimensions_in(format,orientation,&px,&py);
+        /*px=px1;
+        py=py1;*/
         break;
     case 2:      /* cm */
         out_format=out_format_float;
-        return_Page_Dimensions_cm(format,orientation,&px1,&py1);
-        px=px1;
-        py=py1;
+        return_Page_Dimensions_cm(format,orientation,&px,&py);
+        /*px=px1;
+        py=py1;*/
         break;
     default:
         errmsg(tr("Internal error").toLocal8Bit().constData());
@@ -8184,7 +8187,6 @@ else//custom format
         SetDecimalSeparatorToUserValue(buf);
         xv_setstr(page_y_item, buf);
     }
-
 /*
 }
 else//not a custom value-->one of the preset-values
@@ -8246,18 +8248,19 @@ void frmDeviceSetup::SizeChanged(int i_value)//change between Custom,Letter,A4 a
             return;
         }
         out_format=out_format_int;
-        px = float(x)*dpi/72.0;
-        py = float(y)*dpi/72.0;
+        return_Page_Dimensions_pix(value,orientation,dpi,&x,&y);
+        px = x;
+        py = y;
         break;
     case 1:      /* inches */
         out_format=out_format_float;
-        px = float(x)/72.0;
-        py = float(y)/72.0;
+        px = x/72.0;
+        py = y/72.0;
         break;
     case 2:      /* cm */
         out_format=out_format_float;
-        px = float(x)/72.0*CM_PER_INCH;
-        py = float(y)/72.0*CM_PER_INCH;
+        px = x/72.0*CM_PER_INCH;
+        py = y/72.0*CM_PER_INCH;
         break;
     default:
         errmsg(tr("Internal error").toLocal8Bit().constData());
@@ -8315,7 +8318,7 @@ void frmDeviceSetup::DimChanged(int i)//change between units for device-dimensio
 {
 char buf[256];
 double page_x, page_y;
-float px1,py1;
+//float px1,py1;
 int px2,py2;
 double dev_res;
 int page_units = i;//pix,in,cm
@@ -8333,21 +8336,21 @@ int orientation = GetOptionChoice(page_orient_item);
     {
     case 0:     /* pixels */
         out_format=out_format_int;
-        return_Page_Dimensions_pix(format,orientation,(float)dev_res,&px2,&py2);
+        return_Page_Dimensions_pix(format,orientation,dev_res,&px2,&py2);
         page_x=px2;
         page_y=py2;
         break;
     case 1:      /* inches */
         out_format=out_format_float;
-        return_Page_Dimensions_in(format,orientation,&px1,&py1);
-        page_x=px1;
-        page_y=py1;
+        return_Page_Dimensions_in(format,orientation,&page_x,&page_y);
+        /*page_x=px1;
+        page_y=py1;*/
         break;
     case 2:      /* cm */
         out_format=out_format_float;
-        return_Page_Dimensions_cm(format,orientation,&px1,&py1);
-        page_x=px1;
-        page_y=py1;
+        return_Page_Dimensions_cm(format,orientation,&page_x,&page_y);
+        /*page_x=px1;
+        page_y=py1;*/
         break;
     default:
         errmsg(tr("Internal error").toLocal8Bit().constData());
@@ -8455,7 +8458,7 @@ connect(devices_item->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(Devic
     }
     else//everything else --> the usual device-setup
     {
-    setWindowTitle(tr("QtGrace: Output format"));
+    setWindowTitle(tr("QtGrace: File Export Setup"));
     devices_item->setVisible(true);
     devices_item->setEnabled(true);
     grpDevSetup->setTitle(tr("Select output format"));
@@ -13861,7 +13864,7 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     layout0=new QVBoxLayout();
     layout0->setMargin(STD_MARGIN);
     layout0->setSpacing(STD_SPACING);
-    lblInfo[index]=new QLabel(QString(bi_version_string())+QString(" / QtGrace v0.2.5"),grpGrace);
+    lblInfo[index]=new QLabel(QString(bi_version_string())+QString(" / QtGrace v0.2.5a"),grpGrace);
     layout0->addWidget(lblInfo[index++]);
 #ifdef DEBUG
     lblInfo[index]=new QLabel(tr("Debugging is enabled"),grpGrace);
@@ -14759,14 +14762,11 @@ ledFormat2->setVisible(false);
 
 void frmIOForm::gotNewSelection(QString selection)
 {
-
-ledSelection->lenText->setText(selection);
-
 static bool function_running=false;
+ledSelection->lenText->setText(selection);
 if (function_running==true) return;
 function_running=true;
 /// qDebug() << "gotNewSelection=" << selection;
-ledSelection->lenText->setText(selection);
 /// selector->setFileSelectionFromExtern(selection);
     if (formType!=READ_PROJECT_FORM) return;
 char * filename=new char[selection.toLocal8Bit().length()+8];
@@ -14850,11 +14850,10 @@ QString a,b;
     qDebug() << "extension=" << b.toLatin1() << endl;*/
     }
     selector->ledFilter->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator+selector->filterExtension);
-     ledSelection->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator);
+    ledSelection->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator);
         if (selFileInfo.isFile())
         ledSelection->setText(QDir::toNativeSeparators(selector->currentDir)+selector->separator+selFileInfo.fileName());
-
-        /*qDebug() << "Set1=" << selector->ledFilter->text() << endl;
+    /*qDebug() << "Set1=" << selector->ledFilter->text() << endl;
     qDebug() << "Set2=" << ledSelection->text() << endl;*/
     graphList->update_number_of_entries();
     setList->update_number_of_entries();

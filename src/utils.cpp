@@ -1109,11 +1109,7 @@ static char * old_dest;
         dest = (char*)xrealloc(dest, (strlen(src) + 1)*sizeof(char));
         strcpy(dest, src);
     }
-    if(src!=NULL && strlen(src)!=0 && dest!=NULL && strlen(dest)!=0 ){
-        CheckLaTeXLinesForAddress(old_dest,dest);
-        // Problematic when dest="" src="" and old_dest==NULL.
-        // Probably not needed at all
-    }
+    CheckLaTeXLinesForAddress(old_dest,dest);
     return(dest);
 }
 

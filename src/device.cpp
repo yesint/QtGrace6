@@ -386,7 +386,7 @@ int terminal_device(void)
     }
 }
 
-void return_Page_Dimensions_cm(int format,int orientation,float * x,float * y)
+void return_Page_Dimensions_cm(int format,int orientation,double * x,double * y)
 {
 switch (format)
 {
@@ -440,23 +440,23 @@ break;
 }
     if (orientation==PAGE_ORIENT_LANDSCAPE)
     {
-    float tmp;
+    double tmp;
     tmp=*x;
     *x=*y;
     *y=tmp;
     }
 }
 
-void return_Page_Dimensions_in(int format,int orientation,float * x,float * y)
+void return_Page_Dimensions_in(int format, int orientation, double *x, double *y)
 {
 return_Page_Dimensions_cm(format,orientation,x,y);
 *x/=CM_PER_INCH;
 *y/=CM_PER_INCH;
 }
 
-void return_Page_Dimensions_pix(int format,int orientation,float dpi,int * x,int * y)
+void return_Page_Dimensions_pix(int format,int orientation,double dpi,int * x,int * y)
 {
-float a,b;
+double a,b;
 return_Page_Dimensions_in(format,orientation,&a,&b);
 *x=(int)(a*dpi);
 *y=(int)(b*dpi);

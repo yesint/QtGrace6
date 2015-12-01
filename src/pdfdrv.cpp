@@ -1053,7 +1053,7 @@ int haru_pdf_initgraphics(void)
     //libHaru_HPDF_SetCurrentEncoder(pdf, "WinAnsiEncoding");
 
     libHaru_HPDF_SetInfoAttr(pdf,HPDF_INFO_SUBJECT,get_project_description());
-    libHaru_HPDF_SetInfoAttr(pdf,HPDF_INFO_CREATOR,"QtGrace v0.2.5 (beta)");
+    libHaru_HPDF_SetInfoAttr(pdf,HPDF_INFO_CREATOR,"QtGrace v0.2.5a");
 
     /* add a new page object. */
     page = libHaru_HPDF_AddPage (pdf);

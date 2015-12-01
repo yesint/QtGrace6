@@ -159,9 +159,9 @@ void get_page_viewport(double *vx, double *vy);
 int terminal_device(void);
 
 PageFormat get_page_format(int device);
-void return_Page_Dimensions_cm(int format,int orientation,float * x,float * y);
-void return_Page_Dimensions_in(int format,int orientation,float * x,float * y);
-void return_Page_Dimensions_pix(int format,int orientation,float dpi,int * x,int * y);
+void return_Page_Dimensions_cm(int format, int orientation, double *x, double *y);
+void return_Page_Dimensions_in(int format,int orientation,double * x,double * y);
+void return_Page_Dimensions_pix(int format,int orientation,double dpi,int * x,int * y);
 
 #ifdef __cplusplus
 }
