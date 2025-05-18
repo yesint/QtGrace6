@@ -1,0 +1,832 @@
+<HTML>
+<HEAD>
+<STYLE>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+</STYLE>
+<TITLE>QtGrace: Extensions</TITLE>
+</HEAD>
+
+<BODY>
+
+<H1>Extension included in QtGrace that are NOT part of Grace</H1>
+
+<H2>QtGrace Version 0.2.7</H2>
+
+<H3>(Most extensions included by Andreas Winter &lt;andreas.f.winter(at-nospam)web.de&gt;.)</H3>
+
+<H3>Contents:</H3>
+<ul>
+<li><a name="s1">1. </a><a href="#Gen_Changes">General Changes</a></li>
+<li><a name="s2">2. </a><a href="#Dec_sep">Usage of the decimal separator</a></li>
+<li><a name="s3">3. </a><a href="#Utf8">UTF-8-support</a></li>
+<li><a name="s4">4. </a><a href="#Latex">LaTeX-support</a></li>
+<li><a name="s5">5. </a><a href="#Bin_import">Binary data import</a></li>
+<li><a name="s6">6. </a><a href="#Csv">csv-import</a></li>
+<li><a name="s7">7. </a><a href="#Filters">Digital filtes</a></li>
+<li><a name="s8">8. </a><a href="#OutputDevices">Output-devices</a></li>
+<li><a name="s9">9. </a><a href="#Undo">Undo/Redo</a></li>
+<li><a name="s10">10. </a><a href="#Copy_Paste">Copy / Paste / Drag and Drop / Load / Save</a></li>
+<li><a name="s11">11. </a><a href="#Zooming">Zooming</a></li>
+<li><a name="s12">12. </a><a href="#Color_man">Color(palette) management</a></li>
+<li><a name="s13">13. </a><a href="#Commands">Commands / Scripting</a></li>
+<li><a name="s14">14. </a><a href="#font_sizes">Comments about the font size</a></li>
+<li><a name="s15">15. </a><a href="#regression_command">Further regression options</a></li>
+<li><a name="s16">16. </a><a href="#interpolation_options">Further interpolation options</a></li>
+<li><a name="s17">17. </a><a href="#fill_options">Fill area between sets</a></li>
+<li><a name="s18">18. </a><a href="#linestyles">Line-Style-Selection/-Change</a></li>
+<li><a name="s19">19. </a><a href="#preferences">The Preferences-dialog</a></li>
+<li><a name="s20">20. </a><a href="#selectionmodes">Additional selection options</a></li>
+<li><a name="s21">21. </a><a href="#servermode">Server mode (by Nimal Kailasanathan)</a></li>
+<li><a name="s22">22. </a><a href="#libharu">Haru-PDF-Library</a></li>
+<li><a name="s23">23. </a><a href="#libfftw3">fftw3-Library</a></li>
+<li><a name="s24">24. </a><a href="#date_times">Import of data in Date/Time-Format</a></li>
+<li><a name="s25">25. </a><a href="#fit2d">Fit 2D-objects</a></li>
+<li><a name="s26">26. </a><a href="#largescreen">Adjustments for large screen resoution</a></li>
+<li><a name="s27">27. </a><a href="#spreadsheet">Changes in spreadsheet-editor</a></li>
+<li><a name="s28">28. </a><a href="#compression">File compression</a></li>
+</ul>
+
+<H3><a name="Gen_Changes">1. </a><a href="#s1">General Changes:</a></H3>
+QtGrace contains some minor changes in the behavior and additions in comparison to the original Grace intended to make it easier to use.
+<ul>
+<li>To introduce and explain new features QtGrace has a setup-wizard-dialog. This dialog should show up the first time you start the latest version of QtGrace. If you need it again later go in the preferences (Misc-tab) and press the summon-button.</li>
+<li>In Grace the user has to press the Apply-button in order to confirm every change made in a dialog window. In QtGrace this is the default behaviour as well. In Preferences->QtGrace-Behavior there is now an option to activate immediate updates which means that every small change in a dialog is immediately accepted and you see the changes in the plot without having to press Apply.</li>
+<li>You can edit text directely inside the main window by double-clicking on it. To complete the editing, press enter; to abort just click outside or press Esc. You have to activate this feature in the preferences.</li>
+<li>Sets and graphs can now be highlighted. Highlighting means a thick slashed and blinking line is displayed over the highlighted object. This is just temporarly to better identify them amongst several others. To do so select them in a list and press 'h'. To stop highlighting click somewhere else or press 'h' again.</li>
+<li>The set-popup can be summoned in the main drawing area. You have to activate this in the preferences. The popup-menu also has additional options to edit the appearance and do some basic set-operations.</li>
+<li>In the set-apperance-dialog in the options-menu you can select to apply all settings or just the altered settings to a set. For one selected set this does not make a difference. But if several sets are selected, you can alter a sigular thing (like the line-width) without having to edit everything else again as well. The default is to apply all settings like in Grace. The setting (all or just altered settings) is not stored in the ini-file and therefore is specific for the current session of QtGrace.</li>
+<li>In all I/O-dialogs there is now a button on the right hand side in the middle of the dialog (the one showing a folder). Clicking on it will open the native file selection dialog of your operating system (This is very useful, because this dialog is usually more comfortable than the Grace-I/O-dialog.). In the upper quarter of the I/O-dialog there is also an additional button showing an arrow pointing upwards which lets you change the directory one level upwards. (On Unix-like systems this is usually done by selecting the '..'-entry in the directory-list. This does not always exist on Windows-systems and this is something Windows-users are not used to. Therefore I included this button.) The Filter-line and the File-line do also accept file-drops now. (Please note: If you drag-and-drop files the selection will be adjusted accordingly. If you enter a new file-name manually in the Selection-line you have to press Shift-Enter to update the selection above. Enter just reapplies the filter.)</li>
+<li>Drag-and-drop as well as Copy-and-paste is now possible in QtGrace (see below for further description)</li>
+<li>For ascii-data-import it is possible to select ',' instead of '.' as decimal separator. During drag-and-drop operations the number of '.' and ',' in a file is counted and if the number of ',' is significantly higher than the number of '.' then the user is asked whether ',' shall be used as decimal seperator. '.' is the default. For the copy-operation (copy data to clipboard) the operating systems default decimal separator is used. For the internal usage of the decimal separator see below ("Usage of the decimal separator").</li>
+<li>QtGrace has a history-menu showing the files you have opened recently. The history and the the other preferences are stored in an ini-file in the users home-directory. Example-files that are stored in the examples-subfolder are not included in the history list.</li>
+<li>Boxes and ellipses can be rotated around their center. This feature is incompatible with the original Grace and therefore files saved with QtGrace containing rotated boxes will be displayed with unrotated boxes in the original Grace. (In the first implementation of this feature I made a small mistake: the direction of the rotation is clockwise for boxes and ellipses and counterclockwise for everything else. Starting with version 0.2.4 the rotation of the boxes and ellipses will also be counterclockwise. All files saved before using this feature will be shown in 0.2.4 (and above) with boxes and ellipses rotated in the wrong direction - sorry for the inconveniance!).</li>
+<li>You can change sizes of text, lines and objects (ellipses, boxes) with the mouse-wheel. You have to activate this in the preferences. Just use the mouse-wheel on the object itself (or in the case of axis-tick-labels on the axis itself) to change the size.</li>
+<li>The usage of pipes is incomplete because there doesn't seem to be a portable way of implementing this.</li>
+<li>The value of every slider can be edited directely by clicking on the value and entering the numerical value directely. Confirm by pressing enter.</li>
+<li>In View->Page setup there is a button on the top of the dialog saying "Copy page to clipboard". By pressing this button the current page is copied as a picture to the clipboard (like a screenshot - no change in resolution).</li>
+<li>In the Page setup there is an option to change the line-width with the resolution. Usually the line width is good for 72dpi. But if you for example print with 300dpi, the lines may become much to small. You could either change every line-width accordinly or just activate the option in the Pagesetup to adjust the line-width to the resolution.</li>
+<li>In the Page setup there is an option to activate antialiasing for all object. This option is separated between text and non-text. Please note, that antialiasing is not supported by all output-formats. For example postscript and pdf do antialiasing in the viewer and not in the file itself.</li>
+<li>Printing has been changed: "Print" will always use a physical printer. "Export to file" will save a picture to a file. The extension in the brackets in the menu shows you what file-type has been set in the Print-setup-dialog. The options "Print" and "Export" can also be included as buttons in the tool-bar (See in the preferences-section below). The Printer-settings can now be found in Preferences->Miscellaneous. A high printer resolution is possible (modern printer may reach resolutions well above 1000 dpi), but be warned, the draw-patterns change their spacing compared to the screen.</li>
+<li>Concerning the default file-export-driver I included an option in Preferences->QtGrace-GUI. You may select which output format should be set at startup of QtGrace next time. You may select the last format you have set in the current session or a fixed format every time (like use 'jpeg' format for printing). It should now also be possible to start QtGrace and load a project-file and immediately click on 'File->Export to File'. The output-file is stored in the directory of the project-file loaded with the default extension of the default-output-format (same name and location as project/agr-file, but different suffix). In the "File export setup"-dialog there are now quick-selection settings for changing the current resolution.</li>
+<li>In the print-dialog I inserted a few new file formats to export the page to. This includes "jpg", "png" and "bmp" because they are easily derived when using Qt. I also included the option to export to pdf via the Haru-pdf-library (further details: see below).</li>
+<li>In the set-appearance dialog it is now possible to select a new filling option. Usually only the area between a set and the lower and upper limit of the graph or the x-axis can be filled. With QtGrace the area between two different sets can also be filled. To do so go to the Line-tab in the Set-Appearance-dialog and select Fill properties type 'as polygon' and select a polygon base set. Please note that the set and the base-set should have the same ordering of the x-values (e.g. ascending x-values).</li>
+<li>It is possible to store one or more set-appearances in the set-popup-menu. The appearance(s) of sets are stored internally and when applied to new sets the stored settings are applied periodically. This means if you store for example the appearances of 3 sets and select 11 other sets and apply the stored settings the 11 sets will get the appearance like {1,2,3,1,2,3,1,2,3,1,2}.</li>
+<li>If a Grace-project-file is to be opened (select one file in the Open-project-dialog) then the Project description is shown below the list of files and there is also the number of graphs and sets in the file displayed. Below this you will find a new button that lets you select specific sets from the file. With this new dialog you can import some sets without having to open the whole file and destroy your current graph-layout. This dialog is also presented to you if you drag and drop a Project-file (*.agr) into the QtGrace-window. You may also summon this dialog manually via Data->Import->Set from agr...</li>
+<li>In "Data->Data Set operations..." there is now an option to restrict sets to specific regions. There is also an option to swap different columns in a set (like swap X- with Y-values).</li>
+<li>In the "Data->Set operations..." dialog there is now an option to generate an average set out of several sets. This is useful if you have for example several measurements of the same thing and want to remove noise. You may choose to simply average sets of the same length (QtGrace does not check whether the x-values match) or average interpolated sets (this is very useful if the length or start- and stop-values of the x-values do not match).</li>
+<li>In Edit->Regions there is now a new dialog (Region Master...) to operate with different regions. This is effectively a combination of all the other small dialogs used to define and clear regions. In this dialog you can make a region invisible. Formerly you could only clear a region (and had to redifine it if you needed it again). You can also set different colors for the regions and edit the limiting points for the regions manually (i.e. more precisely). There is also a tab now to operate on the sets in a region. You may either delete sets or points in a region or extract sets and points in a region. With the 'Create'-tab you may create a region from an existing set. This is useful for example if you need a region in the shape of a circle or any other complicated function.</li>
+<li>The feature extraction dialog has been extended to let the user select different source-graphs and different sources for the abscissa (additional graph lists). The dialog has also been extended to include additional features: Y-/X-crossing means: get the X-/Y-value of the first occurence when the set passed the specified Y-/X-value; X(Y min): get the X-value where the absolute minimum of the Y-values is reached; Y(X min): get the Y-value where the absolute minimum of the X-values is reached. The dialog also includes the possibility to restrict the feature-extraction to a specific region.</li>
+<li>In the Plot-appearance-dialog you can edit the project description. You can also set a file-path-stamp (not only time-stamp). It is now also possible to change the background of the page to an image (before only a transparent background or a single background color have been possible).</li>
+<li>In the Graph-appearance-dialog you can now place the Legend-Box more correctely: There are different buttons to align the box with the (current) borders of the graph. There is also an option to auto-align the box with several borders - This is useful if you change the graph-size or -position.</li>
+<li>On closing QtGrace you can now select "Save" which lets you save the project file under the current name or use "Save As..." to select a new name (since this is just for conveniance, you can not alter the project description here; the project description can be altered in the plot-appearance-dialog).</li>
+<li>QtGrace is able to import data from a binary file. You have to specify the exact file structure in a separate dialog. It is also possible to define the file structures for different binary-files that can be destinguished by their suffix. If done so, these files can be imported by drag-and-drop (for further details see below).</li>
+<li>QtGrace is able to import data in different formats from ascii-files (like times e.g. "07:13:05" or Computing-values like "37M"). The most versatile settings for this import can be found in the csv-import-dialog (Data->Import->CSV / ASCII..., details see below).</li>
+<li>For all text elements there is now an additional alignment option: Text is always positioned inside a bounding box. The position of the box on a page can be set like in Grace via "Justification". Inside the bounding box the new "Align"-option determines how the text is arranged. This makes only sense if the text has more than one line. The alignment can be set to left (all text lines inside a bounding box begin on the left hand side), right (all lines end on the right hand side) and center (all text lines inside a bounding box are aligned separately in order to have the same distace from the left and right hand side of the bounding box).</li>
+<li>QtGrace can now fit circles or ellipses onto sets. The starting values for the fits can be guessed by QtGrace itself. (see below)</li>
+<li>For all boxes and ellipses you can now set an image as filling (not only a color or a fill pattern). The image is not stored in the QtGrace project file itself. A path to the image can be stored absolut or relative to the project file. Therefore you have to be careful if you use this option and later relocate the project file or send the file to someone.</li>
+<li>In the Preferences in the Defaults-tab you can set the display options for the set-lists. You can also activate the option for icons. This will display a small representation of the set appearance on the left hand side of the list in front of every set. All the list-display-options in the Defaults-tab will take effect on the next start of QtGrace, but you can readjust the display options for every list separately. At the start of QtGrace all lists will start with the display-option set in the Defaults-tab.</li>
+<li>QtGrace now offers the possibility to evaluate geometric relations. You may for example find intersection points and intersection angles between sets. To do so go to Data->Transformations->Geometric evaluations... At the top you may select what you want to evaluate (intersections, angles, areas, lengths). Then you have to select one or two set(s) and how the results should be displayed. If you for example want to have a set consisting of intersection points between sets select "Load x as" "Intersection-X". If you select Intersections and Angles then the Y-values of the intersection points go to Y and the Angles go to Y1. If you just need to know a single intersection point you may zoom in to the intersection and press Crtl+I. This will report on the first intersection that is found inside the graph. Intersections between all sets are considered. Please note that the algorithm to find intersections is not very efficient and therefore the time to find intersections is increasing with the product of the set lengths of the two sets.</li>
+<li>In the axis-properties dialog there is now the possibility to apply all settings to several axes at once. You may select the same axis for different graphs and different axes on the same graph. You may also deselect the tick-marks and the labels for this multi-axes setting. This is useful if for example the axes of several graphs are put together (e.g. pack-option in the Arrange graphs dialog).</li>
+<li>In the Data->Transformations->Evaluate expression... dialog there is now an option to keep data unchanged that is usually lost when working with regions. At the bottom of the dialog you may select to restrict the evaluation of the formula to a region. If a region is selected the data outside the region will usually not be included in the new set. If you want to keep the data just active the "keep the rest unchanged"-option below.</li>
+</ul>
+<H3><a name="Dec_sep">2. </a><a href="#s2">Usage of the decimal separator:</a></H3>
+<p>In the past I had some problem with different operating systems where the decimal separator is not '.'. Therefore I changed the behavior of QtGrace in responce to decimal separators in general. Internally always '.' is used. Only for display purposes and for data input something else is possible. In the Preferences->QtGrace-Behavior the decimal separator can be selected (at the moment only '.' and ',' can be used). The one you select will be used for every display of numbers (the display has been inconsisted before version 0.2.4) and for every input (keep that in mind: if you select ',' as decimal separator you have to enter all numbers with ',' as decimal separator and '.' will be ignored.). Numbers already stored in QtGrace will be redisplayed with the new decimal separator if you change the separator-preference.<p>
+<p>For saving and reading of files '.' is used. In case of Drap-and-Drop or Paste the number of ',' is counted and if it is greater than the number of '.' in the file the user is asked whether ',' should be used for this one import-operation. For Copy-operations the default setting of the operating system is used for the decimal separator. If the user does Data->Import->Ascii... the '.' is used for import by default, but the user can select whether ',' is wanted (no counting of ',' or '.', just simple import as selected).</p>
+<p>In some formulars ',' is used to separate different values (e.g. in the atan2-function). Therefore if ',' is used as decimal separator '|' has to be used to separate values.</p>
+<H3><a name="Utf8">3. </a><a href="#s3">UTF-8-support:</a></H3>
+<p>The original Grace does not support UTF-8-encoding. All supported characters/glyphs are part of the T1-font-encoding which is more or less hardcoded into Grace. This is useful in conjunction with LaTeX but not very helpful if someone wants to use characters outside the T1-encoding.</p>
+<p>In the latest version of QtGrace the support for UTF-8-encoding is included in the following way:</p>
+<p>The Qt-library supports UTF-8 for all input-widgets (like line-edit). Therefore it is possible to enter any UTF-8 character in any input-dialog QtGrace offers (as long as text input is allowed - some inputs only accept numbers).</p>
+<p>The computation and the display of graphs and especially text in QtGrace is still (mostly) taken unchanged from Grace. Therefore it can not handle UTF-8 characters that are not part of the first 128 characters of the ascii-table.</p>
+<p>To display any UTF-8 character QtGrace uses the font-library of the operating system and the painting methods of Qt.</p>
+<p>In Preferences->QtGrace-Behavior you will find a setting for the file encoding. For all inputs UTF-8 is used; for loading and saving text from and to files the selected encoding was used prior to v0.2.7. Every time data is loaded from a file (not only loading a project file) all text-entries are updated (therefore any unapplied text-changes/inputs are lost after data is loaded - sorry).</p>
+<p>Please note, that at the moment only the output-devices that use a raster driver support the output of text with fonts other than the usual 14 Grace/T1-fonts fonts. The only exception is the svg-driver: Since svg-files are written directely with Qt, every font is supported. I hope to improve the support in the future, but this is not so easy, because it is not garanteed, that every font is present on every system. (This means for example that there is no text output with PS or EPS.)</p>
+<p>Beginning with v0.2.7 QtGrace saves all text in UTF8-encoding and no other encodings will be supported (due to changes in the Qt-library Qt6). In future releases the loading of other encodings then UTF8 will not be supported any longer - v0.2.7 is still able to read non-UTF8-encoded project files as long as the encoding is named in the header. Please update project files that use non-UTF8-encoding to UTF8 for future use.</p>
+<p>Detailed description:</p>
+<p>QtGrace saves every text-string in two locations. One location is used for displaying the text using as much of the original Grace functions as possible (let us call it the 'Grace'-version of a text-string). The second location is used to store the original version of every text-string. The 'original' is the text the user entered (or which has been loaded from a file) and it is always stored in UTF-8 encoding.</p>
+<p>When text is entered via direct input in a dialog it is stored in the 'original'-location. Then the text is converted into a version that can be interpreted by the display driver. If Qt-fonts are not to be used (i.e. the original Grace-fonts are used) the original text-string is converted into the iso-latin-1 encoding, if QtFonts are to be used the text-string is just copied from 'original' to 'Grace'.</p>
+<p>If LaTeX-commands are to be used: During the conversion the 'original' text is analyzed and the LaTeX-commands are replaced with the appropriate Grace-commands. (Remember: the original version is always stored in the 'original' location including the LaTeX-commands as entered without change.)</p>
+<p>When text is loaded from a file the text-string is stored in the 'Grace'-loaction. This version of the string is considered as the original. To copy it into the 'original' location it is interpreted in the preselected encoding and converted to UTF-8. The preselected encoding is stored in every project-file and is used after loading text from this file. (If you open an old file with no information about the encoding used the one you selected in Preferences->QtGrace-Behavior is used.)</p>
+<p>For interpreting the text-string in the original location the encoding that is set in Preferences->QtGrace-Behavior is used. When data is to be saved in a file the original-string is copied to the 'Grace' location and converted into the encoding set in Preferences->QtGrace-Behavior. Then the text-string in the 'Grace' location is saved.</p>
+<p>After loading or saving the text in all string-locations is reconverted (encoding-changes and LaTeX-conversions are applied - which may cancel all unapplied text-changes as mentioned above; and again remember: the reconversion is done after EVERY load or save operation).</p>
+<p>Internally QtGrace uses the QTextCodec-class from the Qt-library to convert text-encodings into UTF8 and vice-versa. In Qt6 this class is no longer present and therefore I had to abandon the different encodings. I hope that UTF8 is enough for everyone.</p>
+<p>Changes when QtFonts as activated:</p>
+<p>In every font selector the label on the left side saying 'Font:' will change to a command button and pressing on it will display fonts that are available for use with the Qt-drivers (This should include most of the fonts available on your operating system. This is not restricted to the T1-fonts in the QtGrace-folder.). These fonts are only used for printing when Qt is used. This is the case for the display/screen, for using the native printer dialog and printing to 'jpg', 'png' and 'bmp' files. The T1-standard-fonts are used for printing on all other devices (like 'ps'). At the beginning the combo-box will only show the standard fonts supported by the original Grace. If you want to add other fonts: click on the command button saying 'Font:' and select a font from the font dialog of your operating system (usually the font size can be selected here as well, but this setting is ignored at the moment).</p>
+<p>When using the 'QtFonts'-option the Font-Tool will be considerably slower (I hope to improve this in future releases).<br>Using the Symbol-font will not have the same effect as it has with the T1-fonts: In T1 the Symbol-font contains the greek letters (only). In the Qt-fonts every font contains the greek letters (but not at the same positions as the latin-letters). That means if you want to use the QtFonts and latin and greek letters at the same time you have to enter the unicode-numbers of the greek letters or copy and paste the letters from the Font tool or use LaTeX-commands (see below). In Preferences->QtGrace-Behavior there is now an additional option to specify, that the Symbol-font is special. This is only available with QtFonts activated. If the Symbol-font is marked as special, the characters entered normally are sorted differently and replaced if the symbol font is used. This way the usage of the symbol-font is the same as with Grace.</p>
+<p>I can not guarantee that all special font commands like "\s", "\S" or similar will work all the time (due to differences between UTF-8 and Ascii/T1-fonts). Using the LaTeX-shortcuts may also be unreliable while using QtFonts because the character positioning has been optimized for T1-fonts.</p>
+<p>The Grace fonts and their ordering is used for the first Qt-Fonts. If new Qt-Fonts are added to the list the Qt-Font-list will be longer then the Grace-Font-Liste. If a Qt-Font is used with a higher number then the amount of Grace-fonts this font can only be used with useQtFonts activated. If Grace-Fonts are to be used (use QtFonts off) there is no font with such a high number. Text in this font will be displayed in Times Roman. The QtFonts are stored in every project file. The original Grace-fonts are saved as well, but the font lists may be different.</p>
+<p>Please note that with Qt6 the format-string used to identify a font has presumably changed a bit. This means that old QtFonts may look a bit different in Qt6 because the format is not recognized completely (Qt6 is obviously not the most backwards-compatible version out there) - sorry.</p>
+<p>Conversion of path-names to ascii-characters is done using the default system-encoding (as reported by the operating system), because this is necessary for the internal file-operation-functions.</p>
+<H3><a name="Latex">4. </a><a href="#s4">LaTeX-support:</a></H3>
+<p>The support for simple LaTeX-commands can be activated in the Preferences dialog in Preferences->QtGrace-Behavior.</p>
+<p>The LaTeX-support is meant for the input of simple LaTeX-commands declared by '$$' at the beginning and the end of the command (without'). Only text-input-widgets that are ment for comments/labels do accept the LaTeX-commands and only if the option is activated in Preferences->QtGrace-Behavior. This should be helpful to write formulas for people who know how to use LaTeX. For Example: You can enter something like '$$E=(\frac{1}{2}\pm\nu)\cdot\hbar\omega$$' and this command will internally be translated in the Grace-typesetting language (there is no real LaTeX-typesetter included - just some sort of makro-translator). At the moment the translation is one-way only. The original input is stored and you can switch between the original and the translated version. Usually the original will be shown. If you want to edit the translated text click on the label on the left of the text-input-widget. The text will be shown in red then. If you edit something in the converted version and click on Apply or press Enter while Immediate Update is on the text containing the Grace-font-setting-commands will be stored as original and your LaTeX-input is lost.</p>
+<p>I did not copy every command from a LaTeX-handbook - I only included commands I thought could be useful and that are simple enough to include. (Take a look into ListOfLatexCommands.cpp if you want to know which commands are recognized at the moment.) Complex commands (like special braces like \underbrace or \overbrace) are not recognized at the moment and the overall translation is not completely fail-save. Don't use it in critical situations and save often. (If you enter a command and it is not recognized correctly try experimenting with spaces before or after it.) Nevertheless I would be very interested in your experiences in using this feature. I also would like to know which commands would be most useful to you if they were included. Font attributes are copied. Please notice: there is no font-command for making a font bold. Therefore characters that use the symbol font can not be displayed in bold. Sorry.</p>
+<H3><a name="Bin_import">5. </a><a href="#s5">Binary data import:</a></H3>
+<p>To import data from a binary file go to: Data->Import->Binary...</p>
+<p>This will open a dialog. Be aware, that you have to know exactly (!) how the structure of the file is that you want to open. You have to tell the import-filter the exact format once and afterwards you may chose to save this format-information to reuse it later (currently the format is saved in a specification file version 2; the old version 1 can still be read from QtGrace, but saved format specifications will always be version 2; Version 1 only consisted of numbers which where hard to read, version 2 contains comments to tell the user what different settings mean. Therefore the format specifications version 2 can easily be edited by the user.). As an example I have included the file-format-specification of wav-files: Click 'Load Format Settings' in the settings-menu and select 'wav_format.fmt' in the bin-folder or click 'Load Std. Import Settings' and choose the wav-format. To select the actual binary file click on 'Browse...' on the right hand side of 'Datafile:' (or drag-and-drop a file into the Datafile-line). By default it is assumed that the binary file also contains a header that has some information about the data present (e.g. this is the case for wav-files).</p>
+<p>The first part of telling the filter about the file format is to define the header-contents (byte for byte). This is done by adding a token to the list (click on '+') and tell the filter the format of the token (usually this is the kind of numerical representation of a number in a C-like format). The 'Bytes' box is only used for 'Offset' tokens that are ignored during data import later. It is possible (but not strictly necessary for every file type) to tell the filter how to use the header-information via the ComboBox 'InputAs'. In case you have done something wrong you are able to delete a token by clicking on '-'.</p>
+<p>By clicking 'TestLoad'  you can check whether your input has been correct (I always recommend clicking 'TestLoad' since it is needed for some files). The 'File-Info'-tab contains the data read from the header.</p>
+<p>The second part is setting the Data-Format. It is assumed, that the data is present after the header in the file as a stream of bytes (no additional information in-between - if there is data inbetween just use the Offset-token in the header to lenghten the artificially). It is also assumed, that the data-points are either present one after the other or one channel after the other. You have to set the format of every channel present in the file and whether or not this channel shall be imported.</p>
+<p>The last step is to set the destination for the import: set-type and graph-number. It is also possible for data and header to be present in different files. You may select both of them in this case. For the header-information two versions are supported yet: header-information in binary format or in the format of ini-files (like system settings: '[Data] t0=5 dt=0.1' separated by new lines).</p>
+<p>Experiment with binary import on wav-files: This may give you a good idea of how I meant it to work.</p>
+<p>You may import more than one set at once. In order to do so set more than one import-channel to the same column (like one 'X' and three times 'Y').</p>
+<p>Beginning with v0.2.2 it is possible to select several files for binary import at the same time. Doing so, the import filter will assume the files to have the same format and import the selected data from every file into a new set (or new sets). You may also activate an option to tell QtGrace to look for a seperate header file for each data file. Otherwise one header is used for several files. If you select multiple data-files and no header files, but tell QtGrace, that header files are present in ini-format, then QtGrace will look for ini-files at the same location and with the same name as the data-file but with an ini-suffix. If you select a different header-format than ini you have to select at least one header for QtGrace in order to tell the import filter the suffix of the header file(s). If you select more than one header file for multiple data files and tell QtGrace that there are seperate header files for each data file, then the number of headers have to match the number of data-files. In this case the first header is used for the first data file, the second header for the second data file and so on. If the number of header files does not match the number of data files, then just the suffix of the first header is used and it is assumed, that the headers have the same name as the data files. If you do not select "separate header file for every data file", then the number of header files is not important, always the first one is used. If the header format is not ini, then you have to select at least one header. If you select ini-format and select a header file, then the suffix of this header is used, but the contents of this files are assumed to be in ini-format.</p>
+<p>One channel in a file can be declared as a trigger channel. This channel is used as a reference for the x-axis. You can use rising edge/falling edge or whatever edge is the first to cross the trigger-level and you have to set a trigger level if a trigger channel is selected. After the data import the x-position of the trigger-edge is detected and all imported sets are shifted to set the position of this edge to x=0. The trigger-channel may be any one of the channels in the file.</p>
+<p>There is also a binary-export-dialog for saving sets. I included a file format specification for these files as well ("grace_binary_format.fmt"). Please remember to select "Read Data until EOF" (EOF = End Of File) in the Data-Format settings if you operate with data files of different lengths and do not want to set the exact number of data points for every file.</p>
+<p>With the new format specification version 2 it is now possible to define a standard-input-format for binary files. These special format specifiers are stored in the templates-subfolder under the name "QtGrace_std_bin_format_*.fmt" with the "*" replaced by a user selected standard name. Files with this name in the templates-subfolder are loaded by QtGrace at startup to determine the format of (for you) common binary files. With these formats known to QtGrace it is then possible to drag-and-drop binary files into the QtGrace-Window to be loaded automatically. If a binary file is recognized during drag-and-drop QtGrace tries to find a matching standard import format (the match is done via the file suffix only!!). If one is found, then the settings in the format specifier version 2 is used to import data from these files. This is very conveniant if you use the same binary file format regularely. You just have to prepare the QtGrace_std_bin_format_*.fmt-file. In order to do so, just use the Binary-Import-Filter-dialog for one of your binary files and set everything like you need it to be for your binary file and try if it is imported correctely by pressing Apply. If everything works, use "Save Std.-Format" and select a simple name for the specifier (only a word, no suffix or anything, just the thing, that will go instead of the "*" in the format specifiers file name). Afterwards I recommend you to open the new specifier-file in the templates-subfolder with a text-editor and edit the file to include more channels, just in case you later have files with more channels than you used, when you set the import format. If you select the option that the header of the binary data is present in a separate file and QtGrace recognizes the data-file by its suffix during drag-and-drop then QtGrace looks for a suitable header-file. The suffix of the header-file is present in the *.fmt-file QtGrace uses as a recipe for loading. QtGrace always looks for header files in the same directory as the data files. At first QtGrace tries to find a header file with the same name as the data file (but different suffix). If this file is not present then the first file with the suffix of the header-file that is present in the directory of the data file is used.</p>
+<p>The automatic import of files depends on the fact, that usually somewhere in the header the number of data points and channels is stored. Otherwise, the binary format has to be very simple to be understood by QtGrace. Advanced options: see below.</p>
+<p>If you have specified a std-bin-import-format for a data file and an associated header file, then please remember, that during drag-and-drop QtGrace looks at the files one after the other. This means, that if you drop a header file QtGrace tries to find the matching data file and imports the data. If you drop a data-file the associated header is searched and the data imported. This means that if you drag-and-drop header- and data-file then this data is loaded twice, because QtGrace tries to match both files. Therefore please only drag-and-drop the data-files you want to load, the header-files are found automatically, if the filenames match (and only the suffixes differ).</p>
+<p>For the automatic import I included another conveniance-function: If you use multiple data-files with the same format it is possible to have the format in a single header-file and just the data in several files with everything in the same folder. In such a case if you drag-and-drop one or more data-files into the QtGrace-Window then QtGrace tries to find the matching format-specification according to the file-suffix. If the format specification says something about a header file then the suffix of this header-file is searched in the directory of the data-file(s). If the file-names of header- and data-file match then for every data-file the corresponing header-file is used. If only one header-file is found in the same directory as the data-file(s) then this one is used for every data-file (regardless of its name). If more then one file with the header-suffix is present in the directory of the data-file(s) and the names do not match the names of the data-files then QtGrace is unable to tell which header is to be used and the automatic import fails. If you have one header-file and several data-files in the same directory and you drag-and-drop just the header-file into the QtGrace-window then every data-file in the same directory will be imported (as long as a suitable format specification is present). For every drag-and-drop-operation QtGrace tries to find the most suitable format specification. This is usually done by the suffix. If more than one standard-format-specifier contains the file-suffix in its description, then QtGrace tries to find suitable matching file (header or data) and uses the specifier that suites the files that are present. If a file contains header and data in itself or if no header data is needed, then only the file-suffix is used to find the correct data format specifictaion. (I hope this was understandable ;-) )</p>
+<p>Other naming shemes for header files are not supported at the moment.</p>
+<p>For import of data from an ini-file there are now two new options. The first one is an entry-counter. With this you may count the number of entries in a group of entries or all entries that contain a specific text. For example if you need to know the number of channels and you know that in the ini-file the different channels have entries like 'Channel0-amplification' you may look for the word 'Channel'. How often this word occurs gives you the number of channels. The second new thing is a preprocessor for ini-entries. With this you may extract text or values from the entries in the ini-file. This is useful if there are several informations in one entry separated by a character like ','. You may select a separation character and the number of times it is present before or after the relevant data. If you have something like 'Channel0,10,100,1000' and you are interested in the third entry (100 in this case) you may select ',' as separation character and select 'After first A' and multiple '2'. This means: start at the left hand side of the keyword and count 2 times the ','-character. Then the text after ',' is read and converted in a number. If you need text it is probably better to use the between-type of the preprocessor. The last thing you have to do is set the target set you want to use the read data for and what to use it for. Before the target-settings there is a preview of the read data (the text and the number after conversion in parentheses). The types are 'Before' and 'After' and 'first' and 'last' and together they tell QtGrace where to start reading. 'first' means the counting of the separation-characters starts at the beginning, 'last' means the counting starts at the end and goes backwards. 'Before' means everything before the found separation-character is used, 'After' means, that everything after the character is used. If you use the 'Between'-type then the multiple of the second character is counted after the first character. The search begins with the first separation-character 'A' and after that the search for 'B' begins to determine the end of the text.</p>
+<p>Any suggestions for improvements are welcome.</p>
+<p>Note: As an example I included the format specification for wav-files. This way you may read sound data from wav-files. You may edit the data in QtGrace as you like. In the Data->Export->Binary... dialog there is now an option to export data as a wav-file. This way you may edit sound-files to a limited extent.</p>
+<H3><a name="Csv">6. </a><a href="#s6">csv-import:</a></H3>
+<p>To import data from a file with comma-separated values go to: Data->Import->CSV / ASCII...(dialog changed in v0.2.7)</p>
+<p>This will open a dialog. In the File(s) box you may enter the name of the file (the complete path!) you want to load data from - The usual method would be for you to click on "Choose file(s)" and use the operating systems file selection dialog. You may also select multiple files or enter multiple filenames seperated by ';'. You may also drag-and-drop one or more files into the space where the file-name is usually entered.</p>
+<p>In the upper part of the dialog you have to set the basic parameters of your file(s). This means especially the line-separator and the column-separator. If you have string-values in your file only " is possible as string-separation-character to mask regular separators inside a string. You may also set the number of header lines which are lines that are to be ignored at the beginning of the file(s). You may also set the decimal-separator used in the file ('.' or ','). The "Value for invalid data" is used whenever data is encountered that can not be read into double-format. I recommend using a value that is by far outside of the range of values in the file. The input-procedure needs a replacement for invalid data (otherwise the data-columns for the sets can not be filled correctely; Grace uses '0', but I wanted a more easily recognizable value).</p>
+<p>If the check-box on the upper right hand corner (Guess format) is checked, then the file-format is guessed. This usually works for line-separator, column-separator and decimal-separator. The number of header-lines can not be guessed and the guessing of the decimal separator is not guaranteed to be perfectly acurate so check the results before importing. The guessing also extends to the column-formats of the actual data. If guessing is active the general parameters will be set to the guessed values. If you do not want this to be, deactivate guessing before entering a new filename.</p>
+<p>If you have to Reread the file with changed settings use the button below the format settings.</p>
+<p>If you want QtGrace to ReGuess the format use the "Guess format"-button. This is useful if you have entered a new number of header-lines or changed an inapropriate guess in the general parameters. You will be asked wheter the general parameters and the column formats (everything) should be ReGuessed or just the column-formats - the general parameters will be used as entered in this case. This is helpful if the guessing of the general parameters has been incorrect (guessing works well, but not perfectly).</p>
+<p>The three buttons right of the "Guess format"-button are for quick reading data from simple files. The first button "Read singe set" just reads the data from the file as the format has been set. Per set in the file a single set is generated using the first data column as X-column and the second data column as Y-column. If a string-column is present it will be added to the set. Only a XY-set is generated even if more data is present. If you need more complicated data input please use the settings below.</p>
+<p>The second button "Read all sets (NXY)" is similar to the Read-single-set-button but uses all available columns to generate several sets. If string-columns are present they are added to the generated sets. If more string columns are present then data columns the surplus columns will be ignored.</p>
+<p>The last button "Read file into block data" does what it says: it reads the data of all columns from the file and transfers it to the block-data-storage for later use. This works only for the first set in the first file. If you immediately want to use the data you have to open the Block-data-dialog via the set-popup in every set-list (Create New->From block data).</p>
+<p>Below the buttons is a list (File-view) containing the file contents (only the first file in file-selection at the top). On the right side of the title the number of read-errors is shown. The File-view shows informations about the read data. It shows the original contents as well as the data read from the file in brackets. This is meant as a means of checking whether the reading has been correct. Usually the first and last lines in the file are shown. All settings of the File-view can be set in the menu. Data that has been read without read-errors is shown in green, data that could not been read is shown in red and the read data is the invalid-value set in the general parameters. In the File-view the Row-number and the Column-number ([C0], [C1], etc.) as well as the column-format settings are shown. Data or text in a row after a '#' is interpreted as comment and is ignored for data input. If selected in the menu the ignored header lines are shown at the beginning as well.</p>
+<p>Below the File-view are the settings for more complicated but also more versatile import than the simple buttons above. On the left hand side is the setting for the target graph and set. If you do not select a set for import then a new set is generated (if a set is selected then this set will be overwritten with the imported data, to deselect a set use &lt;Ctrl&gt;+Click). Right of the graph/set-selection you may choose between importing a single set per file or multiple sets. On the right hand side you may select whether the graph should be autoscaled after the import.</p>
+<p>Right of the import-target-selection you may select the type of the set(s) you want to import and whether the new set contains string data. The "Lines"-settings is the number of import settings below. The number is at least the number of columns needed to fill the new set.</p>
+<p>The actual import settings are done via several lines of the format TARGET=SOURCE1(+/-/*/...)SOURCE2. The operation (+/-/*/...) is empty at the beginning meaning that only the first source operand is to be used. As sources every column in every set of the file is possible. Also constant values or an index (0,1,2,3,...) can be used as data source. There is also the oportunity to use temporary columns denominated by letters A,B,C,...,N,O.</p>
+<p>The process is meant as follows: you select a target column (X,Y,Y1,...) and a Source. If you want to do complicated calculations you can do so by activating the operation (+/-/*/...). You may for example use something like Y=Column1+Column2. This is especially useful if your file has Date and Time columns. Date and Time are read separately, but you usually want the date to be part of the time-information. If you want to use more complicated formats (like adding several columns) you have to use the temporary columns like A=Column1+Column2, B=Column3+Column4, Y=A+B.</p>
+<p>All data is initialized with zeros at the beginning of the import. If you do not set every target-column then a column will be zero after the import. If you import data into one set originating from different source-sets with different lengths then the result will have the longest set-length, but the missing data will be zero.</p>
+<p>String columns are imported as the original text from the file. No operations are possible for strings. Every column can be imported as strings even it is a regular data column.</p>
+<p>To actually import data from the file(s) you have to press the Apply-button. Only one set is generated per file if "Read a single set" is selected.</p>
+<p>If you want to import multiple sets from a file you have to select "Read multiple sets". In this case new selectors appear right of the source selectors. These new selectors let you tell QtGrace how to change the source-column-number for every new set that is to be read from the file.</p>
+<p>The first set will be imported as it has been set. If you set "+0" for any source then the same source will be used for every following set. If you set "+0" for every source only one set will be imported.</p>
+<p>If you set "+1" for a source then the column-number is increased by one after every import. Column1 becomes Column2 for the next set and Column3 for the set after than and so on. QtGrace remembers which columns have already been used. Used column will not be used again with the "+1" option. For example a typical usecase could be if you have a file with 5 columns column0 contains X-values and therefore you set X=Column0"+0". Column 1 and 2 contain Y-values and column3 and column4 contain Y1-data. You can set Y=Column1"+1" and Y1=Column3"+1". The first set you import will get Columns 0,1,3 and the second set will get 0,2,4. The next set would be 0,3,5 but column 3 has been used already and therefore the import stops here. The import would also stop because column5 does not exist in this example. If more than one set is present in the file then only data from the first set is used for the import.</p>
+<p>If you set "same" for a source then for the next set-import a column will be used that has the same data-format (if the column has not been used already). This is meant for example for files with multiple date-columns and normal numerical values. You can set X to the first date-column and just set "same". The next set will get the X-values from the next column that has date-format.</p>
+<p>To set "+n" for a source is especially usefull if you do not know for sure how many columns are present in a file. The same is true for the "same"-option. With "+n" QtGrace remembers the relative positions of the source-indices in the first set. The "+n"-option is only usefull if you use this option in combination with "same" or "next set/same column". "+n" is useful if you have a complicated order of columns like X=first column, Y=4th column and set X=Column0"same" and Y=column3"+n". In this case let us assume that column0 has date format and column10 as well then the first set will have data from columns (0,3) and the second set will have data from columns (9,12). A reference column for "+n" is usually needed. Without it (i.e. every setting is "+n") the first column in the second set is the first column after the last column used for the import of first set.</p>
+<p>If you set "next set/same column" then the column number for data import will stay the same, but the next set will be used. This is only useful if more then one set is present in a file. Usually this would only be used if all sets in a file have the same format.</p>
+<p>Please note again: in general you may use source-data from different sets in a file for a single import set. If the length of the sets is different then the new set will have the higher length and the missing data will be zero.</p>
+<p>In short: suggested workflow:<br>
+Select a csv-file and let QtGrace guess the file format and data column formats; adjust the separator-characters if necessary and the number of header-lines and press "ReRead" (or Guess format); Set the import-formats and the source informations for every column in the new set(s) to be imported; Press "Apply".</p>
+<p>The format of the csv-file may be saved using Data->Save File Format...</p>
+<p>To later load the settings please select the csv-data-file(s) first and then use Data->Open File Format... (loading the format file first and then selecting the actual csv-file results in some incomplete import settings that have to be reset manually).</p>
+<p>A saved format file may also be used to specify a default csv-file-format. This makes it possible to enter csv-files via drag-and-drop in the main QtGrace-Window. Go to Edit->Preferences...->QtGrace-Behavior. At the very bottom you may select the format file.</p>
+<p>When a files is entered via drag-and-drop QtGrace recognizes a csv-file by the .csv-suffix at the end of the filename. Files that contain ascii-characters but do not end with the .csv-suffix are treated as simple ascii-files with several data columns. Only one csv-format can be set as default. If you are using different formats you have to use the CSV-import-dialog.</p>
+<H3><a name="Filters">7. </a><a href="#s7">Digital filtes:</a></H3>
+<p>I noticed the lack of proper low-pass or high-pass filters for measurement data in Grace. Therefore I included a filter-dialog that uses fourier-transformations and filter functions in frequency space. The user has to select source and target sets and what kind of filter is to be used and how to realize this. Then the cut-off-frequency/frequencies and the order of the filter have to be selected (hint: a Brickwall-filter is a filter with infinite order). There has to be a linear relation between the current X-axis of the selected sets and the time in s. The formula to convert the x-axis into time in s has to be specified (if a wrong faktor is given here the selected cut-off-frequncies are not correct). Since internally the filtering is done by multiplying a filter function with the frequency-values in frequency-space (FFT data, multiplication, inverse FFT) and the fast fourier algorithm is used the number of data points in the data sets have to be a power of 2 (at least if you are not using the fftw-library). In order to arrange it to be so the method for extending the number of data points has to be selected (to increase the number of points to the next power of 2). If interpolation is selected oversampling may be selected. For nonperiodic data it may be helpful to select the "absolute value"-option in order to remove phase-shifts. (Please note, that starting with v0.2.6 the sign of the phase of the transfer function has been changes. In previous versions the filter violated causality. Now the filtered data is usually shifted in positive direction in time.) In case debug is selected intermediate data in the procession of the data is preserved (like the filter function and the fourier-transformed data).</p>
+<p>Simply experiment with this dialog and you may see how it works.</pr>
+<p>It is also possible to use the filters in scripts (=Commands-dialog): Either you do a filter and use the "Translate selection to commands"-button in the UnDo-List or you enter the following command in the Commands-dialog<br>
+<code>#QTGRACE_SPECIAL FILTER_SET &lt;nr_of_source_sets&gt;,&lt;nr_of_target_sets&gt;{&lt;first_source_graph&gt;,&lt;first_source_set&gt;;&lt;second_source_graph&gt;,&lt;second_source_set&gt;;...}{&lt;first_destination_graph&gt;,&lt;first_destination_set&gt;;...}{&lt;type&gt;;&lt;realization&gt;;&lt;order_first_cutoff&gt;;&lt;order_second_cutoff&gt;;&lt;absolute_values&gt;;&lt;debug&gt;;&lt;point_extension&gt;;&lt;oversampling&gt;;&lt;region_nr&gt;;&lt;negate_region&gt;;&lt;first_frequency(Hz)&gt;;&lt;second_frequency(Hz)&gt;;&lt;chebychev_ripples(dB)&gt;;&lt;x_transformation_formula&gt;}</code>
+<br>You have to enter all entries in this command, although depending on the settings not all entries are used. All entries (apart from the x-transformation-formula) are numbers. Please relate to the Filter-dialog for what number represent what: on check-boxes: 0=not checked, 1=checked; on combo-boxes: first entry=0, the further below in the combo-selection-list the higher the number (e.g. "Band-Stop"=3); for the restriction: no restriction=-1, inside graph=-2, Region0=0, Region1=1 and so on. Example:
+<br><code>#QTGRACE_SPECIAL FILTER_SET 1,1{0,0}{0,1}{0;1;2;2;1;0;0;0;-1;0;10000.0;100000.0;10.0;1}</code>
+<br>This means a 10 kHz Low-Pass-filter on set G0.S0 and the result will be written in G0.S1. A second order butterworth-filter using only absolute-values is used and the x-values are already in time in s (i.e. x-transformation-formula="1" - see last entry). No oversampling is used and the points are to be interpolated to the next power of 2. No debug-output, no restriction (the "-1"-entry), no negated restriction. The second frequency is entered as 100 KHz with order 2 and the Chebychev-rippels are entered as 10.0 dB but these three values are unused.
+</p>
+<p>Suggestions for improvements are welcome.</p>
+<H3><a name="OutputDevices">8. </a><a href="#s8">Output-devices:</a></H3>
+This sections gives a short overview of the different output-formats QtGrace can use. You can set an output-device via "File->File Export Setup...". Do not forget to set the output-dimensions and resolution and press Apply. An output into a file is initiated by pressing "Export to File" in the File-menu and in the "File Export Setup"-dialog.<br>
+<ul>
+<li>Portable Document Format (PDF)<br>This device produces a screenshot in pdf-format. The advantage is, that you get exactely the picture you see on the screen. The disadvantage is, that you get a limited resolution and a large filesize. See also the Haru-PDF-library below.</li>
+<li>Scalable Vector Graphics (SVG)<br>This device produces an output containing vector-graphics. The original Grace-SVG-driver produces SVG-files that are outdated (i.e. can not be displayed by most modern svg-display-programs like firefox or safari-browser). Therefore I deactivated the old SVG-driver and activated the SVG-driver of Qt. This should produce up-to-date SVG-files.</li>
+<li>Joint Photographic Experts Group (JPEG)<br>This device produces a raster-graphic in the well known jpg-format. This is like a screenshot in a specified resolution. Drawback is the occurance of compression-artefacts. PNG-format should be preferend for files consisting of lines and simple geometric elements.</li>
+<li>Portable Network Graphics (PNG)<br>This device produces a raster-graphic like jpg, but in png-format. This should be the prefered raster-graphic-format, because its compression handles the output of pictures consisting of simple geometric elements very well.</li>
+<li>Windows BitMaP (BMP)<br>This device produces a Windows-Bitmap-file. Like JPG and PNG this is like a screenshot, but uncompressed (therefore it has a very large file size).</li>
+<li>PostScript (PS)<br>Since postscript is a vector-graphic-format it supports only the classical 14 T1-fonts from Grace and no QtFonts. Anything else should work.</li>
+<li>Encapsulated PostScript (EPS)<br>This behaves exactely like postscript, but also includes information about the bounding box of the page.</li>
+<li>Maker Interchange Format (MIF)<br>Outdated format. Used seldomly. Should behave similar to postscript.</li>
+<li>Portable Anymap (PNM)<br>This is a format in binary encoding. This device does not support non-Ascii-characters (at the moment). Since I think that this format is not very common, I do not intend to change anything here.</li>
+<li>Grace Metafile format (Metafile)<br>This filetype is mainly used for debug-purposes and useless for the normal user.</li>
+<li>Portable Document File - Haru-library (PDF(Haru))<br>Only available if the Haru-library is available as dynamic or static library. It produces pdf-files as an output containing text and lines and not only pictures. This works for all text in the Grace-standard-fonts and not with the QtFonts. Fill-Patterns and Draw-Patterns are not supported by the Haru-PDF-library. The output-quality is very high!</li>
+</ul>
+<H3><a name="Undo">9. </a><a href="#s9">Undo/Redo:</a></H3>
+<p>Starting with version v0.1.3 I have included a feature to Undo and later Redo some operations the user does with graphs and data sets. It is deactivated as a default because it is of an experimental nature at this point. It will be activated as a default in a later release when I am sure that no harm is done by this function. To activate it: Go to Edit->UndoList and set the "Undo active"-option. This option will be saved in the ini-preference-file and will be restored at every startup of QtGrace (keep this in mind: if you activate Undo/Redo, it will stay active until you deactivate it again!). I do not recommend activating this option for Graphs that include large datasets (>100.000 points) since it may consume a lot of memory because the undo saves up to 100 states of your work.
+Since you now have been warned, let us get to the nice stuff: What is possible with this feature?</p>
+<p>When "Undo active" is activated, every supported operation is recorded as can be seen in the UndoList. In this list you will find a description of what you have done (the last one is the one on the bottom) and at the beginning of one line the letter 'U' or the letter 'R'. Actions marked as such are the actions that will be Undone or Redone when you use Edit->UnDo or Edit->ReDo respectively. You may also select one or more actions in the list and click on "Undo" below the list. Undo will undo the actions form the last one upwards. Redo will undo the actions from upper most selected action downwards. Every UnDo- or ReDo- operation is considered as some sort of toggle-operation. After an action has been undone a "(*)" will appear at the beginning of the description in the UndoList. This means, that you already have made this undone. Clicking on it and clicking Undo afterwards will effectively redo it. This is also the case, when you use Edit->UnDo. An action that has already been made undone will be redone, when it is reached by the Edit->Undo-operation. Doing a normal operation in QtGrace will set the 'U'-marker to the last operation in the list. This means that by clicking Edit->UnDo the last operation will be made undone and the 'U' will go to the operation before this one. The 'R' for Redo will then be set at the last operation. Clicking multiple times on Edit-UnDo will set the 'U'-marker one operation back(=upwards) until the end of the list is reached or a new normal operation is done in QtGrace. You can always do a manual undo via the list. Manual operations do not alter the 'U'-marker. Using Edit->ReDo will Undo the Undo-operations until the end of the list is reached. Give it a try and you will see what I mean. The shortcuts Ctrl+Z and Ctrl+Shift+Z are used for Undo and Redo. Please note: In Grace Ctrl+Z is normally used for Zoom-operations. I use Ctrl+Z for an undo and Alt+Z for zooming.</p>
+<p>One further warning: Operations that change the ordering of the sets in a graph or the ordering of graphs (like swap-operations or pack-sets) are a bit dangerous if you do manual undo. At the moment the undo-function does not check whether the set-number has been changed since the operation you want to undo. Doing a chronological undo with Edit->Undo should be save, manual undo can sometimes have unexpected results.</p>
+<p>Simple description of what Undo/Redo does: Undo does set the state before the action has been performed, Undo again will set the state after the action has been performed. (Undo and Redo are only different with respect to the chronological order in which operations are made undone.) Undo/Redo does usually NOT really do the action again (there are some exceptions), only data is restored. Please use the manual undo-operation only for emergencies or if you really know what you want. Don't manually undo and redo several operations in arbitrary order to often, because unexpected results will be guaranteed. Chronological Undo via Edit->Undo or Edit->Redo is preferred.</p>
+<p>Any suggestions are as always very welcome! Bug-reports as well.</p>
+<H3><a name="Copy_Paste">10. </a><a href="#s10">Copy / Paste / Drag and Drop / Load / Save:</a></H3>
+<p>For an improved interaction with other software (especially spreadsheet-applications) I implemented copy and paste as well as drag and drop into QtGrace. In order to work it is necessary, that the user only uses data in the usual spreadsheet format (multiple columns and rows without text-comments; only comments starting with '#' are allowed). It is for example possible to select a block of cells containing numerical data in a spreadsheet-edit-program and drag it over the QtGrace-window and drop it. It is also possible to copy the same data into the clipboard (Crtl+C) in your external application and click in the draw-area of QtGrace (a graph should be selected) and press Crtl+V. By doing so, the data will be imported as one or multiple new sets (depending on the shape of the data: empty lines are interpreted as a separation between sets and if more than two columns are present, the first column is interpreted as x-axis and the other columns are interpreted as the y-axes of several sets) in the current gaph. You may also select the "paste"-option in the context menu summoned by right-clicking in any set-list. Internally the data to be imported via drag-and-drop or paste is copied in a temporal file and then loaded via the usual ascii-import function. You may also drag and drop files directely from your file-browser into the QtGrace-window. If you select an ascii-file (or multiple files at the same time) the data is simply loaded via ascii-import. If the file is recognised as being binary (this is done on the basis of guesswork ;-) ) the binary import filter dialog is summoned and the user has to select the import-parameters (i.e. tell QtGrace the data structure of the binary file) to start the import. If a standard-binary-import-format has been set and the file dropped into QtGrace matches the set file extension, then the binary file can be imported automatically (see also the chapter about the binary import filter).</p>
+<p>If you drag and drop a QtGrace project file (*.agr) a special dialog is shown that lets you select specific sets from the project file to import or open the whole file. This dialog can also be opened in the open-project-dialog.</p>
+<p>A drag-and-drop operation from QtGrace to another application is not supported (no drag-out, only drag-into).</p>
+<p>To get data from one or several sets from QtGrace to another program the user has to use the clipboard: select the data sets concerned and right-click in any set-list. This summons the context-menu and the user has to select the "copy"-option. The data is stored in the clipboard as ascii-data and can be pasted in any other application that is able to use the clipboard (e.g. any spreadsheet editor). As decimal separator the default setting of the operating system is used.</p>
+<p>On an experimental level some files in the LabView-Diadem-format can be imported by drag-and-drop (very rudimentary). The same goes for trace-files (*.dat) from Gould-oscilloscopes. Use at your own risk and the import may be incomplete at the moment (work-in-progress).</p>
+<p>There is now an option in the Preferences->QtGrace-Behavior to auto-set the current working directory (cwd).</p>
+<p>The cwd is used as a reference point for the file-dialogs if no other reference exists. When you open file-dialogs different starting directories are set. If the cwd is set manually then the open-file-dialog will start with the path of the last file that has been opened with this dialog. The same is true for any other file-dialog (save-file, import-file and so on).</p>
+<p>If you open a file via drag-and-drop this does usually not affect the starting path for the file-open-dialog. If the auto-set-cwd-options is active, then loading a file, saving a file or opening a file via drag-and-drop will set the cwd. In this case any load-project- or save-project- or load-/save-file-dialog will use the cwd as starting path for file selection.</p>
+<p>The dialog for commands (scripting) will always open file-dialogs in the templates-folder or in the folder of the last file opened or saved (regardless of the cwd).</p>
+<H3><a name="Zooming">11. </a><a href="#s11">Zooming:</a></H3>
+<H4>Zooming in general:</H4>
+<p>In XmGrace/Grace as well as in QtGrace you can zoom in and out via the buttons Zz and zz in the tool bar on the left hand side of the main window. If the axis-scaling is not linear (like logarithmical) the zooming can result in invalid values along the axis (like negative values for logarithmic scale). QtGrace does the zooming for nonlinear axes a bit differently so that the axes stay inside appropiade limits. The same goes for panning of the graph-area.</p>
+<H4>Zooming multiple graphs:</H4>
+<p>On the upper left hand side of the QtGrace-window there is now a new graph-selector. This selector shows all graphs present and the currently active graph is selected. Any change in graph-selection/activation is represented here. You can also change the current graph by using this selector. The main purpose of this is to be able to select more than one graph for zoom-in and zoom-out. All zoom-operations that are shown in the toolbar use this selector for determining on what graph(s) they should be used. Please mind, that internally Grace supports only one active/selected graph. This one is usually shown with focus-markers. This new graph-selector will only work with the zoom-buttons in the toolbar and is meant for people who use superimposed graphs and want to zoom in and out simultaneously.</p>
+<H4>Zoom-Slider:</H4>
+<p>I added a zoom-slider in the toolbar on the lower left hand side of the QtGrace-window. You will find it just above the 'Exit'-Button. The slider-value is changed logarithmically and can be set between 0.1 and 10.0. (The internal values of the slider range between -100 and +100 and the actual zoom-factor is calculated by 10^(value*0.01). The current value of the slider is saved in the QtGrace-ini-file as "PageViewZoom". (If you have problems resetting the page zoom to 1, set this value in the ini-file manually back to 0. To reset the slider to factor 1.00 you may use the shortcut 'Crtl+1'.) The setting only effects the visual display on screen. Print-commands are unaffected by this. There is also no Undo for changing the slider setting because this in nondestructive. The setting is saved when QtGrace is closed and will be reset to the last value at the next startup. I intended this for people who have uncommon display-resolutions. QtGrace calculates the size of the visual page according to the resolution of the computer-screen used. This is ok for most users. It is very inconvenient for people using notebooks with small screens (like 12") because they will not be able to see the whole page. With this new zoom-slider you can reduce the page size for the display according to your needs. You are still able to produce hardcopies (in Print or in Files) with an exact resolution.
+<br>
+Please note: The Zoom-Slider is deactivated if QtGrace is started with the '-free' option, because it is useless in this case!<br>
+The 'Fit'-Button below the page-zoom-slider sets the zoom-slider in order to fit the page-size to the available space of the window. (Thank you jhenin for suggesting this and supplying the source-code which I modified a bit.)</p>
+<H4>Zooming with mouse-wheel:</H4>
+<p>In the preferences you can activate the zooming with the mouse-wheel. If you scroll the mouse-wheel while the cursor is inside a graph you can zoom in and out a the cursor-location. The graph does not have to be the current graph for the zooming. Please note, that the selection in the graph list is not used for mouse-wheel-zooming. Just one graph is zoomed. If the cursor is outside a graph while the mouse-wheel is used, nothing will be done.</p>
+<H3><a name="Color_man">12. </a><a href="#s12">Color(palette) management:</a></H3>
+<p>In the original Grace it was possible to use more than the 16 colors preset in Grace, but you had to enter them in the file header manually. I wanted to have a more convenient method.</p>
+<p>In the Preferences-dialog you may change the current Color palette used for the project. In the upper part you may select a color from the current palette and edit it. You may enter the red/green/blue-color-components and the color name. Below you will see a preview of the edited color. You have three options for the single color: delete the color with the specified number from the palette, add the color as a new color to the palette or replace the color with the specified number with the new color (Edit color). The option 'Define color' lets you select a color from the color-selector-dialog of your operating system. If you want to add this new color to the current palette use 'add' or 'edit' (to replace an existing one).</p>
+<p>You may also edit the whole palette in one go. You may set the palette for example to a specified spectrum of colors. You may use predefined spectra or set your own spectrum. By selecting 'Custom...' and setting a number of path-points you may define the spectrum by specified colors that have to be part of the spectrum. For each path point you have to specify a color via 'Current path point' and 'Color' (Please note that for simplicity only colors that are part of the currently active color palette may be chosen as path points). Below you will see a preview of the spectrum. Please note, that the first two colors in the spectrum will always be white and black because otherwise you will get very irritating results. If you don't want this: set a spectrum and edit the first two colors afterwards (but consider yourself as having been warned). To activate the whole new spectrum you have to click 'Set spectrum'. This will only change the color palette in the dialog, not for the project yet. If you have done something wrong you may always set the color back to the Grace / xmgrace default 16 colors (Set standard Grace colors).</p>
+<p>Please note also: everything you edit in the Color management dialog only effects the color-palette of the color selector in this dialog. If you want the change to take effect in the current project you have to click Apply or Accept (no immediate update here!). I.e. first set the color palette on the top of the Color management tab and by pressing Apply this palette will be set for the whole project.</p>
+<H3><a name="Commands">13. </a><a href="#s13">Commands / Scripting:</a></H3>
+<p>I included an option in the Undo-List-dialog: If some of the entries in the undo-list are selected the button below the list may be pressed. This will convert the undo-entries into appropriate commands in the Command-dialog. By doing so it is possible to record a script of what has been done (Do something in the normal way while Undo is active. Then afterwards select the actions that should make up a script and then press the button. In the Commands-dialog you may then alter the commands, save and load them.). Unfortunately this feature is still incomplete at the moment. Loading and saving data is not fully supported yet. The scripting works concerning style-changes in things like Graph-Appearance, Set-Appearance and so on.</p>
+<p>In the commands-dialog I inserted a set-selector for source and destination set and a new command-button: "Replay replacing set-Ids". By pressing this button the list of commands is executed as would be the case with the Replay-button, but in contrast to this every set-id in the command is replaced by the selected ids (separated in source and destination). This is very useful for scripting complicated commands like regression or filtering.</p>
+<p>I also included an option to use special let us call them "clipboard-commands": remember value (including the last formula used in fits or for evaluate expression), add/multiply/substract/divide by last or remembered formula/saved formula/saved value. This can be used for example for generating scripts to remove offsets and process measurements: load measurement (without script) and define a region for the offset-correction (an area where your signal is zero, but background signal is not zero), then use a script command for regression in this area (maybe without displaying the result); the resulting formula is automatically remembered internally as the last formula; then use the special command "Minus last formula" to substract the offset from the complete set; following this you may for example use the filter (scriptable as well). (I have used this scripting method to remove the offset and used the filter on 100 sets at the same time by only one click on the "Replay replacing set-Ids"-button.)</p>
+<p>Concerning "Replay replacing set-Ids": For some complicated scripts I included options for the set-ids in the scripts: If a set-id is given in the usual way (e.g. g0.s0, please do not use a shortened form here) it is replaced by the selected set-id. If you do not want an id to be replaces write a '$' after it (e.g. "G0.S0$.Y", not "G0.S0.Y$"); You may use this for graph-ids and set-ids separately like G0$.S1 or G0.S1$ or in combination like G0$.S1$ - if you select G2.S3 the three examples will become G0.S3, G2.S1 and G0.S1; in the last case the operation will be done with the same set every time regardless which sets are selected (like the standard "Replay"-button does). If a '#' is typed after a set-id the given number is taken as the first id to be used with the first selected set, but the number will be increased for every other selected set. For example: if you select S0, S1 and S2 in G0 as source and destination and have a command like "G0.S0.Y=G0.S0.Y+G0.S3#.Y" and click on "Replay replacing set-Ids" then the set s3 is added to set s0, the set s4 is added to s1 and s5 is added to s2. These extensions will only work in the Commands-dialog if "Replay replacing set-Ids" is used (nowhere else!).</p>
+<p>I also included an option to get the set-id or graph-id: Type S# or G# to get the number, i.e. if you select a source set S5 and use S# in the commands somewhere you only get a 5. This is useful if you did feature extraction and want to use every feature-value in the list with a different set: A formula like x=x-G0.S5$.Y[S#] works in this case. This type of formula can also be used in the Data->Transformations->Evaluate Expression-dialog (without the $). Example: Take some measurements and do Feature-extraction: zero-crossing. Now you have your measurements and a new data-set containing the x-value where the measurements cross the x-axis. To shift all measurements in order to cross the x-axis at x=0 select every measurement set in source- and destination-list in the Evaluate-expression-dialog and type: x=x-S7.Y[S#] (the S7 should be the number of the last set, i.e. the one with the zero-crossing-values in it, just replace the 7 with the number of measurements you have) and press apply.</p>
+<p>If you need a new set or a new graph, please type S0N or G0N in a command. The number in the id is up to you and is used to refer to the same new id every time you type this command. If you are using this in the commands dialog or the evaluate expression dialog, then the new set  or graph is only generated once, even if you selected 50 sets to work on and the command(s) you entered are evaluated 50 times. The set or graph is generated at the first time and the set- or graph-id of the new set or graph is used the remaining times. If you press Apply again, new sets and graphs will be generated again. You can use G0.S0N and G0.S1N and this will generate two new sets in graph 0 and you can work with the identifiers G0.S0N and G0.S1N like with usual set ids. If you use G2N a new graph will be generated. If you use G2N.S3 it is the same as G2N.S3N and it reults in a new graph and a new set, but they are not treated equally if you use both ids in one commands (or list of commands). Then one new graph, but two new sets will be generated. For example: if you have a graph G0 and nothing else and use something like G0N.S3 you will get a new graph G1 and a new set G1.S0. You can refer to this new set as G0N.S3 or G1.S0 and both should work. For new graphs and their sets please use the id you used to create them. If you just create a new set in an existing graph, it is ok to use the usual set-id as well. For example: you have a graph with S0, S1 and S2 and use something like S0N. Then internally S0N is always replaced by S3 (the next unused set-id). In commands after the generation of the new set you may then use S3 normaly, because S3 exists then (but be aware of one thing: if you use replay-replacing-set-ids then S3 is replaced and S0N not). You may also use S0N if you like to refer to S3. It does not matter in which order you enter the new commands, just the name is important. If you use S1N and afterwards S0N, then S1N will be the first new set and S0N the second (even with different numbers in the id) because QtGrace does not look ahead. You may as well use an id like S1371N and just get something like S3 as a new set. The number is just to refer to the new set always by an unique identifier. (I hope this was understandable.)</p>
+<p>I included an example on the advanced scripting. Try this and you may see how the advanced scripting works.</p>
+<p>A comment about a deliberate exception: If you are using the "Replay replacing set-Ids"-button graph- and set-ids are replaced if you use them in the form G0.S0. For example if you use G0.S0.Y=G0.S0.Y*2 and select set 3 in graph 1 then the formula will be translated to G1.S3.Y=G1.S3.Y*2. There is another way to access graphs and sets: GRAPH[0].SET[0]. It is the same as G0.S0 in all normal functions, but with "Replay replacing set-Ids" it will not be altered. GRAPH[0].SET[0] will always stay the same. This was done, because I wanted the possibility to use formulas here, like GRAPH[G#+1].SET[S#-3]. The terms inside the '[]' will be replaced (S# will be replaced by the number in the selected set-id, e.g. if you select G1.S3 this will be replaced by 3 and GRAPH[G#+1].SET[S#-3] will become GRAPH[2].SET[0]). You can use something like SET[G0.S1.Y[S#]] to access set-ids via entries in other sets. If you select G1.S3 the formula will become SET[G1.S3.Y[3]] what is probably not what you want. More likely you want SET[G0$.S1$.Y[S#]], which becomes SET[G0.S1.Y[3]].</p>
+<p>Please keep this in mind! If you realy want to use GRAPH[0].SET[0] and have the ids replaced, then use GRAPH[G#].SET[S#].</p>
+<p>There is now a command to do a conditional operation: <code>#if[&lt;statement&gt;] &lt;command&gt;</code>. For the command you may use any command you like and it will only be executed if the statement evaluates to be true. For the statement you may use a number (0=false, everything else=true) or a simple equation like a=b, a&lt;b, a&gt;b, a!=b. For example: <code>#if[s#%6=0] y=y*2</code> means, that in every set with a set ID that can be divided by 6 (like S0, S6, S12, S18, ...) the Y-values will be multiplied by 2.</p>
+<H3><a name="font_sizes">14. </a><a href="#s14">Comments about the font size:</a></H3>
+<p>Because the coordinates in Grace/QtGrace are usually relative to the smaller page-dimension (viewport-coordinates) there is no simple transformation formula between Grace/QtGrace and other applications. Let us assume a page in landscape orientation with the x-y-dimensions a x b in pixels (like 792 x 612 pixels for a Letter-page in 72dpi). In this case b is the smaller dimension and Grace/QtGrace will scale everything in relation to this value (viewport-coordinate '1' corresponds to b pixels in this case; generally: viewport-coordinate '1' corresponds to the smaller page dimension).</p>
+<p>In comparison with other applications which give font-sizes in points (pt) I have derived a rough formula for converting font-sizes:</p>
+<p>(Grace-char-size) = 445/9*fontsize(pt)*resolution(dpi)/(lower page dimension in Grace)</p>
+<p>Or for example in two simple cases:<br>
+(Grace-char-size) = 5.817*fontsize(pt) (for letter-pages in 72 dpi)<br>
+(Grace-char-size) = 5.983*fontsize(pt) (for A4-pages in 72 dpi)</p>
+<p>If you use a letter-page in 72 dpi and want a font-size of 20 pt you have to set the char-size in QtGrace/Grace to 116.
+As mentioned before: This is a rough conversion based on experimental values. Suggestions for improvements are welcome here as well.</p>
+<H3><a name="regression_command">15. </a><a href="#s15">Further regression options:</a></H3>
+<p>For the regression I created the possibility to generate sets with an arbitrary abscissa. Like with "Create set->by formula" you may now enter values for a paramter $t and a formular that generates x-values form $t (default: "Load x as $t"). In this way you may for example generate sets with x-values increasing as powers of 10 ("Load x as 10^$t" and set start=-5 and stop=5 for x-values between 0.00001 and 100000) which is handy for logarithmic scaling of the x-axis.</p>
+<p>This new option is also included in the NonLinearFit-Dialog.</p>
+<p>I also included the possibility to just do a regression without producing a new set. Just select "Load: None". This may be useful if you want to use the regression inside a script.</p>
+<p>In the same way the filters can be used in the Commands-Dialog you may also use the regression by the following command (you may also use the UnDo-List to automatically generate a command for a script):</p>
+<code>#QTGRACE_SPECIAL REGRESSION &lt;nr_of_source_sets&gt;,&lt;nr_of_target_sets&gt;{&lt;first_source_graph&gt;,&lt;first_source_set&gt;;&lt;second_source_graph&gt;,&lt;second_source_set&gt;;...}{&lt;Type_of_fit&gt;,&lt;restriction&gt;,&lt;invert_region&gt;,&lt;nr_of_points&gt;,&lt;Load&gt;,&lt;start&gt;,&lt;stop&gt;,&lt;x_$t_formula&gt;}</code>
+<p>Like with the filter-command (see above) please refer to the regression dialog on what numerical values to enter. Example:</p>
+<code>#QTGRACE_SPECIAL REGRESSION 1,1{0,2}{0,4}{1;-1;0;250;2;-8.0;-1.0;10^$t}</code>
+<p>This will do a linear regression on set G0.S0 and save the result to G0.S4. No restriction is to be used and no inversion. The new set will have 250 points and the x-values will be calculated via "10^$t" with $t ranging from -8 to -1 which results in x-values from 0.00000001 to 0.1. The Load-options is 2 here which means, that the new set will be calculated by a function. If the value would be 3 no new set would be generated and start/stop/formula are unused.</p>
+<H3><a name="interpolation_options">16. </a><a href="#s16">Further interpolation options:</a></H3>
+<p>In the Interpolation-dialog I included a few extra options: it is now possible to select a set from a diffent graph as the source-set for the new abcissa.
+<br>There is an option to increase the setlength to the next power of 2 (if the setlength is already a power of 2 nothing is changed). If this options is activated, the field for entering the new length is disabled.
+<br>For sampling you may now select "Linear in original bounds". This will disable the fields for Start- and Stop-entry and take the minimum and maximum values of x as start and stop. The new set will have the new length as entered (i.e. the value entered in the Length-field or the next power of 2 if this option has been selected). This is different from the Grace-standard-option "Linear mesh" in combination with the "Strict"-option. These settings can reduce the actual length of the interpolated set if start and stop are outside the original source bounds.
+<br>The last new option "Expand bounds, keep stepping" will pad the original set with new points (or remove points) by extrapolating the set at the beginning and the end in order to increase (or decrease) the setlength to the length entered.</p>
+<H3><a name="fill_options">17. </a><a href="#s17">Fill area between sets</a></H3>
+<p>In QtGrace it is possible to fill the area between two sets (in Grace only the area between a set and y=0 or y=ymax or other constant values can be filled).</p>
+<p>To do so open the set-appearance-dialog for the first set and go to the Line-Tab. Select Type="As polygon" in the Fill properties and select the second set as Polygon base set. To get the result you probably want make sure the X-values are sorted in the same way for both sets (both ascending or both desending)</p>
+<p>Please note: This option is specific for QtGrace and will not be used if the file with this filling-option is opened in the original Grace.</p>
+<H3><a name="linestyles">18. </a><a href="#s18">Line-Style-Selection/-Change</a></H3>
+<p>I want to start this section with a warning: I do not recommend using the options to change the line-style-setup. Only use this if you absolutely have to. The predefined Grace-linestyles should be enough.</p>
+<p>You can find the linestyle-selection in the Preferences-dialog. In this tab you can edit different dash-patterns of the current list of linestyles/dash-patterns.</p>
+<p>You have to modify each linestyle separately and press one of the command buttons (Edit, Insert, Append) to store the modified linestyles in the list in this dialog. To make your changes effect QtGrace itself you have to press Apply (or Accept). Otherwise your changes will be lost if you close the preferences-dialog.</p>
+<p>At the top of the dialog you will find a list with four entries: Current, from project file, from ini file, Grace default. These are the four linestyle lists QtGrace knows at the moment.</p>
+<p>"Current" is the list currently used to display lines. If you edit something here it will immediately show in your plot after you press Apply (or Accept). The current list of linestyles is saved into the project-file. On loading a project file the current list of linestyles will be replaced by the list found in the project file to get the same display as was shown when the file was created. If no list of linestyles is stored in the project file, then the list from the ini-file is used.</p>
+<p>"from project file" is the list loaded from the project file (if one was present in the file, otherwise this should be the same as the list from the ini-file). This entry is used as a backup in case you edited something and want to go back to the last default of this project.</p>
+<p>"from ini file" is the list loaded from the ini-file used to store all general setting of QtGrace. This list is a fallback-option used, if no list of linestyles is stored in the project file.</p>
+<p>"Grace default" is the list of linestyles traditionally used by Grace. This list can not be edited - just examined and copied.</p>
+<p>In the second line of the dialog you will find a usual linestyle selector. Selecting one of the dash-patterns here will show you the settings for this pattern: the position in the list of patterns, the length of the definition (how many black and white blocks) and a representation of the elemental blocks for this pattern. Every pattern is defined by a number of blocks (like pixels) in either black or white. You can change the color of a block by clicking onto one of the rectangular fields below the "Length" selector. This will just change the current display in this dialog to show you how this edited linestyle would look like. To actually change the list currently selected, you have to use Edit, Insert or Append. Edit changes the linestyle at the currently selected position, Insert moves all following linestyles one number downwards and inserts the newly edited linestyle. Append just appends the new linestyle at the end of the list. Every editing just effects the list currently selected. You may also delete some linestyles or change the order by using Up or Down to move the linestyles inside a list.</p>
+<p>Please note, that editing the "from project file"-list is (in most cases) useless, because this list is not used and not saved (it is just ment as a backup). Editing the "from ini file"-list will change the general fallback default list for the future. Changing the Current list will take effect immediately and these settings will be stored in the project file on the next save operation.</p>
+<p>To copy one list, you have to use the buttons "Use these linestyles as current" or "Use these linestyles as current and general defaults". In this way you can for example reset the linestyles to the Grace-styles. Using just current, means, that this effects only the current project. With General defaults, this will also effect the linestyles stored in the ini-file.</p>
+<H3><a name="preferences">19. </a><a href="#s19">The Preferences-dialog</a></H3>
+<p>QtGrace starting from v0.2.5 has a largely extended Preferences dialog.</p>
+<p>The first tab (Grace) contains the standard preferences from Grace. The tabs QtGrace-GUI and QtGrace-Behavior and Miscellaneous contain specific options for QtGrace, the Defaults-tab contains the defaults used by QtGrace to initialize new items and the last two tabs are the Color-Management and Line-Style-Selector (see separate chapters for these two tabs).</p>
+<p>One important thing to remember about the Preferences dialog: The Apply/Accept-buttons do effect the tabs from Grace to Miscellaneous and not Defaults/Linestyles/Colors. These tabs have their own Apply/Accept-buttons. This is for safety in order not to change something involuntarily.</p>
+<p>The GUI-tab and the Behavior-tab contain settings about the behavior of QtGrace and about the appearance of the dialogs. You can set here what encoding and what decimal separator you want to use. You can also set whether you want to use the QtFonts and whether you want to use the LaTeX commands. Immediate updates let every change you make immediately be represented in the plot. The drawback is, that you also get a lot more entries in the undo-list. You can select the font used for all dialogs (or reset it to the systems-default). Usually the background of the main Window is of the same color as any dialog. The plot area is usually white. You can change the background-color of the widget around the draw area to the Plot/Page-background-color or any other color you like. The other options should be self-explanatory.</p>
+<p>The interface customization concerns the main dialog of QtGrace. You can activate or deactivate different features in the tool-bar on the left hand side and edit what is displayed in the status bar on the lower left hand side.</p>
+<p>The gui-settings at the bottom of this preferences-tab take effect after you restart QtGrace. This includes for example the setting of the dialog language (please note, that appart from english only german is listed here at the moment, but the german translation is faaar from being complete - I will improve this, when I have some time - maybe next release). The default printing device is used as a standard setting for the print setup. You may also select "Last selection" which means, that the setting you used the last time will be set at the next restart of QtGrace.</p>
+<p>You may also select here the default-project-file QtGrace uses if you restart QtGrace or when you do File->New (this setting has an immediate effect: after pressing apply the file that is loaded when you do File->New is the one that is set here). Keep in mind, that the settings in the Defaults-tab only effect new items. The settings for the first graph and for the plot are stored in the default file that is loaded on startup. If you for example want to change the default fonts everywhere, you have to alter the Default.agr-file and the settings in the Defaults-tab.</p>
+<p>Finally there are the settings about the size and position of QtGrace on startup. You can set the current size and position as default if you like or set some specific values. To take effect you have to press Apply, close QtGrace and restart it. Closing QtGrace is important here, because these settings are stored in the ini-file and this file is written to only when QtGrace closes normally. For savety reasons the x- and y-values that can be set here are limited to 90% of your screen size and the height and width is limited to your screen size. Please note, that if the set dimensions or positions do not fit your screen, your operating system might ignore some of these settings.</p>
+<p>In the Miscellaneous-tab you can choose to open help-files in a specific browser (instead of the defult browser of your system). The Show/hide workaround is sometimes needed on Linux-system, but I think it should not be neccessary. You can also set, that you want to use a print-command instead of the native printer dialog of your operating system. For the physical printer you can set an output resolution that is much higher than the screen resolution. Please note: The higher resolution results in finer fill patterns. You may also set a few other things that should speak for themselves.
+You can alter the settings about the external libraries libFFTW3 and libHaru.</p>
+<p>If the external libraries are not compiled in statically and you want to use them you have to set the path to the dynamic libraries (*.dll on Windows and *.dylib on Mac OS X) here. After library files have been chosen, QtGrace checks, whether the functions needed are inside the selected libraries. If this is the case you should see a green box stating, that the library is usable. If you want to use it, you also have to check the "Use FFTW3"- / "Use libHaru"- Box. If the libraries are included statically during compilation, then you only have to choose whether you want to use them or not.</p>
+
+<p>The Defaults-tab contains the settings used when new elements like graphs or sets are generted. There are different defaults here: the Current ones used at the moment, the ones loaded from the project file, the ones loaded from the ini-file and the Grace-default. The defaults are stored in every project file, but there is also a set of defaults stored in the ini-file. QtGrace uses the defaults stored in the ini-file. The settings loaded from the project-file are remembered and saved in the file again, if you resave it. The current settings will be saved in the ini-file if you close QtGrace. To alter the defaults stored in the project file, use the button "Use these defaults for this project file". To replace the current defaults use the button "Use these defaults as current defaults". I hope this is understandable for you and you understand why I did it this way: I wanted to have just one set of defaults (the one in the ini-file that is used constantly), but I did not want to lose the old settings. Suggestions for improvements are always welcome!</p>
+<H3><a name="selectionmodes">20. </a><a href="#s20">Additional selection options</a></H3>
+<p>In every popup-menu (summonded via right-clicking) for graph- or set-lists there is a Selection-item at the bottom.</p>
+<p>There are now additional options. Every one of the following options is an additional selection - already selected sets or graphs will be kept selected.</p>
+<li>Select even</br>
+This selects every set (or graph) in the current list that has an even graph-/set-id.</br>
+Please mind: this relates to the id, not the place in the list. If you have a list like {S0, S1, S2, S4, S5, S6} and use "Select even", then afterward S0,S2,S4 and S6 will be selected - it does not matter, that S3 is missing.
+</li>
+<li>Select odd</br>
+Same as above, but with odd graph-/set-ids.
+</li>
+<li>Select n-th (from n0)</br>
+This is a general periodic selection. With this you can select every n-th set in the list, starting from a specific start-index n0. This also relates to the graph-/set-id not the place in the list.</br>
+This is for example very useful if you imported several measurement channels from different measurements and you have an order like {Set0=M0,Ch0; S1=M0,Ch1; Set2=M0,Ch2; S3=M0,Ch3; Set4=M1,Ch0; S5=M1,Ch1; Set6=M1,Ch2; S7=M1,Ch3; Set8=M2,Ch0; S9=M2,Ch1; Set10=M2,Ch2; S11=M2,Ch3} and want to select only Channel 2. Then you have to enter n=4 and n0=2 (every fourth, because every measurement has 4 channels in this example; n0=2 because we want channel 2).
+</li>
+<li>Select visible</br>
+This selects all graphs/sets that are currently visible.
+</li>
+<li>Select invisible</br>
+Same as above, but with invisble graphs/sets.
+</li>
+<H3><a name="servermode">21. </a><a href="#s21">Server mode (by Nimal Kailasanathan)</a></H3>
+<p>QtGrace can now communicate with external programs (clients) using a QTcpSocket connection. QtGrace is setup as a TCP socket-based server using the QTcpServer class from Qt.</p>
+<p>In order to communicate with QtGrace, QtGrace has to be started in ServerMode with 2 extra arguments. The first argument is the QTcpSocket port used to write data to QtGrace from the client, and the second argument is the port used to read data from QtGrace to the client (QtGrace uses the LocalHost as address). It's a requirement that the client uses a QTcpSocket connection to communicate with QtGrace. In the QtGrace client example a communication protocol has been implemented for the user to see how to read and write from/to QtGrace via a QTcpSocket connection (see qtclient-folder in the examples-folder).</p>
+<p>In conclusion, QtGrace acts as a server when it reads the data from the client and QtGrace is therefore processing the data. When QtGrace sends data, QtGrace is using a new socket to communicate with the client. Therefore the client is processing the data received from QtGrace.</p>
+<p>Please refer to the Qt-documentation for further information about the QTcpSocket communication protocol.</p>
+
+<p>In the following section the low-level communication protocol in the QtGrace client example is explained (I will not give a description on how the TCP-communication and the internal states work.)  </p>
+
+<p>Each communication with the client is initiated with a command to tell QtGrace how to handle incoming/outgoing data. The client can send the following 10 commands to QtGrace (please see the communcationsProtocol.ccp file in the QtGrace client example):</p>
+
+<li>PLOT_INFO, number: 1</br>
+The first command is used to send the plot info (colour of plot, point size, line width etc.). In  order to send the plot info command the following function is used:</br>
+<code>
+// Clear the plot and send the graph and set information to QtGrace</br>
+cleanPlot();
+</code>
+</li>
+<li>WRITE_DATAVEC, number: 2</br>
+This command is used to set the communication function to data mode and is required as the first command before sending data.</br>
+After sending command 2 we have to send command 12 in order to tell QtGrace that all data  has been sent from the client.</br>
+<li>WRITE_DATAVEC_FINISHED, number: 12</br>
+
+The above two commands and the data can be send by using the following low-level function:
+
+<code>
+sendDataVector(int dataLength, double*xData,double*yData )
+</code>
+</li>
+
+</li>
+
+<li>REDRAW, number: 4</br>
+This command has to be sent after all the plot info and data set has been submittet. This command is used to plot the plot layout (plot info sent earlier) and the data set.</br>
+<code>
+setRedrawMode();</br>
+</code>
+</li>
+<li>PS_FILENAME, number: 5</br>
+This command is used to change the export file name.</br>
+<code>
+sendPSFileName();
+</code>
+</li>
+<li>SET_SCALING_MODE, number: 6</br>
+This command it used to tell QtGrace how the scaling should be:</br>
+<code>
+sendScalingModeInfo(int graphNo, int mode, double xStart_value, double xEnd_value);
+</code>
+The client can send 3 different types of scaling (mode):</br>
+<code>
+DEFAULT_LAYOUT, number 0 //do nothing</br>
+AUTOSCALE_ALL_AXES_OR_JOIN_PLOT, number 1 /* autoscale all axis - default*/</br>
+AUTOSCALE_Y_AXIS_OR_OVERLAY, number 2/* autoscale y axis (send xStart_value and xEnd_valuea */</br>
+</code>
+</li>
+<li>REDRAW_AND_WRITEPS, number: 7</br>
+This command is used to export a plot to a .ps file. This command is mainly used in batch mode in order to plot and export the plot to a .ps file without using the QtGrace GUI.</br>
+<code>
+setRedrawAndWritePSMode();
+</code>
+</li>
+<li>SET_LAYOUT_MODE, number: 8</br>
+This command it used to tell QtGrace how the graph layout should be:</br>
+<code>
+sendLayoutModeInfo(int graphNo, int layout, int col, int numGraphs)
+</code>
+The client can send 4 different types of layouts:</br>
+DEFAULT_LAYOUT,number 0   //do nothing</br>
+AUTOSCALE_ALL_AXES_OR_JOIN_PLOT, number 1 // join plot</br>
+AUTOSCALE_Y_AXIS_OR_OVERLAY,number 2 //overlay</br>
+GRAPH_POSITION, number 3 //Set graph position, i.e. numbers of columns and rows.</br>
+</li>
+<li>KILL_CHILD, number: 42</br>
+This command is used to terminate the communication between QtGrace and the client.</br>
+<code>
+killChild();</br>
+</code>
+</li>
+<li>END_COMM number: 99</br>
+This command is used to tell QtGrace that we are ready to update the plot, that no further data will be sent and that we can close the socket connection. It is important to send this command after each plot.</br>
+
+<code>
+endTransmission();</br>
+</code>
+
+
+</li>
+
+<li>High level function to send data to QtGrace</br>
+
+For the simplicity a high-level function has been implemented which the user can use to send a plot to QtGrace without worrying about the communication:
+<code>
+sendDataSetToQtGrace(double *x,double*y);</br>
+</code>
+
+</li>
+
+
+<li>Read from QtGrace</br>
+The user can read the plot parameters from QtGrace using the high-level function:
+
+<code>
+readPlotParametersFromQtGrace();</br>
+</code>
+The function returns a QString with the plot parameters.
+
+
+</li>
+<H3><a name="libharu">22. </a><a href="#s22">Haru-PDF-Library</a></H3>
+QtGrace has now the option to export the current plot as a pdf-file using the Haru-PDF-Library. You have to activate the usage in the Preferences-dialog.</br>
+The Haru-PDF-library is NOT distributed with QtGrace, but can be downloaded as a dynamic library (*.dll for windows, *.dylib for Mac OS X) from the internet. (Please use the 32-bit-library for windows.) Download the library or compile it yourself and tell QtGrace in the Preferences-dialog where to find the library.</br>
+It is also possible to compile QtGrace yourself and include the Haru-PDF-library statically. In order to do so, you have to remove the '#' at the beginning of two lines in the scr.pro-file (there is a comment in the file telling you which lines). On unix-systems everything should be ok as it is. On Windows you have to enter the path to the library in the second of these lines, run qmake and recompile QtGrace. Do not forget to compile the Haru-PDF-library with the appropriate number of bits (32 or 64 bits) according to your system (probably 64bit for Linux and Mac OS X, but 32bit for Windows if you are using the MinGW-compiler).</br>
+To use it just select "PDF(Haru)" in the device-setup-dialog (File->Print/Export setup...).</br>
+Drawbacks: driver does not support line-patterns (dash-patterns are supported) or fill-patterns (only solid fill). No QtFonts! Just the classic Grace-fonts (because they are the default fonts that are supported by every pdf-viewer).</br>
+</br>
+Have a look at the following sites for more information: <a href="http://libharu.org/">libharu.org</a>, <a href="https://github.com/libharu/libharu">github/libHaru</a></br>
+</br>
+License:</br>
+Haru Free PDF Library</br>
+</br>
+Haru is distributed under the ZLIB/LIBPNG License. Because ZLIB/LIBPNG License</br>
+is one of the freest licenses, You can use Haru for various purposes.</br>
+</br>
+The license of Haru is as follows.</br>
+</br>
+Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp></br>
+Copyright (c) 2007-2009 Antony Dovgal <tony@daylessday.org></br>
+</br>
+It is provided "as is" without express or implied warranty.</br>
+In no event will the authors be held liable for any damages arising from the</br>
+use of this software.</br>
+</br>
+Permission is granted to anyone to use this software for any purpose,including</br>
+commercial applications, and to alter it and redistribute it freely, subject</br>
+to the following restrictions:</br>
+</br>
+ 1. The origin of this software must not be misrepresented; you must not claim</br>
+    that you wrote the original software. If you use this software in a</br>
+    product, an acknowledgment in the product documentation would be</br>
+    appreciated but is not required.</br>
+ 2. Altered source versions must be plainly marked as such, and must not be</br>
+    misrepresented as being the original software.</br>
+ 3. This notice may not be removed or altered from any source distribution.</br>
+<H3><a name="libfftw3">23. </a><a href="#s23">fftw3-Library</a></H3>
+QtGrace can now use the FFTW3-library to do fourier-transformations. You have to activate the usage in the Preferences-dialog. The advantage is, that you do not have to worry about the number of points beeing a power of two for fft anymore (in fact dft and fft are the same with FFTW3). Also the fftw3-library is faster than the internal fourier-algorithm.</br>
+The fftw3-library is NOT distributed with QtGrace, but can be downloaded as a dynamic library (*.dll for windows, *.dylib for Mac OS X) from the internet. (Please use the 32-bit-library for windows.) Download the library or compile it yourself and tell QtGrace in the Preferences-dialog where to find the library.</br>
+It is also possible to compile QtGrace yourself and include the fftw3-library statically. In order to do so, you have to remove the '#' at the beginning of two lines in the scr.pro-file (there is a comment in the file telling you which lines). On unix-systems everything should be ok as it is. On Windows you have to enter the path to the library in the second of these lines, run qmake and recompile QtGrace. Do not forget to compile the fftw3-library with the appropriate number of bits (32 or 64 bits) according to your system (probably 64bit for Linux and Mac OS X, but 32bit for Windows if you are using the MinGW-compiler).</br>
+</br>
+Have a look at the following sites for more information: <a href="http://www.fftw.org/">www.fftw.org</a>, <a href="http://www.fftw.org/download.html">Download fftw</a>.</br>
+</br>
+Copyright notice:</br>
+Copyright (c) 2003, 2007-14 Matteo Frigo</br>
+Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology</br>
+</br>
+This program is free software; you can redistribute it and/or modify</br>
+it under the terms of the GNU General Public License as published by</br>
+the Free Software Foundation; either version 2 of the License, or</br>
+(at your option) any later version.</br>
+</br>
+This program is distributed in the hope that it will be useful,</br>
+but WITHOUT ANY WARRANTY; without even the implied warranty of</br>
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</br>
+GNU General Public License for more details.</br>
+</br>
+You should have received a copy of the GNU General Public License</br>
+along with this program; if not, write to the Free Software</br>
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA</br>
+<H3><a name="date_times">24. </a><a href="#s24">Import of data in Date/Time-Format</a></H3>
+<H4>About the different formats:</H4>
+<p>In the original Grace it is possible to display data in Date- and Time-formats. Every data in Grace and in QtGrace is stored in double format. To display a double-value as a specific moment in time Grace and QtGrace use a reference date (set in the Preferences). Internally the reference date is stored as 0. One day later is stored as 1, two days later is stored as 2 and so on. (Look for "Julian Date" if you want to know more.)</p>
+<p>I have not found a way to <i>import</i> data in Date/Time-format into Grace (in a reliable way). Therefore I implemented a method in QtGrace to import Date/Time-data from ascii-files. In the following table I give an overview about what can be imported (i.e. what is accepted) and how the data is interpreted. For the recognition-column please read the comments below the table. Please note, that any format that contains blank spaces (like "65 12' E") has to be enclosed in " in order to be recognized correctely. That also means that you have to write the seconds-symbol as two separate ' instead of a single ". Otherwise QtGrace is not able to distinguish between the seconds-symbol and the end of the statement. E.g. "65 14' 3.5'' E" is ok, "65 14' 3.5" W" is not (the difference may be hard to see in a browser, but there is one).</p>
+<table>
+  <caption>Import of Dates and Times</caption>
+  <tr>
+  <!--Table header-->
+    <th>Format</th>
+    <th>Example</th>
+    <th>Accepted variations</th>
+    <th>Imported as</th>
+    <th>Recognition</th>
+  </tr>
+  <tr>
+  <!--Row 0-->
+    <td>Decimal</td>
+    <td>1.52</td>
+    <td>any number</td>
+    <td>simple double value</td>
+    <td>(1)</td>
+  </tr>
+  <tr>
+  <!--Row 1-->
+    <td>Exponential</td>
+    <td>1e5</td>
+    <td>any number</td>
+    <td>simple double value</td>
+    <td>(1)</td>
+  </tr>
+  <tr>
+  <!--Row 2-->
+    <td>General</td>
+    <td>-0.58e2</td>
+    <td>any number</td>
+    <td>simple double value</td>
+    <td>(1)</td>
+  </tr>
+  <tr>
+  <!--Row 3-->
+    <td>Power</td>
+    <td>10^4</td>
+    <td>number ^ number (not only powers of 10) or something like 10(5.18) which equals 10^5.18 or in Grace-text-format: 10\S5.18; neagtive numbers just have a '-' in front ("-10^5" = -(10^5))</td>
+    <td>simple double value</td>
+    <td>recognized by the '^'/'\S'/()</td>
+  </tr>
+  <tr>
+  <!--Row 4-->
+    <td>Scientific</td>
+    <td>2.5x10^7</td>
+    <td>exponent has to be integer, only powers of 10, middle part has to be 'x10' or '*10' or '\x\c4\C\f{}10\S', '^' can also be () or '\S', examples: "-1.3*10^(2)", "3.15\xc4\C\f{}10\S-1"</td>
+    <td>simple double value</td>
+    <td>recognized by the central part (x10^ or similar)</td>
+  </tr>
+  <tr>
+  <!--Row 5-->
+    <td>Engineering</td>
+    <td>235m</td>
+    <td>w or w/o blank ("235m"=="235 m"), recognized letters: y,z,a,f,p,n,m,mk,&mu;,k,M,G,T,P,E,Z,Y (capital letters or no capital letters makes a difference) representing 10<sup>-24</sup>-10<sup>24</sup>, mk=&mu;=10<sup>-3</sup></td>
+    <td>simple double value</td>
+    <td>recognized by the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 6-->
+    <td>Computing</td>
+    <td>30K</td>
+    <td>w or w/o blank ("30K"=="30 K"), recognized letters: K,M,G,T,P,E,Z,Y (capital letters only) representing 2<sup>10</sup>-2<sup>80</sup></td>
+    <td>simple double value</td>
+    <td>recognized by the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 7-->
+    <td>Day-Month-Year</td>
+    <td>02-01-2001</td>
+    <td>any three integers separated by '-' or '/', year can be 2 or 4 digits</td>
+    <td>Date (A)</td>
+    <td>recognized by the two '-' or '/', (2)</td>
+  </tr>
+  <tr>
+  <!--Row 8-->
+    <td>Month-Day-Year</td>
+    <td>01-02-2001</td>
+    <td>any three integers separated by '-' or '/', year can be 2 or 4 digits</td>
+    <td>Date (A)</td>
+    <td>recognized by the two '-' or '/', (2)</td>
+  </tr>
+  <tr>
+  <!--Row 9-->
+    <td>Year-Month-Day</td>
+    <td>2001-01-02</td>
+    <td>any three integers separated by '-' or '/', year can be 2 or 4 digits</td>
+    <td>Date (A)</td>
+    <td>recognized by the two '-' or '/', (2)</td>
+  </tr>
+  <tr>
+  <!--Row 10-->
+    <td>Month-Year</td>
+    <td>01-2001</td>
+    <td>any two integers separated by '-' or '/', year can be 2 or 4 digits</td>
+    <td>Date (A)</td>
+    <td>recognized by the '-' or '/', (2)</td>
+  </tr>
+  <tr>
+  <!--Row 11-->
+    <td>Month-Day</td>
+    <td>01-02</td>
+    <td>any two integers separated by '-' or '/'</td>
+    <td>Date (A)</td>
+    <td>recognized by the '-' or '/', (2)</td>
+  </tr>
+  <tr>
+  <!--Row 12-->
+    <td>Month(english name)-Day</td>
+    <td>April-08</td>
+    <td>name can be in capital letters or not, day must be integer (1 or 2 digits), separator '-' or '/'</td>
+    <td>Date (A)</td>
+    <td>recognized by the '-' or '/' and the name</td>
+  </tr>
+  <tr>
+  <!--Row 13-->
+    <td>Day-Month(english name)</td>
+    <td>08-April</td>
+    <td>name can be in capital letters or not, day must be integer (1 or 2 digits), separator '-' or '/'</td>
+    <td>Date (A)</td>
+    <td>recognized by the '-' or '/' and the name</td>
+  </tr>
+  <tr>
+  <!--Row 14-->
+    <td>Month(abbreviated english name)</td>
+    <td>Mar</td>
+    <td>name has to be 3 letters only and can be in capital letters or not</td>
+    <td>simple integer value</td>
+    <td>recognized by length (3) and name</td>
+  </tr>
+  <tr>
+  <!--Row 15-->
+    <td>Month(abbreviated english name)-Day</td>
+    <td>Apr-08</td>
+    <td>name has to be 3 letters only and can be in capital letters or not, day must be integer (1 or 2 digits)</td>
+    <td>Date (A)</td>
+    <td>recognized by the '-' or '/' and the name</td>
+  </tr>
+  <tr>
+  <!--Row 16-->
+    <td>Month(full english name)</td>
+    <td>March</td>
+    <td>name has to be complete and can be in capital letters or not</td>
+    <td>simple integer value</td>
+    <td>recognized by name</td>
+  </tr>
+  <tr>
+  <!--Row 17-->
+    <td>Day of week(abbreviated english name)</td>
+    <td>Fri</td>
+    <td>name has to be 3 letters only and can be in capital letters or not</td>
+    <td>simple integer value</td>
+    <td>recognized by name</td>
+  </tr>
+  <tr>
+  <!--Row 18-->
+    <td>Day of week(full english name)</td>
+    <td>Friday</td>
+    <td>name has to be complete and can be in capital letters or not</td>
+    <td>simple integer value</td>
+    <td>recognized by name</td>
+  </tr>
+  <tr>
+  <!--Row 19-->
+    <td>Day of year</td>
+    <td>128</td>
+    <td>any integer between 1 and 366 (general values are read until the first non-integer, e.g. "56.5"=="56")</td>
+    <td>simple double value</td>
+    <td>(1)</td>
+  </tr>
+  <tr>
+  <!--Row 20-->
+    <td>Hours:Minutes:Seconds</td>
+    <td>08:45:13.2</td>
+    <td>any three numbers separated by ':' (usually integers)</td>
+    <td>Date (A)(C)</td>
+    <td>recognized by two ':'</td>
+  </tr>
+  <tr>
+  <!--Row 21-->
+    <td>Month-Day Hours:Minutes:Seconds</td>
+    <td>04-11 08:45:13.2</td>
+    <td>two integers separated by '-' or '/' and any three numbers separated by ':' (usually integers)</td>
+    <td>Date (A)(C)</td>
+    <td>recognized by single '-' or '/' and two ':', (3)</td>
+  </tr>
+  <tr>
+  <!--Row 22-->
+    <td>Month-Day-Year Hours:Minutes:Seconds</td>
+    <td>04-11-1987 08:45:13.2</td>
+    <td>day/month/year have to be integers, hour/minute/second can be any number, date-separators: '-' or '/'</td>
+    <td>Date (A)(C)</td>
+    <td>recognized by two '-' or '/' and two ':', (3)</td>
+  </tr>
+  <tr>
+  <!--Row 23-->
+    <td>Year-Month-Day Hours:Minutes:Seconds</td>
+    <td>1987-11-04 08:45:13.2</td>
+    <td>day/month/year have to be integers, hour/minute/second can be any number, date-separators: '-' or '/'</td>
+    <td>Date (A)(C)</td>
+    <td>recognized by two '-' or '/' and two ':', (3)</td>
+  </tr>
+  <tr>
+  <!--Row 24-->
+    <td>Longitude: Degrees</td>
+    <td>24.1 E</td>
+    <td>(B), last letter either E or W (or e or w)</td>
+    <td>simple double value</td>
+    <td>recognized by the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 25-->
+    <td>Longitude: Degrees and Minutes</td>
+    <td>78 09'W</td>
+    <td>(B), last letter either E or W (or e or w)</td>
+    <td>simple double value</td>
+    <td>recognized by the blank after the first number, the ' and the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 26-->
+    <td>Longitude: Degrees, Minutes and Seconds</td>
+    <td>22 15' 13.2'' E</td>
+    <td>(B), last letter either E or W (or e or w)</td>
+    <td>simple double value</td>
+    <td>recognized by the blank after the first number, the ' and '' and the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 27-->
+    <td>Longitude: Minutes and Seconds</td>
+    <td>15' 13.2'' E</td>
+    <td>(B), last letter either E or W (or e or w)</td>
+    <td>simple double value</td>
+    <td>recognized by the ' and " and the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 28-->
+    <td>Latitude: Degrees</td>
+    <td>48S</td>
+    <td>(B), last letter either N or S (or n or s)</td>
+    <td>simple double value</td>
+    <td>recognized by the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 29-->
+    <td>Latitude: Degrees and Minutes</td>
+    <td>65 15'N</td>
+    <td>(B), last letter either N or S (or n or s)</td>
+    <td>simple double value</td>
+    <td>recognized by the blank after the first number, the ' and the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 30-->
+    <td>Latitude: Degrees, Minutes and Seconds</td>
+    <td>65 15' 2.8'' N</td>
+    <td>(B), last letter either N or S (or n or s)</td>
+    <td>simple double value</td>
+    <td>recognized by the blank after the first number, the ' and '' and the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 31-->
+    <td>Latitude: Minutes and Seconds</td>
+    <td>15' 13.2'' N</td>
+    <td>(B), last letter either N or S (or n or s)</td>
+    <td>simple double value</td>
+    <td>recognized by the ' and '' and the letter at the end</td>
+  </tr>
+  <tr>
+  <!--Row 32-->
+    <td>Year</td>
+    <td>1989</td>
+    <td>any integer (incl. 0; general values are read until the first non-integer, e.g. "56.5"=="56")</td>
+    <td>simple double value</td>
+    <td>(1)</td>
+  </tr>
+  <tr>
+  <!--Row 33-->
+    <td>Year/DayOfYear/Hour:Minute:Second</td>
+    <td>79/128/07:15:22</td>
+    <td>2- or 4-digit year, Hour/Minute/Second in 1 or 2 digits, existing dates only</td>
+    <td>Date (A)</td>
+    <td>(1)</td>
+  </tr>
+</table>
+</br>
+<p>Recognition of formats:</p>
+<p>QtGrace tries to auto-guess the formats of input-columns. This is meant to help, but any manual settings for the input-format get priority. Comments about the different formats:</p>
+<p>(1): QtGrace does not differenciate between "Decimal", "Exponential" and "General" for input and all kinds of simple numbers are accepted here. "Day of year" or "Year" can only be read as integers, but when guessing an input-format QtGrace can not destinguish them from any other simple number. Therefore all formats marked by (1) are recognized as "General" for input.</p>
+<p>(2): QtGrace can not tell in what order day, month and year are placed. If a date hint is set in the preferences the order is assumed to be like set (ISO=(YY)YY-MM-DD, US=MM/DD/(YY)YY, European=DD/MM/(YY)YY).</p>
+<p>(3): Like with dates QtGrace can not tell in what order year, month and day are placed. Date hint is used if set.</p>
+</br>
+<p>Comments:</p>
+<p>(A): Data imported as Date/Time-format internally represented as Julian date (JD) with respect to the reference date. Data stored as double value.</p>
+<p>(B): Blank space before final letter not neccessary for coordinates ("45N"=="45 N", but obviously "4512'N"!="45 12' N"=="45 12'N"); Degrees, Minutes and Seconds in general number format allowed (e.g "8.1 15.3' 5e-1'' N" - useful or not). The letter at the end can be a capital one or not, but for recognition of the format capital letters are encouraged (because "23n" is interpreted as "23e-9" in "Engineering" format; "23N" is recognized as 23 degrees). Please also note: coordinates are imported as degrees and not converted to radiant, e.g. "65 15'N" is imported as 65.25. Auto-recognition-problem: the letter 'E' at the end can mean "East" in coordinates or "Exa" in "Scientific" or "Engineering" format. QtGrace will therefore interpret "23E" as 23 degrees East by default (since "Exa" is an uncommon extension).</p>
+<p>(C): For time-values any numbers between ':' are allowed. Something like "11.3:24.5:09.1" is valid and will internally be converted into "11:42:39.1". If HH, MM or SS become negative or HH get greater than 23, the input is rejected.</p>
+<H4>How to actually import data in different formats from ascii-files:</H4>
+<p>To actually import data and specifying the format you have to use Data->Import Ascii..., select the file, use "Load As: Block-Data" and press Apply.</p>
+<p>Then the Block-Data-Import-Dialog is shown. To show the extended import options please check the appropriate box at the top of the dialog.</p>
+<p>Now you see a preview of the data to be imported (as it is in ascii, first 10 lines of the file) and how it has been recognized (format and resulting read value). On the right hand side of the import columns you will also see a setting for the column format to be used.</p>
+<p>To test the import settings just use the Test-Read-Button. The preview should now show the new interpretation of the data.</p>
+<H3><a name="fit2d">25. </a><a href="#s25">Fit 2D-objects</a></H3>
+<p>QtGrace can fit circles or ellipses onto sets. In order to do so use Data->Transformations->Fit 2D-objets...</p>
+<p>Parameters are: (x0|y0)=Center, r=Radius, a=semi-major axis, b=semi-minor axis, alpha=rotation angle of ellipse (rad)</p>
+<p>In order to find good starting values for the fit QtGrace can guess values by using the mean value of the (x|y) points and the mean distance of the points from the center. For ellipses the orientation is determined by the point that is furthest away from the center. The maximal and minimal distances are used as guesses for semi-major and semi-minor axes.</p>
+<p>You may also use the 2D-fit inside scripts. The commands are:</p>
+<p>For a circle: <code>#QTGRACE_SPECIAL FIT2D 0;&lt;Graph-ID&gt;;&lt;Set-ID&gt;;&lt;ID for target-set (-1 for new set, -2 for no new set)&gt;;&lt;guess for x0&gt;;&lt;guess for y0&gt;;&lt;guess for r&gt;;&lt;restriction&gt;;&lt;invert restriction (0=no,1=yes)&gt;;&lt;start_angle&gt;;&lt;stop_angle&gt;;&lt;nr_of_points&gt;</code></p>
+<p>For an ellipse: <code>#QTGRACE_SPECIAL FIT2D 1;&lt;Graph-ID&gt;;&lt;Set-ID&gt;;&lt;ID for target-set (-1 for new set, -2 for no new set)&gt;;&lt;guess for x0&gt;;&lt;guess for y0&gt;;&lt;guess for a&gt;;&lt;guess for b&gt;;&lt;guess for alpha&gt;;&lt;restriction&gt;;&lt;invert restriction (0=no,1=yes)&gt;;&lt;start_angle&gt;;&lt;stop_angle&gt;;&lt;nr_of_points&gt;</code></p>
+<p>The last three parameters are only used if a target set has been set (i.e. not -2). In this case the target set will be set to a circle or an ellipse with &lt;nr_of_points&gt; points starting with angle &lt;start_angle&gt; and ending at &lt;stop_angle&gt;.</p>
+<p>The 2D-fit dialog has been implemented for conveniance. You can also fit circles or ellipses yourself with the normal nonlinear-curve-fitting dialog. The trick is to fit the distance between the points in a set and the circle or ellipse. In the ideal situation the distance would be zero. Therefore you have to create a set of the same length as the set you want to fit to but y=0 for every point in this new set (x does not matter). The fit formula for a circle is in this case: y=sqrt((G0.S0.x-a0)^2+(G0.S0.y-a1)^2)-a2. We assume here that G0.S0 is the set you want to fit and then (a0|a1) is the center of the cirlce and a2 is the radius. For the fit itself select the new set with y=0 as your fit target (not G0.S0 which you actually want to fit)! You want the formula to be as close as possible to y=0 and not as close as possible to G0.S0.</p>
+<p>For an ellipse the fomula is a bit more complicate: y=sqrt((G0.S0.x-a0+sqrt(a2^2-a3^2)*cos(a4))^2+(G0.S0.y-a1+sqrt(a2^2-a3^2)*sin(a4))^2)+sqrt((G0.S0.x-a0-sqrt(a2^2-a3^2)*cos(a4))^2+(G0.S0.y-a1-sqrt(a2^2-a3^2)*sin(a4))^2)-2*a2. Here (a0|a1) is the center of the ellipse and a2=semi-major axis and a3=semi-minor axis and a4=angle of rotation of the ellipse (in rad).</p>
+<p>The 2D-Fit-dialog uses these formulas with the nonlinear-curve fitting function. A set with y=0 is created and after the fit this set is used to represent the fit-result or is deleted.</p>
+<H3><a name="largescreen">26. </a><a href="#s26">Adjustments for large screen resoutions</a></H3>
+<p>In the last years the resolution of computer screens has increased quite a bit. I especially refer to 4K-displays that became affordable.</p>
+<p>QtGrace (like Grace) uses default dialog-, font- and icon-sizes in pixels to represent options in the dialogs. It is easy to increase the size and resolution of the plot itself, but the controls become smaller and smaller with increasing screen resolution.</p>
+<p>QtGrace now offers several options to increase the size of the GUI and its elements. For larger screen resolutions you have to increase the font-size, the size of dialogs and the size of the icons.</p>
+<p>I will explain these three options separately, but you will usually have to adjust all three of them for optimal usability.</p>
+<p>The font that is used in the GUI of QtGrace can be set in the Preferences in the QtGrace-GUI-tab. In the middle of the dialog are two buttons. The left one lets you set a new font and a new font size. If you select a font the change will take effect immediately (not just after pressing Apply). To change the font back to the default use the button on the right hand side. If you increase the font size the sizes of the main window and the different dialogs my not be enough anymore. The sizes are not adjusted automatically - you have to do this manually.</p>
+<p>To increase the size of the dialogs you can simple click and drag the lower right hand corner of the dialogs. But this will usually only affect the current session of QtGrace. If you close QtGrace and open it again the dialogs have the default size again (which is probably too small). At the bottom of the QtGrace-GUI-tab in the preferences you will find an option for the dialog sizes ("Dialog startup size(s)"). If you increase the dialog sizes you should use the "last size"-option. With this option QtGrace will store the last size of every dialog when QtGrace is closed. When QtGrace is opened again the dialogs will have the same size as last time. Remember: you have to set a suitable size for every dialog you use yourself (but usually only once).</p>
+<p>Finally there are several icons in the QtGrace-GUI. I have connected the icon sizes with the size of the toolbar on the left hand side of QtGrace. Some icon-sizes are connected with the font-size. The toolbar-size can be adjusted in the Preferences in upper right quarter of the QtGrace-GUI-tab.</p>
+<p>If you increase the ToolBarSize the buttons in the toolbar as well as the icons therin will increase their size. Most of the other icons used in combo-boxes will also increase there size. This is the case for example for the color-icons or the linewidth-icons. The small color icons in color selectors or the Symbol-icons or the set-icons in the set-lists scale with the font size because theses icons are usually displayed in association with the text.</p>
+<p>In the PopUp-menues appear icons for colors, linestyles and symbols. The size of these icons depends on the settings of the operating system and Qt does not offer options to alter the icon size here. Sorry.</p>
+<p>In order to have reliable upscaling of the GUI-elements I had to switch the style of the QtGrace-application to "Fusion". This is a setting that changes the look (and scaling behaviour) of the GUI-elements. The result is that QtGrace looks different from other applications. If you do not like this you have to start QtGrace with the option '-style' followed by a style-name. Which styles are present on your system depent on your Qt-installation. For example on Windows you should have "fusion", "windows" and "windowsvista". So you may use something like "qtgrace -style windows". If you want the default style of the operating system please use an invalid style-name like "qtgrace -style dummy", this will result in an error-message on the command-line but will also display the available styles.</p>
+<H3><a name="spreadsheet">27. </a><a href="#s27">Changes in spreadsheet-editor</a></H3>
+<p>I tried to keep the spreadsheet editor as close to the Grace / xmgrace-version as possible but I had to rewrite everything based on the Qt-library.</p>
+<p>I updated it from time to time with additional features. The latest version is able to display a string-column in a set on the right hand side of the usual data columns. If no string-column is present yet, an empty string column is generated.</p>
+<p>Apart from viewing and editing the string-values you may also convert the string column into data.</p>
+<p>To view the string-column activate the check-box at the top of the spreadsheet. To convert the string column into a data column activate the check-box 'Show string operations' and use the settings below to tell QtGrace how to interpret the strings and where to put the new data after the conversion. Previous data will be overwritten. You may also remove the string column completely here.</p>
+<p>In the Edit-menu you may select even and odd rows and copy the selected rows to the clipboard. You may manually select rows by clicking on the row-number on the left hand side. Via the menu you may add and delete rows. Please note that there are always 10 empty rows at the bottom of the data to simply add new data at the end and therefore you only need 'Add row' if you want to have additional data points inside the existing data.</p>
+<p>If you edit the column data format (either via the edit-menu or via clicking on the column-header) this will effect the current spreadsheet editor only. After saving and loading the settings are reversed. If you need a new default setting go to the defaults-tab in the preferences. Changing the column format changes how the data is displayed and how it has to be entered in the spreadsheet.</p>
+<p>Permanent changes in the data are done by pressing either Enter or Apply or by changing the focus after editing data (always immediate updates since this is much easier for this type of editor).</p>
+<p>A note concerning invalid data here: You may enter invalid data here (Inf, Not A Number) and these values are stored correctely. But if you save the project file you will probably not be able to read the file afterwards since the parser does not recognize the invalid values. In this case you have to manually edit the project file in a text editor before opening it again in QtGrace (remove the invalid data!). The only option that is able to work with invalid data is the binary input and output. In general: make sure not to have invalid data points in the project.</p>
+<H3><a name="compression">28. </a><a href="#s28">File compression:</a></H3>
+<p>Data in project files (*.agr or *.xgr) is usually stored as ascii-text. This is easy to read and easy to edit if needed. The downside is, that it takes a lot of space. Grace / XmGrace was able to send data through compressor or decompressor functions via pipes. This approach works on Linux or Unix but not so well on other operating systems.</p>
+<p>QtGrace is able to save data compressed as well. In order to do so QtGrace takes only the data-section of a project file and compresses it. The Header-section of the file stays uncompressed. This way the file-dialog of QtGrace is able to simply read the header without having to decompress large files. QtGrace only decompresses the data on loading.</p>
+<p>The compression uses the algorithm in the Qt-library that is based on zlib.</p>
+<p>The included CompressionDecompression-application lets you compress and decompress project files. This is usefull if you have a lot of project files and want to save space.</p>
+<p>Using the Qt-compression/decompression-algorithm QtGrace is able to read binary files that have been compressed with zlib. To select the compression use the drop-down-menu at the bottom of the Data-Format-tab in the Binary-import-dialog.</p>
+<p>There is a difference between the internal Qt-compression algorithm and external zlib compression. Qt writes a few bytes at the beginning of a file to tell the decompressor some informations about how to decompress the data. Since zlib does not do this QtGrace has to know that it has to generate the header bytes for itself.</p>
+<p>Concerning the level of compression: in most cases the compression level 3 is the most useful. It gives a decent amount of compression with limited amount of cpu-usage. Higher compression levels do not result in much smaller file sizes but increase cpu-usage a lot.</p>
+<p>The default values for the compression-setting and the compression level my be selected in the Preferences in the QtGrace-Behavior tab. When using the QtGrace-file-dialog you may change the compression setting on saving. When using the default file dialog of the operating system there is no option to change the compression and therefore the default settings will always be used.</p>
+</BODY>
+</HTML>
