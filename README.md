@@ -4,11 +4,11 @@
 [Grace](https://plasma-gate.weizmann.ac.il/Grace/) is an amazing plotting tool for  Unix-like operating systems, which remains unbeatable for quick visualization of data and making publication-quality 2D plots combining rich command-line interface and visual editing. However, its GUI is showing the age and doesn't work on Windows and MacOS.
 
 In 2011 [Andreas Winter](https://sourceforge.net/u/andwin/profile/) ported Grace to Qt5 and created [QtGrace](https://sourceforge.net/projects/qtgrace/), which works on all major platforms and adds modern slick interface and multiple new features. Unfortunately original QtGrace has several important issues:
-- It seems to be abandoned since 2023.
+- It is not actively developed since 2023.
 - It stopped compiling on GCC 15 and higher due to enforcement of stricter C23 standard.
-- It is hosted on SourceForge, which is objectively a very bad place for open source software distribution.
+- It is hosted on SourceForge, which is objectively a bad place for open source software distribution.
 - It requires QtCreator to compile, which is a huge overkill as a dependency and complicates distribution and packaging a lot.
-- It only compiles with deprecated Qt5 and qmake build system instead of the standard CMake.
+- It only compiles with Qt5 and qmake build system instead of the standard CMake.
 
 So, I decided to port the port and created QtGrace6 - a pretty minor modification of original QtGrace, which compiles with CMake and Qt6 and is hosted on GitHub.
 
