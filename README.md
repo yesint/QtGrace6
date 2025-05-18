@@ -1,21 +1,24 @@
-# QtGrace6 - a port of QtGrace to QT6
+# QtGrace6 - a port of Grace to QT6
 
-[QtGrace](https://sourceforge.net/projects/qtgrace/) is a port of the [Grace](https://plasma-gate.weizmann.ac.il/Grace/) plotting tool to Qt5 developed by [Andreas Winter](https://sourceforge.net/u/andwin/profile/).
+## Motivation
+[Grace](https://plasma-gate.weizmann.ac.il/Grace/) is an amazing plotting tool for  Unix-like operating systems, which remains unbeatable for quick visualization of data and making publication-quality 2D plots combining rich command-line interface and visual editing. However, its GUI is showing the age and doesn't work on Windows and MacOS.
 
-QtGrace project essencially resurrected amazing but severely outdated Grace software, but it has several important issues:
+In 2011 [Andreas Winter](https://sourceforge.net/u/andwin/profile/) ported Grace to Qt5 and created [QtGrace](https://sourceforge.net/projects/qtgrace/), which works on all major platforms and adds modern slick interface and multiple new features. Unfortunately original QtGrace has several important issues:
 - It seems to be abandoned since 2023.
-- It doesn't compile at all with modern GCC versions.
+- It stopped compiling on GCC 15 and higher due to enforcement of stricter C23 standard.
 - It is hosted on SourceForge, which is objectively a very bad place for open source software distribution.
-- It requires QtCreator to compile, which is an unnecessarily heavy dependency.
-- It uses Qt5 and deprecated qmake build system instead of the standard CMake.
+- It requires QtCreator to compile, which is a huge overkill as a dependency and complicates distribution and packaging a lot.
+- It only compiles with deprecated Qt5 and qmake build system instead of the standard CMake.
 
-So, I decided to port the port and created QtGrace6 - a minor modification of original QtGrace, which now compiles with CMake, used Qt6 and is hosted on GitHub.
+So, I decided to port the port and created QtGrace6 - a pretty minor modification of original QtGrace, which compiles with CMake and Qt6 and is hosted on GitHub.
 
 ## Prerequsites
 
-You need Qt6 with some optional modules. In Fedora linux it is enough to install the following:
+You need modern C++ compiler, cmake and Qt6 with optional `qt5compat` and `qtsvg` modules. On Fedora linux it is enough to install the following:
 
-`sudo dnf install qt6-qtbase-devel qt6-qtsvg-devel qt6-qt5compat-devel`
+`sudo dnf install cmake qt6-qtbase-devel qt6-qtsvg-devel qt6-qt5compat-devel`
+
+On other distributions and platforms you need to google how these packages are called.
 
 ## Installation
 
