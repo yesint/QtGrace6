@@ -49,7 +49,8 @@ static Device_entry dev_dummy = {DEVICE_TERM,
                                  FALSE,
                                  {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                  NULL,
-                                 1
+                                 1,
+                                 ""
                                 };
 
 int register_dummy_drv(void)
@@ -75,14 +76,14 @@ int dummyinitgraphics(void)
     return RETURN_SUCCESS;
 }
 
-void dummy_drawpixel(VPoint vp){}
-void dummy_drawpolyline(VPoint *vps, int n, int mode){}
-void dummy_fillpolygon(VPoint *vps, int nc){}
-void dummy_drawarc(VPoint vp1, VPoint vp2, int a1, int a2){}
-void dummy_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode){}
+void dummy_drawpixel(VPoint vp){(void)vp;}
+void dummy_drawpolyline(VPoint *vps, int n, int mode){(void)vps;(void)n;(void)mode;}
+void dummy_fillpolygon(VPoint *vps, int nc){(void)vps;(void)nc;}
+void dummy_drawarc(VPoint vp1, VPoint vp2, int a1, int a2){(void)vp1;(void)vp2;(void)a1;(void)a2;}
+void dummy_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode){(void)vp1;(void)vp2;(void)a1;(void)a2;(void)mode;}
 void dummy_putpixmap(VPoint vp, int width, int height, 
-                     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type){}
+                     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type){(void)vp;(void)width;(void)height;(void)databits;(void)pixmap_bpp;(void)bitmap_pad;(void)pixmap_type;}
 void dummy_puttext(VPoint vp, char *s, int len, int font,
-                   TextMatrix *tm, int underline, int overline, int kerning){}
+                   TextMatrix *tm, int underline, int overline, int kerning){(void)vp;(void)s;(void)len;(void)font;(void)tm;(void)underline;(void)overline;(void)kerning;}
 
 void dummy_leavegraphics(void){}

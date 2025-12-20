@@ -83,8 +83,7 @@ static int psize = 0;
 /* Initialize max degree of polynomials
  * and allocate temporary storage.
  */
-void polini( maxdeg )
-int maxdeg;
+void polini(int maxdeg )
 {
 
 MAXPOL = maxdeg;
@@ -114,9 +113,7 @@ if( (pt1 == NULL) || (pt2 == NULL) || (pt3 == NULL) )
 
 /* Set a = 0.
  */
-void polclr( a, n )
-register double *a;
-int n;
+void polclr(register double * a,int n )
 {
 int i;
 
@@ -130,9 +127,7 @@ for( i=0; i<=n; i++ )
 
 /* Set b = a.
  */
-void polmov( a, na, b )
-register double *a, *b;
-int na;
+void polmov(register double * a,int na,register double * b )
 {
 int i;
 
@@ -148,9 +143,7 @@ for( i=0; i<= na; i++ )
 
 /* c = b * a.
  */
-void polmul( a, na, b, nb, c )
-double a[], b[], c[];
-int na, nb;
+void polmul(double a[],int na,double b[],int nb,double c[] )
 {
 int i, j, k, nc;
 double x;
@@ -181,9 +174,7 @@ for( i=0; i<=nc; i++ )
  
 /* c = b + a.
  */
-void poladd( a, na, b, nb, c )
-double a[], b[], c[];
-int na, nb;
+void poladd(double a[],int na,double b[],int nb,double c[] )
 {
 int i, n;
 
@@ -209,9 +200,7 @@ for( i=0; i<=n; i++ )
 
 /* c = b - a.
  */
-void polsub( a, na, b, nb, c )
-double a[], b[], c[];
-int na, nb;
+void polsub(double a[],int na,double b[],int nb,double c[] )
 {
 int i, n;
 
@@ -239,9 +228,7 @@ for( i=0; i<=n; i++ )
 
 /* c = b/a
  */
-int poldiv( a, na, b, nb, c )
-double a[], b[], c[];
-int na, nb;
+int poldiv(double a[],int na,double b[],int nb,double c[] )
 {
 double quot;
 double *ta, *tb, *tq;
@@ -329,17 +316,13 @@ return( sing );
 }
 
 
-
-
 /* Change of variables
  * Substitute a(y) for the variable x in b(x).
  * x = a(y)
  * c(x) = b(x) = b(a(y)).
  */
 
-void polsbt( a, na, b, nb, c )
-double a[], b[], c[];
-int na, nb;
+void polsbt(double a[],int na,double b[],int nb,double c[] )
 {
 int i, j, k, n2;
 double x;
@@ -375,15 +358,9 @@ for( i=0; i<=k; i++ )
 	c[i] = pt1[i];
 }
 
-
-
-
 /* Evaluate polynomial a(t) at t = x.
  */
-double poleva( a, na, x )
-double a[];
-int na;
-double x;
+double poleva(double a[],int na,double x )
 {
 double s;
 int i;

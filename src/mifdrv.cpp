@@ -7,7 +7,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -61,7 +61,8 @@ static Device_entry dev_mif = {DEVICE_FILE,
                                FALSE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL,
-                               1
+                               1,
+                               ""
                               };
 
 /* mapping between Grace and MIF fill patterns. This is really ugly but
@@ -145,7 +146,7 @@ static int mif_fillpattern(int fillpattern)
  */
 static char *escape_specials(unsigned char *s, int len)
 {
-    static char *es = NULL;
+static char *es = NULL;
     int i, elen = 0;
     
     /* Define Array with all charactercodes from 128 to 255 for the
@@ -162,7 +163,7 @@ static char *escape_specials(unsigned char *s, int len)
        divide -> :
        yacute -> y
        Matthias Dillier, 10.1.2001 */
-    static char *code[128] = {
+const char *code[128] = {
         "80","81","82","83","84","85","86","87",
         "88","89","8a","8b","8c","8d","8e","8f",
         "f5","d4","d5","f6","f7","f8","f9","fa",
@@ -237,7 +238,7 @@ int register_mif_drv(void)
 
 int mifinitgraphics(void)
 {
-    int i;
+    unsigned int i;
     double *data;
     double c, m, y, k;
     fRGB *frgb;
@@ -525,7 +526,7 @@ void mif_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
 
 void mif_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
-    int old_color;
+    int old_color,old_alpha;
     double rx, ry;
     VPoint vp[3];
 
@@ -558,10 +559,12 @@ void mif_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
                the chord of an arc so we overwrite with the background
                color, thus erasing underlying objects ... */
             old_color = getcolor();
+            old_alpha = getalpha();
             setcolor(getbgcolor());
+            setalpha(getbgalpha());
             mif_fillpolygon(vp, 3);
             setcolor(old_color);
-
+            setalpha(old_alpha);
         }
 
     }
@@ -577,7 +580,7 @@ void mif_putpixmap(VPoint vp, int width, int height, char *databits,
     double side;
     fRGB *frgb;
     unsigned char tmpbyte;
-
+    (void)pixmap_type;
     if (pixmap_bpp != 1 && pixmap_bpp != 8) {
         /* MIF supports only black and white or 256 colors images */
         return;

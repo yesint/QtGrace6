@@ -51,7 +51,7 @@
 #include "../type1/objects.h"
 #include "../type1/spaces.h"
 #include "../type1/util.h"
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 #include "../type1/regions.h"
 #include "../type1/paths.h"
 
@@ -523,8 +523,8 @@ T1_OUTLINE *T1_ScaleOutline( T1_OUTLINE *path, float scale)
       ((struct hintsegment *)ipath)->width.y =
 	(fractpel) (((struct hintsegment *)ipath)->width.y * scale);
     }
-    if (ipath->type==TEXTTYPE)
-      ;
+    /*if (ipath->type==TEXTTYPE)
+      ;*//*who knows whether ipath should be the link or not...*/
     ipath=ipath->link;
 
   } while (ipath!=NULL);

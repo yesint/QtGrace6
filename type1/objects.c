@@ -293,19 +293,24 @@ extern struct XYspace *USER;
 extern jmp_buf stck_state;
 
 
-struct xobject *t1_Allocate(size, template, extra)  /* non-ANSI; type checking was too strict */
-       register int size;    /* number of bytes to allocate & initialize     */
-       register struct xobject *template;  /* example structure to allocate  */
-       register int extra;   /* any extra uninitialized bytes needed contiguously */
+struct xobject *t1_Allocate(register int size,register struct xobject * templ,register int  extra)  /* non-ANSI; type checking was too strict */
+       /*register int size;    number of bytes to allocate & initialize
+       register struct xobject *template;   example structure to allocate
+       register int extra;   any extra uninitialized bytes needed contiguously */
 {
- 
        register struct xobject *r;
  
        /*
        * round up 'size' and 'extra' to be an integer number of 'long's:
        */
+    /*printf("sizeof(long)=%d\n",sizeof(LONG));
+    printf("allocate: size=%d extra=%d\n",size,extra);
+    fflush(stdout);*/
+/*printf("allocate sizes: size=%d extra=%d\n",size,extra);*/
        size = (size + sizeof(LONG) - 1) & -sizeof(LONG);
        extra = (extra + sizeof(LONG) - 1) & -sizeof(LONG);
+/*printf("allocate readjust: size=%d extra=%d --> malloc=%d\n",size,extra,size+extra);
+fflush(stdout);*/
        if (size + extra <= 0)
                abort("Non-positive allocate?", 15);
        r = (struct xobject *) malloc(size + extra);
@@ -322,14 +327,16 @@ struct xobject *t1_Allocate(size, template, extra)  /* non-ANSI; type checking w
        /*
        * copy the template into the new memory:
        */
-       if (template != NULL) {
+       if (templ != NULL) {
        /* Added references count decrement if template is not permanent.
           This is for the case where Allocate is called by a Dupxxxx
           function, which was in turn called by Unique(). (PNM)        */
-               if (!ISPERMANENT(template->flag))
-                   --template->references;
-               LONGCOPY(r, template, size);
-               r->flag &= ~(ISPERMANENT(ON) | ISIMMORTAL(ON));
+               if (!ISPERMANENT(templ->flag))
+                   --templ->references;
+               LONGCOPY(r, templ, size);
+               /*memcpy(r,templ,size);I replaced the longcopy()-function by memcopy; this is less vulnerable to optimization-errors (belive it or not these things happen)*/
+               /*r->flag &= ~(ISPERMANENT(ON) | ISIMMORTAL(ON));*/
+               r->flag = templ->flag & ~(ISPERMANENT(ON) | ISIMMORTAL(ON));
        /* added reference field 3-2-6-91 PNM */
                r->references = 1;
        }
@@ -361,8 +368,8 @@ In either case, the object must not be the NULL pointer.  This preserves
 portability, as the C system Xfree() will not always accept NULL.
 */
  
-void Free(obj)              /* non-ANSI to avoid overly strict type checking */
-       register struct xobject *obj;  /* structure to free                   */
+void Free(register struct xobject *obj)              /* non-ANSI to avoid overly strict type checking */
+       /*obj;   structure to free                   */
 {
        if (obj->type == INVALIDTYPE)
                abort("Free of already freed object?", 17);
@@ -401,8 +408,8 @@ done is to change one of the old temporary handles to a permanent one.
 3-26-91 PNM
 */
  
-struct xobject *t1_Permanent(obj) /* non-ANSI to avoid overly strict type checking */
-       register struct xobject *obj;  /* object to be made permanent         */
+struct xobject *t1_Permanent(register struct xobject *obj) /* non-ANSI to avoid overly strict type checking */
+       /*obj;   object to be made permanent         */
 {
        IfTrace1((MustTraceCalls),"Permanent(%p)\n", obj);
  
@@ -445,8 +452,8 @@ lost a permanent handle and gained a temporary one.
 PNM 3-2-6-91
 */
  
-struct xobject *xiTemporary(obj) /* non-ANSI to avoid overly strict type checking */
-       register struct xobject *obj;  /* object to be made permanent         */
+struct xobject *xiTemporary(register struct xobject *obj) /* non-ANSI to avoid overly strict type checking */
+       /* obj;  object to be made permanent         */
 {
        IfTrace1((MustTraceCalls),"Temporary(%p)\n", obj);
  
@@ -490,8 +497,8 @@ Note that Dup() retains the state of the permanent flag.
 */
  
  
-struct xobject *t1_Dup(obj)   /* non-ANSI avoids overly strict type checking  */
-       register struct xobject *obj;  /* object to be duplicated             */
+struct xobject *t1_Dup(register struct xobject *obj)   /* non-ANSI avoids overly strict type checking  */
+       /*obj;   object to be duplicated             */
 {
        register char oldflag;   /* copy of original object's flag byte */
  
@@ -535,8 +542,8 @@ let each module provide us a routine (or macro) that duplicates the
 objects it knows about.
 */
  
-struct xobject *t1_Copy(obj)
-       register struct xobject *obj;  /* object to be  Copy'ed              */
+struct xobject *t1_Copy(register struct xobject *obj)
+       /*obj;   object to be  Copy'ed              */
 {
        if (obj == NULL)
                return(NULL);
@@ -572,8 +579,8 @@ struct xobject *t1_Copy(obj)
 This can get complicated.  Just like with Copy(), we let the experts
 handle it.
 */
-struct xobject *Destroy(obj) /* non-ANSI avoids overly strict type checking  */
-       register struct xobject *obj;  /* object to be destroyed              */
+struct xobject *Destroy(register struct xobject *obj) /* non-ANSI avoids overly strict type checking  */
+       /*obj;   object to be destroyed              */
 {
        IfTrace1((MustTraceCalls),"Destroy(%p)\n", obj);
  
@@ -731,8 +738,7 @@ because permanent objects, by definition, are persistent. 3-2-6-91 PNM
 :eol.
 */
  
-struct xobject *t1_Unique(obj)
-       struct xobject *obj;
+struct xobject *t1_Unique(struct xobject *obj)
 {
     /* if the original object is not already unique, make a unique
        copy...Note also that if the object was not permanent, we must
@@ -777,9 +783,9 @@ static char *ErrorMessage = NULL;
 We provide a controlled way for the TYPE1IMAGER user to set and reset
 our debugging and tracing:
 */
-void Pragmatics(username, value)
-       char *username;       /* name of the flag                             */
-       int value;            /* value to set it to                           */
+void Pragmatics(char *username,int value)
+       /*username;        name of the flag
+       int value;         value to set it to                           */
 {
        register char *p;     /* temporary loop variable                      */
 #define    NAMESIZE   40
@@ -906,9 +912,7 @@ if it is already known that the object is temporary, it is faster to
 just kill it rather than consume it, for example, KillSpace().
 */
  
-void Consume(n, obj1, obj2, obj3) /* non-ANSI avoids overly strict type checking */
-       int n;
-       struct xobject *obj1,*obj2,*obj3;
+void Consume(int n,struct xobject * obj1,struct xobject * obj2,struct xobject * obj3) /* non-ANSI avoids overly strict type checking */
 {
        switch(n) {
  
@@ -944,11 +948,11 @@ void Consume(n, obj1, obj2, obj3) /* non-ANSI avoids overly strict type checking
 :h3.TypeErr() - Handles "Invalid Object Type" Errors
 */
  
-struct xobject *TypeErr(name, obj, expect, ret) /* non-ANSI avoids overly strict type checking */
-       char *name;           /* Name of routine (for error message)          */
-       struct xobject *obj;  /* Object in error                              */
-       int expect;           /* type expected                                */
-       struct xobject *ret;  /* object to return to caller                   */
+struct xobject *TypeErr(char *name,struct xobject * obj,int expect,struct xobject * ret) /* non-ANSI avoids overly strict type checking */
+       /*char *name;          Name of routine (for error message)
+       struct xobject *obj;   Object in error
+       int expect;            type expected
+       struct xobject *ret;   object to return to caller                   */
 {
        static char typemsg[80];
  
@@ -979,8 +983,8 @@ struct xobject *TypeErr(name, obj, expect, ret) /* non-ANSI avoids overly strict
 This is a subroutine of TypeErr().
 */
  
-static char *TypeFmt(type)
-       int type;             /* type field                                   */
+static char *TypeFmt(int type)
+       /* int type;             type field                                   */
 {
        char *r;
  
@@ -1026,8 +1030,7 @@ This is a subroutine of TypeErr() and ArgErr().
 */
  
 /*ARGSUSED*/
-static int ObjectPostMortem(obj) /* non-ANSI avoids overly strict type checking  */
-       register struct xobject *obj;
+static int ObjectPostMortem(register struct xobject *obj) /* non-ANSI avoids overly strict type checking  */
 {
  
        Pragmatics("Debug", 10);
@@ -1049,10 +1052,10 @@ is returned to the caller in case MustCrash is FALSE and ArgErr
 returns to its caller.
 */
  
-struct xobject *ArgErr(string, obj, ret) /* non-ANSI avoids overly strict type checking */
-       char *string;         /* description of error                         */
-       struct xobject *obj;  /* object, if any, that was in error            */
-       struct xobject *ret;  /* object returned to caller or NULL            */
+struct xobject *ArgErr(char * string,struct xobject * obj,struct xobject * ret) /* non-ANSI avoids overly strict type checking */
+       /*char *string;          description of error
+       struct xobject *obj;   object, if any, that was in error
+       struct xobject *ret;   object returned to caller or NULL            */
 {
        if (MustCrash)
                LineIOTrace = TRUE;
@@ -1075,11 +1078,9 @@ environment).
 */
 /* RMz: We now do a longjmp in order to be able to recover from the error */ 
 /*ARGSUSED*/
-void abort(string, no)
-       char *string;
-       int no;
+void abort(char * string,int no)
 {
-  
+   (void)string;
   LineIOTrace = TRUE;
   TraceClose();
   longjmp( stck_state, no);
@@ -1155,7 +1156,7 @@ char *t1_get_abort_message( int number)
 :h4.ErrorMsg() - Return the User an Error Message
 */
  
-char *ErrorMsg()
+char * ErrorMsg()
 {
        register char *r;
  
@@ -1203,7 +1204,7 @@ void TermImager()
 /*
 :h4.reportusage() - A Stub to Get a Clean Link with Portable PMP
 */
-void reportusage( void)
+void reportusage(void)
 {
        return;
 }

@@ -89,13 +89,11 @@ STATIC int T1Decrypt(), T1Fill();
  
 /* -------------------------------------------------------------- */
 /*ARGSUSED*/
-F_FILE *T1Open(fn, mode)
-  char *fn;    /* Pointer to filename */
-  char *mode;  /* Pointer to open mode string */
+F_FILE *T1Open(char * fn, char * mode)/* Pointer to filename, Pointer to open mode string */
 {
   F_FILE *of = &TheFile;
   char c;
-  
+  (void)mode;
  
   Decrypt = 0;
   eexec_startOK=0;
@@ -131,8 +129,7 @@ F_FILE *T1Open(fn, mode)
 } /* end Open */
  
 /* -------------------------------------------------------------- */
-int T1Getc(f)        /* Read one character */
-  F_FILE *f;         /* Stream descriptor */
+int T1Getc(F_FILE * f)        /* Read one character, f=Stream descriptor */
 {
   if (f->b_base == NULL) return EOF;  /* already closed */
  
@@ -248,13 +245,10 @@ int T1Gets(char *string,
   
 } /* end of T1Gets() */
 
-
-
 int T1GetDecrypt( void) 
 {
   return( in_eexec);
 }
-
 
 /* Return the optional contents after the final cleartomark token.
    There might appear some PostScript code which is not important
@@ -302,8 +296,6 @@ int T1GetTrailer(char *string,
   return( -1);
 }
 
-
-
 unsigned long T1GetFileSize( F_FILE *f) 
 {
   unsigned long off_save;
@@ -315,12 +307,8 @@ unsigned long T1GetFileSize( F_FILE *f)
   return( filesize);
 }
 
-
-
 /* -------------------------------------------------------------- */
-int T1Ungetc(c, f)   /* Put back one character */
-  int c;
-  F_FILE *f;         /* Stream descriptor */
+int T1Ungetc(int c, F_FILE * f)   /* Put back one character, c; f= Stream descriptor */
 {
   if (c != EOF) {
     f->ungotc = c;
@@ -332,7 +320,7 @@ int T1Ungetc(c, f)   /* Put back one character */
  
 /* -------------------------------------------------------------- */
 int T1Read(buffP, size, n, f)  /* Read n items into caller's buffer */
-  char *buffP;       /* Buffer to be filled */
+  unsigned char *buffP;       /* Buffer to be filled */
   int   size;        /* Size of each item */
   int   n;           /* Number of items to read */
   F_FILE *f;         /* Stream descriptor */
@@ -369,8 +357,7 @@ int T1Read(buffP, size, n, f)  /* Read n items into caller's buffer */
 } /* end Read */
  
 /* -------------------------------------------------------------- */
-int T1Close(f)       /* Close the file */
-  F_FILE *f;         /* Stream descriptor */
+int T1Close(F_FILE * f)       /* Close the file, f = Stream descriptor */
 {
   if (f->b_base == NULL) return 0;  /* already closed */
   f->b_base = NULL;  /* no valid stream */
@@ -379,8 +366,7 @@ int T1Close(f)       /* Close the file */
  
 
 /* -------------------------------------------------------------- */
-F_FILE *T1eexec(f)   /* Initialization */
-  F_FILE *f;         /* Stream descriptor */
+F_FILE *T1eexec(F_FILE * f)   /* Initialization, f = Stream descriptor */
 {
   int i;
   int H;

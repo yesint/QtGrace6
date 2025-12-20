@@ -47,7 +47,7 @@ The included files are:
 #include "paths.h"
 #include "regions.h"
 #include "hints.h"
- 
+
 /*
 :h3.Functions Provided to the TYPE1IMAGER User
  
@@ -99,8 +99,7 @@ void InitHints()
 :h3.CloseHints(hintP) - Reverse hints that are still open
 */
  
-void CloseHints(hintP)
-  struct fractpoint *hintP;
+void CloseHints(  struct fractpoint *hintP)
 {
   int i;
  
@@ -123,10 +122,7 @@ void CloseHints(hintP)
 :h3.ComputeHint(hP, currX, currY, hintP) - Compute the value of a hint
 */
  
-static void ComputeHint(hP, currX, currY, hintP)
-  struct hintsegment *hP;
-  fractpel currX, currY;
-  struct fractpoint *hintP;
+static void ComputeHint(struct hintsegment *hP,fractpel currX,fractpel currY,struct fractpoint * hintP)
 {
   fractpel currRef=0, currWidth=0;
   int idealWidth;
@@ -228,13 +224,11 @@ multiple of 90 degrees.
 :h3.ProcessHint(hP, currX, currY, hintP) - Process a rasterization hint
 */
  
-void ProcessHint(hP, currX, currY, hintP)
-  struct hintsegment *hP;
-  fractpel currX, currY;
-  struct fractpoint *hintP;
+void ProcessHint(struct hintsegment *hP,fractpel currX,fractpel currY,struct fractpoint * hintP)
 {
-  struct fractpoint thisHint;
- 
+struct fractpoint thisHint;
+thisHint.x=thisHint.y=0;
+
   IfTrace4((HintDebug > 1),"  ref=(%d,%d), width=(%d,%d)",
       hP->ref.x, hP->ref.y,
       hP->width.x, hP->width.y);
@@ -365,9 +359,9 @@ off of the edge's range; XofY() could be replace by FindXofY() to
 call ourselves recursively if this were not true.
 */
  
-static pel SearchXofY(edge, y)
-       register struct edgelist *edge;  /* represents edge                   */
-       register pel y;       /* 'y' value to find edge for                   */
+static pel SearchXofY(register struct edgelist *edge,register pel  y)
+       /*register struct edgelist *edge;  represents edge
+       register pel y;       'y' value to find edge for                   */
 {
        register struct edgelist *e;  /* loop variable                        */
  
@@ -419,9 +413,9 @@ are at the top and the first edge is going up.
 #define  BLACKBELOW  +1
 #define  NONE         0
  
-static int ImpliedHorizontalLine(e1, e2, y)
-       register struct edgelist *e1,*e2;  /* two edges to check              */
-       register int y;       /* y where they might be connected              */
+static int ImpliedHorizontalLine(register struct edgelist *e1,register struct edgelist * e2,register int  y)
+       /*e1,*e2;   two edges to check
+       y;        y where they might be connected              */
 {
        register struct edgelist *e3,*e4;
  
@@ -492,8 +486,7 @@ routine finds and fixes false breaks.
 Also, this routine sets the ISTOP and ISBOTTOM flags in the edge lists.
 */
  
-static void FixSubPaths(R)
-       register struct region *R;       /* anchor of region                */
+static void FixSubPaths(register struct region * R)/* R = anchor of region                */
 {
        register struct edgelist *e;     /* fast loop variable                */
        register struct edgelist *edge;  /* current edge in region            */
@@ -502,7 +495,8 @@ static void FixSubPaths(R)
        register struct edgelist *break2=NULL; /* last break before 'edge'        */
        register struct edgelist *prev;    /* previous edge for fixing links  */
        int left = TRUE;
- 
+/*printf("Flags-Reference: Left=%d Top=%d Bottom=%d Down=%d\n",ISLEFT(ON),ISTOP(ON),ISBOTTOM(ON),ISDOWN(ON));
+fflush(stdout);*/
        for (edge = R->anchor; edge != NULL; edge = edge->link) {
  
                if (left)
@@ -510,11 +504,14 @@ static void FixSubPaths(R)
                left = !left;
  
                next = edge->subpath;
- 
+/*printf("inside FixSubPaths: next = edge->subpath\n");*/
                if (!ISBREAK(edge, next))
                        continue;
+/*printf("inside FixSubPaths: Es gibt break!\n");*/
                if (edge->ymax < next->ymin)
                        abort("disjoint subpath?", 13);
+/*printf("inside FixSubPaths: Not Abort\n");*/
+
 /*
 'edge' now contains an edgelist at the bottom of an edge, and 'next'
 contains the next subsequent edgelist in the subpath, which must be at
@@ -522,19 +519,44 @@ the top.  We refer to this a "break" in the subpath.
 */
                next->flag |= ISTOP(ON);
                edge->flag |= ISBOTTOM(ON);
- 
+/*printf("inside FixSubPaths: Flags: egde=%d next%d\n",(int)edge->flag,(int)next->flag);*/
                if (ISDOWN(edge->flag) != ISDOWN(next->flag))
                        continue;
+/*printf("inside FixSubPaths: NOT isdown\n");*/
+
 /*
 We are now in the unusual case; both edges are going in the same
 direction so this must be a "false break" due to the way that the user
 created the path.  We'll have to fix it.
 */
+
                for (break1 = next; !ISBREAK(break1, break1->subpath); break1 = break1->subpath) { ; }
- 
+/*if (break1==NULL)
+printf("Break1 = NULL\n");
+else
+printf("Break1 != NULL\n");
+fflush(stdout);
+int counter=0;*/
                for (e = break1->subpath; e != edge; e = e->subpath)
+               {
+               /*printf("%d --> %d\n",e->ymax,e->subpath->ymin);*/
                        if (ISBREAK(e, e->subpath))
+                       {
                                break2 = e;
+                               /*printf("Break2 found after %d subpaths\n",counter);*/
+                       }
+                       /*else
+                       {
+                           counter++;
+                       }*/
+               }
+/*printf("Went through %d subpaths\n",counter);
+if (break2==NULL)
+printf("Break2 = NULL\n");
+else
+printf("Break2 != NULL\n");
+fflush(stdout);*/
+
 /*
 Now we've set up 'break1' and 'break2'.  I've found the following
 diagram invaluable.  'break1' is the first break after 'next'.  'break2'
@@ -637,8 +659,7 @@ A debug tool.
  
 static struct edgelist *before();  /* subroutine of DumpSubPaths             */
  
-static void DumpSubPaths(anchor)
-       struct edgelist *anchor;
+static void DumpSubPaths(struct edgelist * anchor)
 {
  
        register struct edgelist *edge,*e,*e2;
@@ -681,8 +702,7 @@ static void DumpSubPaths(anchor)
        }
 }
  
-static struct edgelist *before(e)
-       struct edgelist *e;
+static struct edgelist *before(struct edgelist * e)
 {
        struct edgelist *r;
        for (r = e->subpath; r->subpath != e; r = r->subpath) { ; }
@@ -714,10 +734,10 @@ new x might exceed the region's bounds, updating those are the
 responsibility of the caller.
 */
  
-static void writeXofY(e, y, x)
-       struct edgelist *e;   /* relevant edgelist                            */
-       int y;                /* y value                                      */
-       int x;                /* new x value                                  */
+static void writeXofY(struct edgelist *e,int y,int x)
+       /*e;    relevant edgelist
+       int y;                 y value
+       int x;                 new x value                                  */
 {
        if (e->xmin > x)  e->xmin = x;
        if (e->xmax < x)  e->xmax = x;
@@ -748,12 +768,12 @@ points (collapses) the white run as necessary if it is not.  The
 goal is to collapse the white run as little as possible.
 */
  
-static void CollapseWhiteRun(anchor, yblack, left, right, ywhite)
-        struct edgelist *anchor;  /* anchor of edge list                     */
-        pel yblack;          /* y of (hopefully) black run above or below    */
-        struct edgelist *left;  /* edgelist at left of WHITE run             */
-        struct edgelist *right;  /* edgelist at right of WHITE run           */
-        pel ywhite;          /* y location of white run                      */
+static void CollapseWhiteRun(struct edgelist *anchor,pel yblack,struct edgelist * left,struct edgelist * right,pel ywhite)
+        /*struct edgelist *anchor;   anchor of edge list
+        pel yblack;          y of (hopefully) black run above or below
+        struct edgelist *left;  edgelist at left of WHITE run
+        struct edgelist *right;   edgelist at right of WHITE run
+        pel ywhite;           y location of white run                      */
 {
        struct edgelist *edge;
        struct edgelist *swathstart = anchor;
@@ -819,8 +839,7 @@ This is the externally visible routine called from the REGIONS module
 when the +CONTINUITY flag is on the Interior() fill rule.
 */
  
-void ApplyContinuity(R)
-struct region *R;
+void ApplyContinuity(struct region *R)
 {
  struct edgelist *left;
  struct edgelist *right;
@@ -829,7 +848,20 @@ struct region *R;
  pel leftX,rightX;
  int i;
  LONG newcenter,abovecenter,belowcenter;
- 
+
+/*printf("Applying Continuity with R:\n");
+struct edgelist *e;
+for (e=R->anchor;e!=NULL && e->subpath!=R->anchor;e=e->subpath)
+{
+if (e==NULL)
+printf("e==NULL\n");
+else if (e->subpath==NULL)
+printf("End R\n");
+else
+printf("%d --> %d flag=%d\n",e->ymax,e->subpath->ymin,(int)e->flag);
+}
+fflush(stdout);*/
+
  FixSubPaths(R);
  if (RegionDebug >= 3)
         DumpSubPaths(R->anchor);
@@ -923,6 +955,20 @@ them.
       }
 }
  
- 
+int pathcounter(struct region *R)
+{
+int counter=0;
+struct edgelist * e;
+    for (e=R->anchor;e!=NULL && e->subpath!=R->anchor;e=e->subpath)
+    {
+    if (e==NULL)
+    ;//printf("e==NULL\n");
+    else if (e->subpath==NULL)
+    ;//printf("End R\n");
+    else
+    counter++;
+    }
+return counter;
+}
  
  

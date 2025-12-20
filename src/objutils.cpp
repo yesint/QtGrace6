@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -45,6 +45,10 @@
 #include "graphs.h"
 #include "utils.h"
 #include "noxprotos.h"
+#include "allWidgets.h"
+#include "windowWidgets.h"
+
+#include <QObject>
 
 #include <iostream>
 
@@ -52,10 +56,16 @@ using namespace std;
 
 extern void CheckLaTeXLinesForAddress(char * o_adr,char * n_adr);
 
+extern frmEllipseProps * EditEllipseProps;
+extern frmEllipseProps * EditBoxProps;
+extern frmTextProps * EditTextProps;
+extern frmLineProps * EditLineProps;
+
 int maxboxes = 0;
 int maxlines = 0;
 int maxstr = 0;
 int maxellipses = 0;
+int swap_line_coords = 0;
 
 int number_of_lines(void)
 {
@@ -95,6 +105,175 @@ int is_valid_ellipse(int ellipse)
 int is_valid_string(int string)
 {
     return (string >= 0 && string < maxstr);
+}
+
+int find_objects_associated_with_graph(int ** id,int ** type,int gno)
+{
+int max_size=number_of_boxes()+number_of_lines()+number_of_ellipses()+number_of_strings();
+if (max_size==0) return 0;//no objects --> nothing to do here
+int i,index=0;
+int * s_id=new int[max_size];
+int * s_type=new int[max_size];
+    for (i = 0; i < number_of_boxes(); i++)
+    {
+        if (boxes[i].gno==gno)
+        {
+        s_type[index]=OBJECT_BOX;
+        s_id[index++]=i;
+        }
+    }
+    for (i = 0; i < number_of_ellipses(); i++)
+    {
+        if (ellip[i].gno==gno)
+        {
+        s_type[index]=OBJECT_ELLIPSE;
+        s_id[index++]=i;
+        }
+    }
+    for (i = 0; i < number_of_lines(); i++)
+    {
+        if (lines[i].gno==gno)
+        {
+        s_type[index]=OBJECT_LINE;
+        s_id[index++]=i;
+        }
+    }
+    for (i = 0; i < number_of_strings(); i++)
+    {
+        if (pstr[i].gno==gno)
+        {
+        s_type[index]=OBJECT_STRING;
+        s_id[index++]=i;
+        }
+    }
+if (index==0) return 0;//no suitable objects found
+if (*id!=NULL) delete[] *id;
+if (*type!=NULL) delete[] *type;
+*id=new int[index];
+*type=new int[index];
+memcpy(*id,s_id,sizeof(int)*index);
+memcpy(*type,s_type,sizeof(int)*index);
+delete[] s_id;
+delete[] s_type;
+return index;
+}
+
+void change_object_association(int a,int b)
+{
+    int i;
+        for (i = 0; i < number_of_boxes(); i++)
+        {
+            if (boxes[i].gno==a) boxes[i].gno=b;
+        }
+        for (i = 0; i < number_of_ellipses(); i++)
+        {
+            if (ellip[i].gno==a) ellip[i].gno=b;
+        }
+        for (i = 0; i < number_of_lines(); i++)
+        {
+            if (lines[i].gno==a) lines[i].gno=b;
+        }
+        for (i = 0; i < number_of_strings(); i++)
+        {
+            if (pstr[i].gno==a) pstr[i].gno=b;
+        }
+}
+
+void swap_object_association(int a,int b)
+{
+int i;
+    for (i = 0; i < number_of_boxes(); i++)
+    {
+        if (boxes[i].gno==a) boxes[i].gno=b;
+        else if (boxes[i].gno==b) boxes[i].gno=a;
+    }
+    for (i = 0; i < number_of_ellipses(); i++)
+    {
+        if (ellip[i].gno==a) ellip[i].gno=b;
+        else if (ellip[i].gno==b) ellip[i].gno=a;
+    }
+    for (i = 0; i < number_of_lines(); i++)
+    {
+        if (lines[i].gno==a) lines[i].gno=b;
+        else if (lines[i].gno==b) lines[i].gno=a;
+    }
+    for (i = 0; i < number_of_strings(); i++)
+    {
+        if (pstr[i].gno==a) pstr[i].gno=b;
+        else if (pstr[i].gno==b) pstr[i].gno=a;
+    }
+}
+
+/*tries to find out whether the edit-dialog for a specific object is opened. If the object has been deleted-->close dialog; if object has been edited-->update dialog*/
+void check_for_dialog_open(int type,int id,int deleted)
+{
+    switch (type)
+    {
+    case OBJECT_BOX:
+        if (EditBoxProps!=NULL)
+        {
+            if (EditBoxProps->flp->obj_id==id && EditBoxProps->flp->ellipse==false)
+            {
+                if (deleted==TRUE)
+                {
+                EditBoxProps->hide();
+                }
+                else
+                {
+                EditBoxProps->init(id);
+                }
+            }
+        }
+    break;
+    case OBJECT_ELLIPSE:
+        if (EditEllipseProps!=NULL)
+        {
+            if (EditEllipseProps->flp->obj_id==id && EditEllipseProps->flp->ellipse==true)
+            {
+                if (deleted==TRUE)
+                {
+                EditEllipseProps->hide();
+                }
+                else
+                {
+                EditEllipseProps->init(id);
+                }
+            }
+        }
+    break;
+    case OBJECT_STRING:
+        if (EditTextProps!=NULL)
+        {
+            if (EditTextProps->flp->obj_id==id)
+            {
+                if (deleted==TRUE)
+                {
+                EditTextProps->hide();
+                }
+                else
+                {
+                EditTextProps->init(id);
+                }
+            }
+        }
+    break;
+    case OBJECT_LINE:
+        if (EditLineProps!=NULL)
+        {
+            if (EditLineProps->flp->obj_id==id)
+            {
+                if (deleted==TRUE)
+                {
+                EditLineProps->hide();
+                }
+                else
+                {
+                EditLineProps->init(id);
+                }
+            }
+        }
+    break;
+    }
 }
 
 void move_object(int type, int id, VVector shift)
@@ -189,8 +368,8 @@ void move_object(int type, int id, VVector shift)
         }
 	break;
     }
+check_for_dialog_open(type,id,false);
 }
-
 
 int isactive_line(int lineno)
 {
@@ -244,7 +423,7 @@ int next_line(void)
     if (realloc_lines(maxlines + OBJECT_BUFNUM) == RETURN_SUCCESS) {
         return maxold;
     } else {
-        errmsg("Error - no lines available");
+        errmsg(QObject::tr("Error - no lines available").toLocal8Bit().constData());
         return (-1);
     }
 }
@@ -264,7 +443,7 @@ int next_box(void)
     if (realloc_boxes(maxboxes + OBJECT_BUFNUM) == RETURN_SUCCESS) {
         return maxold;
     } else {
-        errmsg("Error - no boxes available");
+        errmsg(QObject::tr("Error - no boxes available").toLocal8Bit().constData());
         return (-1);
     }
 }
@@ -283,7 +462,7 @@ int next_string(void)
     if (realloc_strings(maxstr + OBJECT_BUFNUM) == RETURN_SUCCESS) {
         return maxold;
     } else {
-        errmsg("Error - no strings available");
+        errmsg(QObject::tr("Error - no strings available").toLocal8Bit().constData());
         return (-1);
     }
 }
@@ -303,7 +482,7 @@ int next_ellipse(void)
     if (realloc_ellipses(maxellipses + OBJECT_BUFNUM) == RETURN_SUCCESS) {
         return maxold;
     } else {
-        errmsg("Error - no ellipses available");
+        errmsg(QObject::tr("Error - no ellipses available").toLocal8Bit().constData());
         return (-1);
     }
 }
@@ -382,7 +561,40 @@ int kill_object(int type, int id)
         return RETURN_FAILURE;
         break;
     }
-    return RETURN_SUCCESS;
+check_for_dialog_open(type,id,true);
+return RETURN_SUCCESS;
+}
+
+void kill_all_objects_linked_to_graph(int gno)
+{
+    for (int i=maxboxes-1;i>=0;i--)
+    {
+        if (boxes[i].gno==gno)
+        {
+        (void)kill_object(OBJECT_BOX,i);
+        }
+    }
+    for (int i=maxlines-1;i>=0;i--)
+    {
+        if (lines[i].gno==gno)
+        {
+        (void)kill_object(OBJECT_LINE,i);
+        }
+    }
+    for (int i=maxstr-1;i>=0;i--)
+    {
+        if (pstr[i].gno==gno)
+        {
+        (void)kill_object(OBJECT_STRING,i);
+        }
+    }
+    for (int i=maxellipses-1;i>=0;i--)
+    {
+        if (ellip[i].gno==gno)
+        {
+        (void)kill_object(OBJECT_ELLIPSE,i);
+        }
+    }
 }
 
 void copy_object(int type, int from, int to)
@@ -502,6 +714,17 @@ void init_line(int id, VPoint vp1, VPoint vp2)
         view2world(vp1.x, vp1.y, &lines[id].x1, &lines[id].y1);
         view2world(vp2.x, vp2.y, &lines[id].x2, &lines[id].y2);
     }
+    if (swap_line_coords==1)
+    {
+    double tmp;
+    tmp=lines[id].x1;
+    lines[id].x1=lines[id].x2;
+    lines[id].x2=tmp;
+    tmp=lines[id].y1;
+    lines[id].y1=lines[id].y2;
+    lines[id].y2=tmp;
+    swap_line_coords=0;
+    }
     lines[id].arrow_end = line_arrow_end;
     set_default_arrow(&lines[id].arrow);
     set_dirtystate();
@@ -527,7 +750,7 @@ void init_box(int id, VPoint vp1, VPoint vp2)
         boxes[id].y1 = vp1.y;
         boxes[id].x2 = vp2.x;
         boxes[id].y2 = vp2.y;
-        boxes[id].gno = -1;
+        boxes[id].gno = 0;//we need a default that always exists
     }
     else
     {
@@ -558,7 +781,7 @@ void init_ellipse(int id, VPoint vp1, VPoint vp2)
         ellip[id].y1 = vp1.y;
         ellip[id].x2 = vp2.x;
         ellip[id].y2 = vp2.y;
-        ellip[id].gno = -1;
+        ellip[id].gno = 0;
     }
     else
     {
@@ -583,12 +806,14 @@ void init_string(int id, VPoint vp)
     pstr[id].charsize = string_size;
     pstr[id].loctype = string_loctype;
     pstr[id].just = string_just;
+    pstr[id].align = string_align;
+    pstr[id].master_align = string_master_align;
     pstr[id].active = TRUE;
     if (string_loctype == COORD_VIEW)
     {
         pstr[id].x = vp.x;
         pstr[id].y = vp.y;
-        pstr[id].gno = -1;
+        pstr[id].gno = 0;
     }
     else
     {
@@ -733,7 +958,8 @@ void *ptmp;
         }
         else
         {
-            cout << "ERROR: REALLOCATION NOT SUCCESSFULL!" << endl;
+        errmsg(QObject::tr("Can not reallocate strings - not enough free memory?").toLocal8Bit().constData());
+        //cout << "ERROR: REALLOCATION NOT SUCCESSFULL!" << endl;
             delete[] old_s;
             delete[] old_alt;
         return RETURN_FAILURE;
@@ -782,11 +1008,11 @@ void set_graph_string(int i, plotstr * s)
     memcpy(&pstr[i], s, sizeof(plotstr));
 }
 
-char *object_types(int type)
+const char *object_types(int type)
 {
-    char *stype;
-    
-    switch (type) {
+const char *stype;
+    switch (type)
+    {
     case OBJECT_LINE:
         stype = "line";
         break;
@@ -803,6 +1029,5 @@ char *object_types(int type)
         stype = "";
         break;
     }
-    
-    return stype;
+return stype;
 }

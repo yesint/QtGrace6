@@ -151,8 +151,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 #include "mconf.h"
 #include "cephes.h"
 
-double chdtrc(df,x)
-double df, x;
+double chdtrc(double df,double x)
 {
 
 if( (x < 0.0) || (df < 1.0) )
@@ -165,8 +164,7 @@ return( igamc( df/2.0, x/2.0 ) );
 
 
 
-double chdtr(df,x)
-double df, x;
+double chdtr(double df,double x)
 {
 
 if( (x < 0.0) || (df < 1.0) )
@@ -179,8 +177,7 @@ return( igam( df/2.0, x/2.0 ) );
 
 
 
-double chdtri( df, y )
-double df, y;
+double chdtri(double df,double y)
 {
 double x;
 

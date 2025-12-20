@@ -8,7 +8,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  *
  *                           All Rights Reserved
  *
@@ -58,7 +58,9 @@
 #include <iostream>
 #include "MainWindow.h"
 #include "allWidgets.h"
+#include "windowWidgets.h"
 #include "cmath.h"
+#include "parser.h"
 
 using namespace std;
 
@@ -66,6 +68,7 @@ FILE *prstream=NULL;
 QTemporaryFile * temp_file=NULL;
 Device_entry x11_settings_saved,target_dev_settings_saved;
 char cur_print_fname[GR_MAXPATHLEN];
+int cur_errorbar=-1;//none; 1=yplus,2=yminus,3=xplus,4=xminus
 //extern char desired_hardcopy_filename[GR_MAXPATHLEN];
 bool print_error=false;
 bool use_temp_file=false,export_from_mainpixmap=false,x11ok=true;
@@ -94,18 +97,232 @@ extern char dummy[];
 extern unsigned int win_h, win_w;
 extern Device_entry dev_null;
 extern Device_entry *device_table;
+extern int currentStringAlignment;
+extern VPoint global_bb_ll;
+extern VPoint global_bb_ur;
 
 extern void WriteQtString(VPoint vp,int rot,int just,char * s);
-extern void WriteQtString(VPoint vp,int rot,int just,char * s,double charSize,int font,int color);
+extern void WriteQtString(VPoint vp,int rot,int just,char * s,double charSize,int font,int color,int alpha);
 extern QString get_filename_with_extension(int device);
 extern void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true);
+extern void return_last_string_bounding_box(view * bb);
+extern void replaceSuffix(QString & fpath,QString n_suffix);
+extern void draw_simple_rectangle(VPoint a, VPoint b,int col);
+extern void init_local_bounding_box(VPoint * string_edges,VPoint * ll,VPoint * ur);
+extern void expand_local_bounding_box(VPoint * string_edges,VPoint * ll,VPoint * ur);
+extern void expand_local_bounding_box(VPoint string_edge,VPoint * ll,VPoint * ur);
+extern void expand_local_bounding_box(view string_edge,VPoint * ll,VPoint * ur);
+
+extern int nr_of_collect_set_lines;
+extern int * collect_gnos;
+extern int * collect_snos;
+extern QList< QVector<QPointF> > collect_segments;
+extern imageinfo bg_fill_image;
+
+int nr_of_entry_graphs=0;
+int * nr_of_legend_entries=NULL;//entries for every graph [gno]
+int ** legend_entry_setno=NULL;//the set-numbers of every entry [gno][entry]
+double * legend_entry_x_start=NULL;//first x-value of legend [gno]
+double * legend_entry_x_stop=NULL;//last x-value of legend [gno]
+double ** legend_entry_border=NULL;//the actual y-positions of the entries [gno][entry (one more than number of sets)]
+
+extern int scaletypex;
+extern int scaletypey;
+
+bool lines_are_to_be_collected(int gno,int sno)
+{
+static bool ret;
+ret=false;
+if (nr_of_collect_set_lines<=0 || !is_valid_setno(gno,sno)) return false;
+    for (int i=0;i<nr_of_collect_set_lines;i++)
+    {
+        //qDebug() << i << "collect_gnos[i]=" << collect_gnos[i] << "collect_snos[i]=" << collect_snos[i];
+        if (collect_gnos[i]==gno && collect_snos[i]==sno)
+        {
+        ret=true;
+        break;
+        }
+    }
+return ret;
+}
+
+void activate_Qt_Clipping(void)
+{
+    if (GeneralPainter!=NULL && GeneralPainter->isActive())
+    {
+    GeneralPainter->setClipping(true);
+    }
+}
+
+void deactivate_Qt_Clipping(void)
+{
+    if (GeneralPainter!=NULL && GeneralPainter->isActive())
+    {
+    GeneralPainter->setClipping(false);
+    }
+}
+
+void delete_legend_entry_positions(void)
+{
+    if (nr_of_entry_graphs>0)//we have already set something
+    {
+        for (int i=0;i<nr_of_entry_graphs;i++)
+        {
+            delete[] legend_entry_border[i];
+            delete[] legend_entry_setno[i];
+        }
+        delete[] legend_entry_border;
+        delete[] legend_entry_setno;
+        delete[] legend_entry_x_start;
+        delete[] legend_entry_x_stop;
+        delete[] nr_of_legend_entries;
+        legend_entry_border=NULL;
+        legend_entry_x_start=legend_entry_x_stop=NULL;
+        nr_of_legend_entries=NULL;
+        legend_entry_setno=NULL;
+    }
+}
+
+void reinit_legend_entry_positions(void)
+{
+delete_legend_entry_positions();
+nr_of_entry_graphs=number_of_graphs();
+if (nr_of_entry_graphs<=0) return;
+nr_of_legend_entries=new int[nr_of_entry_graphs];
+legend_entry_x_start=new double[nr_of_entry_graphs];
+legend_entry_x_stop=new double[nr_of_entry_graphs];
+legend_entry_border=new double*[nr_of_entry_graphs];
+legend_entry_setno=new int*[nr_of_entry_graphs];
+    for (int i=0;i<nr_of_entry_graphs;i++)
+    {
+    legend_entry_border[i]=new double[2+number_of_sets(i)];
+    legend_entry_setno[i]=new int[2+number_of_sets(i)];
+    }
+}
+
+void clear_graph_legend_entry_positions(int gno)
+{
+    for (int i=0;i<number_of_sets(gno)+1;i++)
+    {
+    legend_entry_border[gno][i]=-10.0;
+    legend_entry_setno[gno][i]=-1;
+    }
+    legend_entry_x_start[gno]=-10.0;
+    legend_entry_x_stop[gno]=-10.0;
+    nr_of_legend_entries[gno]=0;
+}
+
+void debug_show_entry_pos(void)
+{
+    VPoint vp1,vp2;
+/// qDebug() << "Entry graphs=" << nr_of_entry_graphs;
+    for (int i=0;i<nr_of_entry_graphs;i++)
+    {
+    vp1.x=legend_entry_x_start[i];
+    vp2.x=legend_entry_x_stop[i];
+    /// qDebug() << "Graph " << i << " entries=" << nr_of_legend_entries[i];
+        for (int j=0;j<nr_of_legend_entries[i];j++)
+        {
+        vp1.y=legend_entry_border[i][j];
+        vp2.y=legend_entry_border[i][j+1];
+        DrawRect(vp1, vp2);
+        }
+    }
+}
+
+int get_number_of_legend_entries(int gno)
+{
+    if (gno<0 || gno>=nr_of_entry_graphs)
+    return 0;
+    else
+    return nr_of_legend_entries[gno];
+}
+
+int get_setno_of_legend_entry(int gno,int nr)
+{
+    if (gno<0 || gno>=nr_of_entry_graphs) return -5;
+    if (nr<0 || nr>=nr_of_legend_entries[gno]) return -5;
+    return legend_entry_setno[gno][nr];
+}
+
+int get_legend_entry_bb(int gno, int nr, view * bb)
+{
+    if (gno<0 || gno>=nr_of_entry_graphs) return RETURN_FAILURE;
+    if (nr<0 || nr>=nr_of_legend_entries[gno]) return RETURN_FAILURE;
+    bb->xv1=legend_entry_x_start[gno];
+    bb->xv2=legend_entry_x_stop[gno];
+    bb->yv2=legend_entry_border[gno][nr];
+    bb->yv1=legend_entry_border[gno][nr+1];
+    return RETURN_SUCCESS;
+}
+
+int get_legend_entry_bb_for_set(int gno, int setno, view * bb)
+{
+    if (gno<0 || gno>=nr_of_entry_graphs) return RETURN_FAILURE;
+int nr=-1;
+    for (int i=0;i<nr_of_legend_entries[gno];i++)
+    {
+        if (legend_entry_setno[gno][i]==setno)
+        {
+        nr=i;
+        break;
+        }
+    }
+    if (nr<0 || nr>=nr_of_legend_entries[gno]) return RETURN_FAILURE;
+    bb->xv1=legend_entry_x_start[gno];
+    bb->xv2=legend_entry_x_stop[gno];
+    bb->yv2=legend_entry_border[gno][nr];
+    bb->yv1=legend_entry_border[gno][nr+1];
+    return RETURN_SUCCESS;
+}
+
+int clicked_in_legend(VPoint vp,int * gno,int * setno, view * bb)
+{
+legend l;
+view tmp_bb;
+int ret=RETURN_FAILURE;
+*gno=-5;
+*setno=-5;
+for (int i=0;i<number_of_graphs();i++)
+{
+if (ret==RETURN_SUCCESS) break;
+    if (is_graph_hidden(i) == FALSE) {
+        get_graph_legend(i, &l);
+        if (l.autoattach!=G_LB_ATTACH_NONE)
+        {
+        l.bb.xv1+=l.xshift;
+        l.bb.xv2+=l.xshift;
+        l.bb.yv1+=l.yshift;
+        l.bb.yv2+=l.yshift;
+        }
+    if (l.active && is_vpoint_inside(l.bb, vp, MAXPICKDIST)) {
+    //now we know, that the user clicked in the current graphs (i) legend --> did the user click on a legend?
+        for (int j=0;j<get_number_of_legend_entries(i);j++)//look through all legend entries
+        {
+        if (ret==RETURN_SUCCESS) break;
+            if (get_legend_entry_bb(i,j,&tmp_bb)==RETURN_SUCCESS)
+            {
+                if (is_vpoint_inside(tmp_bb, vp, MAXPICKDIST))
+                {
+                *bb=tmp_bb;
+                *gno=i;
+                *setno=get_setno_of_legend_entry(i,j);
+                ret=RETURN_SUCCESS;
+                }
+            }
+        }
+
+    } else {
+            continue;
+        }
+    } else {
+        continue;
+    }
+}//end of graph-for-loop
+return ret;
+}
 
 //char print_file[GR_MAXPATHLEN] = "";
-
-void doPlotFit(void)
-{
-    mainWin->doFitPage();
-}
 
 QImage convertImageToGrayscale(QImage * img)
 {
@@ -113,6 +330,7 @@ QImage g_img(*img);
 QColor col;
 uint gr;
 QPainter pa(&g_img);
+pa.setPen(Qt::NoPen);
 for (int i=0;i<g_img.width();i++)
 {
     for (int j=0;j<g_img.height();j++)
@@ -120,8 +338,10 @@ for (int i=0;i<g_img.width();i++)
     col.setRgb(img->pixel(i,j));
     gr=(col.red() * 11 + col.green() * 16 + col.blue() * 5)/32;
     col.setRgb(gr,gr,gr);
-    pa.setPen(col);
-    pa.drawPoint(i,j);
+    //pa.setPen(col);
+    //pa.drawPoint(i,j);
+    pa.setBrush(col);
+    pa.drawRect(i,j,1,1);
     }
 }
 pa.end();
@@ -151,6 +371,7 @@ QString InternalDeviceName(int devnr)
 QString ret;
 switch (devnr)
 {
+default:
 case DEVICE_NULL:
 ret=QString("DEVICE_NULL");
 break;
@@ -174,6 +395,9 @@ ret=QString("DEVICE_HD_PNG");
 break;
 case DEVICE_BMP:
 ret=QString("DEVICE_BMP");
+break;
+case DEVICE_TIFF:
+ret=QString("DEVICE_TIFF");
 break;
 case DEVICE_PS:
 ret=QString("DEVICE_PS");
@@ -275,6 +499,7 @@ printing_in_file=true;
     break;
     case DEVICE_HD_PNG:/// changed to here -> use std-output-driver
     case DEVICE_JPEG://for these file-types we use Qt's export functions
+    case DEVICE_TIFF:
     case DEVICE_PNG:
     case DEVICE_BMP:
         export_from_mainpixmap=true;
@@ -461,11 +686,13 @@ QImage image;
 QPainter painter;
 QPrinter printer(QPrinter::HighResolution);
 QFileInfo filinfo;
+QString export_file;
 view v;
 double vx, vy;
 int truncated_out;
 double oputputdpi=300.0;
 QSize paperSi;
+QSizeF paperSi2;
 bool ret,overwrite;
 print_error=false;
 char buf[GR_MAXPATHLEN + 50];
@@ -477,6 +704,7 @@ if (dev.pg.dpi>0.0)
 {
 paperSi.setWidth(dev.pg.width*oputputdpi/dev.pg.dpi);
 paperSi.setHeight(dev.pg.height*oputputdpi/dev.pg.dpi);
+
 }
 else
 {
@@ -485,6 +713,9 @@ else
 paperSi.setWidth(dev.pg.width*oputputdpi/72.0);
 paperSi.setHeight(dev.pg.height*oputputdpi/72.0);
 }
+
+paperSi2.setWidth(paperSi.width()*oputputdpi);
+paperSi2.setHeight(paperSi.height()*oputputdpi);
 
 //postprocessing
 if (prstream!=NULL)//close output stream
@@ -531,7 +762,9 @@ truncated_out = FALSE;
     }
     else if (export_from_mainpixmap==true)
     {
-       filinfo=QFileInfo(print_file);
+       export_file=QString::fromLocal8Bit(print_file);
+       filinfo=QFileInfo(export_file);
+//qDebug() << "export_file=" << export_file;
        overwrite=true;
        if (filinfo.exists()==true)//because we did not use prstream here we have to ask ourselves
        {
@@ -559,17 +792,29 @@ truncated_out = FALSE;
             //cout << "MonoOnly" << endl;
             }
             ret=false;
+
+            if (clip_borders_for_output==TRUE)
+            {
+            QPoint a,b;
+            a=VPoint2XPoint(global_bb_ll);
+            b=VPoint2XPoint(global_bb_ur);
+            pm=pm.copy(a.x(),b.y(),abs(b.x()-a.x())+1,abs(b.y()-a.y()));
+            }
+
                 switch (c_dev)
                 {
                 case DEVICE_PNG:
                 case DEVICE_HD_PNG:
-                    ret=pm.save(QString(print_file),"PNG",outputQuality);
+                    ret=pm.save(export_file,"PNG",outputQuality);
                 break;
                 case DEVICE_BMP:
-                    ret=pm.save(QString(print_file),"BMP",outputQuality);
+                    ret=pm.save(export_file,"BMP",outputQuality);
                 break;
                 case DEVICE_JPEG:
-                    ret=pm.save(QString(print_file),"JPG",outputQuality);
+                    ret=pm.save(export_file,"JPG",outputQuality);
+                break;
+                case DEVICE_TIFF:
+                    ret=pm.save(export_file,"TIFF",outputQuality);
                 break;
                 default:
                     stufftext(QObject::tr("Error: export from main pixmap, unsuitable export device").toLocal8Bit().constData());
@@ -583,7 +828,7 @@ truncated_out = FALSE;
        }
             if (ret==false)
             {
-            errwin(QObject::tr("Unable to export to image file.").toLocal8Bit().constData());
+            errwin((QObject::tr("Unable to export to image file. (")+QString(print_file)+QString(")")).toLocal8Bit().constData());
             print_error=true;
             }
     }
@@ -606,7 +851,7 @@ truncated_out = FALSE;
                     delete stdGenerator;
                     stdGenerator=NULL;
                 //Read svg file and convert to png
-                renderer.load(QString(cur_print_fname));
+                renderer.load(QString::fromLocal8Bit(cur_print_fname));
                 // Prepare a QImage with desired characteritisc
                 image=QImage(renderer.defaultSize(), QImage::Format_RGB32);
                 // Get QPainter that paints to the image
@@ -625,20 +870,25 @@ truncated_out = FALSE;
                 GeneralPainter->end();//needed to end/complete the svg-export!
                 delete stdGenerator;
                 stdGenerator=NULL;
-            filinfo=QFileInfo(cur_print_fname);
+            filinfo=QFileInfo(QString::fromLocal8Bit(cur_print_fname));
             //befehl=QString("cp ")+QString(cur_print_fname)+QString(" /Users/andreaswinter/test_svg1.svg");
             //cout << "copy-befehl=#" << befehl.toLocal8Bit().constData() << "#" << endl;
             //system(befehl.toLocal8Bit().constData());
                 //Read svg file and convert to pdf
-                ret=renderer.load(QString(cur_print_fname));
+                ret=renderer.load(QString::fromLocal8Bit(cur_print_fname));
                 printer.setOutputFormat(QPrinter::PdfFormat);
                 printer.setOutputFileName(print_file);
             /*cout << "ret=" << ret << " exists=" << filinfo.exists() << endl;
             cout << "defaultSize=" << renderer.defaultSize().width() << " x " << renderer.defaultSize().height() << endl;
             cout << "paperSi=" << paperSi.width() << " x " << paperSi.height() << endl;*/
-                printer.setPageMargins(0.0,0.0,0.0,0.0,QPrinter::DevicePixel);
                 printer.setResolution(int(oputputdpi));
+#if QT_VERSION >= 0x060000
+                printer.setPageMargins(QMarginsF(0.0,0.0,0.0,0.0),QPageLayout::Point);
+                printer.setPageSize(QPageSize(paperSi2,QPageSize::Point));
+#else
+                printer.setPageMargins(0.0,0.0,0.0,0.0,QPrinter::DevicePixel);
                 printer.setPaperSize(paperSi,QPrinter::DevicePixel);
+#endif
                 painter.begin(&printer);
                 renderer.render(&painter);
                 painter.end();
@@ -667,7 +917,7 @@ set_ptofile(false);
 printing_in_file=false;
 print_target=PRINT_TARGET_SCREEN;
 select_device(DEVICE_X11);//this sets the output to the screen again (as usual)
-drawgraph();
+/// drawgraph();
 /*cout << "AFTER POSTPROCESS:" << endl;
 cout << "device width= " << device_table[DEVICE_X11].pg.width << " height=" << device_table[DEVICE_X11].pg.height << endl;
 cout << "x11_saved: width=" << x11_settings_saved.pg.width << " height=" << x11_settings_saved.pg.height << endl;*/
@@ -680,8 +930,12 @@ void drawgraph(void)
 {
 static int save_w,save_h;
 if (stop_repaint==TRUE) return;//no repaint
+//Page_geometry pg1=get_page_geometry();
+//qDebug() << "redraw: w=" << pg1.width << " h=" << pg1.height << endl;
+//qDebug() << "drawgraph!";
 if (simple_draw_setting==SIMPLE_DRAW_NONE)
 {
+//qDebug() << "We really redraw everything!";//to test occurences of multiple-redraws
         if (print_target==PRINT_TARGET_SCREEN)//if we are about to draw on the screen we have to change the device-table-entry
         {
         save_w=device_table[DEVICE_SCREEN].pg.width;
@@ -689,13 +943,17 @@ if (simple_draw_setting==SIMPLE_DRAW_NONE)
         device_table[DEVICE_SCREEN].pg.width*=GeneralPageZoomFactor;
         device_table[DEVICE_SCREEN].pg.height*=GeneralPageZoomFactor;
         }
-//cout << "DecimalPointToUse=" << DecimalPointToUse << endl;
+//qDebug() << "DecimalPointToUse=" << DecimalPointToUse;
     int i;
     VPoint vp1, vp2;
+    view g_v;
     Pen pen;
     int saveg;
     RotationAngle=0;
     saveg = get_cg();
+
+    currentStringAlignment=Qt::AlignLeft;//the default text alignment
+
     if (initgraphics() == RETURN_FAILURE)
     {
         errmsg(QObject::tr("Device wasn't properly initialized (probably too many or too few pixels)").toLocal8Bit().constData());
@@ -707,43 +965,83 @@ if (simple_draw_setting==SIMPLE_DRAW_NONE)
         return;
     }
     setclipping(FALSE);
-    if (getbgfill() == TRUE)
+    if (getbgfill() != FALSE)//do the background-filling
     {
         pen.color = getbgcolor();
+        pen.alpha = getbgalpha();
         pen.pattern = 1;
         setpen(pen);
         vp1.x = 0.0;
         vp1.y = 0.0;
         get_page_viewport(&vp2.x, &vp2.y);
-        FillRect_(vp1, vp2);
+        FillRect_(vp1, vp2);//always solid fill first, in case the image fills not the whole space
+        if (print_target==PRINT_TARGET_SCREEN && getbgfill()==2)//fill with image
+        {
+        QColor def_col;
+        RGB * rgbColor=get_rgb(getbgcolor());
+        def_col.setRgb(rgbColor->red,rgbColor->green,rgbColor->blue,getbgalpha());
+        drawImageOnPainter(GeneralPainter,bg_fill_image,MainPixmap->rect(),def_col);
+        }
     }
     reset_bboxes();
+    global_bb_ll.x=global_bb_ll.y=-1.0;
+    global_bb_ur.x=global_bb_ur.y=-1.0;
     activate_bbox(BBOX_TYPE_GLOB, TRUE);
     activate_bbox(BBOX_TYPE_TEMP, FALSE);
+    reinit_legend_entry_positions();//for saving the positions of the text-entries in the legends
+    //qDebug() << "start_bounding_box=" << global_bb_ll.x << "|" << global_bb_ll.y << "-" << global_bb_ur.x << "|" << global_bb_ur.y;
         for (i = 0; i < number_of_graphs(); i++)
         {
+        active_graph=i;
+            if (is_graph_hidden(i)==TRUE) continue;
+        clear_graph_legend_entry_positions(i);
         plotone(i);
+            if (get_graph_viewport(i,&g_v)==RETURN_SUCCESS)
+            {
+            //qDebug() << "expand by graph-viewport:" << g_v.xv1 << "|"<< g_v.yv1 << "-" << g_v.xv2 << "|" << g_v.yv2;
+            expand_local_bounding_box(g_v,&global_bb_ll,&global_bb_ur);
+            }
+        //qDebug() << "bounding_box before legend=" << global_bb_ll.x << "|" << global_bb_ll.y << "-" << global_bb_ur.x << "|" << global_bb_ur.y;
+            if (nr_of_legend_entries!=NULL && nr_of_entry_graphs>=i)
+            {
+            if (g[i].l.active && nr_of_legend_entries[i]>0)
+            expand_local_bounding_box(g[i].l.bb,&global_bb_ll,&global_bb_ur);
+            }
         }
+    //qDebug() << "bounding_box before objects=" << global_bb_ll.x << "|" << global_bb_ll.y << "-" << global_bb_ur.x << "|" << global_bb_ur.y;
     /* draw objects NOT clipped to a particular graph */
     draw_objects(-1);
+    //qDebug() << "bounding_box before timestamp=" << global_bb_ll.x << "|" << global_bb_ll.y << "-" << global_bb_ur.x << "|" << global_bb_ur.y;
     draw_timestamp();
+    //qDebug() << "bounding_box after timestamp=" << global_bb_ll.x << "|" << global_bb_ll.y << "-" << global_bb_ur.x << "|" << global_bb_ur.y;
+#ifdef DEBUG_SHOW_TEXT_BOUNDING_BOXES
+    draw_simple_rectangle(global_bb_ll,global_bb_ur,7);
+#endif
         if (get_cg() != saveg)
         {
         select_graph(saveg);
         }
+/// debug the legend entry positions
+/// debug_show_entry_pos();
     leavegraphics();
         if (print_target==PRINT_TARGET_SCREEN)//if we printed on the screen, we may have altered the dimensions - we have to set them back
         {
         device_table[DEVICE_SCREEN].pg.width=save_w;
         device_table[DEVICE_SCREEN].pg.height=save_h;
         }
+    if (mainWin)
     mainWin->mainArea->contentChanged=true;
 }//End simple-draw
     if (startupphase==0 && printing_in_file==false)
     {
-    mainWin->mainArea->repaint();//do the actual repaintiing on the screen
+        if (mainWin)
+        mainWin->mainArea->repaint();//do the actual repainting on the screen
     qApp->processEvents();
     }
+    //if (enableServerMode)
+    //{
+    /// mainWin->SocketConnection->sendParam();/// is private within this context
+    //}
 }
 
 void debug_device_settings(Device_entry dev)
@@ -757,17 +1055,34 @@ cout << "Size= " << dev.pg.width << " x " << dev.pg.height << endl;
 cout << "---- END DEVICE SETTINGS ----" << endl;
 }
 
+int what_is_the_optimal_pdf_driver(void)//returns 0 if the Qt-pdf-driver should be used and return 1 if libharu should be better
+{
+int ret=0;
+    if (useQtFonts==false)
+    {
+    ret=1;
+    }
+    else//Use QtFonts-->this excludes the haru-pdf-library
+    {
+    ret=0;
+    }
+return ret;
+}
+
 /*
  * If writing to a file, check to see if it exists
  */
 void do_hardcopy(void)
 {
-char tbuf[256], *s=get_print_cmd();
+char *s=get_print_cmd();
+double sav_zoom_factor=GeneralPageZoomFactor;
+GeneralPageZoomFactor=1.0;
+    //char tbuf[256];
     //char fname[GR_MAXPATHLEN];
     //view v;
     //double vx, vy;
     //int truncated_out;
-    int dirty=is_dirtystate();
+int dirty=is_dirtystate();
     /*QTemporaryFile file;
     QString fileN;
     QByteArray byteArray;
@@ -778,7 +1093,7 @@ char tbuf[256], *s=get_print_cmd();
 
 if (auto_set_export_extensions==TRUE)
 {
-QFileInfo fi3(print_file);
+/*QFileInfo fi3(print_file);
 QString suf=fi3.suffix();
 suf=suf.toLower();
 QString suf2=QString(dev.fext).toLower();
@@ -790,9 +1105,11 @@ QString suf2=QString(dev.fext).toLower();
         }
         strcat(print_file,".");
         strcat(print_file,dev.fext);
-    }
+    }*/
+QString suf=QString::fromLocal8Bit(print_file);
+replaceSuffix(suf,QString(dev.fext));
+strcpy(print_file,suf.toLocal8Bit().constData());
 }
-
         if (dev.pg.dpi<=0.0)
         {
         dev.pg.dpi=72.0;
@@ -807,17 +1124,16 @@ QString suf2=QString(dev.fext).toLower();
     orig_displ_settings=get_device_props(DEVICE_SCREEN);//get screen settings again to have them for backup -- this is for setting everything back at the end
     prstream=NULL;
     simple_draw_setting=SIMPLE_DRAW_NONE;
-
 /// copy_Grace_to_LaTeX();//for safety -- should not be needed
-
     if (!get_ptofile() && use_print_command==true && (s == NULL || s[0] == '\0'))
     {//direct printing to printer selected and print-command is to be used, but no usable print-command specified
         errmsg(QObject::tr("No print command defined, output aborted").toLocal8Bit().constData());
         simple_draw_setting=sav_simpl_draw;
+        GeneralPageZoomFactor=sav_zoom_factor;
         return;
     }
-
-bool use_x11drv=prepare_x11drv(hdevice,get_ptofile());
+//bool use_x11drv=prepare_x11drv(hdevice,get_ptofile());
+    (void)prepare_x11drv(hdevice,get_ptofile());
     if (FormProgress!=NULL)
     FormProgress->increase();
 if (print_error==true)
@@ -829,24 +1145,26 @@ if (print_error==true)
     set_ptofile(false);
     printing_in_file=false;
     print_target=PRINT_TARGET_SCREEN;
+    GeneralPageZoomFactor=sav_zoom_factor;
     select_device(DEVICE_X11);//this sets the output to the screen again (as usual)
     drawgraph();
     simple_draw_setting=sav_simpl_draw;
 return;
 }
-    if (target_device==DEVICE_PDF_HARU || hdevice==DEVICE_PDF)//we do not use grace_openw --> look for existing file with same name (|| hdevice==DEVICE_HD_PNG --> changed)
+    if ((target_device==DEVICE_PDF_HARU || hdevice==DEVICE_PDF) && gracebat==FALSE)//we do not use grace_openw --> look for existing file with same name (|| hdevice==DEVICE_HD_PNG --> changed)
     {
         char buf[GR_MAXPATHLEN + 50];
         QFileInfo fi(print_file);
         if (fi.exists()==true)
         {
             sprintf(buf, "%s %s?",QObject::tr("Overwrite").toLocal8Bit().constData(), print_file);
-            if (!yesno(buf, NULL, NULL, NULL))
+            if (!yesno(buf, NULL, NULL, NULL))//do not overwrite
             {
                 set_ptofile(false);
                 printing_in_file=false;
                 print_target=PRINT_TARGET_SCREEN;
                 select_device(DEVICE_X11);//this sets the output to the screen again (as usual)
+                GeneralPageZoomFactor=sav_zoom_factor;
                 drawgraph();
                 simple_draw_setting=sav_simpl_draw;
             return;
@@ -870,217 +1188,19 @@ postprocess_x11drv(hdevice,get_ptofile());
     else
     set_dirtystate();
 simple_draw_setting=sav_simpl_draw;
-/// FUNCTION ENDS HERE
-return;
-
-/*
-QString temptemplate=QDir::tempPath()+QString("XXXXXX.")+QString(dev.fext);
-//cout << "template=#" << temptemplate.toLatin1().constData() << "#" << endl;
-    if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"HD-PNG") || (!get_ptofile() && use_print_command==true))
-    {//we need a temporary-file to export data as SVG or to send a file to the printer (i.e. generate a temporary file and send it to the printer)
-        temptemplate=QDir::tempPath()+QString("XXXXXX.");
-        if (!strcmp(dev.name,"PDF") || !strcmp(dev.name,"HD-PNG"))//for these file-types we use an intermediate svg-file
-        temptemplate += QString("svg");
-        else//otherwise we use the generic file type (like .ps)
-        temptemplate += QString(dev.fext);
-    file.setFileTemplate(temptemplate);
-    file.open();
-    fileN = file.fileName();
-    file.close();
-    byteArray = fileN.toUtf8();
-    cTempFileName = byteArray.data();
-//cout << "Temporary file=#" << cTempFileName << "#" << endl;
-    file.remove();//to make sure the temporary file does not exist
-    prstream = grace_openw(cTempFileName);
-//cout << "File Opened" << endl;
-    strcpy(fname, cTempFileName);
-        if (prstream == NULL)
-        {
-            errwin(QObject::tr("Unable to open print-device!").toLocal8Bit().data());
-            return;
-        }
-    }
-    else if (get_ptofile() || use_print_command==true)//we want to Print in a file (or send a file to a printer)
-    {
-        if (print_file[0] == '\0')
-        {
-            QString fwe=get_filename_with_extension(hdevice);
-            //Device_entry dev = get_device_props(hdevice);
-            //sprintf(print_file, "%s.%s", get_docbname(), dev.fext);
-            strcpy(print_file,fwe.toLocal8Bit().constData());
-        }
-        strcpy(fname, print_file);
-//cout << "opening file for writing=#" << fname << "#" << endl;
-    prstream = grace_openw(fname);
-        if (prstream == NULL)
-        {
-            errwin(QObject::tr("Unable to open print-device!").toLocal8Bit().data());
-            return;
-        }
-    }
-    else
-    {
-    errwin(QObject::tr("Internal error: No File needed for hardcopy!?").toLocal8Bit().data());
-    //cout << "Wir brauchen kein File in do_hardcopy()!?" << endl;
-    }
-
-    //Checks for Qt-stuff
-
-/// debug_device_settings(dev);/// just for debugging/testing reasons
-
-    int save_focus_flag=draw_focus_flag;//for hardcopies: we deactivate the focus-flag
-    int old_dev=curdevice;
-
-    //int saved_dpi=displ_dev.pg.dpi;
-    //int saved_width=win_w,saved_height=win_h;
-    //cout << "dev.name=" << dev.name << " vergl=" << !strcmp(dev.name,"JPEG") << endl;
-    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))//these files are to be drawn using Standard-QPainter or QPrinter
-    {
-        select_device(DEVICE_SCREEN);//use the Qt-driver for the Screen - we pretend to print to the screen as usual, but export the image later
-        if (displ_dev.pg.dpi!=dev.pg.dpi)//we have to change the page-size
-        {
-            //win_w*=dev.pg.dpi*1.0/displ_dev.pg.dpi;
-            //win_h*=dev.pg.dpi*1.0/displ_dev.pg.dpi;
-            displ_dev.pg.width*=dev.pg.dpi*1.0/displ_dev.pg.dpi;//we set the display-dpis to the same as the hardcopy-dpis --> we change the dimension of the page to prepresent this
-            displ_dev.pg.height*=dev.pg.dpi*1.0/displ_dev.pg.dpi;
-            displ_dev.pg.dpi=dev.pg.dpi;
-            set_device_props(DEVICE_SCREEN,displ_dev);//we have to change the settings here (but have to set them back later) -- althoug we do file-output we operate on the displaydevice and with the display driver here
-            //cout << "dpi_s do not match" << endl;
-        }
-        //plot on display and copy to file later
-        //cout << "draw_focus_flag=FALSE;" << endl;
-        draw_focus_flag=FALSE;//do not draw the focus-squares when exporting to file
-    }
-    else//if the QPainter is not to be used, select the apropriate device here
-    {
-        select_device(hdevice);
-    }
-
-/// do the actual drawing
+GeneralPageZoomFactor=sav_zoom_factor;
 drawgraph();
-    
-    //if (get_ptofile() || use_print_command==true)
-    if (prstream!=NULL)
-    {
-    grace_close(prstream);
-    prstream=NULL;
-    }
-    v = get_bbox(BBOX_TYPE_GLOB);
-    get_page_viewport(&vx, &vy);
-    if (v.xv1 < 0.0 || v.xv2 > vx || v.yv1 < 0.0 || v.yv2 > vy) {
-        truncated_out = TRUE;
-    } else {
-        truncated_out = FALSE;
-    }
-    
-    if (get_ptofile() == FALSE && use_print_command==true)//send file to printer
-    {
-        sprintf(tbuf, "%s %s", get_print_cmd(), fname);
-//cout << "Print Command=#" << tbuf << "#" << endl;
-        if (truncated_out == FALSE ||
-                yesno(QObject::tr("Printout is truncated. Continue?").toLocal8Bit().data(), NULL, NULL, NULL)) {
-            system_wrap(tbuf);
-        }
-#ifndef PRINT_CMD_UNLINKS
-        ///        unlink(fname);
-#endif
-    } else {
-        if (truncated_out == TRUE) {
-            errmsg(QObject::tr("Output is truncated - tune device dimensions").toLocal8Bit().constData());
-        }
-    }
-    
-    //QList<QByteArray> ba=QImageWriter::supportedImageFormats();
-    //for (int i=0;i<ba.length();i++)
-    //{
-    //cout << ba.at(i).constData() << endl;
-    //}
-
-//Postprocessing needed for some file-types
-    if (!strcmp(dev.name,"JPEG") || !strcmp(dev.name,"BMP") || !strcmp(dev.name,"PNG"))
-    {//Qt-generated Image is to be saved
-        //cout << "Qt plotting routine 2nd half" << endl;
-        //plot on display and copy to file later
-        QPixmap pm;
-        if (monomode == FALSE)
-            pm=QPixmap::fromImage(*MainPixmap,Qt::AutoColor | Qt::DiffuseAlphaDither);
-        else
-            pm=QPixmap::fromImage(*MainPixmap,Qt::MonoOnly | Qt::DiffuseAlphaDither);
-
-        //cout << "dev.name=" << dev.name << " printfile=" << print_file  << " quality=" << dev.pg.dpi << " outQ=" << outputQuality << endl;
-        //cout << (*MainPixmap).width() << " " << (*MainPixmap).height() << " " << pm.width() << " " << pm.height() << endl;
-        bool ret=pm.save(QString(print_file),dev.name,outputQuality);//the outputQuality is set in the devicesetup-dialog
-        //cout << "ret=" << ret << endl;
-        //ret=MainPixmap->save(QString(print_file),dev.name,outputQuality);
-
-        set_device_props(DEVICE_SCREEN,orig_displ_settings);//restore original display settings
-        select_device(old_dev);
-        //displ_dev.pg.dpi=saved_dpi;
-        draw_focus_flag=save_focus_flag;
-        printing_in_file=false;
-        drawgraph();//we have to redraw here because the page dimensions may have changed
-    }
-    else if (!strcmp(dev.name,"PDF"))//we printed to a svg-file --> render it into a pdf-file (a not searchable one - in fact only a picture - sorry)
-    {
-    QString fileName = QString(cTempFileName);//QString("/Users/andwin/au.svg");//
-//cout << "Reading from #" << fileName.toLatin1().constData() << "#" << endl;
-//cout << "Printing to #" << print_file << "#" << endl;
-    //Read svg file and convert to pdf
-    QSvgRenderer renderer(fileName);
-    QPrinter printer(QPrinter::HighResolution);
-               printer.setOutputFormat(QPrinter::PdfFormat);
-               printer.setOutputFileName(print_file);
-//cout << "defaultSize=" << renderer.defaultSize().width() << " x " << renderer.defaultSize().height() << endl;
-//cout << "boundingbox=" << renderer.viewBox().width() << " x " << renderer.viewBox().height() << endl;
-               QSize paperSi(dev.pg.width*300.0/dev.pg.dpi,dev.pg.height*300.0/dev.pg.dpi);
-//cout << "paperSi=" << paperSi.width() << " x " << paperSi.height() << endl;
-               //printer.setPaperSize(paperSi,QPrinter::DevicePixel);
-               //printer.setPaperSize(renderer.defaultSize(),QPrinter::DevicePixel);
-//#if QT_VERSION >= 0x050000
-//               if (dev.pg.width>dev.pg.height)
-//               printer.setPageOrientation(QPageLayout::Landscape);
-//               else
-//               printer.setPageOrientation(QPageLayout::Portrait);
-//#else
-//               if (dev.pg.width>dev.pg.height)
-//               printer.setOrientation(QPrinter::Landscape);
-//               else
-//               printer.setOrientation(QPrinter::Portrait);
-//#endif
-               //printer.setPaperSize(renderer.viewBoxF().size().toSize(),QPrinter::DevicePixel);
-               printer.setPageMargins(0.0,0.0,0.0,0.0,QPrinter::DevicePixel);
-               printer.setResolution(300);
-               printer.setPaperSize(paperSi,QPrinter::DevicePixel);
-//cout << "printer: " << printer.width() << " x " << printer.height() << endl;
-    QPainter painter(&printer);
-               renderer.render(&painter);
-    painter.end();
-    file.remove();
-    }
-    else if (!strcmp(dev.name,"HD-PNG"))
-    {
-    QString fileName = QString(cTempFileName);
-    //Read svg file and convert to png
-    QSvgRenderer renderer(fileName);
-    // Prepare a QImage with desired characteritisc
-    QImage image(renderer.defaultSize(), QImage::Format_RGB32);
-    // Get QPainter that paints to the image
-    QPainter painter(&image);
-    renderer.render(&painter);
-    painter.end();
-//cout << print_file << " fext=" << dev.fext << " quality=" << outputQuality << endl;
-    // Save, image format based on file extension
-    image.save(print_file,dev.fext,outputQuality);
-    file.remove();
-    }
-    //else
-    select_device(tdevice);//select the screen-display-device again
-//cout << "vorher dirty=" << dirty << "; nachher dirty=" << is_dirtystate() << endl;
-    */
+return;
 }
 
 void plotone(int gno)
 {
+//QTime tim1;
+//tim1.start();
+//qDebug() << "plotone" << flush;
+    xy_xconv = xy_xconv_general;
+    xy_yconv = xy_yconv_general;
+
     GraphType gtype;
     if (is_graph_active(gno) != TRUE || is_graph_hidden(gno) == TRUE)
     {
@@ -1092,6 +1212,45 @@ void plotone(int gno)
     {
         return;
     }
+
+    switch (scaletypex)
+    {
+    case SCALE_NORMAL:
+        xy_xconv = xy_xconv_simple;
+    break;
+    case SCALE_LOG:
+        xy_xconv = xy_xconv_log;
+    break;
+    case SCALE_REC:
+        xy_xconv = xy_xconv_rec;
+    break;
+    case SCALE_LOGIT:
+        xy_xconv = xy_xconv_logit;
+    break;
+    default:
+        xy_xconv = xy_xconv_general;
+    break;
+    }
+
+    switch (scaletypey)
+    {
+    case SCALE_NORMAL:
+        xy_yconv = xy_yconv_simple;
+    break;
+    case SCALE_LOG:
+        xy_yconv = xy_yconv_log;
+    break;
+    case SCALE_REC:
+        xy_yconv = xy_yconv_rec;
+    break;
+    case SCALE_LOGIT:
+        xy_yconv = xy_yconv_logit;
+    break;
+    default:
+        xy_yconv = xy_yconv_general;
+    break;
+    }
+
     /* fill frame */
     fillframe(gno);
     gtype = (GraphType)get_graph_type(gno);
@@ -1105,6 +1264,9 @@ void plotone(int gno)
     /* plot type specific routines */
     switch(gtype)
     {
+    case GRAPH_POLAR2:
+        draw_polar_graph(gno);
+        break;
     case GRAPH_POLAR:
         draw_polar_graph(gno);
         break;
@@ -1140,10 +1302,17 @@ void plotone(int gno)
         draw_regions(gno);
         draw_ref_point(gno);
     }
+
+    xy_xconv = xy_xconv_general;
+    xy_yconv = xy_yconv_general;
+
+//qDebug() << "plot-time=" << tim1.restart() << "ms";
 }
 
 void draw_smith_chart(int gno)
 {
+    (void)gno;
+    /* This is empty! This does not work - yet! */
 }
 
 void draw_pie_chart(int gno)
@@ -1170,6 +1339,7 @@ void draw_pie_chart(int gno)
     
     for (setno = 0; setno < number_of_sets(gno); setno++)
     {
+        active_set=setno;
         if (is_set_drawable(gno, setno))
         {
             nsets++;
@@ -1247,6 +1417,7 @@ void draw_pie_chart(int gno)
                     {
                         pen.color = p.symfillpen.color;
                     }
+                        pen.alpha = p.symfillpen.alpha;
                     if (pt != NULL)
                     {
                         pen.pattern   = (int) rint(pt[i]);
@@ -1301,6 +1472,7 @@ void draw_pie_chart(int gno)
                         setcharsize(avalue.size);
                         setfont(avalue.font);
                         setcolor(avalue.color);
+                        setalpha(avalue.alpha);
                         WriteString(vpa, avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
                     }
                 }
@@ -1315,10 +1487,95 @@ void draw_pie_chart(int gno)
 
 void draw_polar_graph(int gno)
 {
-    int i;
-    plotarr p;
+int i;
+plotarr p;
+QPainterPath pp;
+VPoint vp,vpc;
+world wtmp;
+double d1,d2,dphi;
+int inner_x1,inner_y1,inner_w,inner_h,center_x,center_y;
+int x1,x2,y1,y2;
+world wtmp2;
+int save_clipping=doclipping();
 
-    for (i = 0; i < number_of_sets(gno); i++) {
+if (is_valid_gno(gno)==TRUE && get_graph_type(gno)==GRAPH_POLAR2)
+{//generate clipping area for polar plots
+get_graph_world(get_cg(),&wtmp);
+dphi=g[get_cg()].phi0;
+
+//determine center of donut (reference for all calculations)
+world2view(0.0,0.5*(wtmp.yg2+wtmp.yg1),&vpc.x,&vpc.y);
+world2view(M_PI,0.5*(wtmp.yg2+wtmp.yg1),&vp.x,&vp.y);
+vpc.x+=vp.x;
+vpc.x*=0.5;
+vpc.y+=vp.y;
+vpc.y*=0.5;
+
+xlibVPoint2dev(vpc,&center_x,&center_y);
+
+wtmp2.xg1=wtmp2.xg2=-dphi;
+
+wtmp2.yg1=wtmp.yg1;//use full radial range here
+wtmp2.yg2=wtmp.yg2;
+
+    world2view(wtmp2.xg1,wtmp2.yg1,&vp.x,&vp.y);
+    d1=fabs(vp.x-vpc.x);
+    world2view(wtmp2.xg2,wtmp2.yg2,&vp.x,&vp.y);
+    d2=fabs(vp.x-vpc.x);
+    vp.x=vpc.x-d1;
+    vp.y=vpc.y+d1;
+    xlibVPoint2dev(vp,&x1,&y1);
+    vp.x=vpc.x+d1;
+    vp.y=vpc.y-d1;
+    xlibVPoint2dev(vp,&x2,&y2);//inner circle
+
+    inner_x1=x1;
+    inner_y1=y1;
+    inner_w=x2-x1+1;
+    inner_h=y2-y1+1;
+
+    vp.x=vpc.x-d2;
+    vp.y=vpc.y+d2;
+    xlibVPoint2dev(vp,&x1,&y1);
+    vp.x=vpc.x+d2;
+    vp.y=vpc.y-d2;
+    xlibVPoint2dev(vp,&x2,&y2);//outer circle
+
+/*QColor col1(10,70,255,90);
+if (GeneralPainter!=NULL && GeneralPainter->isActive())
+GeneralPainter->setBrush(col1);*/
+
+        if (fabs(wtmp.xg2-wtmp.xg1)>=2.0*M_PI)//full circle
+        {
+            /*if (GeneralPainter!=NULL && GeneralPainter->isActive())
+            {
+            GeneralPainter->drawEllipse(x1,y1,x2-x1+1,y2-y1+1);
+            }*/
+        pp.addEllipse(x1,y1,x2-x1+1,y2-y1+1);
+        }
+        else//part circle (pie-slice)
+        {
+        d1=((wtmp.xg1<wtmp.xg2?wtmp.xg1:wtmp.xg2)+dphi)/M_PI*180.0;
+            /*if (GeneralPainter!=NULL && GeneralPainter->isActive())
+            {
+            GeneralPainter->drawPie(x1,y1,x2-x1+1,y2-y1+1,int(d1*16),int(fabs(wtmp.xg2-wtmp.xg1)/M_PI*180.0*16));
+            }*/
+        pp.moveTo(center_x,center_y);
+        pp.arcTo(x1,y1,x2-x1+1,y2-y1+1,d1,fabs(wtmp.xg2-wtmp.xg1)/M_PI*180.0);
+        pp.closeSubpath();
+        }
+pp.addEllipse(inner_x1,inner_y1,inner_w,inner_h);//central area is empty (clipping area)
+    if (GeneralPainter!=NULL && GeneralPainter->isActive())
+    {
+        /*col1=QColor(70,10,155,90);
+        GeneralPainter->setBrush(col1);
+        GeneralPainter->drawEllipse(inner_x1,inner_y1,inner_w,inner_h);*/
+    GeneralPainter->setClipPath(pp);
+    }
+}
+    for (i = 0; i < number_of_sets(gno); i++)
+    {
+        active_set=i;
         if (is_set_drawable(gno, i)) {
             get_graph_plotarr(gno, i, &p);
             switch (dataset_type(gno, i)) {
@@ -1326,7 +1583,17 @@ void draw_polar_graph(int gno)
             case SET_XYSIZE:
             case SET_XYCOLOR:
             case SET_XYZ:
+                    if (get_graph_type(gno)==GRAPH_POLAR2)
+                    {
+                    activate_Qt_Clipping();
+                    setclipping(FALSE);
+                    }
                 drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    if (get_graph_type(gno)==GRAPH_POLAR2)
+                    {
+                    deactivate_Qt_Clipping();
+                    setclipping(save_clipping);
+                    }
                 drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                 drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                 break;
@@ -1336,6 +1603,9 @@ void draw_polar_graph(int gno)
             }
         }
     }
+if (get_graph_type(gno)==GRAPH_POLAR2)
+deactivate_Qt_Clipping();
+
 }
 
 void xyplot(int gno)
@@ -1346,8 +1616,10 @@ void xyplot(int gno)
     double *refx, *refy;
     double offset, epsilon;
     QPen linePen;
+    QColor tmpColor;
     int colorNumber;
     RGB * rgbColor;
+    bool collect_cur_set_lines=false;
 
     refn = 0;
     offset = 0.0;
@@ -1360,11 +1632,16 @@ void xyplot(int gno)
     case GRAPH_XY:
         for (i = 0; i < number_of_sets(gno); i++)
         {
+            active_set=i;
             colorNumber=getpen().color;
             rgbColor=get_rgb(colorNumber);
-            linePen=QPen(QColor(rgbColor->red,rgbColor->blue,rgbColor->green));
+            tmpColor=QColor(rgbColor->red,rgbColor->blue,rgbColor->green,getpen().alpha);
+            linePen=QPen(tmpColor);
             if (is_set_drawable(gno, i))
             {
+                collect_cur_set_lines=lines_are_to_be_collected(gno,i);
+                //qDebug() << "collect G" << gno << ".S" << i << "-->" << collect_cur_set_lines;
+                collect_active=(int)collect_cur_set_lines;
                 get_graph_plotarr(gno, i, &p);
                 switch (dataset_type(gno, i))
                 {
@@ -1373,20 +1650,27 @@ void xyplot(int gno)
                 case SET_XYCOLOR:
                 case SET_XYZ:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BAR:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetbars(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BARDY:
                 case SET_BARDYDY:
-                    drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    //drawsetline(gno, i, &p, refn, refx, refy, offset);
                     drawsetbars(gno, i, &p, refn, refx, refy, offset);
+                    if (!highlight_errorbars) collect_active=0;
                     drawseterrbars(gno, i, &p, refn, refx, refy, offset);
+                    collect_active=0;
                     drawsetavalues(gno, i, &p, refn, refx, refy, offset);
+                    collect_active=(int)collect_cur_set_lines;
+                    drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    collect_active=0;
                     break;
                 case SET_XYDX:
                 case SET_XYDY:
@@ -1394,36 +1678,47 @@ void xyplot(int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                 case SET_XYDXDXDYDY:
-                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    //drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    if (!highlight_errorbars) collect_active=0;
                     drawseterrbars(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=(int)collect_cur_set_lines;
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYHILO:
                     drawsethilo(&p);
+                    collect_active=0;
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
                     drawsetvmap(gno, &p);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BOXPLOT:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    if (!highlight_errorbars) collect_active=0;
                     drawsetboxplot(&p);
+                    collect_active=0;
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg(QObject::tr("Unsupported in XY graph set type").toLocal8Bit().constData());
                     break;
                 }
+                collect_active=0;
             }
         }
         break;
     case GRAPH_CHART:
         for (i = 0; i < number_of_sets(gno); i++)
         {
+            active_set=i;
             get_graph_plotarr(gno, i, &p);
             if (is_set_drawable(gno, i))
             {
@@ -1469,6 +1764,8 @@ void xyplot(int gno)
             get_graph_plotarr(gno, i, &p);
             if (is_set_drawable(gno, i))
             {
+                collect_cur_set_lines=lines_are_to_be_collected(gno,i);
+                collect_active=(int)collect_cur_set_lines;
                 /* check that abscissas are identical with refx */
                 x = getcol(gno, i, DATA_X);
                 x_ok = TRUE;
@@ -1500,6 +1797,7 @@ void xyplot(int gno)
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    collect_active=0;
                     if (is_graph_stacked(gno) != TRUE)
                     {
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
@@ -1509,6 +1807,7 @@ void xyplot(int gno)
                 case SET_BAR:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
                     drawsetbars(gno, i, &p, refn, refx, refy, offset);
+                    collect_active=0;
                     if (is_graph_stacked(gno) != TRUE)
                     {
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
@@ -1516,28 +1815,41 @@ void xyplot(int gno)
                     break;
                 case SET_BARDY:
                 case SET_BARDYDY:
-                    drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    //drawsetline(gno, i, &p, refn, refx, refy, offset);
                     drawsetbars(gno, i, &p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE)
                     {
+                        if (!highlight_errorbars) collect_active=0;
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
+                        collect_active=0;
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
+                    collect_active=(int)collect_cur_set_lines;
+                    drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    collect_active=0;
                     break;
                 case SET_XYDY:
                 case SET_XYDYDY:
-                    drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    //drawsetline(gno, i, &p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE)
                     {
+                        if (!highlight_errorbars) collect_active=0;
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
-                        drawsetsyms(gno, i, &p, refn, refx, refy, offset);
+                        collect_active=0;
+                        //drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
+                    collect_active=(int)collect_cur_set_lines;
+                    drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    collect_active=0;
+                    if (is_graph_stacked(gno) != TRUE)
+                    drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                     break;
                 default:
                     errmsg(QObject::tr("Unsupported in XY chart set type").toLocal8Bit().constData());
                     break;
                 }
+                collect_active=0;
                 if (is_graph_stacked(gno) != TRUE)
                 {
                     offset += 0.5*0.02*p.symsize + get_graph_bargap(gno);
@@ -1566,30 +1878,38 @@ void xyplot(int gno)
                 get_graph_plotarr(gno, i, &p);
                 if (is_set_drawable(gno, i))
                 {
+                    collect_cur_set_lines=lines_are_to_be_collected(gno,i);
+                    collect_active=(int)collect_cur_set_lines;
                     switch (dataset_type(gno, i))
                     {
                     case SET_XY:
                     case SET_XYSIZE:
                     case SET_XYCOLOR:
+                        collect_active=0;
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                         break;
                     case SET_BAR:
+                        collect_active=0;
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                         break;
                     case SET_BARDY:
                     case SET_BARDYDY:
+                        if (!highlight_errorbars) collect_active=0;
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
+                        collect_active=0;
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                         break;
                     case SET_XYDY:
                     case SET_XYDYDY:
+                        if (!highlight_errorbars) collect_active=0;
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
+                        collect_active=0;
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                         break;
                     }
-                    
+                    collect_active=0;
                     for (j = 0; j < p.data.len; j++)
                     {
                         refy[j] += p.data.ex[1][j];
@@ -1606,8 +1926,11 @@ void xyplot(int gno)
     case GRAPH_FIXED:
         for (i = 0; i < number_of_sets(gno); i++)
         {
+            active_set=i;
             if (is_set_drawable(gno, i))
             {
+                collect_cur_set_lines=lines_are_to_be_collected(gno,i);
+                collect_active=(int)collect_cur_set_lines;
                 get_graph_plotarr(gno, i, &p);
                 switch (dataset_type(gno, i))
                 {
@@ -1616,6 +1939,7 @@ void xyplot(int gno)
                 case SET_XYCOLOR:
                 case SET_XYZ:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
@@ -1625,26 +1949,37 @@ void xyplot(int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                 case SET_XYDXDXDYDY:
-                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    //drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    if (!highlight_errorbars) collect_active=0;
                     drawseterrbars(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=(int)collect_cur_set_lines;
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYR:
+                    collect_active=0;
                     drawcirclexy(&p);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
-                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    //drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
                     drawsetvmap(gno, &p);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=(int)collect_cur_set_lines;
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    collect_active=0;
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg(QObject::tr("Unsupported in XY graph set type").toLocal8Bit().constData());
                     break;
                 }
+                collect_active=0;
             }
         }
         break;
@@ -1660,10 +1995,11 @@ void draw_regions(int gno)
     for (i = 0; i <= MAXREGION; i++)
     {
         //cout << "region " << i << " : active=" << rg[i].active << " region_def_under_way=" << region_def_under_way << endl;
-        if ((rg[i].active || region_def_under_way==i) && rg[i].linkto == gno)
+        if ((rg[i].active || region_def_under_way==i) && (rg[i].linkto == gno || rg[i].linkto == ALL_GRAPHS))
         {
             if (i==MAXREGION && region_def_under_way==-1) continue;
             setcolor(rg[i].color);
+            setalpha(rg[i].alpha);
             setpattern(1);
             setlinewidth(rg[i].linew);
             setlinestyle(rg[i].lines);
@@ -1681,10 +2017,13 @@ void draw_ref_point(int gno)
     if (is_refpoint_active(gno))
     {
         get_graph_locator(gno, &locator);
+        //qDebug() << "print_target=" << print_target << "printing_in_file=" << printing_in_file << "SCREEN=" << PRINT_TARGET_SCREEN << "Graph=" << gno << "locator_in_file=" << locator.plot_in_file;
+        if (printing_in_file==true && locator.plot_in_file==FALSE) return;
         wp.x = locator.dsx;
         wp.y = locator.dsy;
         vp = Wpoint2Vpoint(wp);
         setcolor(1);
+        setalpha(255);
         setpattern(1);
         setlinewidth(1.0);
         setlinestyle(1);
@@ -1710,18 +2049,60 @@ void draw_titles(int gno)
     if (lab.title.s_plotstring && lab.title.s_plotstring[0])
     {
         setcolor(lab.title.color);
+        setalpha(lab.title.alpha);
         setcharsize(lab.title.charsize);
         setfont(lab.title.font);
         vp1.y += 0.06;
+
+        vp1.x+=lab.shift_title.x;
+        vp1.y+=lab.shift_title.y;
+
+        switch (lab.title.align)
+        {
+        default:
+        case JUST_LEFT:
+        currentStringAlignment=Qt::AlignLeft;
+        break;
+        case JUST_RIGHT:
+        currentStringAlignment=Qt::AlignRight;
+        break;
+        case JUST_CENTER:
+        currentStringAlignment=Qt::AlignCenter;
+        break;
+        }
+
         WriteString(vp1, 0, JUST_CENTER|JUST_BOTTOM, lab.title.s_plotstring);
+        currentStringAlignment=Qt::AlignLeft;
+        return_last_string_bounding_box(&(g[gno].labs.title.bb));
     }
     if (lab.stitle.s_plotstring && lab.stitle.s_plotstring[0])
     {
         setcolor(lab.stitle.color);
+        setalpha(lab.stitle.alpha);
         setcharsize(lab.stitle.charsize);
         setfont(lab.stitle.font);
         vp2.y += 0.02;
+
+        vp2.x+=lab.shift_subtitle.x;
+        vp2.y+=lab.shift_subtitle.y;
+
+        switch (lab.stitle.align)
+        {
+        default:
+        case JUST_LEFT:
+        currentStringAlignment=Qt::AlignLeft;
+        break;
+        case JUST_RIGHT:
+        currentStringAlignment=Qt::AlignRight;
+        break;
+        case JUST_CENTER:
+        currentStringAlignment=Qt::AlignCenter;
+        break;
+        }
+
         WriteString(vp2, 0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s_plotstring);
+        currentStringAlignment=Qt::AlignLeft;
+        return_last_string_bounding_box(&(g[gno].labs.stitle.bb));
     }
 }
 
@@ -1967,7 +2348,7 @@ void drawsetfill(int gno, int setno, plotarr *p,
         }
         else
         {
-            getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+            getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax, FALSE);
             ybase = setybase(gno, setno);
             polylen = len + 2;
             wptmp.x = MIN2(xmax, w.xg2);
@@ -2001,10 +2382,10 @@ void drawsetfill(int gno, int setno, plotarr *p,
             {
                 wptmp.y += refy[i];
             }
-            vps[polylen-2+i] = Wpoint2Vpoint(wptmp);
-            vps[polylen-2+i].x += offset;
+            vps[polylen+i] = Wpoint2Vpoint(wptmp);//-2
+            vps[polylen+i].x += offset;//-2
         }
-        polylen+=len_poly_base-2;
+        polylen+=len_poly_base;//-2
     }
     DrawPolygon(vps, polylen);
     xfree(vps);
@@ -2249,7 +2630,7 @@ void drawsetline(int gno, int setno, plotarr *p,
         }
     }
     
-    getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+    getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax, FALSE);
 
     if (p->baseline == TRUE && stacked_chart != TRUE) {
         wp.x = xmin;
@@ -2270,6 +2651,7 @@ void drawsetsyms(int gno, int setno, plotarr *p,
 {
     int setlen;
     int i, sy = p->sym;
+    if (sy==0) return;
     double symsize;
     VPoint vp;
     WPoint wp;
@@ -2277,7 +2659,8 @@ void drawsetsyms(int gno, int setno, plotarr *p,
     int skip = p->symskip + 1;
     int stacked_chart;
     double znorm = get_graph_znorm(gno);
-    
+    (void)setno;//useless, because all information is in plotarr * p
+
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
         setlen = MIN2(p->data.len, refn);
@@ -2326,12 +2709,13 @@ void drawsetsyms(int gno, int setno, plotarr *p,
             }
             
             if (!is_validWPoint(wp)){
+            //qDebug() << "Point " << i << " not in graph!?";
                 continue;
             }
 
             vp = Wpoint2Vpoint(wp);
             vp.x += offset;
-            
+            //qDebug() << "Point " << i << "=(" << vp.x << "|" << vp.y << ")";
             if (z) {
                 symsize = z[i]/znorm;
             } else {
@@ -2345,6 +2729,7 @@ void drawsetsyms(int gno, int setno, plotarr *p,
             } else {
                 fillpen.color = p->symfillpen.color;
             }
+            fillpen.alpha = p->symfillpen.alpha;
             fillpen.pattern = p->symfillpen.pattern;
             if (drawxysym(vp, symsize, sy, p->sympen, fillpen, p->symchar)
                     != RETURN_SUCCESS) {
@@ -2454,17 +2839,31 @@ void drawsetavalues(int gno, int setno, plotarr *p, int refn, double *refx, doub
         }//value-string generated
 //cout << "Annotate Values: DecimalPointToUse=" << DecimalPointToUse << endl;
     SetDecimalSeparatorToUserValue(dummy,false);//replace Decimal separator if necessary
-        strcat(str,dummy);//add value-string to annotation
+        strcat(str, dummy);//add value-string to annotation
         strcat(str, avalue.appstr);//add append-string
         setcolor(avalue.color);
+        setalpha(avalue.alpha);
+        switch (avalue.align)
+        {
+        case JUST_LEFT:
+        currentStringAlignment=Qt::AlignLeft;
+        break;
+        case JUST_RIGHT:
+        currentStringAlignment=Qt::AlignRight;
+        break;
+        case JUST_CENTER:
+        currentStringAlignment=Qt::AlignCenter;
+        break;
+        }
         WriteString(vp, avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
+        currentStringAlignment=Qt::AlignLeft;
     }
 }
 
 void drawseterrbars(int gno, int setno, plotarr *p,
                     int refn, double *refx, double *refy, double offset)
 {
-    int i, n;
+    int i, n, no_errorbars;
     double *x, *y;
     double *dx_plus, *dx_minus, *dy_plus, *dy_minus, *dtmp;
     PlacementType ptype = p->errbar.ptype;
@@ -2472,7 +2871,8 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     VPoint vp1, vp2;
     int stacked_chart;
     int skip = p->symskip + 1;
-    
+    (void)setno;//useless, because all information is in plotarr * p
+
     if (p->errbar.active != TRUE) {
         return;
     }
@@ -2496,6 +2896,7 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     dx_minus = NULL;
     dy_plus  = NULL;
     dy_minus = NULL;
+    no_errorbars=TRUE;
     switch (p->type) {
     case SET_XYDX:
         dx_plus = p->data.ex[2];
@@ -2546,48 +2947,192 @@ void drawseterrbars(int gno, int setno, plotarr *p,
         break;
     }
     
+    if (dx_plus || dy_plus || dx_minus || dy_minus)
+    {
+    no_errorbars=FALSE;
+    }
+
     setclipping(TRUE);
     
+int boundlen=0;
+VPoint * x_error_line[2];
+VPoint * y_error_line[2];
+if (p->errbar.connect_bars>CONNECT_ERRBARS_NONE)
+{
+    for (i=0;i<2;i++)
+    {
+    x_error_line[i]=new VPoint[(n/skip+2)*2];
+    y_error_line[i]=new VPoint[(n/skip+2)*2];
+    }
+setpen(p->errbar.pen);
+setlinewidth(p->errbar.linew);
+setlinestyle(p->errbar.lines);
+    if (p->errbar.connect_bars>CONNECT_ERRBARS_X_ONLY)
+    {
+    setpattern(p->errbar.pen.pattern);
+    }
+}
+
     for (i = 0; i < n; i += skip) {
         wp1.x = x[i];
         wp1.y = y[i];
         if (stacked_chart == TRUE) {
             wp1.y += refy[i];
         }
-        if (is_validWPoint(wp1) == FALSE) {
+        if (is_validWPoint(wp1) == FALSE && no_errorbars == TRUE ) {
             continue;
-        }
+        }/// we have to check here for the errorbars to be inside the graph --> check for side of graph of point and errorbars
 
         vp1 = Wpoint2Vpoint(wp1);
         vp1.x += offset;
 
         if (dx_plus != NULL) {
             wp2 = wp1;
-            wp2.x += fabs(dx_plus[i]);
+            wp2.x += dx_plus[i];//fabs(dx_plus[i]);
             vp2 = Wpoint2Vpoint(wp2);
             vp2.x += offset;
+            //if (p->errbar.connect_bars==CONNECT_ERRBARS_XY || p->errbar.connect_bars==CONNECT_ERRBARS_X_ONLY)
+            if (p->errbar.connect_bars>CONNECT_ERRBARS_NONE)
+            x_error_line[0][boundlen]=vp2;
+            cur_errorbar=3;//none; 1=yplus,2=yminus,3=xplus,4=xminus
             drawerrorbar(vp1, vp2, &p->errbar);
         }
         if (dx_minus != NULL) {
             wp2 = wp1;
-            wp2.x -= fabs(dx_minus[i]);
+            wp2.x -= dx_minus[i];//fabs(dx_minus[i]);
             vp2 = Wpoint2Vpoint(wp2);
             vp2.x += offset;
+            //if (p->errbar.connect_bars==CONNECT_ERRBARS_XY || p->errbar.connect_bars==CONNECT_ERRBARS_X_ONLY)
+            if (p->errbar.connect_bars>CONNECT_ERRBARS_NONE)
+            x_error_line[1][boundlen]=vp2;
+            cur_errorbar=4;//none; 1=yplus,2=yminus,3=xplus,4=xminus
             drawerrorbar(vp1, vp2, &p->errbar);
         }
         if (dy_plus != NULL) {
             wp2 = wp1;
-            wp2.y += fabs(dy_plus[i]);
+            wp2.y += dy_plus[i];//fabs(dy_plus[i]);
             vp2 = Wpoint2Vpoint(wp2);
             vp2.x += offset;
+            //if (p->errbar.connect_bars==CONNECT_ERRBARS_XY || p->errbar.connect_bars==CONNECT_ERRBARS_Y_ONLY)
+            if (p->errbar.connect_bars>CONNECT_ERRBARS_NONE)
+            y_error_line[0][boundlen]=vp2;
+            cur_errorbar=1;//none; 1=yplus,2=yminus,3=xplus,4=xminus
             drawerrorbar(vp1, vp2, &p->errbar);
         }
         if (dy_minus != NULL) {
             wp2 = wp1;
-            wp2.y -= fabs(dy_minus[i]);
+            wp2.y -= dy_minus[i];//fabs(dy_minus[i]);
             vp2 = Wpoint2Vpoint(wp2);
             vp2.x += offset;
+            //if (p->errbar.connect_bars==CONNECT_ERRBARS_XY || p->errbar.connect_bars==CONNECT_ERRBARS_Y_ONLY)
+            if (p->errbar.connect_bars>CONNECT_ERRBARS_NONE)
+            y_error_line[1][boundlen]=vp2;
+            cur_errorbar=2;//none; 1=yplus,2=yminus,3=xplus,4=xminus
             drawerrorbar(vp1, vp2, &p->errbar);
+        }
+        boundlen++;
+    }
+    if (p->errbar.connect_bars>CONNECT_ERRBARS_NONE)
+    {
+        int boundlen2=0;
+        if (ptype==PLACEMENT_OPPOSITE || ptype==PLACEMENT_NORMAL)
+        {
+            for (i = 0; i < n; i += skip)
+            {
+                wp1.x = x[i];
+                wp1.y = y[i];
+            if (dx_plus == NULL) {
+                vp2 = Wpoint2Vpoint(wp1);
+                vp2.x += offset;
+                x_error_line[0][boundlen2]=vp2;
+                cur_errorbar=3;//none; 1=yplus,2=yminus,3=xplus,4=xminus
+            }
+            if (dx_minus == NULL) {
+                vp2 = Wpoint2Vpoint(wp1);
+                vp2.x += offset;
+                x_error_line[1][boundlen2]=vp2;
+                cur_errorbar=4;//none; 1=yplus,2=yminus,3=xplus,4=xminus
+            }
+            if (dy_plus == NULL) {
+                vp2 = Wpoint2Vpoint(wp1);
+                vp2.x += offset;
+                y_error_line[0][boundlen2]=vp2;
+                cur_errorbar=1;//none; 1=yplus,2=yminus,3=xplus,4=xminus
+            }
+            if (dy_minus == NULL) {
+                vp2 = Wpoint2Vpoint(wp1);
+                vp2.x += offset;
+                y_error_line[1][boundlen2]=vp2;
+                cur_errorbar=2;//none; 1=yplus,2=yminus,3=xplus,4=xminus
+            }
+            boundlen2++;
+            }
+        }
+
+    //actually draw the lines
+        if ((dx_plus != NULL || dx_minus != NULL) && (p->errbar.connect_bars==CONNECT_ERRBARS_XY || p->errbar.connect_bars==CONNECT_ERRBARS_X_ONLY))
+        {
+            if (dx_plus != NULL)
+            {
+            DrawPolyline(x_error_line[0], boundlen, POLYLINE_OPEN);
+            }
+            if (dx_minus != NULL)
+            {
+            DrawPolyline(x_error_line[1], boundlen, POLYLINE_OPEN);
+            }
+        }
+        if ((dy_plus != NULL || dy_minus != NULL) && (p->errbar.connect_bars==CONNECT_ERRBARS_XY || p->errbar.connect_bars==CONNECT_ERRBARS_Y_ONLY))
+        {
+            if (dy_plus != NULL)
+            {
+            DrawPolyline(y_error_line[0], boundlen, POLYLINE_OPEN);
+            }
+            if (dy_minus != NULL)
+            {
+            DrawPolyline(y_error_line[1], boundlen, POLYLINE_OPEN);
+            }
+        }
+        if ((dx_plus != NULL || dx_minus != NULL) && (p->errbar.connect_bars==CONNECT_ERRBARS_FILL_X || p->errbar.connect_bars==CONNECT_ERRBARS_FILL_XY))
+        {
+            int n_polygon=boundlen*2;
+            VPoint *vps_polygon=new VPoint[n_polygon];
+
+            for (int k=0;k<boundlen;k++)
+            vps_polygon[k]=x_error_line[0][k];
+
+            for (int k=0;k<boundlen;k++)
+            vps_polygon[boundlen+k]=x_error_line[1][boundlen-1-k];
+
+            setalpha(p->errbar.pen.alpha);
+            DrawPolygon(vps_polygon,n_polygon);
+            setalpha(255);
+            DrawPolyline(vps_polygon,n_polygon,POLYLINE_CLOSED);
+            setalpha(p->errbar.pen.alpha);
+            delete[] vps_polygon;
+        }
+        if ((dy_plus != NULL || dy_minus != NULL) && (p->errbar.connect_bars==CONNECT_ERRBARS_FILL_Y || p->errbar.connect_bars==CONNECT_ERRBARS_FILL_XY))
+        {
+            int n_polygon=boundlen*2;
+            VPoint *vps_polygon=new VPoint[n_polygon];
+
+            for (int k=0;k<boundlen;k++)
+            vps_polygon[k]=y_error_line[0][k];
+
+            for (int k=0;k<boundlen;k++)
+            vps_polygon[boundlen+k]=y_error_line[1][boundlen-1-k];
+
+            setalpha(p->errbar.pen.alpha);
+            DrawPolygon(vps_polygon,n_polygon);
+            setalpha(255);
+            DrawPolyline(vps_polygon,n_polygon,POLYLINE_CLOSED);
+            setalpha(p->errbar.pen.alpha);
+            delete[] vps_polygon;
+        }
+    //clear memory
+        for (i=0;i<2;i++)
+        {
+        delete[] x_error_line[i];
+        delete[] y_error_line[i];
         }
     }
 }
@@ -2999,6 +3544,7 @@ int drawxysym(VPoint vp, double size, int symtype,
         break;
     case SYM_CHAR:
         setcolor(sympen.color);
+        setalpha(sympen.alpha);
         buf[0] = s;
         buf[1] = '\0';
         setcharsize(size);
@@ -3060,6 +3606,7 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
         arrow.length = 2*eb->barsize;
         setlinewidth(eb->linew);
         setlinestyle(eb->lines);
+        if (eb->connect_bars==CONNECT_ERRBARS_NONE || ((eb->connect_bars==CONNECT_ERRBARS_X_ONLY || eb->connect_bars==CONNECT_ERRBARS_FILL_X) && (cur_errorbar==1 || cur_errorbar==2)) || ((eb->connect_bars==CONNECT_ERRBARS_Y_ONLY || eb->connect_bars==CONNECT_ERRBARS_FILL_Y) && (cur_errorbar==3 || cur_errorbar==4)))
         draw_arrowhead(vp1, vp2, &arrow);
     } else {
         setlinewidth(eb->riser_linew);
@@ -3072,6 +3619,7 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
         vp_minus.y = vp2.y + ilen*lvv.x;
         vp_plus.x  = vp2.x + ilen*lvv.y;
         vp_plus.y  = vp2.y - ilen*lvv.x;
+        if (eb->connect_bars==CONNECT_ERRBARS_NONE || ((eb->connect_bars==CONNECT_ERRBARS_X_ONLY || eb->connect_bars==CONNECT_ERRBARS_FILL_X) && (cur_errorbar==1 || cur_errorbar==2)) || ((eb->connect_bars==CONNECT_ERRBARS_Y_ONLY || eb->connect_bars==CONNECT_ERRBARS_FILL_Y) && (cur_errorbar==3 || cur_errorbar==4)))
         DrawLine(vp_minus, vp_plus);
     }
 }
@@ -3120,9 +3668,13 @@ void draw_objects(int gno)
  */
 void draw_string(int gno, int i)
 {
-    plotstr pstr;
-    VPoint vp;
-    WPoint wptmp;
+static plotstr pstr;
+static VPoint vp;
+static WPoint wptmp;
+static Page_geometry pg;
+static view gv,st_v;
+static int align_t,align_x,align_y;
+static double dx,dy;
 
     get_graph_string(i, &pstr);
 
@@ -3144,8 +3696,12 @@ void draw_string(int gno, int i)
             vp.x = pstr.x;
             vp.y = pstr.y;
         }
+        align_y=pstr.master_align%10;
+        align_x=(pstr.master_align/10)%10;
+        align_t=(pstr.master_align/100)%10;
 
         setcolor(pstr.color);
+        setalpha(pstr.alpha);
         setpattern(1);
         setcharsize(pstr.charsize);
         setfont(pstr.font);
@@ -3153,7 +3709,7 @@ void draw_string(int gno, int i)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        /*if (curdevice==0 && useQtFonts==true)
+/*if (curdevice==0 && useQtFonts==true)
 {
 vp.x+=0.2;
 WriteQtString(vp, pstr.rot, pstr.just, pstr.s,pstr.charsize,pstr.font,pstr.color);
@@ -3163,11 +3719,112 @@ else
 {
 WriteString(vp, pstr.rot, pstr.just, pstr.s);
 }*/
+        switch (pstr.align)
+        {
+        case JUST_LEFT:
+        currentStringAlignment=Qt::AlignLeft;
+        break;
+        case JUST_RIGHT:
+        currentStringAlignment=Qt::AlignRight;
+        break;
+        case JUST_CENTER:
+        currentStringAlignment=Qt::AlignCenter;
+        break;
+        }
+        //qDebug() << pstr.s_plotstring << " Alignment:" << pstr.align;
+        dx=dy=0.0;
+        if (align_t!=MASTER_ALIGN_TARGET_NONE)
+        {
+        set_draw_mode(FALSE);
+        WriteString(vp, pstr.rot, pstr.just, pstr.s_plotstring);
+        set_draw_mode(TRUE);
+        reset_bbox(BBOX_TYPE_TEMP);
+        return_last_string_bounding_box(&st_v);
+            if (align_t==MASTER_ALIGN_TARGET_PAGE)
+            {
+            pg=get_page_geometry();
+            //qDebug() << "Page Geometry=" << pg.width << "x" << pg.height;
+            gv.xv1=gv.xv2=gv.yv1=gv.yv2=0.0;
+                if (pg.width > pg.height)//landscape
+                {
+                gv.yv2=1.0;
+                gv.xv2=pg.width*1.0/pg.height;
+                }
+                else//portrait
+                {
+                gv.yv2=pg.height*1.0/pg.width;
+                gv.xv2=1.0;
+                }
+            }
+            else if (get_graph_viewport(pstr.gno,&gv)==RETURN_SUCCESS)//Graph
+            {
+            //qDebug() << gv.xv1 << "|" << gv.yv1 << "x" << gv.xv2 << "|" << gv.yv2;
+            ;//qDebug() << "Graph viewport found!";
+            }
+            //qDebug() << "GV(" << pstr.gno << ")=" << gv.xv1 << "|" << gv.yv1 << "x" << gv.xv2 << "|" << gv.yv2;
+            //qDebug() << "ST_V =" << st_v.xv1 << "|" << st_v.yv1 << "x" << st_v.xv2 << "|" << st_v.yv2;
+            switch (align_x)
+            {
+            case MASTER_ALIGN_X_NONE:
+            dx=0.0;
+            break;
+            case MASTER_ALIGN_X_LEFT_IN:
+            dx=st_v.xv1-gv.xv1;
+            break;
+            case MASTER_ALIGN_X_LEFT_OUT:
+            dx=st_v.xv1-gv.xv1+(st_v.xv2-st_v.xv1);
+            break;
+            case MASTER_ALIGN_X_CENTER:
+            dx=st_v.xv1-gv.xv1-(gv.xv2-gv.xv1)*0.5+(st_v.xv2-st_v.xv1)*0.5;
+            break;
+            case MASTER_ALIGN_X_RIGHT_IN:
+            dx=st_v.xv1-gv.xv2+(st_v.xv2-st_v.xv1);
+            break;
+            case MASTER_ALIGN_X_RIGHT_OUT:
+            dx=st_v.xv1-gv.xv2;
+            break;
+            }
+
+            switch (align_y)
+            {
+            case MASTER_ALIGN_Y_NONE:
+            dy=0.0;
+            break;
+            case MASTER_ALIGN_Y_DOWN_IN:
+            dy=st_v.yv1-gv.yv1;
+            break;
+            case MASTER_ALIGN_Y_DOWN_OUT:
+            dy=st_v.yv1-gv.yv1+(st_v.yv2-st_v.yv1);
+            break;
+            case MASTER_ALIGN_Y_CENTER:
+            dy=st_v.yv1-gv.yv1-(gv.yv2-gv.yv1)*0.5+(st_v.yv2-st_v.yv1)*0.5;
+            break;
+            case MASTER_ALIGN_Y_UP_IN:
+            dy=st_v.yv1-gv.yv2+(st_v.yv2-st_v.yv1);
+            break;
+            case MASTER_ALIGN_Y_UP_OUT:
+            dy=st_v.yv1-gv.yv2;
+            break;
+            }
+        }
+        //qDebug() << "master_align=" << pstr.master_align << "dx=" << dx << "dy=" << dy;
+        vp.x-=dx;
+        vp.y-=dy;
 
         WriteString(vp, pstr.rot, pstr.just, pstr.s_plotstring);
 
+        currentStringAlignment=Qt::AlignLeft;
+
         pstr.bb = get_bbox(BBOX_TYPE_TEMP);
         set_graph_string(i, &pstr);
+#ifdef DEBUG_SHOW_TEXT_BOUNDING_BOXES
+    VPoint vp1,vp2;
+    vp1.x=pstr.bb.xv1;
+    vp1.y=pstr.bb.yv1;
+    vp2.x=pstr.bb.xv2;
+    vp2.y=pstr.bb.yv2;
+    draw_simple_rectangle(vp1,vp2,3);/// draw whole bounding box in green
+#endif
     }
 }
 
@@ -3212,10 +3869,12 @@ void draw_box(int gno, int i)
         RotationAngle=-b.rot;//changed to '-' starting with 0.2.4
 
         setcolor(b.fillcolor);
+        setalpha(b.fillalpha);
         setpattern(b.fillpattern);
         FillRect_(vp1, vp2);
         
         setcolor(b.color);
+        setalpha(b.alpha);
         setlinewidth(b.linew);
         setlinestyle(b.lines);
         setpattern(1);
@@ -3223,7 +3882,72 @@ void draw_box(int gno, int i)
         
         b.bb = get_bbox(BBOX_TYPE_TEMP);
         set_graph_box(i, &b);
-        
+
+        expand_local_bounding_box(b.bb,&global_bb_ll,&global_bb_ur);
+
+        if (print_target==PRINT_TARGET_SCREEN && b.filltype==1)//image
+        {
+        #ifndef USE_FLOATING_POINT_DATA
+        QPoint *p = new QPoint[4];
+        #else
+        QPointF *p = new QPointF[4];
+        #endif
+        for (i = 0; i < 4; i++)
+        {
+        #ifndef USE_FLOATING_POINT_DATA
+        vp1.x=b.x1;
+        vp1.y=b.y1;
+        p[0] = VPoint2XPoint(vp1);
+        vp1.x=b.x1;
+        vp1.y=b.y2;
+        p[1] = VPoint2XPoint(vp1);
+        vp1.x=b.x2;
+        vp1.y=b.y2;
+        p[2] = VPoint2XPoint(vp1);
+        vp1.x=b.x2;
+        vp1.y=b.y1;
+        p[3] = VPoint2XPoint(vp1);
+        #else
+        vp1.x=b.x1;
+        vp1.y=b.y1;
+        p[0] = VPoint2XPointF(vp1);
+        vp1.x=b.x1;
+        vp1.y=b.y2;
+        p[1] = VPoint2XPointF(vp1);
+        vp1.x=b.x2;
+        vp1.y=b.y2;
+        p[2] = VPoint2XPointF(vp1);
+        vp1.x=b.x2;
+        vp1.y=b.y1;
+        p[3] = VPoint2XPointF(vp1);
+        #endif
+        }
+        if (RotationAngle!=0)
+        {
+        int cx=abs(p[2].x()+p[0].x())/2,cy=abs(p[2].y()+p[0].y())/2;
+        QPoint cpoint(cx,cy);
+        set_Rotation_Matrix(cx,cy,RotationAngle);
+            for (int i=0;i<4;i++)
+            {
+            p[i]-=cpoint;
+            }
+        }
+        //qDebug() << "Center=" << abs(p[2].x()+p[0].x())/2 << "|" << abs(p[2].y()+p[0].y())/2;
+        QColor def_col;
+        RGB * rgbColor=get_rgb(b.color);
+        def_col.setRgb(rgbColor->red,rgbColor->green,rgbColor->blue,b.alpha);
+        //QRect box_rect(MIN2(b.x1,b.x2),MIN2(b.y1,b.y2),abs(b.x2-b.x1),abs(b.y2-b.y1));
+        QRect box_rect(MIN2(p[2].x(),p[0].x()),MIN2(p[2].y(),p[0].y()),abs(p[2].x()-p[0].x()),abs(p[2].y()-p[0].y()));
+        GeneralPainter->setClipRect(box_rect);
+        GeneralPainter->setClipping(true);
+        //qDebug() << "Box: drawRect=" << box_rect;
+        drawImageOnPainter(GeneralPainter,b.fillimage,box_rect,def_col);
+        if (RotationAngle!=0)
+        reset_Transformation_Matrix();
+        delete[] p;
+        GeneralPainter->setClipping(false);
+        }
+
         setclipping(TRUE);
         RotationAngle=0;
     }
@@ -3269,10 +3993,12 @@ void draw_ellipse(int gno, int i)
         RotationAngle=-b.rot;//changed to '-' starting with 0.2.4
 
         setcolor(b.fillcolor);
+        setalpha(b.fillalpha);
         setpattern(b.fillpattern);
         DrawFilledEllipse(vp1, vp2);
         
         setcolor(b.color);
+        setalpha(b.alpha);
         setlinewidth(b.linew);
         setlinestyle(b.lines);
         setpattern(1);
@@ -3280,6 +4006,72 @@ void draw_ellipse(int gno, int i)
         
         b.bb = get_bbox(BBOX_TYPE_TEMP);
         set_graph_ellipse(i, &b);
+
+        expand_local_bounding_box(b.bb,&global_bb_ll,&global_bb_ur);
+
+        if (print_target==PRINT_TARGET_SCREEN && b.filltype==1)//image
+        {
+        #ifndef USE_FLOATING_POINT_DATA
+        QPoint *p = new QPoint[4];
+        #else
+        QPointF *p = new QPointF[4];
+        #endif
+        for (i = 0; i < 4; i++)
+        {
+        #ifndef USE_FLOATING_POINT_DATA
+        vp1.x=b.x1;
+        vp1.y=b.y1;
+        p[0] = VPoint2XPoint(vp1);
+        vp1.x=b.x1;
+        vp1.y=b.y2;
+        p[1] = VPoint2XPoint(vp1);
+        vp1.x=b.x2;
+        vp1.y=b.y2;
+        p[2] = VPoint2XPoint(vp1);
+        vp1.x=b.x2;
+        vp1.y=b.y1;
+        p[3] = VPoint2XPoint(vp1);
+        #else
+        vp1.x=b.x1;
+        vp1.y=b.y1;
+        p[0] = VPoint2XPointF(vp1);
+        vp1.x=b.x1;
+        vp1.y=b.y2;
+        p[1] = VPoint2XPointF(vp1);
+        vp1.x=b.x2;
+        vp1.y=b.y2;
+        p[2] = VPoint2XPointF(vp1);
+        vp1.x=b.x2;
+        vp1.y=b.y1;
+        p[3] = VPoint2XPointF(vp1);
+        #endif
+        }
+        if (RotationAngle!=0)
+        {
+        int cx=abs(p[2].x()+p[0].x())/2,cy=abs(p[2].y()+p[0].y())/2;
+        QPoint cpoint(cx,cy);
+        set_Rotation_Matrix(cx,cy,RotationAngle);
+            for (int i=0;i<4;i++)
+            {
+            p[i]-=cpoint;
+            }
+        }
+        QColor def_col;
+        RGB * rgbColor=get_rgb(b.color);
+        def_col.setRgb(rgbColor->red,rgbColor->green,rgbColor->blue,b.alpha);
+        //QRect box_rect(MIN2(b.x1,b.x2),MIN2(b.y1,b.y2),abs(b.x2-b.x1),abs(b.y2-b.y1));
+        QRect box_rect(MIN2(p[2].x(),p[0].x()),MIN2(p[2].y(),p[0].y()),abs(p[2].x()-p[0].x()),abs(p[2].y()-p[0].y()));
+        QPainterPath pat;
+        pat.addEllipse(box_rect);
+        GeneralPainter->setClipPath(pat);
+        GeneralPainter->setClipping(true);
+        //qDebug() << "Ellipse: drawRect=" << box_rect;
+        drawImageOnPainter(GeneralPainter,b.fillimage,box_rect,def_col);
+        if (RotationAngle!=0)
+        reset_Transformation_Matrix();
+        delete[] p;
+        GeneralPainter->setClipping(false);
+        }
 
         setclipping(TRUE);
         RotationAngle=0;
@@ -3325,6 +4117,7 @@ void draw_line(int gno, int i)
         reset_bbox(BBOX_TYPE_TEMP);
         
         setcolor(l.color);
+        setalpha(l.alpha);
         setlinewidth(l.linew);
         setlinestyle(l.lines);
         DrawLine(vp1, vp2);
@@ -3346,6 +4139,8 @@ void draw_line(int gno, int i)
 
         l.bb = get_bbox(BBOX_TYPE_TEMP);
         set_graph_line(i, &l);
+
+        expand_local_bounding_box(l.bb,&global_bb_ll,&global_bb_ur);
 
         setclipping(TRUE);
     }
@@ -3403,9 +4198,11 @@ void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp)
     case 2:
         fg = getcolor();
         setcolor(getbgcolor());
+        setalpha(getbgalpha());
         setpattern(1);
         DrawPolygon(vps, 4);
         setcolor(fg);
+        setalpha(getalpha());
         DrawPolyline(vps, 4, POLYLINE_CLOSED);
         break;
     default:
@@ -3608,6 +4405,7 @@ void dolegend(int gno)
     reset_bbox(BBOX_TYPE_TEMP);
     update_bbox(BBOX_TYPE_TEMP, vp);
 
+//qDebug() << "Draw mode = FALSE" << endl;
     set_draw_mode(FALSE);
     putlegends(gno, vp, ldist, sdist, yskip);
     v = get_bbox(BBOX_TYPE_TEMP);
@@ -3678,7 +4476,7 @@ void dolegend(int gno)
 
     reset_bbox(BBOX_TYPE_TEMP);
     update_bbox(BBOX_TYPE_TEMP, vp);
-
+//qDebug() << "After correction" << endl;
     putlegends(gno, vp, ldist, sdist, yskip);
     l.legx=old_vp_x;
     l.legy=old_vp_y;
@@ -3691,8 +4489,15 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
 {
     int i, setno;
     VPoint vp2, vpstr;
+    VPoint tvp1,tvp2;
+    VPoint tvpa,tvpb;
+    VPoint vptmp;
+    VPoint * fill_box=new VPoint[4];
+    double tmp_w;
+const double errorbarlength=1.35;
     plotarr p;
     legend l;
+    int x_box,y_box;
     
     vp2.y = vp.y;
     vp2.x = vp.x + ldist;
@@ -3700,7 +4505,13 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
     vpstr.x = vp2.x + sdist;
     
     get_graph_legend(gno, &l);
-    
+
+//qDebug() << "Start Legend bb_temp: x=" << get_bbox(BBOX_TYPE_TEMP).xv1 << "-" << get_bbox(BBOX_TYPE_TEMP).xv2 << " y=" << get_bbox(BBOX_TYPE_TEMP).yv1 << "-" << get_bbox(BBOX_TYPE_TEMP).yv2;
+
+    nr_of_legend_entries[gno]=0;
+    legend_entry_border[gno][nr_of_legend_entries[gno]]=get_bbox(BBOX_TYPE_TEMP).yv1;
+    legend_entry_x_stop[gno]=legend_entry_x_start[gno]=get_bbox(BBOX_TYPE_TEMP).xv1;
+
     for (i = 0; i < number_of_sets(gno); i++) {
         if (l.invert == FALSE) {
             setno = i;
@@ -3709,21 +4520,312 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
         }
         if (is_set_drawable(gno, setno)) {
             get_graph_plotarr(gno, setno, &p);
-            
-            if (p.lstr == NULL || p.lstr[0] == '\0') {
+            //if (p.lstr == NULL || p.lstr[0] == '\0') {
+            if (p.lstr[0] == '\0') {
                 continue;
             }
-            
+
+            legend_entry_setno[gno][nr_of_legend_entries[gno]]=i;
+
             setcharsize(l.charsize);
             setfont(l.font);
             setcolor(l.color);
+            setalpha(l.alpha);
+            switch (l.align)
+            {
+            case JUST_LEFT:
+            currentStringAlignment=Qt::AlignLeft;
+            break;
+            case JUST_RIGHT:
+            currentStringAlignment=Qt::AlignRight;
+            break;
+            case JUST_CENTER:
+            currentStringAlignment=Qt::AlignCenter;
+            break;
+            }
             WriteString(vpstr, 0, JUST_LEFT|JUST_TOP, p.lstr);
+            currentStringAlignment=Qt::AlignLeft;
+            legend_entry_x_start[gno]=vpstr.x;
+//qDebug() << "Entry=" << nr_of_legend_entries[gno] << " x=" << vpstr.x;
             vp.y = (vpstr.y + get_bbox(BBOX_TYPE_TEMP).yv1)/2;
             vp2.y = vp.y;
             vpstr.y = get_bbox(BBOX_TYPE_TEMP).yv1 - yskip;
-            
+
+            legend_entry_x_stop[gno]=get_bbox(BBOX_TYPE_TEMP).xv2;
+            legend_entry_border[gno][nr_of_legend_entries[gno]+1]=get_bbox(BBOX_TYPE_TEMP).yv1;
+            nr_of_legend_entries[gno]++;
+//qDebug() << i << " In Legend bb_temp: x=" << get_bbox(BBOX_TYPE_TEMP).xv1 << "-" << get_bbox(BBOX_TYPE_TEMP).xv2 << " y=" << get_bbox(BBOX_TYPE_TEMP).yv1 << "-" << get_bbox(BBOX_TYPE_TEMP).yv2 << " Label=" << p.lstr;
             setfont(p.charfont);
             
+            vptmp.x = (vp.x + vp2.x)/2;
+            vptmp.y = vp.y;
+            if (p.errbar.connect_bars==CONNECT_ERRBARS_FILL_Y || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_XY)
+            y_box=1;
+            else
+            y_box=0;
+            if (p.errbar.connect_bars==CONNECT_ERRBARS_FILL_X || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_XY)
+            x_box=1;
+            else
+            x_box=0;
+
+            /*Start drawing errorbars in legend*/
+            if (p.errbar.show_in_legend && has_errorbar(gno, setno, 0))/*we have to show x-error-bars in the legend*/
+            {
+                setpen(p.errbar.pen);
+                tmp_w=p.symsize*0.02*0.5;
+                if (l.len != 0 && p.lines != 0 && p.linet != 0)/*a line exists --> draw everything two times*/
+                {
+                /*left*/
+                setlinewidth(p.errbar.linew);
+                setlinestyle(p.errbar.lines);
+                tvp1.x=vp.x-tmp_w*errorbarlength;
+                tvp2.x=vp.x-tmp_w*errorbarlength;
+                tvp1.y=vp.y+tmp_w;
+                tvp2.y=vp.y-tmp_w;
+                    if (x_box==0)
+                    if ((p.errbar.ptype==PLACEMENT_OPPOSITE || p.errbar.ptype==PLACEMENT_BOTH) && (p.errbar.connect_bars==CONNECT_ERRBARS_NONE || p.errbar.connect_bars==CONNECT_ERRBARS_Y_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_Y))
+                    DrawLine(tvp1, tvp2);
+                tvp1.x=vp.x+tmp_w*errorbarlength;
+                tvp2.x=vp.x+tmp_w*errorbarlength;
+                    if (x_box==0)
+                    if ((p.errbar.ptype==PLACEMENT_NORMAL || p.errbar.ptype==PLACEMENT_BOTH) && (p.errbar.connect_bars==CONNECT_ERRBARS_NONE || p.errbar.connect_bars==CONNECT_ERRBARS_Y_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_Y))
+                    DrawLine(tvp1, tvp2);
+                tvp2.y=tvp1.y=vp.y;
+                tvp1.x=vp.x-tmp_w*errorbarlength;
+                tvp2.x=vp.x+tmp_w*errorbarlength;
+
+                fill_box[0].x=vp.x-tmp_w*errorbarlength;
+                fill_box[0].y=vp.y+0.5*tmp_w*errorbarlength;
+                fill_box[1].x=vp2.x+tmp_w*errorbarlength;
+                fill_box[1].y=vp2.y+0.5*tmp_w*errorbarlength;
+                fill_box[2].x=vp2.x+tmp_w*errorbarlength;
+                fill_box[2].y=vp2.y-0.5*tmp_w*errorbarlength;
+                fill_box[3].x=vp.x-tmp_w*errorbarlength;
+                fill_box[3].y=vp.y-0.5*tmp_w*errorbarlength;
+
+                setlinewidth(p.errbar.riser_linew);
+                setlinestyle(p.errbar.riser_lines);
+                    if (p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                    else if (p.errbar.ptype==PLACEMENT_NORMAL)
+                    DrawLine(vp, tvp2);
+                    else
+                    DrawLine(tvp1, vp);
+                /*right*/
+                setlinewidth(p.errbar.linew);
+                setlinestyle(p.errbar.lines);
+                tvp1.x=vp2.x-tmp_w*errorbarlength;
+                tvp2.x=vp2.x-tmp_w*errorbarlength;
+                tvp1.y=vp2.y+tmp_w;
+                tvp2.y=vp2.y-tmp_w;
+                    if (x_box==0)
+                    if ((p.errbar.ptype==PLACEMENT_OPPOSITE || p.errbar.ptype==PLACEMENT_BOTH) && (p.errbar.connect_bars==CONNECT_ERRBARS_NONE || p.errbar.connect_bars==CONNECT_ERRBARS_Y_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_Y))
+                    DrawLine(tvp1, tvp2);
+                tvp1.x=vp2.x+tmp_w*errorbarlength;
+                tvp2.x=vp2.x+tmp_w*errorbarlength;
+                    if (x_box==0)
+                    if ((p.errbar.ptype==PLACEMENT_NORMAL || p.errbar.ptype==PLACEMENT_BOTH) && (p.errbar.connect_bars==CONNECT_ERRBARS_NONE || p.errbar.connect_bars==CONNECT_ERRBARS_Y_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_Y))
+                    DrawLine(tvp1, tvp2);
+                tvp2.y=tvp1.y=vp2.y;
+                tvp1.x=vp2.x-tmp_w*errorbarlength;
+                tvp2.x=vp2.x+tmp_w*errorbarlength;
+                setlinewidth(p.errbar.riser_linew);
+                setlinestyle(p.errbar.riser_lines);
+                    if (p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                    else if (p.errbar.ptype==PLACEMENT_NORMAL)
+                    DrawLine(vp2, tvp2);
+                    else
+                    DrawLine(tvp1, vp2);
+                        /*if (p.errbar.connect_bars==CONNECT_ERRBARS_X_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_XY)
+                        {
+                        setlinewidth(p.errbar.linew);
+                        setlinestyle(p.errbar.lines);
+                        if (p.errbar.ptype==PLACEMENT_NORMAL || p.errbar.ptype==PLACEMENT_BOTH)
+                        DrawLine(tvpa, tvpb);
+                        tvpa.y-=2*tmp_w*errorbarlength;
+                        tvpb.y-=2*tmp_w*errorbarlength;
+                        if (p.errbar.ptype==PLACEMENT_OPPOSITE || p.errbar.ptype==PLACEMENT_BOTH)
+                        DrawLine(tvpa, tvpb);
+                        }*/
+                }
+                else/*no line --> draw everything just once*/
+                {
+                setlinewidth(p.errbar.linew);
+                setlinestyle(p.errbar.lines);
+                tvp1.x=vptmp.x-tmp_w*errorbarlength;
+                tvp2.x=vptmp.x-tmp_w*errorbarlength;
+                tvp1.y=vptmp.y+tmp_w;
+                tvp2.y=vptmp.y-tmp_w;
+                    if (x_box==0)
+                    if (p.errbar.ptype==PLACEMENT_OPPOSITE || p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                tvp1.x=vptmp.x+tmp_w*errorbarlength;
+                tvp2.x=vptmp.x+tmp_w*errorbarlength;
+                    if (x_box==0)
+                    if (p.errbar.ptype==PLACEMENT_NORMAL || p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                tvp2.y=tvp1.y=vptmp.y;
+                tvp1.x=vptmp.x-tmp_w*errorbarlength;
+                tvp2.x=vptmp.x+tmp_w*errorbarlength;
+                setlinewidth(p.errbar.riser_linew);
+                setlinestyle(p.errbar.riser_lines);
+                    if (p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                    else if (p.errbar.ptype==PLACEMENT_NORMAL)
+                    DrawLine(vptmp, tvp2);
+                    else
+                    DrawLine(tvp1, vptmp);
+
+                fill_box[0].x=vptmp.x-tmp_w*errorbarlength;
+                fill_box[0].y=vptmp.y+0.5*tmp_w*errorbarlength;
+                fill_box[1].x=vptmp.x+tmp_w*errorbarlength;
+                fill_box[1].y=vptmp.y+0.5*tmp_w*errorbarlength;
+                fill_box[2].x=vptmp.x+tmp_w*errorbarlength;
+                fill_box[2].y=vptmp.y-0.5*tmp_w*errorbarlength;
+                fill_box[3].x=vptmp.x-tmp_w*errorbarlength;
+                fill_box[3].y=vptmp.y-0.5*tmp_w*errorbarlength;
+                }
+            }
+            if (x_box==1)
+            {
+            setpattern(p.errbar.pen.pattern);
+            setalpha(p.errbar.pen.alpha);
+            DrawPolygon(fill_box,4);
+            setalpha(255);
+            DrawPolyline(fill_box,4,POLYLINE_CLOSED);
+            setalpha(p.errbar.pen.alpha);
+            }
+            if (p.errbar.show_in_legend && has_errorbar(gno, setno, 1))/*we have to show y-error-bars in the legend*/
+            {
+                setpen(p.errbar.pen);
+                tmp_w=p.symsize*0.02*0.5;
+                if (l.len != 0 && p.lines != 0 && p.linet != 0)/*a line exists --> draw everything two times*/
+                {
+                /*left*/
+                setlinewidth(p.errbar.linew);
+                setlinestyle(p.errbar.lines);
+                tvp1.x=vp.x-tmp_w;
+                tvp2.x=vp.x+tmp_w;
+                tvp1.y=vp.y+tmp_w*errorbarlength;
+                tvp2.y=vp.y+tmp_w*errorbarlength;
+                tvpa.x=vp.x;
+                tvpa.y=tvp1.y;
+                    if (y_box==0)
+                    if ((p.errbar.ptype==PLACEMENT_NORMAL || p.errbar.ptype==PLACEMENT_BOTH) && (p.errbar.connect_bars==CONNECT_ERRBARS_NONE || p.errbar.connect_bars==CONNECT_ERRBARS_X_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_X))
+                    DrawLine(tvp1, tvp2);
+                tvp1.y=vp.y-tmp_w*errorbarlength;
+                tvp2.y=vp.y-tmp_w*errorbarlength;
+                    if (y_box==0)
+                    if ((p.errbar.ptype==PLACEMENT_OPPOSITE || p.errbar.ptype==PLACEMENT_BOTH) && (p.errbar.connect_bars==CONNECT_ERRBARS_NONE || p.errbar.connect_bars==CONNECT_ERRBARS_X_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_X))
+                    DrawLine(tvp1, tvp2);
+                tvp2.x=tvp1.x=vp.x;
+                tvp1.y=vp.y-tmp_w*errorbarlength;
+                tvp2.y=vp.y+tmp_w*errorbarlength;
+                setlinewidth(p.errbar.riser_linew);
+                setlinestyle(p.errbar.riser_lines);
+                    if (p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                    else if (p.errbar.ptype==PLACEMENT_NORMAL)
+                    DrawLine(vp, tvp2);
+                    else//PLACEMENT_OPPOSITE
+                    DrawLine(tvp1, vp);
+                fill_box[0].x=vp.x-0.5*tmp_w*errorbarlength;
+                fill_box[0].y=vp.y+tmp_w*errorbarlength;
+                fill_box[1].x=vp2.x+0.5*tmp_w*errorbarlength;
+                fill_box[1].y=vp2.y+tmp_w*errorbarlength;
+                fill_box[2].x=vp2.x+0.5*tmp_w*errorbarlength;
+                fill_box[2].y=vp2.y-tmp_w*errorbarlength;
+                fill_box[3].x=vp.x-0.5*tmp_w*errorbarlength;
+                fill_box[3].y=vp.y-tmp_w*errorbarlength;
+
+                /*right*/
+                setlinewidth(p.errbar.linew);
+                setlinestyle(p.errbar.lines);
+                tvp1.x=vp2.x-tmp_w;
+                tvp2.x=vp2.x+tmp_w;
+                tvp1.y=vp2.y+tmp_w*errorbarlength;
+                tvp2.y=vp2.y+tmp_w*errorbarlength;
+                tvpb.x=vp2.x;
+                tvpb.y=tvp1.y;
+                    if (y_box==0)
+                    if ((p.errbar.ptype==PLACEMENT_NORMAL || p.errbar.ptype==PLACEMENT_BOTH) && (p.errbar.connect_bars==CONNECT_ERRBARS_NONE || p.errbar.connect_bars==CONNECT_ERRBARS_X_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_X))
+                    DrawLine(tvp1, tvp2);
+                tvp1.y=vp2.y-tmp_w*errorbarlength;
+                tvp2.y=vp2.y-tmp_w*errorbarlength;
+                    if (y_box==0)
+                    if ((p.errbar.ptype==PLACEMENT_OPPOSITE || p.errbar.ptype==PLACEMENT_BOTH) && (p.errbar.connect_bars==CONNECT_ERRBARS_NONE || p.errbar.connect_bars==CONNECT_ERRBARS_X_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_FILL_X))
+                    DrawLine(tvp1, tvp2);
+                tvp2.x=tvp1.x=vp2.x;
+                tvp1.y=vp2.y-tmp_w*errorbarlength;
+                tvp2.y=vp2.y+tmp_w*errorbarlength;
+                setlinewidth(p.errbar.riser_linew);
+                setlinestyle(p.errbar.riser_lines);
+                    if (p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                    else if (p.errbar.ptype==PLACEMENT_NORMAL)
+                    DrawLine(vp2, tvp2);
+                    else//PLACEMENT_OPPOSITE
+                    DrawLine(tvp1, vp2);
+                        if (p.errbar.connect_bars==CONNECT_ERRBARS_Y_ONLY || p.errbar.connect_bars==CONNECT_ERRBARS_XY)
+                        {
+                        setlinewidth(p.errbar.linew);
+                        setlinestyle(p.errbar.lines);
+                        if (p.errbar.ptype==PLACEMENT_NORMAL || p.errbar.ptype==PLACEMENT_BOTH)
+                        DrawLine(tvpa, tvpb);
+                        tvpa.y-=2*tmp_w*errorbarlength;
+                        tvpb.y-=2*tmp_w*errorbarlength;
+                        if (p.errbar.ptype==PLACEMENT_OPPOSITE || p.errbar.ptype==PLACEMENT_BOTH)
+                        DrawLine(tvpa, tvpb);
+                        }
+                }
+                else/*no line --> draw everything just once*/
+                {
+                setlinewidth(p.errbar.linew);
+                setlinestyle(p.errbar.lines);
+                tvp1.x=vptmp.x-tmp_w;
+                tvp2.x=vptmp.x+tmp_w;
+                tvp1.y=vptmp.y+tmp_w*errorbarlength;
+                tvp2.y=vptmp.y+tmp_w*errorbarlength;
+                    if (y_box==0)
+                    if (p.errbar.ptype==PLACEMENT_NORMAL || p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                tvp1.y=vptmp.y-tmp_w*errorbarlength;
+                tvp2.y=vptmp.y-tmp_w*errorbarlength;
+                    if (y_box==0)
+                    if (p.errbar.ptype==PLACEMENT_OPPOSITE || p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                tvp2.x=tvp1.x=vptmp.x;
+                tvp1.y=vptmp.y-tmp_w*errorbarlength;
+                tvp2.y=vptmp.y+tmp_w*errorbarlength;
+                setlinewidth(p.errbar.riser_linew);
+                setlinestyle(p.errbar.riser_lines);
+                    if (p.errbar.ptype==PLACEMENT_BOTH)
+                    DrawLine(tvp1, tvp2);
+                    else if (p.errbar.ptype==PLACEMENT_NORMAL)
+                    DrawLine(vptmp, tvp2);
+                    else
+                    DrawLine(tvp1, vptmp);
+                fill_box[0].x=vptmp.x-0.5*tmp_w*errorbarlength;
+                fill_box[0].y=vptmp.y+tmp_w*errorbarlength;
+                fill_box[1].x=vptmp.x+0.5*tmp_w*errorbarlength;
+                fill_box[1].y=vptmp.y+tmp_w*errorbarlength;
+                fill_box[2].x=vptmp.x+0.5*tmp_w*errorbarlength;
+                fill_box[2].y=vptmp.y-tmp_w*errorbarlength;
+                fill_box[3].x=vptmp.x-0.5*tmp_w*errorbarlength;
+                fill_box[3].y=vptmp.y-tmp_w*errorbarlength;
+                }
+            }/*End drawing errorbars in legend*/
+            if (y_box==1)
+            {
+            setpattern(p.errbar.pen.pattern);
+            setalpha(p.errbar.pen.alpha);
+            DrawPolygon(fill_box,4);
+            setalpha(255);
+            DrawPolyline(fill_box,4,POLYLINE_CLOSED);
+            setalpha(p.errbar.pen.alpha);
+            }
+
             if (l.len != 0 && p.lines != 0 && p.linet != 0) {
                 setpen(p.linepen);
                 setlinewidth(p.linew);
@@ -3741,10 +4843,6 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
                     drawxysym(vp2, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
                 }
             } else {
-                VPoint vptmp;
-                vptmp.x = (vp.x + vp2.x)/2;
-                vptmp.y = vp.y;
-                
                 setlinewidth(p.symlinew);
                 setlinestyle(p.symlines);
                 if (p.type == SET_BAR   || p.type == SET_BOXPLOT ||
@@ -3756,6 +4854,7 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
             }
         }
     }
+    delete[] fill_box;
 }
 
 /* plot time stamp */
@@ -3766,19 +4865,20 @@ void draw_timestamp(void)
         setfont(timestamp.font);
         setcharsize(timestamp.charsize);
         setcolor(timestamp.color);
+        setalpha(timestamp.alpha);
         vp.x = timestamp.x;
         vp.y = timestamp.y;
 
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        WriteString(vp, timestamp.rot, timestamp.just, timestamp.s_plotstring);
+        WriteString(vp, timestamp.rot, timestamp.just, QString::fromLocal8Bit(timestamp.s_plotstring).toLatin1().data());
 
         timestamp.bb = get_bbox(BBOX_TYPE_TEMP);
     }
 }
 
-void do_hardcopy_external(char * target_file,char * target_device,float dpi,unsigned long w,unsigned long h)
+void do_hardcopy_external(char * target_file,const char * target_device,float dpi,unsigned long w,unsigned long h)
 {
 int dev_nr=get_device_by_name(target_device);
 do_hardcopy_external(target_file,dev_nr,dpi,w,h);
@@ -3812,7 +4912,4 @@ sav_pg=get_page_geometry();
     set_page_geometry(sav_pg);
     set_ptofile(sav_ptofile);
     set_exportname(exname_sav);
-
 }
-
-

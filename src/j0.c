@@ -468,8 +468,7 @@ static unsigned short RQ[32] = {
 
 extern double TWOOPI, SQ2OPI, PIO4;
 
-double j0(x)
-double x;
+double j0(double x)
 {
 double w, z, p, q, xn;
 
@@ -516,8 +515,7 @@ extern double MAXNUM;
 
 #ifndef HAVE_Y0
 
-double y0(x)
-double x;
+double y0(double x)
 {
 double w, z, p, q, xn;
 

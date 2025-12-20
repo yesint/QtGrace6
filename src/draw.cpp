@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -50,10 +50,17 @@
 #include "draw.h"
 #include <QtGui>
 #include "cmath.h"
+#include "parser.h"
+#include "noxprotos.h"
 
 using namespace std;
 
 extern QPainter * GeneralPainter;
+
+extern QList<int> highlight_clipping;
+extern QList<int> highlight_set;
+extern QList< QVector<QPointF> > collect_segments;
+extern QPointF VPoint2XPointF(VPoint vp);
 
 int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
                                    a separate module */
@@ -77,24 +84,28 @@ void (*devputpixmap) (VPoint vp, int width, int height, char *databits,int pixma
 /* device text typesetting */
 void (*devputtext) (VPoint vp, char *s, int len, int font,TextMatrix *tm, int underline, int overline, int kerning);
 /* update color map */
-void (*devupdatecmap)(void);	
+void (*devupdatecmap)(void);
+/* x- and y-axis-conversation*/
+double (*xy_xconv) (double wx);
+double (*xy_yconv) (double wy);
 
 static int all_points_inside(VPoint *vps, int n);
 static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np);
 
 /* Current drawing properties */
 extern DrawProps draw_props;
-//={{1, 1}, 0, TRUE, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
+//={{1, 1}, 0, 255, TRUE, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
 
 static world worldwin;
 static view viewport;
 static int coordinates;
-static int scaletypex;
-static int scaletypey;
+int scaletypex;
+int scaletypey;
 static long double xv_med;
 static long double yv_med;
 static long double xv_rc;
 static long double yv_rc;
+long double polar2_f,phi0,rhomin,roffset,rmax;//scale-factor(world to vp),phi0,roffset(minimal rho in vp),rmax(maximal rho in vp)
 static long double fxg_med;
 static long double fyg_med;
 
@@ -121,12 +132,49 @@ Pen getpen(void)
 void setcolor(int color)
 {
     draw_props.pen.color = color;
-    return;
 }
 
 int getcolor(void)
 {
     return (draw_props.pen.color);
+}
+
+/*
+ * alpha-channel
+ */
+void setalpha(int alpha)
+{
+    if (alpha>255 || alpha<0)
+    draw_props.pen.alpha = 255;
+    else
+    draw_props.pen.alpha = alpha;
+}
+
+int getalpha(void)
+{
+    if (draw_props.pen.alpha>255 || draw_props.pen.alpha<0 || show_transparency_selector==0)
+    return 255;
+    else
+    return (draw_props.pen.alpha);
+}
+
+/*
+ * background alpha-channel
+ */
+void setbgalpha(int alpha)
+{
+    if (alpha>255 || alpha<0)
+    draw_props.bgalpha = 255;
+    else
+    draw_props.bgalpha = alpha;
+}
+
+int getbgalpha(void)
+{
+    if (draw_props.bgalpha>255 || draw_props.bgalpha<0)
+    return 255;
+    else
+    return (draw_props.bgalpha);
 }
 
 /*
@@ -269,9 +317,19 @@ int getlinejoin(void)
  */
 VPoint Wpoint2Vpoint(WPoint wp)
 {
-    VPoint vp;
+static VPoint vp;
     world2view(wp.x, wp.y, &vp.x, &vp.y);
-    return (vp);
+return (vp);
+}
+
+/*
+ * Convert point's viewport to world coordinates
+ */
+WPoint Vpoint2Wpoint(VPoint wp)
+{
+static WPoint vp;
+    view2world(wp.x, wp.y, &vp.x, &vp.y);
+return (vp);
 }
 
 void symplus(VPoint vp, double s)
@@ -281,8 +339,8 @@ void symplus(VPoint vp, double s)
     vp1.y = vp.y;
     vp2.x = vp.x + s;
     vp2.y = vp.y;
-    
     DrawLine(vp1, vp2);
+
     vp1.x = vp.x;
     vp1.y = vp.y - s;
     vp2.x = vp.x;
@@ -418,11 +476,25 @@ else
  */
 void DrawPolyline(VPoint *vps, int n, int mode)
 {
-    int i, nmax, nc, max_purge, npurged;
-    VPoint vp1, vp2;
-    VPoint vp1c, vp2c;
-    VPoint *vpsc;
+static int i, nmax, nc, max_purge, npurged;
+static VPoint vp1, vp2;
+static VPoint vp1c, vp2c;
+static VPoint *vpsc;
     
+    if (collect_active)
+    {
+    QVector<QPointF> tmp_vec;
+    tmp_vec.clear();
+    for (i=0;i<n;i++)
+    {
+    tmp_vec << VPoint2XPointF(vps[i]);
+    }
+    if (mode == POLYLINE_CLOSED) tmp_vec << tmp_vec.first();
+    collect_segments << tmp_vec;
+    highlight_clipping << active_graph;
+    highlight_set << active_set;
+    }
+
     if (getlinestyle() == 0 || (getpen()).pattern == 0) {
         return;
     }
@@ -592,7 +664,8 @@ void DrawPolygon(VPoint *vps, int n)
 void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
 {
     view v;
-    
+    v.xv1=v.xv2=v.yv1=v.yv2=0.0;
+
     if (getlinestyle() == 0 || (getpen()).pattern == 0)
     {
         return;
@@ -734,6 +807,14 @@ int is_vpoint_inside(view v, VPoint vp, double epsilon)
             (vp.y >= v.yv1 - epsilon) && (vp.y <= v.yv2 + epsilon));
 }
 
+int is_vpoint_truly_inside(view v, VPoint vp)
+{
+double x_epsilon=fabs(v.xv2-v.xv1)*0.05;
+double y_epsilon=fabs(v.yv2-v.yv1)*0.05;
+    return ((vp.x >= v.xv1 + x_epsilon) && (vp.x <= v.xv2 - x_epsilon) &&
+            (vp.y >= v.yv1 + y_epsilon) && (vp.y <= v.yv2 - y_epsilon));
+}
+
 static int all_points_inside(VPoint *vps, int n)
 {
     int i;
@@ -759,12 +840,42 @@ int is_validVPoint(VPoint vp)
 }
 
 /*
+ * is_inside_angle_range() checks if an angle a is inside two other angles (start-stop); please note, that multiples of 2Pi is allowed (i.e. the angle 0 is considered to be inside [6-7])
+ */
+int is_inside_angle_range(double a,double start,double stop)
+{
+static double twopi=2.0*M_PI;
+double nnn;
+    if (a>=start && a<=stop)
+    {
+    return TRUE;//the most simple case!
+    }
+    else if (a<start)
+    {
+    nnn=twopi*ceil((start-a)/twopi)+a;
+    if (nnn>=start && nnn<=stop) return TRUE;
+    }
+    else//a>stop
+    {
+    nnn=a-twopi*ceil((a-stop)/twopi);
+    if (nnn>=start && nnn<=stop) return TRUE;
+    }
+return FALSE;
+}
+
+/*
  * is_validWPoint() checks if a point is inside of (current) world rectangle
  */
 int is_validWPoint(WPoint wp)
 {
     if (coordinates == COORDINATES_POLAR) {
         if (wp.y >= 0.0 && wp.y <= worldwin.yg2) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else if (coordinates == COORDINATES_POLAR2) {
+        if (wp.y >= worldwin.yg1 && wp.y <= worldwin.yg2 && is_inside_angle_range(wp.x,worldwin.xg1,worldwin.xg2)) {
             return TRUE;
         } else {
             return FALSE;
@@ -993,9 +1104,9 @@ int clip_polygon(VPoint *vps, int n)
  * ------------------ Colormap routines ---------------
  */
 extern CMap_entry *cmap_table;
-static int maxcolors = 0;
+static unsigned int maxcolors = 0;
 
-int number_of_colors(void)
+unsigned int number_of_colors(void)
 {
     return maxcolors;
 }
@@ -1003,9 +1114,10 @@ int number_of_colors(void)
 int get_main_color_indices(int ** maincolors,int * nr_of_aux_cols)
 {
 int counter=0;
+if (*maincolors)
 delete[] *maincolors;
 *maincolors=new int[maxcolors];
-for (int i=0;i<maxcolors;i++)
+for (unsigned int i=0;i<maxcolors;i++)
 {
     if (cmap_table[i].ctype==COLOR_MAIN)
     {
@@ -1040,7 +1152,7 @@ int compare_rgb(RGB *rgb1, RGB *rgb2)
 
 int find_color(RGB rgb)
 {
-    int i;
+    unsigned int i;
     int cindex = BAD_COLOR;
     
     for (i = 0; i < maxcolors; i++) {
@@ -1055,13 +1167,13 @@ int find_color(RGB rgb)
 
 int get_color_by_name(char *cname)
 {
-    int i;
+    unsigned int i;
     int cindex = BAD_COLOR;
     
     for (i = 0; i < maxcolors; i++) {
         if (cmap_table[i].ctype == COLOR_MAIN &&
             compare_strings(cmap_table[i].cname, cname) == TRUE) {
-            cindex = i;
+            cindex = (int)i;
             break;
         }
     }
@@ -1071,7 +1183,7 @@ int get_color_by_name(char *cname)
 
 int realloc_colors(int n)
 {
-    int i;
+    unsigned int i;
     CMap_entry *cmap_tmp;
     //cout << "reallocate=" << n << endl;
     if (n > MAXCOLORS) {
@@ -1085,7 +1197,7 @@ int realloc_colors(int n)
             return RETURN_FAILURE;
         } else {
             cmap_table = cmap_tmp;
-            for (i = maxcolors; i < n; i++) {
+            for (i = maxcolors; i < (unsigned int)n; i++) {
                 cmap_table[i].rgb.red = 0;
                 cmap_table[i].rgb.green = 0;
                 cmap_table[i].rgb.blue = 0;
@@ -1104,7 +1216,7 @@ int store_color(int n, CMap_entry cmap)
 {
     if (is_valid_color(cmap.rgb) != TRUE) {
         return RETURN_FAILURE;
-    } else if (n >= maxcolors && realloc_colors(n + 1) == RETURN_FAILURE) {
+    } else if ((unsigned int)n >= maxcolors && realloc_colors(n + 1) == RETURN_FAILURE) {
         return RETURN_FAILURE;
     } else {
         if (cmap.cname == NULL || strlen(cmap.cname) == 0) {
@@ -1158,10 +1270,10 @@ int add_color(CMap_entry cmap)
 
 int delete_color(int cindex)
 {
-    if (cindex<0 || cindex>=maxcolors) return RETURN_FAILURE;
+    if (cindex<0 || (unsigned int)cindex>=maxcolors) return RETURN_FAILURE;
     CMap_entry * saved_map=new CMap_entry[maxcolors+2];
     memcpy(saved_map,cmap_table,sizeof(CMap_entry)*maxcolors);
-        for (int i=0;i<maxcolors;i++)
+        for (unsigned int i=0;i<maxcolors;i++)
         {
             /*saved_map[i].cname=new char[2+strlen(cmap_table[i].cname)];
             strcpy(saved_map[i].cname,cmap_table[i].cname);*/
@@ -1170,9 +1282,9 @@ int delete_color(int cindex)
         }
     realloc_colors(maxcolors-1);
 //int counter=0;
-    for (int i=0;i<=maxcolors;i++)
+    for (unsigned int i=0;i<=maxcolors;i++)
     {
-        if (i==cindex) continue;
+        if (i==(unsigned int)cindex) continue;
         memcpy(cmap_table+i,saved_map+i,sizeof(CMap_entry));
         cmap_table[i].cname = copy_string(cmap_table[i].cname,saved_map[i].cname);
         //delete[] saved_map[i].cname;
@@ -1301,7 +1413,7 @@ double get_colorintensity(int cindex)
 {
     double retval;
     
-    if (cindex < maxcolors) {
+    if ((unsigned int)cindex < maxcolors) {
         retval = RGB2YIQ(cmap_table[cindex].rgb).y;
     } else {
         retval = 0.0;
@@ -1312,38 +1424,40 @@ double get_colorintensity(int cindex)
 
 CMap_entry cmap_init[16] = {
     /* white  */
-    {{255, 255, 255}, "white", COLOR_MAIN, 0},
+    {{255, 255, 255}, NULL, COLOR_MAIN, 0},
     /* black  */
-    {{0, 0, 0}, "black", COLOR_MAIN, 0},
+    {{0, 0, 0}, NULL, COLOR_MAIN, 0},
     /* red    */
-    {{255, 0, 0}, "red", COLOR_MAIN, 0},
+    {{255, 0, 0}, NULL, COLOR_MAIN, 0},
     /* green  */
-    {{0, 255, 0}, "green", COLOR_MAIN, 0},
+    {{0, 255, 0}, NULL, COLOR_MAIN, 0},
     /* blue   */
-    {{0, 0, 255}, "blue", COLOR_MAIN, 0},
+    {{0, 0, 255}, NULL, COLOR_MAIN, 0},
     /* yellow */
-    {{255, 255, 0}, "yellow", COLOR_MAIN, 0},
+    {{255, 255, 0}, NULL, COLOR_MAIN, 0},
     /* brown  */
-    {{188, 143, 143}, "brown", COLOR_MAIN, 0},
+    {{188, 143, 143}, NULL, COLOR_MAIN, 0},
     /* grey   */
-    {{220, 220, 220}, "grey", COLOR_MAIN, 0},
+    {{220, 220, 220}, NULL, COLOR_MAIN, 0},
     /* violet */
-    {{148, 0, 211}, "violet", COLOR_MAIN, 0},
+    {{148, 0, 211}, NULL, COLOR_MAIN, 0},
     /* cyan   */
-    {{0, 255, 255}, "cyan", COLOR_MAIN, 0},
+    {{0, 255, 255}, NULL, COLOR_MAIN, 0},
     /* magenta*/
-    {{255, 0, 255}, "magenta", COLOR_MAIN, 0},
+    {{255, 0, 255}, NULL, COLOR_MAIN, 0},
     /* orange */
-    {{255, 165, 0}, "orange", COLOR_MAIN, 0},
+    {{255, 165, 0}, NULL, COLOR_MAIN, 0},
     /* indigo */
-    {{114, 33, 188}, "indigo", COLOR_MAIN, 0},
+    {{114, 33, 188}, NULL, COLOR_MAIN, 0},
     /* maroon */
-    {{103, 7, 72}, "maroon", COLOR_MAIN, 0},
+    {{103, 7, 72}, NULL, COLOR_MAIN, 0},
     /* turquoise */
-    {{64, 224, 208}, "turquoise", COLOR_MAIN, 0},
+    {{64, 224, 208}, NULL, COLOR_MAIN, 0},
     /* forest green */
-    {{0, 139, 0}, "green4", COLOR_MAIN, 0}
+    {{0, 139, 0}, NULL, COLOR_MAIN, 0}
 };
+
+char str_cmap_col_names[16][16];
 
 /*
  * initialize_cmap()
@@ -1351,8 +1465,24 @@ CMap_entry cmap_init[16] = {
  */
 void initialize_cmap(void)
 {
-    int i, n;
-    
+int i, n;
+strcpy(str_cmap_col_names[0],QString("white").toLatin1().constData());
+strcpy(str_cmap_col_names[1],QString("black").toLatin1().constData());
+strcpy(str_cmap_col_names[2],QString("red").toLatin1().constData());
+strcpy(str_cmap_col_names[3],QString("green").toLatin1().constData());
+strcpy(str_cmap_col_names[4],QString("blue").toLatin1().constData());
+strcpy(str_cmap_col_names[5],QString("yellow").toLatin1().constData());
+strcpy(str_cmap_col_names[6],QString("brown").toLatin1().constData());
+strcpy(str_cmap_col_names[7],QString("grey").toLatin1().constData());
+strcpy(str_cmap_col_names[8],QString("violet").toLatin1().constData());
+strcpy(str_cmap_col_names[9],QString("cyan").toLatin1().constData());
+strcpy(str_cmap_col_names[10],QString("magenta").toLatin1().constData());
+strcpy(str_cmap_col_names[11],QString("orange").toLatin1().constData());
+strcpy(str_cmap_col_names[12],QString("indigo").toLatin1().constData());
+strcpy(str_cmap_col_names[13],QString("maroon").toLatin1().constData());
+strcpy(str_cmap_col_names[14],QString("turquoise").toLatin1().constData());
+strcpy(str_cmap_col_names[15],QString("green4").toLatin1().constData());
+for (int i=0;i<16;i++) cmap_init[i].cname=copy_string(cmap_init[i].cname,str_cmap_col_names[i]);
     n = sizeof(cmap_init)/sizeof(CMap_entry);
     realloc_colors(n);
     for (i = 0; i < n; i++) {
@@ -1362,12 +1492,19 @@ void initialize_cmap(void)
 
 void reverse_video(void)
 {
+    /*
     CMap_entry ctmp;
-    
     memcpy(&ctmp, &cmap_table[0], sizeof(CMap_entry));
     memcpy(&cmap_table[0], &cmap_table[1], sizeof(CMap_entry));
     memcpy(&cmap_table[1], &ctmp, sizeof(CMap_entry));
     revflag = !revflag;
+    */
+    for (unsigned int i=0;i<number_of_colors();i++)
+    {
+    cmap_table[i].rgb.blue=255-cmap_table[i].rgb.blue;
+    cmap_table[i].rgb.red=255-cmap_table[i].rgb.red;
+    cmap_table[i].rgb.green=255-cmap_table[i].rgb.green;
+    }
 }
 
 int is_video_reversed(void)
@@ -1462,31 +1599,139 @@ double ifscale(double vc, int scale)
     }
 }
 
+double fscale2(double vc,int gno,int axis)
+{
+    if (is_xaxis(axis))
+    {
+        if (get_graph_xscale(gno)==SCALE_REC)
+        return fscale(vc,get_graph_xscale(gno))*(-1.0+2.0*is_graph_xinvert(gno));
+        else
+        return fscale(vc,get_graph_xscale(gno))*(1.0-2.0*is_graph_xinvert(gno));
+    }
+    else
+    {
+        if (get_graph_yscale(gno)==SCALE_REC)
+        return fscale(vc,get_graph_yscale(gno))*(-1.0+2.0*is_graph_yinvert(gno));
+        else
+        return fscale(vc,get_graph_yscale(gno))*(1.0-2.0*is_graph_yinvert(gno));
+    }
+}
+
+double ifscale2(double vc,int gno,int axis)
+{
+    if (is_xaxis(axis))
+    {
+        if (get_graph_xscale(gno)==SCALE_REC)
+        return ifscale(vc*(-1.0+2.0*is_graph_xinvert(gno)),get_graph_xscale(gno));
+        else
+        return ifscale(vc*(1.0-2.0*is_graph_xinvert(gno)),get_graph_xscale(gno));
+    }
+    else
+    {
+        if (get_graph_yscale(gno)==SCALE_REC)
+        return ifscale(vc*(-1.0+2.0*is_graph_yinvert(gno)),get_graph_yscale(gno));
+        else
+        return ifscale(vc*(1.0-2.0*is_graph_yinvert(gno)),get_graph_yscale(gno));
+    }
+}
+
 /*
  * map world co-ordinates to viewport
-  */
-double xy_xconv(double wx)
+ */
+
+/* x-axis */
+double xy_xconv_general(double wx)
 {
     if ((scaletypex == SCALE_LOG && wx <= 0.0) ||
         (scaletypex == SCALE_REC && wx == 0.0) ||
         (scaletypex == SCALE_LOGIT && wx <= 0.0) ||
-	(scaletypex == SCALE_LOGIT && wx >= 1.0)){
+        (scaletypex == SCALE_LOGIT && wx >= 1.0)){
         return 0;
     } else {
         return (double)(xv_med + xv_rc*((long double) fscale(wx, scaletypex) - fxg_med));
     }
 }
 
-double xy_yconv(double wy)
+double xy_xconv_rec(double wx)
+{
+    if (wx == 0.0)
+    {
+        return 0;
+    } else {
+        return (double)(xv_med + xv_rc*((long double) (1.0/wx) - fxg_med));
+    }
+}
+
+double xy_xconv_logit(double wx)
+{
+    if (wx <= 0.0 || wx >= 1.0)
+    {
+        return 0;
+    } else {
+        return (double)(xv_med + xv_rc*((long double) (log(wx/(1.0-wx))) - fxg_med));
+    }
+}
+
+double xy_xconv_log(double wx)
+{
+    if (wx <= 0.0)
+    {
+        return 0;
+    } else {
+        return (double)(xv_med + xv_rc*((long double) log10(wx) - fxg_med));
+    }
+}
+
+double xy_xconv_simple(double wx)
+{
+return (double)(xv_med + xv_rc*((long double) wx - fxg_med));
+}
+/* y-axis */
+double xy_yconv_general(double wy)
 {
     if ((scaletypey == SCALE_LOG && wy <= 0.0) ||
         (scaletypey == SCALE_REC && wy == 0.0) ||
         (scaletypey == SCALE_LOGIT && wy <= 0.0) ||
-	(scaletypey == SCALE_LOGIT && wy >= 1.0)) {
+        (scaletypey == SCALE_LOGIT && wy >= 1.0)) {
         return 0;
     } else {
         return (double)(yv_med + yv_rc*((long double) fscale(wy, scaletypey) - fyg_med));
     }
+}
+
+double xy_yconv_rec(double wy)
+{
+    if (wy == 0.0)
+    {
+        return 0;
+    } else {
+        return (double)(yv_med + yv_rc*((long double) (1.0/wy) - fyg_med));
+    }
+}
+
+double xy_yconv_logit(double wy)
+{
+    if (wy <= 0.0 || wy >= 1.0)
+    {
+        return 0;
+    } else {
+        return (double)(yv_med + yv_rc*((long double) (log(wy/(1.0-wy))) - fyg_med));
+    }
+}
+
+double xy_yconv_log(double wy)
+{
+    if (wy <= 0.0)
+    {
+        return 0;
+    } else {
+        return (double)(yv_med + yv_rc*((long double) log10(wy) - fyg_med));
+    }
+}
+
+double xy_yconv_simple(double wy)
+{
+    return (double)(yv_med + yv_rc*((long double) wy - fyg_med));
 }
 
 int polar2xy(double phi, double rho, double *x, double *y)
@@ -1506,14 +1751,39 @@ void xy2polar(double x, double y, double *phi, double *rho)
     *rho = hypot(x, y);
 }
 
+int polar2xy2(double phi, double rho, double *x, double *y)
+{
+    *x = ((rho-rhomin)*polar2_f+roffset)*cos(phi+phi0);
+    *y = ((rho-rhomin)*polar2_f+roffset)*sin(phi+phi0);
+return (RETURN_SUCCESS);
+}
+
+void xy2polar2(double x, double y, double *phi, double *rho)
+{
+    *phi = atan2(y, x)-phi0;
+    *rho = (hypot(x, y)-roffset)/polar2_f+rhomin;
+}
+
 int world2view(double x, double y, double *xv, double *yv)
 {
-    if (coordinates == COORDINATES_POLAR) {
+   /*if (coordinates == COORDINATES_XY)
+   {
+        *xv = xy_xconv(x);
+        *yv = xy_yconv(y);
+   }
+   else */if (coordinates == COORDINATES_POLAR) {
         if (polar2xy(xv_rc*x, yv_rc*y, xv, yv) != RETURN_SUCCESS) {
             return (RETURN_FAILURE);
         }
         *xv += xv_med;
         *yv += yv_med;
+    }
+    else if (coordinates == COORDINATES_POLAR2) {
+            if (polar2xy2(xv_rc*x, yv_rc*y, xv, yv) != RETURN_SUCCESS) {
+                return (RETURN_FAILURE);
+            }
+            *xv += xv_med;
+            *yv += yv_med;
     } else {
         *xv = xy_xconv(x);
         *yv = xy_yconv(y);
@@ -1527,23 +1797,98 @@ int world2view(double x, double y, double *xv, double *yv)
  */
 void view2world(double xv, double yv, double *xw, double *yw)
 {
-    if (coordinates == COORDINATES_POLAR) {
+    /*if (coordinates == COORDINATES_XY)
+    {
+        *xw = ifscale(fxg_med + (1.0/xv_rc)*((long double) xv - xv_med), scaletypex);
+        *yw = ifscale(fyg_med + (1.0/yv_rc)*((long double) yv - yv_med), scaletypey);
+    }
+    else */if (coordinates == COORDINATES_POLAR) {
         xy2polar(xv - xv_med, yv - yv_med, xw, yw);
         *xw /= xv_rc;
         *yw /= yv_rc;
+    }
+    else if (coordinates == COORDINATES_POLAR2) {
+            xy2polar2(xv - xv_med, yv - yv_med, xw, yw);
+            *xw /= xv_rc;
+            *yw /= yv_rc;
     } else {
         *xw = ifscale(fxg_med + (1.0/xv_rc)*((long double) xv - xv_med), scaletypex);
         *yw = ifscale(fyg_med + (1.0/yv_rc)*((long double) yv - yv_med), scaletypey);
     }
 }
 
+void view2_graph_world(int gno, double xv, double yv, double *xw, double *yw)
+{
+*xw=*yw=0.0;
+    if (is_valid_gno(gno)==FALSE) return;
+    world w;
+    view v;
+    world l_worldwin=worldwin;
+    view l_viewport=viewport;
+    int l_coordinates=coordinates;
+    int l_scaletypex=scaletypex;
+    int l_scaletypey=scaletypey;
+    long double l_xv_med=xv_med;
+    long double l_yv_med=yv_med;
+    long double l_xv_rc=xv_rc;
+    long double l_yv_rc=yv_rc;
+    long double l_polar2_f=polar2_f;
+    long double l_phi0=phi0;
+    long double l_rhomin=rhomin;
+    long double l_roffset=roffset;
+    long double l_rmax=rmax;
+    long double l_fxg_med=fxg_med;
+    long double l_fyg_med=fyg_med;
+get_graph_world(gno,&w);
+get_graph_viewport(gno,&v);
+int ret=definewindow_local(w,v,g[gno].type,get_graph_xscale(gno),get_graph_yscale(gno),g[gno].xinvert,g[gno].yinvert,
+                           &l_worldwin,&l_viewport,&l_coordinates,
+                           &l_scaletypex,&l_scaletypey,
+                           &l_xv_med,&l_yv_med,
+                           &l_xv_rc,&l_yv_rc,
+                           &l_polar2_f,&l_phi0,
+                           &l_rhomin,&l_roffset,&l_rmax,
+                           &l_fxg_med,&l_fyg_med,gno);
+if (ret==RETURN_FAILURE) return;
+    if (l_coordinates == COORDINATES_POLAR) {
+        *xw = atan2(yv - l_yv_med, xv - l_xv_med) / l_xv_rc;
+        *yw = hypot(xv - l_xv_med, yv - l_yv_med) / l_yv_rc;
+    }
+    else if (l_coordinates == COORDINATES_POLAR2) {
+        *xw = (atan2(yv - l_yv_med, xv - l_xv_med)-l_phi0) / l_xv_rc;
+        *yw = ((hypot(xv - l_xv_med, yv - l_yv_med)-l_roffset)/l_polar2_f+l_rhomin) / l_yv_rc;
+    } else {
+        *xw = ifscale(l_fxg_med + (1.0/l_xv_rc)*((long double) xv - l_xv_med), l_scaletypex);
+        *yw = ifscale(l_fyg_med + (1.0/l_yv_rc)*((long double) yv - l_yv_med), l_scaletypey);
+    }
+}
+
 /*
  * definewindow - defines the scaling
  *               of the plotting rectangle to be used for clipping
+ * local-version returns the values,
+ * the other version sets the values in the global variables
  */
-int definewindow(world w, view v, int gtype, 
-                        int xscale, int yscale,
-                        int invx, int invy)
+int definewindow_local(world w, view v, int gtype,
+                       int xscale, int yscale,
+                       int invx, int invy,
+                       world * l_worldwin,
+                       view * l_viewport,
+                       int * l_coordinates,
+                       int * l_scaletypex,
+                       int * l_scaletypey,
+                       long double * l_xv_med,
+                       long double * l_yv_med,
+                       long double * l_xv_rc,
+                       long double * l_yv_rc,
+                       long double * l_polar2_f,
+                       long double * l_phi0,
+                       long double * l_rhomin,
+                       long double * l_roffset,
+                       long double * l_rmax,
+                       long double * l_fxg_med,
+                       long double * l_fyg_med,
+                       int gno)
 {
     long double dx, dy;
     
@@ -1579,22 +1924,62 @@ int definewindow(world w, view v, int gtype,
             errmsg("Can't set Y scale inverted in Polar plot");
             return RETURN_FAILURE;
         } else {
-            coordinates = COORDINATES_POLAR;
-            worldwin = w;
-            viewport = v;
-            scaletypex = xscale;
-            xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
+            *l_coordinates = COORDINATES_POLAR;
+            *l_worldwin = w;
+            *l_viewport = v;
+            *l_scaletypex = xscale;
+            *l_xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
             if (invx == FALSE) {
-                xv_rc = +1.0;
+                *l_xv_rc = +1.0;
             } else {
-                xv_rc = -1.0;
+                *l_xv_rc = -1.0;
             }
-
-            scaletypey = yscale;
-            yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
-            yv_rc = (MIN2((long double) v.xv2 - (long double) v.xv1, (long double) v.yv2 - (long double) v.yv1)*0.5)/((long double) w.yg2);
+            *l_scaletypey = yscale;
+            *l_yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
+            *l_yv_rc = (MIN2((long double) v.xv2 - (long double) v.xv1, (long double) v.yv2 - (long double) v.yv1)*0.5)/((long double) w.yg2);
             return RETURN_SUCCESS;
         }
+        break;
+    case GRAPH_POLAR2:
+        /*if (w.yg2 <= 0.0) {
+            errmsg("World Rho-max <= 0.0");
+            return RETURN_FAILURE;
+        } else
+        if ((xscale != SCALE_NORMAL) ||
+            (yscale != SCALE_NORMAL)) {
+            errmsg("Only linear scales are supported in Polar plots");
+            return RETURN_FAILURE;
+        } else
+        if (invy == TRUE) {
+            errmsg("Can't set Y scale inverted in Polar plot");
+            return RETURN_FAILURE;
+        } else {*/
+            *l_coordinates = COORDINATES_POLAR2;
+            *l_worldwin = w;
+            *l_viewport = v;
+            *l_scaletypex = xscale;
+            *l_xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
+            if (invx == FALSE) {
+                *l_xv_rc = +1.0;
+            } else {
+                *l_xv_rc = -1.0;
+            }
+            *l_scaletypey = yscale;
+            *l_yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
+            if (invy == FALSE)
+            {
+                *l_yv_rc = +1.0;
+            } else {
+                *l_yv_rc = -1.0;
+            }
+            //yv_rc = (MIN2((long double) v.xv2 - (long double) v.xv1, (long double) v.yv2 - (long double) v.yv1)*0.5)/((long double) w.yg2);
+            *l_rmax=(MIN2((long double) v.xv2 - (long double) v.xv1, (long double) v.yv2 - (long double) v.yv1)*0.5);
+            *l_roffset=*l_rmax*((long double)g[gno].roffset);
+            *l_phi0=(long double)g[gno].phi0;
+            *l_rhomin=(long double)w.yg1;
+            *l_polar2_f=(*l_rmax-*l_roffset)/((long double)w.yg2 - (long double)w.yg1);
+            return RETURN_SUCCESS;
+        //}
         break;
     case GRAPH_FIXED:
         if ((xscale != SCALE_NORMAL) ||
@@ -1602,25 +1987,25 @@ int definewindow(world w, view v, int gtype,
             errmsg("Only linear axis scale is allowed in Fixed graphs");
             return RETURN_FAILURE;
         } else {
-            coordinates = COORDINATES_XY;
-            worldwin = w;
-            viewport = v;
+            *l_coordinates = COORDINATES_XY;
+            *l_worldwin = w;
+            *l_viewport = v;
 
-            scaletypex = xscale;
-            xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
-            fxg_med = ((long double) w.xg1 + (long double) w.xg2)*0.5;
-            scaletypey = yscale;
-            yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
-            fyg_med = ((long double) w.yg1 + (long double) w.yg2)*0.5;
+            *l_scaletypex = xscale;
+            *l_xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
+            *l_fxg_med = ((long double) w.xg1 + (long double) w.xg2)*0.5;
+            *l_scaletypey = yscale;
+            *l_yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
+            *l_fyg_med = ((long double) w.yg1 + (long double) w.yg2)*0.5;
 
-            xv_rc = MIN2(((long double) v.xv2 - (long double) v.xv1)/((long double) w.xg2 - (long double) w.xg1),
+            *l_xv_rc = MIN2(((long double) v.xv2 - (long double) v.xv1)/((long double) w.xg2 - (long double) w.xg1),
                          ((long double) v.yv2 - (long double) v.yv1)/((long double) w.yg2 - (long double) w.yg1));
-            yv_rc = xv_rc;
+            *l_yv_rc = *l_xv_rc;
             if (invx == TRUE) {
-                xv_rc = -xv_rc;
+                *l_xv_rc = -*l_xv_rc;
             }
             if (invy == TRUE) {
-                yv_rc = -yv_rc;
+                *l_yv_rc = -*l_yv_rc;
             }
 
             return RETURN_SUCCESS;
@@ -1680,31 +2065,82 @@ int definewindow(world w, view v, int gtype,
             }
 	}    
 
-        coordinates = COORDINATES_XY;
-        worldwin = w;
-        viewport = v;
+        *l_coordinates = COORDINATES_XY;
+        *l_worldwin = w;
+        *l_viewport = v;
 
-        scaletypex = xscale;
-        xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
-        fxg_med = ((long double) fscale(w.xg1, xscale) + (long double) fscale(w.xg2, xscale))*0.5;
+        *l_scaletypex = xscale;
+        *l_xv_med = ((long double) v.xv1 + (long double) v.xv2)*0.5;
+        *l_fxg_med = ((long double) fscale(w.xg1, xscale) + (long double) fscale(w.xg2, xscale))*0.5;
         if (invx == FALSE) {
-            xv_rc = ((long double) v.xv2 - (long double) v.xv1)/((long double) fscale(w.xg2, xscale) - (long double) fscale(w.xg1, xscale));
+            *l_xv_rc = ((long double) v.xv2 - (long double) v.xv1)/((long double) fscale(w.xg2, xscale) - (long double) fscale(w.xg1, xscale));
         } else {
-            xv_rc = - ((long double) v.xv2 - (long double) v.xv1)/((long double) fscale(w.xg2, xscale) - (long double) fscale(w.xg1, xscale));
+            *l_xv_rc = - ((long double) v.xv2 - (long double) v.xv1)/((long double) fscale(w.xg2, xscale) - (long double) fscale(w.xg1, xscale));
         }
 
-        scaletypey = yscale;
-        yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
-        fyg_med = ((long double) fscale(w.yg1, yscale) + (long double) fscale(w.yg2, yscale))*0.5;
+        *l_scaletypey = yscale;
+        *l_yv_med = ((long double) v.yv1 + (long double) v.yv2)*0.5;
+        *l_fyg_med = ((long double) fscale(w.yg1, yscale) + (long double) fscale(w.yg2, yscale))*0.5;
         if (invy == FALSE) {
-            yv_rc = ((long double) v.yv2 - (long double) v.yv1)/((long double) fscale(w.yg2, yscale) - (long double) fscale(w.yg1, yscale));
+            *l_yv_rc = ((long double) v.yv2 - (long double) v.yv1)/((long double) fscale(w.yg2, yscale) - (long double) fscale(w.yg1, yscale));
         } else {
-            yv_rc = - ((long double) v.yv2 - (long double) v.yv1)/((long double) fscale(w.yg2, yscale) - (long double) fscale(w.yg1, yscale));
+            *l_yv_rc = - ((long double) v.yv2 - (long double) v.yv1)/((long double) fscale(w.yg2, yscale) - (long double) fscale(w.yg1, yscale));
         }
  
         return RETURN_SUCCESS;
         break;
     }
+}
+
+int definewindow(world w, view v, int gtype,
+                        int xscale, int yscale,
+                        int invx, int invy)
+{
+world l_worldwin=worldwin;
+view l_viewport=viewport;
+int l_coordinates=coordinates;
+int l_scaletypex=scaletypex;
+int l_scaletypey=scaletypey;
+long double l_xv_med=xv_med;
+long double l_yv_med=yv_med;
+long double l_xv_rc=xv_rc;
+long double l_yv_rc=yv_rc;
+long double l_polar2_f=polar2_f;
+long double l_phi0=phi0;
+long double l_rhomin=rhomin;
+long double l_roffset=roffset;
+long double l_rmax=rmax;
+long double l_fxg_med=fxg_med;
+long double l_fyg_med=fyg_med;
+
+int ret=definewindow_local(w,v,gtype,xscale,yscale,invx,invy,
+                           &l_worldwin,&l_viewport,&l_coordinates,
+                           &l_scaletypex,&l_scaletypey,
+                           &l_xv_med,&l_yv_med,
+                           &l_xv_rc,&l_yv_rc,
+                           &l_polar2_f,&l_phi0,
+                           &l_rhomin,&l_roffset,&l_rmax,
+                           &l_fxg_med,&l_fyg_med,get_parser_gno());
+    if (ret==RETURN_SUCCESS)
+    {
+    worldwin=l_worldwin;
+    viewport=l_viewport;
+    coordinates=l_coordinates;
+    scaletypex=l_scaletypex;
+    scaletypey=l_scaletypey;
+    xv_med=l_xv_med;
+    yv_med=l_yv_med;
+    xv_rc=l_xv_rc;
+    yv_rc=l_yv_rc;
+    polar2_f=l_polar2_f;
+    phi0=l_phi0;
+    rhomin=l_rhomin;
+    roffset=l_roffset;
+    rmax=l_rmax;
+    fxg_med=l_fxg_med;
+    fyg_med=l_fyg_med;
+    }
+return ret;
 }
 
 int isvalid_viewport(view v)
@@ -1720,7 +2156,7 @@ int isvalid_viewport(view v)
  * ---------------- bbox utilities --------------------
  */
 
-static BBox_type bboxes[2];
+static BBox_type bboxes[3];
 static const view invalid_view = {0.0, 0.0, 0.0, 0.0};
 
 void reset_bbox(int type)
@@ -1734,6 +2170,9 @@ void reset_bbox(int type)
     case BBOX_TYPE_TEMP:
         vp = &(bboxes[1].v);
         break;
+    case BBOX_TYPE_LOCAL:
+        vp = &(bboxes[2].v);
+        break;
     default:
         errmsg ("Incorrect call of reset_bbox()");
         return;
@@ -1745,6 +2184,7 @@ void reset_bboxes(void)
 {
     reset_bbox(BBOX_TYPE_GLOB);
     reset_bbox(BBOX_TYPE_TEMP);
+    reset_bbox(BBOX_TYPE_LOCAL);
 }
 
 void freeze_bbox(int type)
@@ -1757,6 +2197,9 @@ void freeze_bbox(int type)
         break;
     case BBOX_TYPE_TEMP:
         bbp = &bboxes[1];
+        break;
+    case BBOX_TYPE_LOCAL:
+        bbp = &bboxes[2];
         break;
     default:
         errmsg ("Incorrect call of freeze_bbox()");
@@ -1775,6 +2218,9 @@ view get_bbox(int type)
         break;
     case BBOX_TYPE_TEMP:
         v = bboxes[1].v;
+        break;
+    case BBOX_TYPE_LOCAL:
+        v = bboxes[2].v;
         break;
     default:
         v = invalid_view;
@@ -1813,7 +2259,6 @@ view merge_bboxes(view v1, view v2)
         vtmp.xv2 = MAX2(v1.xv2, v2.xv2);
         vtmp.yv1 = MIN2(v1.yv1, v2.yv1);
         vtmp.yv2 = MAX2(v1.yv2, v2.yv2);
-        
         return (vtmp);
     }
 }
@@ -1832,6 +2277,9 @@ void update_bbox(int type, VPoint vp)
         break;
     case BBOX_TYPE_TEMP:
         bbp = &bboxes[1];
+        break;
+    case BBOX_TYPE_LOCAL:
+        bbp = &bboxes[2];
         break;
     default:
         errmsg ("Incorrect call of update_bbox()");
@@ -1858,6 +2306,7 @@ void update_bboxes(VPoint vp)
 {
     update_bbox(BBOX_TYPE_GLOB, vp);
     update_bbox(BBOX_TYPE_TEMP, vp);
+    update_bbox(BBOX_TYPE_LOCAL, vp);
 }
 
 void melt_bbox(int type)
@@ -1870,6 +2319,9 @@ void melt_bbox(int type)
         break;
     case BBOX_TYPE_TEMP:
         bbp = &bboxes[1];
+        break;
+    case BBOX_TYPE_LOCAL:
+        bbp = &bboxes[2];
         break;
     default:
         errmsg ("Incorrect call of melt_bbox()");
@@ -1888,6 +2340,9 @@ void activate_bbox(int type, int status)
         break;
     case BBOX_TYPE_TEMP:
         bbp = &bboxes[1];
+        break;
+    case BBOX_TYPE_LOCAL:
+        bbp = &bboxes[2];
         break;
     default:
         errmsg ("Incorrect call of activate_bbox()");
@@ -2018,8 +2473,8 @@ int points_overlap(VPoint vp1, VPoint vp2)
 {
     double delta;
     
-///A4-Format temorarely
 delta = 1.0/MIN2(page_width, page_height);
+///A4-Format temorarely
 ///delta = 1.0/MIN2(842, 595);
     if (fabs(vp2.x - vp1.x) < delta || fabs(vp2.y - vp1.y) < delta) {
         return TRUE;
@@ -2027,7 +2482,6 @@ delta = 1.0/MIN2(page_width, page_height);
         return FALSE;
     }
 }
-
 
 static int max_path_length = MAX_DRAWING_PATH;
 
@@ -2109,4 +2563,17 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
         printf("Purging %d points to %d in %d iteration(s)\n", n, *np, iter);
     }
 #endif
+}
+
+void rotateVPoint(VPoint * vp,VPoint center,double angle)
+{
+double c=cos(angle);
+double s=sin(angle);
+static double tmp1,tmp2;
+vp->x-=center.x;
+vp->y-=center.y;
+    tmp1=c*vp->x+s*vp->y;
+    tmp2=-s*vp->x+c*vp->y;
+vp->x=tmp1+center.x;
+vp->y=tmp2+center.y;
 }

@@ -67,8 +67,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 extern double MAXLOG, MAXNUM;
 
-double beta( a, b )
-double a, b;
+double beta(double a,double b )
 {
 double y;
 int sign;
@@ -127,8 +126,7 @@ return(y);
 
 /* Natural log of |beta|.  Return the sign of beta in sgngam.  */
 
-double lbeta( a, b )
-double a, b;
+double lbeta(double a,double b )
 {
 double y;
 int sign;

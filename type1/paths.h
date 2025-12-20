@@ -63,7 +63,7 @@ struct conicsegment *t1_RoundConic();  /* ditto, specified another way        */
 struct conicsegment *t1_ArcP3(); /* circular path segment with three points   */
 struct conicsegment *t1_ArcCA(); /* ditto, with center point and angle        */
 struct beziersegment *t1_Bezier();  /* Bezier third order curve path segment  */
-struct hintsegment *t1_Hint();  /* produce a font 'hint' path segment         */
+struct hintsegment *t1_Hint(struct XYspace * S,float ref,float width,char orientation,char hinttype,char adjusttype,char direction,int label);  /* produce a font 'hint' path segment         */
 struct segment *t1_Reverse(); /* reverse the complete order of paths          */
 struct segment *t1_ReverseSubPaths();  /* reverse only sub-paths; moves unchanged */
 struct segment *t1_SubLoc();  /* subtract two location objects                */

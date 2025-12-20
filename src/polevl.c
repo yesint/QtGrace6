@@ -51,10 +51,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 #include "cephes.h"
 
-double polevl( x, coef, N )
-double x;
-void *coef;
-int N;
+double polevl(double x,void * coef,int N)
 {
 double ans;
 int i;
@@ -77,10 +74,7 @@ return( ans );
  * Otherwise same as polevl.
  */
 
-double p1evl( x, coef, N )
-double x;
-void *coef;
-int N;
+double p1evl(double x,void * coef,int N)
 {
 double ans;
 double *p;

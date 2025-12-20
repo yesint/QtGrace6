@@ -449,8 +449,7 @@ static unsigned short gd[44] = {
 
 extern double PI, PIO2, MACHEP;
 
-int fresnl( xxa, ssa, cca )
-double xxa, *ssa, *cca;
+int fresnl(double xxa,double * ssa,double * cca )
 {
 double f, g, cc, ss, c, s, t, u;
 double x, x2;

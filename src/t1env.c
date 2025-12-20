@@ -50,7 +50,7 @@
 #include "../type1/objects.h" 
 #include "../type1/spaces.h"  
 #include "../type1/util.h" 
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 #include "../type1/fontmisc.h"
 
 #include "sysconf.h"
@@ -333,7 +333,7 @@ int intT1_ScanConfigFile( void)
     return(-1);
   }
   
-  fread((char *)linebuf, sizeof(char), filesize, cfg_fp);
+  (void)fread((char *)linebuf, sizeof(char), filesize, cfg_fp);
   fclose(cfg_fp);
   
   i=0;
@@ -468,13 +468,12 @@ int intT1_ScanConfigFile( void)
 /* intT1_Env_GetCompletePath( ): Get a full path name from the file specified by
    argument 1 in the environment specified by argument 2. Return the pointer
    to the path string or NULL if no file was found.*/
-char *intT1_Env_GetCompletePath( char *FileName,
-				 char **env_ptr )
+char *intT1_Env_GetCompletePath(const char *FileName, char **env_ptr )
 {
   struct stat filestats;    /* A structure where fileinfo is stored */
   int fnamelen, i, j;
   char *FullPathName;
-  char *StrippedName;
+  const char *StrippedName;
   
 
   if (FileName==NULL)
@@ -606,7 +605,7 @@ char *intT1_Env_GetCompletePath( char *FileName,
    In the latter case the function returns with an error status.
    Multiple path types may be specified as a bitmask!
 */
-int T1_SetFileSearchPath( int type, char *pathname)
+int T1_SetFileSearchPath( int type, const char *pathname)
 {
 
   int i;
@@ -905,7 +904,7 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
    name and any names specified previously with this function.
    Return value: 0 if OK, and -1 if filename not valid or an allocation
    error occurred */
-int T1_SetFontDataBase( char *filename)
+int T1_SetFontDataBase(const char *filename)
 {
   int pathlen;
   int i;
@@ -975,7 +974,7 @@ int T1_SetFontDataBase( char *filename)
              0    successfully inserted but not loaded because lib not initilized
 	     n>0  the highest defined FontID
 */
-int T1_AddFontDataBase( int mode, char *filename) 
+int T1_AddFontDataBase( int mode, const char *filename)
 {
   int i;
   int pathlen;

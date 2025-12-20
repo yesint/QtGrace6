@@ -141,8 +141,7 @@ static char name[] = "rgamma";
 extern double PI, MAXLOG, MAXNUM;
 
 
-double rgamma(x)
-double x;
+double rgamma(double x)
 {
 double w, y, z;
 int sign;

@@ -49,7 +49,7 @@
 #include "../type1/objects.h" 
 #include "../type1/spaces.h"  
 #include "../type1/util.h" 
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 
 #include "t1types.h"
 #include "t1extern.h"
@@ -194,9 +194,7 @@ int T1_FreeCompCharData( T1_COMP_CHAR_INFO *cci)
    indicates an error. */
 int T1_DeleteFont( int FontID)
 {
-
-  int result;
-
+//int result;
   
   if (CheckForFontID(FontID)==-1){  /* Invalid ID */
     T1_errno=T1ERR_INVALID_FONTID;
@@ -208,7 +206,8 @@ int T1_DeleteFont( int FontID)
 
   /* Memory freeing must be done hierachical, start with size dependent
      data: */
-  result=T1_DeleteAllSizes(FontID);
+  //result=T1_DeleteAllSizes(FontID);
+  (void)T1_DeleteAllSizes(FontID);
 
   /* Next we delete the AFM-mapping tables */
   if (pFontBase->pFontArray[FontID].pEncMap!=NULL)
@@ -237,7 +236,8 @@ int T1_DeleteFont( int FontID)
     
     /* afm-data is yet there -> */
     if (pFontBase->pFontArray[FontID].pAFMData!=NULL){
-      result=FreeAFMData(pFontBase->pFontArray[FontID].pAFMData);
+      //result=FreeAFMData(pFontBase->pFontArray[FontID].pAFMData);
+      (void)FreeAFMData(pFontBase->pFontArray[FontID].pAFMData);
       pFontBase->pFontArray[FontID].pAFMData=NULL;
     }
   }

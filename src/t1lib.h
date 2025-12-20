@@ -293,18 +293,18 @@ extern int T1_FreeCompCharData( T1_COMP_CHAR_INFO *cci);
 extern int T1_DeleteFont( int FontID);
 
 /* from t1enc.c */
-extern char **T1_LoadEncoding( char *FileName);
+extern char **T1_LoadEncoding(const char *FileName);
 extern int T1_DeleteEncoding( char **encoding);
 extern int T1_ReencodeFont( int FontID, char **Encoding);
 extern int T1_SetDefaultEncoding( char **encoding);
 extern char *T1_GetEncodingScheme( int FontID);
 
 /* from t1env.c */
-extern int T1_SetFileSearchPath( int type, char *pathname);
+extern int T1_SetFileSearchPath( int type, const char *pathname);
 extern int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname);
 extern char *T1_GetFileSearchPath( int type);
-extern int T1_SetFontDataBase( char *filename);
-extern int T1_AddFontDataBase( int mode, char *filename);
+extern int T1_SetFontDataBase( const char *filename);
+extern int T1_AddFontDataBase( int mode, const char *filename);
 
 /* from t1finfo.c */
 extern int T1_GetKerning( int FontID, char char1,

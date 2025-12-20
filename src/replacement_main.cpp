@@ -8,7 +8,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  *
  *                           All Rights Reserved
  *
@@ -31,6 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctime>
 #ifdef _MSC_VER
 #define STDIN_FILENO 0
 #include <io.h>
@@ -61,7 +62,7 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "plotone.h"
-
+#include "patterns.h"
 #include "device.h"
 #include "devlist.h"
 /*#ifndef NONE_GUI
@@ -70,10 +71,12 @@
 #include "parser.h"
 #include "noxprotos.h"
 #include "xprotos.h"
-#include "patterns.h"
 #include "draw.h"
 #include "MainWindow.h"
 #include "allWidgets.h"
+#include "editWidgets.h"
+#include "appearanceWidgets.h"
+#include "windowWidgets.h"
 #include "QtGui/QPainter"
 #include "QtNetwork/QHostInfo"
 
@@ -93,22 +96,25 @@ extern QIcon ** ColorIcons;
 extern QPixmap ** ColorPixmaps;
 extern QString ** ColorNames;
 extern MainWindow * mainWin;
+extern QFont * GuiFont,*stdGuiFont;
 extern "C" char batchfile[];
 //extern char print_file[];
 extern int install_cmap;
 extern QBitmap * patterns[MAXPATTERNS];
+extern QPixmap * PatternPixmaps[MAXPATTERNS];
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
 extern void register_qt_devices(void);
 extern int register_haru_pdf_drv(void);
+extern frm_Preferences * Form_Preferences;
 extern frmAxisProp * FormAxisProperties;
 extern frmLocatorProps * FormLocatorProps;
 extern frmTransform * FormPruneData;
-extern frm_Preferences * Form_Preferences;
 extern frmHotLinks * FormHotLinks;
 extern frmExplorer * FormExplorer;
 extern frmSetAppearance * FormSetAppearance;
 extern frmPlotAppearance * FormPlotAppearance;
+extern frmTextProps * EditTextProps;
 extern frmMasterRegionOperator * FormRegionMaster;
 extern QList<QFont> stdFontList;
 
@@ -124,6 +130,8 @@ extern FontSelector ** font_selectors;
 extern int nfont_selectors;
 extern int nfonts;
 
+extern int print_target;
+extern bool printing_in_file;
 extern int curdevice;
 extern int number_of_opened_spreadsheets;
 extern frmSpreadSheet ** FormSpreadSheets;
@@ -145,6 +153,9 @@ extern int nr_of_line_style_selectors;
 
 extern bool hdeviceFlag;
 extern int hardCopyDeviceNr;
+extern int stdOutputFormat;
+extern CanvasAction action_flag;
+extern int current_axis_restriction;
 
 extern void update_default_props(void);
 #ifdef __cplusplus
@@ -159,6 +170,14 @@ static void usage(FILE *stream, char *progname);
 static void VersionInfo(void);
 extern int get_Std_GraceFontID_From_QFont(QFont & font,bool current,bool & ok);
 extern QFont get_Std_QFont_From_GraceFontID(int fontID,bool & ok);
+extern void replaceSuffix(QString & fpath,QString n_suffix);
+extern void updateAllSelectors(void);
+extern void init_phase2(void);
+extern void init_gui(void);
+
+#ifdef DEBUG_OUT_LOG
+extern ofstream debug_out;
+#endif
 
 #ifdef _MSC_VER
 // Ugly woraround. This variable has no connection to lgamma function
@@ -185,13 +204,42 @@ int force_external_viewer =
 mainWin->mainArea->completeRedraw();
 }*/
 
+void report_on_error_hdevices(void)
+{
+int i = 0;
+int ndevices=number_of_devices();
+const char * dev_na;
+fprintf(stdout,"Usage:\n");
+fprintf(stdout,"-hdevice   [hardcopy_device_name]\nPlease set default hardcopy device\n");
+fprintf(stdout,"Recognized device names:\n");
+while (i < ndevices)
+{
+dev_na=get_device_name(i);
+fprintf(stdout,"%s",dev_na);
+dev_na=get_device_alt_name(i);
+    if (dev_na[0]!='\0')
+    {
+    //fprintf(stderr," [%s]\n",dev_na);
+    fprintf(stdout,"\n%s\n",dev_na);
+    }
+    else
+    {
+    fprintf(stdout,"\n");
+    }
+    i++;
+}
+//fprintf(stderr,"-hdevice without a hardcopy device name (i.e. -hdevice is the last argument): pdf-format is used\n");
+}
+
 void update_ss_editors(int gno)
 {
-    plotarr p;
+plotarr p;
+//qDebug() << "number_of_opened_spreadsheets=" << number_of_opened_spreadsheets;
     for (int i=0;i<number_of_opened_spreadsheets;i++)
     {
-        if (FormSpreadSheets[i]!=NULL)
-            if (FormSpreadSheets[i]->gno==gno || gno == ALL_GRAPHS )
+        if (FormSpreadSheets[i]!=NULL && FormSpreadSheets[i]->isVisible()==true)
+        {
+            if (FormSpreadSheets[i]->gno == gno || gno == ALL_GRAPHS )
             {
                 get_graph_plotarr(FormSpreadSheets[i]->gno,FormSpreadSheets[i]->sno, &p);
                 if (is_valid_setno(FormSpreadSheets[i]->gno,FormSpreadSheets[i]->sno) == FALSE)// || p.data.len<=0)//no valid set
@@ -201,9 +249,11 @@ void update_ss_editors(int gno)
                 }
                 else
                 {
+                    if (FormSpreadSheets[i]->model->blockUpdate==false)
                     FormSpreadSheets[i]->init(FormSpreadSheets[i]->gno,FormSpreadSheets[i]->sno);
                 }
             }
+        }
     }
 }
 
@@ -214,6 +264,7 @@ void close_ss_editor(int gno,int setno)
         if (FormSpreadSheets[i]!=NULL)
             if ((FormSpreadSheets[i]->gno==gno || gno == ALL_GRAPHS) && (FormSpreadSheets[i]->sno==setno || setno==ALL_SETS) )
             {
+            qDebug() << "deleting SpreadSheet" << i;
                 delete FormSpreadSheets[i];
                 FormSpreadSheets[i]=NULL;
             }
@@ -222,6 +273,7 @@ void close_ss_editor(int gno,int setno)
 
 void update_set_list(int gno, uniList * l)
 {
+    (void)gno;
     /*int i, cnt, scnt=0;
     char buf[1024];
     XmString *xms;
@@ -316,9 +368,10 @@ void update_graph_selectors(void)
 void update_set_selectors(int gno)
 {
     int i, cg;
+//qDebug() << "update_set_selectors gno=" << gno;
     //SetChoiceData *sdata;
-
-    cg = get_cg();
+    cg = gno;
+    //cg = get_cg();
     update_graph_selectors();
     for (i = 0; i < nset_selectors; i++) {
         if (set_selectors[i]->partner==NULL && set_selectors[i]->prevent_from_autoupdate==false)
@@ -336,19 +389,36 @@ void update_set_selectors(int gno)
     for (i = 0; i < nplist; i++)
     {
         if (plist[i]->prevent_from_autoupdate==false)
-            plist[i]->set_graph_number(cg,true);
+        {
+        plist[i]->set_graph_number(cg,true);
+        //qDebug() << "setGraphNumber cg=" << cg;
+        }
     }
 }
 
 void init_color_icons(int nr_of_cols,CMap_entry * entries,int & allocated_colors,QIcon *** ColorIcons,QPixmap *** ColorPixmaps,QString *** ColorNames)
 {
-    QPixmap templIcon(62,22);
+    int appfontsize=QApplication::font().pixelSize();
+    if (appfontsize<0)
+    {
+    appfontsize=QApplication::font().pointSize();
+    if (appfontsize<0) appfontsize=9;
+    }
+    //double rel_size=appfontsize/13.0*toolBarSizeFactor;
+    double rel_size=toolBarSizeFactor;//only scale with tool-bar-size and NOT font-size
+    QPixmap templIcon(int(62.0*rel_size),int(22.0*rel_size));
     QPainter templPainter;
     QPen pen1(Qt::black);
     QColor col1;
-    QFont standardfont=qApp->font();
+    QFont standardfont=QApplication::font();
     double intensity;//=get_colorintensity(i);
-
+//qDebug() << "appfontsize=" << appfontsize << " rel_size=" << rel_size;
+//qDebug() << "GuiFont=" << GuiFont->pixelSize();
+    if (templIcon.width()<62 || templIcon.height()<22)//minimal size
+    {
+    templIcon=QPixmap(62,22);
+    }
+//qDebug() << "tmplIcon.size=" << templIcon.width() << " x " << templIcon.height();
     if (*ColorIcons!=NULL)
     {
         for (int i=0;i<allocated_colors;i++)
@@ -367,6 +437,10 @@ void init_color_icons(int nr_of_cols,CMap_entry * entries,int & allocated_colors
             delete (*ColorNames)[i];
         delete[] (*ColorNames);
     }
+
+    if (nr_of_cols<=0)
+    qDebug() << "WARNING: Number_of_cols<=0";
+
     allocated_colors=nr_of_cols;
     *ColorIcons=new QIcon*[allocated_colors];
     *ColorPixmaps=new QPixmap*[allocated_colors];
@@ -387,14 +461,32 @@ void init_color_icons(int nr_of_cols,CMap_entry * entries,int & allocated_colors
         templPainter.setBrush(pen1.color());
 //strcpy(dummy,cmap_table[i].cname);
 //QFontInfo fi(standardfont);
+        if (int(9.0*rel_size)<9)
         standardfont.setPixelSize(9);
+        else
+        standardfont.setPixelSize(int(9.0*rel_size));
 /*
 cout << "Text-Groesse zum Zeichnen(pixel)=" << standardfont.pixelSize() << endl;
 cout << "Text-Groesse zum Zeichnen(points)=" << standardfont.pointSize() << " | ";
 cout << "STANDARD IST 9" << endl;
 qDebug() << "FontInfo(pixel, sollte 9 sein)=" << fi.pixelSize() << " Name=" << entries[i].cname <<endl;*/
+//qDebug() << "stdFont.size=" << standardfont.pixelSize();///stdfont ist 9
+//qDebug() << "qApp.font.size=" << appfontsize;//appFont ist 13
         templPainter.setFont(standardfont);
-        templPainter.drawText(4,15,QString(entries[i].cname));//4,13
+        if (int(9.0*rel_size)<9)
+        {
+            if (entries[i].cname)
+            templPainter.drawText(4,15,QString(entries[i].cname));//4,15
+            else
+            templPainter.drawText(4,15,QObject::tr("unnamed"));//4,15
+        }
+        else
+        {
+            if (entries[i].cname)
+            templPainter.drawText(int(4.0*rel_size),int(15.0*rel_size),QString(entries[i].cname));//4,15
+            else
+            templPainter.drawText(int(4.0*rel_size),int(15.0*rel_size),QObject::tr("unnamed"));//4,15
+        }
         templPainter.end();
         (*ColorIcons)[i]=new QIcon(templIcon);
         (*ColorPixmaps)[i]=new QPixmap(templIcon);
@@ -402,12 +494,27 @@ qDebug() << "FontInfo(pixel, sollte 9 sein)=" << fi.pixelSize() << " Name=" << e
     }
 }
 
+void update_alpha_selectors(void)
+{
+bool vis_extern=(show_transparency_selector==1?true:false);
+bool vis_intern=(show_transparency_selector==2?true:false);
+    for (int i=0;i<ncolor_selectors;i++)
+    {
+        color_selectors[i]->alphaSelector->setVisible(vis_extern);
+        color_selectors[i]->cmbColorSelect->panels->alphaSlider->setVisible(vis_intern);
+    }
+}
+
 void update_color_selectors(void)
 {
+    QSize ic_size(12*toolBarSizeFactor,12*toolBarSizeFactor);
     int * real_colors=new int[4];
     int nr_of_aux_cols;
     int map_entries=get_main_color_indices(&real_colors,&nr_of_aux_cols);
     CMap_entry * local_cmap_table=new CMap_entry[map_entries];
+    int sav_immUpd=immediateUpdate;
+    int last_val;
+    immediateUpdate=false;
     for (int i=0;i<map_entries;i++)
     {
         memcpy(local_cmap_table+i,cmap_table+real_colors[i],sizeof(CMap_entry));
@@ -421,7 +528,10 @@ void update_color_selectors(void)
     {
         if (color_selectors[i]->prevent_from_update==false)
         {
+            last_val=color_selectors[i]->currentIndex();
             color_selectors[i]->updateColorIcons(map_entries,ColorPixmaps,ColorNames);
+            color_selectors[i]->cmbColorSelect->setIconSize(ic_size);
+            color_selectors[i]->setCurrentIndex(last_val);
         }
     }
     for (int i=0;i<map_entries;i++)
@@ -431,10 +541,19 @@ void update_color_selectors(void)
     }
     delete[] local_cmap_table;
     delete[] real_colors;
+    update_alpha_selectors();
+    if (Form_Preferences)
+    {
+    Form_Preferences->tab_colors->colorsel->alphaSelector->hide();
+    Form_Preferences->tab_colors->colorsel->cmbColorSelect->panels->alphaSlider->hide();
+    }
+    immediateUpdate=sav_immUpd;
 }
 
 void update_one_line_style_selector(LineStyleSelector * selStyles,int len,QPixmap ** pix)
 {
+selStyles->blockSignals(true);
+int selected_val=selStyles->currentIndex();
     for (int i=0;i<selStyles->cmbStyleSelect->panels->number_of_elements;i++)
     delete selStyles->LineNames[i];
 delete[] selStyles->LineNames;
@@ -445,23 +564,28 @@ char dummy[48];
         sprintf(dummy,"%d",i);
         selStyles->LineNames[i]=new QString(dummy);
         }
-selStyles->cmbStyleSelect->reinitializePanels(len,1,len,pix,selStyles->LineNames,false);
+selStyles->cmbStyleSelect->reinitializePanels(len,1,len,pix,selStyles->LineNames,false,false);
+selStyles->setCurrentIndex(selected_val);
+selStyles->blockSignals(false);
 }
 
 void update_line_style_selectors(void)
 {
+int x_size=82*toolBarSizeFactor;
+int y_size=16*toolBarSizeFactor;
     for (int i=0;i<nr_of_line_style_selectors;i++)
     {
     update_one_line_style_selector(line_style_selectors[i],nr_of_current_linestyles,LinePixmaps);
+    line_style_selectors[i]->cmbStyleSelect->setIconSize(QSize(x_size,y_size));
     }
 }
 
 void update_font_selectors(bool appearance=false)
 {
-    int font_id;
+    /*int font_id;
     QFont refFont;
     bool ok;
-    bool saved_useQtFonts=useQtFonts;
+    bool saved_useQtFonts=useQtFonts;*/
     /*
 //first: remap QtFonts to match ordering of standard-fonts
     if (qtfonts_have_been_reset==true)//a file with a new qt-version has been loaded
@@ -516,15 +640,16 @@ int replacement_main(int argc, char **argv)
     view v;
     int cur_graph;	        /* default (current) graph */
     int loadlegend = FALSE;	/* legend on and load file names */
-    int cli = FALSE;            /* command line interface only */
-    int remove_flag = FALSE;	/* remove file after read */
+    //int cli = FALSE;      /* command line interface only */
+    int remove_flag = FALSE;/* remove file after read */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
     hdeviceFlag = false;
     char fd_name[GR_MAXPATHLEN];
-
+    char error_text[GR_MAXPATHLEN];
+    int do_postprocessing=FALSE;
     int wpp, hpp;
-    
+    hdevice=stdOutputFormat;
     /*
      * set version
      */
@@ -532,8 +657,13 @@ int replacement_main(int argc, char **argv)
     /*
      * grace home directory
      */
-    if ((s = getenv("GRACE_HOME")) != NULL) {
+    if ((s = getenv("GRACE_HOME")) != NULL)
+    {
         set_grace_home(s);
+    }
+    else
+    {
+        set_grace_home(qt_grace_share_dir);
     }
     
     /* define the user's name */
@@ -543,7 +673,8 @@ int replacement_main(int argc, char **argv)
     init_userhome();
 
     /* set the starting directory */
-    set_workingdir(NULL);
+    /// removed working dir setting -- done outside this function
+    /*set_workingdir(NULL);*/
 
     /*
      * print command
@@ -585,14 +716,16 @@ int replacement_main(int argc, char **argv)
     
     /* initialize the rng */
 #ifndef WINDOWS_SYSTEM
-    srand48(100L);
+    //srand48(100L);
+    srand48(time(NULL));
 #else
-    srand(100L);
+    //srand(100L);
+    srand(time(NULL));
 #endif
 
     /* initialize T1lib */
     if (init_t1() != RETURN_SUCCESS) {
-        errmsg(QObject::tr("--> Broken or incomplete installation - read the FAQ!").toLocal8Bit().constData());
+        errmsg(QObject::tr("Unable to initialize T1lib --> Broken or incomplete installation - read the FAQ!").toLocal8Bit().constData());
         exit(1);
     }
 
@@ -609,7 +742,7 @@ int replacement_main(int argc, char **argv)
     } else {
         gracebat = FALSE;
         if (strstr(s, "grace") == s) {
-            cli = TRUE;
+            ;//cli = TRUE;
         } else {;
             /*#ifndef NONE_GUI
             cli = FALSE;
@@ -664,31 +797,51 @@ int replacement_main(int argc, char **argv)
     /* default is POSIX */
     set_locale_num(FALSE);
 
-    /* load startup file */
-    char dummy[1024];
-    sprintf(dummy,"%s/gracerc",qt_grace_exe_dir);
-#ifndef WINDOWS_SYSTEM
-    getparms(dummy);//this should only be useful on unix-systems
-#endif
+    init_color_icons(number_of_colors(),cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);//needed for generating color-selectors
 
+    init_phase2();//includes read_settings
+
+    /* load startup file */
+    char dummy[GR_MAXPATHLEN + 64];
+    sprintf(dummy,"%s/gracerc",qt_grace_share_dir);
+//#ifndef WINDOWS_SYSTEM
+    getparms(dummy);//this may only be useful on unix-systems
+//#endif
+
+    clear_dirtystate();
     /* load default template */
     new_project(NULL);
+    QFileInfo fi1(QString::fromLocal8Bit(default_grace_file));
+        if (fi1.isAbsolute()==true)
+        {
+        strcpy(print_file,default_grace_file);
+        }
+        else
+        {
+        sprintf(print_file,"%s%c%s",wdir1,QDir::separator().toLatin1(),default_grace_file);
+        }
+cur_graph = get_cg();
+set_workingdir(wdir1);
+do_postprocessing=FALSE;
+prepare_strings_for_saving();
+hdevice=hardCopyDeviceNr;//set output-device to default output-format (for "-hardcopy")
 
-    cur_graph = get_cg();
-    
+//evaluate all command line arguments
     if (argc >= 2) {
         for (i = 1; i < argc; i++) {
             if (argv[i][0] == '-' && argv[i][1] != '\0') {
-                if (argmatch(argv[i], "-version", 2)) {
+                if (argmatch(argv[i], "-version", 3)) {
                     VersionInfo();
                     exit(0);
                 }
 #if defined(DEBUG)
-                if (argmatch(argv[i], "-debug", 6)) {
+                if (argmatch(argv[i], "-debug", 3)) {
                     i++;
                     if (i == argc) {
-                        fprintf(stderr, "Missing argument for debug flag\n");
-                        usage(stderr, argv[0]);
+                        sprintf(error_text,"Usage:\n-debug [debug_level]\nPlease set debug level\nRecognized option(s):\n0\n2\n4\n6\n8\n");
+                        fprintf(stdout, "%s", error_text);
+                        //usage(stderr, argv[0]);
+                        exit(1);
                     } else {
                         set_debuglevel(atoi(argv[i]));
                         if (get_debuglevel() == 4) {
@@ -698,13 +851,16 @@ int replacement_main(int argc, char **argv)
                     }
                 } else
 #endif
-                    if (argmatch(argv[i], "-nosigcatch", 6)) {
+                    if (argmatch(argv[i], "-nosigcatch", 5)) {
                         sigcatch = FALSE;
                     } else if (argmatch(argv[i], "-autoscale", 2)) {
                         i++;
                         if (i == argc) {
-                            errmsg(QObject::tr("Missing argument for autoscale flag").toLocal8Bit().constData());
-                            usage(stderr, argv[0]);
+                            //errmsg(QObject::tr("Missing argument for autoscale flag").toLocal8Bit().constData());
+                            sprintf(error_text,"Usage:\n-autoscale [x|y|xy|none]\nPlease set autoscale type\nRecognized option(s):\nx\ny\nxy\nnone\n");
+                            fprintf(stdout, "%s", error_text);
+                            //usage(stderr, argv[0]);
+                            exit(1);
                         } else {
                             if (!strcmp("x", argv[i])) {
                                 autoscale_onread = AUTOSCALE_X;
@@ -715,23 +871,37 @@ int replacement_main(int argc, char **argv)
                             } else if (!strcmp("none", argv[i])) {
                                 autoscale_onread = AUTOSCALE_NONE;
                             } else {
-                                errmsg(QObject::tr("Improper argument for autoscale flag").toLocal8Bit().constData());
-                                usage(stderr, argv[0]);
+                                sprintf(error_text,"Improper argument for autoscale flag\nRecognized option(s):\nx\ny\nxy\nnone\n");
+                                fprintf(stdout, "%s", error_text);
+                                //usage(stderr, argv[0]);
+                                exit(1);
+                                //errmsg(QObject::tr("Improper argument for autoscale flag").toLocal8Bit().constData());
+                                //usage(stderr, argv[0]);
                             }
                         }
                     } else if (argmatch(argv[i], "-batch", 2)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for batch file\n");
-                            usage(stderr, argv[0]);
+                            sprintf(error_text,"Usage:\n-batch [batch_file]\nPlease set batch-file-name\nRecognized option(s):\nbatch_file\n");
+                            fprintf(stdout, "%s", error_text);
+                            //fprintf(stderr, "Missing argument for batch file\n");
+                            //usage(stderr, argv[0]);
+                            exit(1);
                         } else {
                             strcpy(batchfile, argv[i]);
                         }
-                    } else if (argmatch(argv[i], "-datehint", 5)) {
+                    } else if (argmatch(argv[i], "-datehint", 3)) {///nach usage() sind mehr parameter erlaubt!? days|seconds?
                         i++;
                         if (i == argc) {
-                            errmsg(QObject::tr("Missing argument for datehint flag").toLocal8Bit().constData());
-                            usage(stderr, argv[0]);
+                            sprintf(error_text,"Usage:\n-datehint [iso|european|us|nohint]\nPlease set a datehint flag for the parser\nRecognized option(s):\niso\neuropean\nus\nnohint\n");
+                            fprintf(stdout, "%s", error_text);
+                            /*errmsg(QObject::tr("Missing argument for datehint flag").toLocal8Bit().constData());
+                            fprintf(stderr,"iso\n");
+                            fprintf(stderr,"european\n");
+                            fprintf(stderr,"us\n");
+                            fprintf(stderr,"nohint\n");*/
+                            //usage(stderr, argv[0]);
+                            exit(1);
                         } else {
                             if (!strcmp("iso", argv[i])) {
                                 set_date_hint(FMT_iso);
@@ -742,21 +912,27 @@ int replacement_main(int argc, char **argv)
                             } else if (!strcmp("nohint", argv[i])) {
                                 set_date_hint(FMT_nohint);
                             } else {
-                                errmsg(QObject::tr("Improper argument for datehint flag").toLocal8Bit().constData());
-                                usage(stderr, argv[0]);
+                                sprintf(error_text,"Improper argument for datehint flag\nRecognized option(s):\niso\neuropean\nus\nnohint\n");
+                                fprintf(stdout, "%s", error_text);
+                                //errmsg(QObject::tr("Improper argument for datehint flag").toLocal8Bit().constData());
+                                //usage(stderr, argv[0]);
+                                exit(1);
                             }
                         }
-                    } else if (argmatch(argv[i], "-pipe", 5)) {
+                    } else if (argmatch(argv[i], "-pipe", 3)) {
                         inpipe = TRUE;
                     /*} else if (argmatch(argv[i], "-ServerMode", 4)) {
                         enableServerMode = TRUE;*/
-                    } else if (argmatch(argv[i], "-noprint", 8)) {
+                    } else if (argmatch(argv[i], "-noprint", 4)) {
                         noprint = TRUE;
-                    } else if (argmatch(argv[i], "-dpipe", 6)) {
+                    } else if (argmatch(argv[i], "-dpipe", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for descriptor pipe\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing argument for descriptor pipe\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-dpipe [descriptor]\nPlease set a descriptor for the pipe\nRecognized option(s):\ndescriptor-nr\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             fd = atoi(argv[i]);
                             sprintf(fd_name, "pipe<%d>", fd);
@@ -765,12 +941,15 @@ int replacement_main(int argc, char **argv)
                                 exit(1);
                             }
                         }
-                    } else if (argmatch(argv[i], "-npipe", 6)) {
+                    } else if (argmatch(argv[i], "-npipe", 3)) {
                         i++;
                         if (i == argc)
                         {
-                            fprintf(stderr, "Missing argument for named pipe\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing argument for named pipe\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-npipe [file]\nPlease set a file-name for the pipe\nRecognized option(s):\nfilename\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         }
                         else
                         {
@@ -793,26 +972,35 @@ int replacement_main(int argc, char **argv)
                         }*/
                         }
 #ifdef HAVE_NETCDF
-                    } else if (argmatch(argv[i], "-netcdf", 7) || argmatch(argv[i], "-hdf", 4)) {
+                    } else if (!strcmp(argv[i], "-netcdf") || !strcmp(argv[i], "-hdf")) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for netcdf file\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing argument for netcdf file\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-netcdf|-hdf [netcdf file]\nPlease set a file-name for netcdf-import\nRecognized option(s):\nfilename\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             strcpy(netcdf_name, argv[i]);
                         }
-                    } else if (argmatch(argv[i], "-netcdfxy", 9) || argmatch(argv[i], "-hdfxy", 6)) {
+                    } else if (argmatch(argv[i], "-netcdfxy", 8) || !strcmp(argv[i], "-hdfxy")) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for netcdf X variable name\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing argument for netcdf X variable name\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-netcdfxy|-hdfxy [X var name] [Y var name]\nPlease set a suitable argument for X-variable\nRecognized option(s):\nX var name\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             strcpy(xvar_name, argv[i]);
                         }
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for netcdf Y variable name\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing argument for netcdf Y variable name\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-netcdfxy|-hdfxy [X var name] [Y var name]\nPlease set a suitable argument for Y-variable\nRecognized option(s):\nY var name\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             strcpy(yvar_name, argv[i]);
                         }
@@ -825,34 +1013,46 @@ int replacement_main(int argc, char **argv)
                     } else if (argmatch(argv[i], "-timer", 6)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for time delay\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing argument for time delay\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-timer [delay]\nPlease set a suitable delay time\nRecognized option(s):\ndelay(ms)\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             timer_delay = atoi(argv[i]);
                         }
                         /*#ifndef NONE_GUI*/
-                    } else if (argmatch(argv[i], "-install", 7)) {
+                    } else if (argmatch(argv[i], "-install", 2)) {
                         install_cmap = CMAP_INSTALL_ALWAYS;
-                    } else if (argmatch(argv[i], "-noinstall", 9)) {
+                    } else if (argmatch(argv[i], "-noinstall", 4)) {
                         install_cmap = CMAP_INSTALL_NEVER;
-                    } else if (argmatch(argv[i], "-barebones", 9)) {
-                        mainWin->set_barebones( TRUE );
+                    } else if (argmatch(argv[i], "-barebones", 4)) {
+                        barebonemainwindow=TRUE;
+                        //mainWin->set_barebones( TRUE );
                         /*#endif*/
-                    } else if (argmatch(argv[i], "-timestamp", 10)) {
+                    } else if (argmatch(argv[i], "-timestamp", 6)) {
                         timestamp.active = TRUE;
-                    } else if (argmatch(argv[i], "-QtFonts", 8)) {
+                    } else if (argmatch(argv[i], "-QtFonts", 2)) {
                         useQtFonts=true;
-                    } else if (argmatch(argv[i], "-remove", 7)) {
+                    } else if (argmatch(argv[i], "-remove", 4)) {
                         remove_flag = TRUE;
-                    } else if (argmatch(argv[i], "-fixed", 5)) {
+                    } else if (argmatch(argv[i], "-fixed", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for fixed canvas width\n");
+                            /*fprintf(stderr, "Missing argument for fixed canvas width\n");
                             usage(stderr, argv[0]);
+                            fprintf(stderr,"width height\n");*/
+                            sprintf(error_text,"Usage:\n-fixed [width] [height]\nPlease set fixed canvas size\nRecognized option(s):\nwidth\nheight\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             if (i == argc - 1) {
-                                fprintf(stderr, "Missing argument for fixed canvas height\n");
+                                /*fprintf(stderr, "Missing argument for fixed canvas height\n");
                                 usage(stderr, argv[0]);
+                                fprintf(stderr,"height\n");*/
+                                sprintf(error_text,"Usage:\n-fixed [width] [height]\nPlease set fixed canvas size\nRecognized option(s):\nwidth\nheight\n");
+                                fprintf(stdout, "%s", error_text);
+                                exit(1);
                             } else {
                                 wpp = atoi(argv[i]);
                                 i++;
@@ -864,26 +1064,30 @@ int replacement_main(int argc, char **argv)
                             }
                         }
 #ifndef NONE_GUI
-                    } else if (argmatch(argv[i], "-free", 5)) {
+                    } else if (argmatch(argv[i], "-free", 3)) {
                         set_pagelayout(PAGE_FREE);
 #endif
-                    } else if (argmatch(argv[i], "-noask", 5)) {
+                    } else if (argmatch(argv[i], "-noask", 4)) {
                         noask = TRUE;
 #ifndef NONE_GUI
-                    } else if (argmatch(argv[i], "-mono", 5)) {
+                    } else if (argmatch(argv[i], "-mono", 3)) {
                         monomode = TRUE;
 #endif
-                    } else if (argmatch(argv[i], "-hdevice", 5)) {
+                    } else if (argmatch(argv[i], "-hdevice", 3)) {
                         i++;
                         if (i == argc) {
-                            hdeviceFlag = true;
-                            hardCopyDeviceNr = DEVICE_PDF;// --> no further Argument --> create pdf
+                            report_on_error_hdevices();
+                            ///hdeviceFlag = true;
+                            ///hardCopyDeviceNr = DEVICE_PDF;// --> no further Argument --> create pdf
                             //fprintf(stderr, "Missing argument for hardcopy device select flag\n");
                             //usage(stderr, argv[0]);
+                            exit(1);
                         } else {
                             if (set_printer_by_name(argv[i]) != RETURN_SUCCESS) {//uable to set printing device (or print to file)
                                 hdeviceFlag = false;
-                                errmsg(QObject::tr("Unknown or unsupported device").toLocal8Bit().constData());
+                                QString err_msg_txt=QObject::tr("Unknown or unsupported device \"")+QString(argv[i])+QString("\"");
+                                errmsg(err_msg_txt.toLocal8Bit().constData());
+                                report_on_error_hdevices();
                                 exit(1);
                             } else {//successfull device selection --> maybe we need a special treatment
                                 hdeviceFlag = true;
@@ -910,8 +1114,14 @@ int replacement_main(int argc, char **argv)
                     } else if (argmatch(argv[i], "-log", 2)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for log plots flag\n");
+                            /*fprintf(stderr,"Missing argument for log plots flag\n");
                             usage(stderr, argv[0]);
+                            fprintf(stderr,"x\n");
+                            fprintf(stderr,"y\n");
+                            fprintf(stderr,"xy\n");*/
+                            sprintf(error_text,"Usage:\n-log [x|y|xy]\nPlease set the axis for log scaling\nRecognized option(s):\nx\ny\nxy\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         }
                         if (!strcmp("x", argv[i])) {
                             set_graph_xscale(cur_graph, SCALE_LOG);
@@ -921,101 +1131,150 @@ int replacement_main(int argc, char **argv)
                             set_graph_xscale(cur_graph, SCALE_LOG);
                             set_graph_yscale(cur_graph, SCALE_LOG);
                         } else {
-                            fprintf(stderr, "%s: Improper argument for -l flag; should be one of 'x', 'y', 'xy'\n", argv[0]);
+                            sprintf(error_text,"Usage:\n-log [x|y|xy]\nPlease set the axis for log scaling\nRecognized option(s):\nx\ny\nxy\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
+                            //fprintf(stderr, "%s: Improper argument for -l flag; should be one of 'x', 'y', 'xy'\n", argv[0]);
                         }
-                    } else if (argmatch(argv[i], "-printfile", 6)) {
+                    } else if (argmatch(argv[i], "-printfile", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing file name for printing\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing file name for printing\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-printfile [file for hardcopy output]\nPlease set the output file name\nRecognized option(s):\nfilename\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             set_ptofile(TRUE);
                             strcpy(print_file, argv[i]);
                         }
-                    } else if (argmatch(argv[i], "-hardcopy", 6)) {
+                    } else if (argmatch(argv[i], "-hardcopy", 3)) {
                         gracebat = TRUE;
-                    } else if (argmatch(argv[i], "-pexec", 6)) {
+                    } else if (argmatch(argv[i], "-NoWizard", 2)) {
+                        block_setup_wizard = TRUE;
+                    } else if (argmatch(argv[i], "-UseDefaultDialogSizes", 5)) {
+                        initial_size_behavior = 0;
+                    } else if (argmatch(argv[i], "-UseLastDialogSizes", 5)) {
+                        initial_size_behavior = 1;
+                    } else if (argmatch(argv[i], "-pexec", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for exec\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing argument for exec\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-pexec [parameter_string]\nPlease give a parameter string for the parser to interpret\nRecognized option(s):\nparameter_string\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
+                            do_postprocessing=TRUE;
                             scanner(argv[i]);
                         }
-                    } else if (argmatch(argv[i], "-graph", 6)) {
+                    } else if (!strcmp(argv[i], "-graph")) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing parameter for graph select\n");
+                            /*fprintf(stderr, "Missing parameter for graph select\n");
                             usage(stderr, argv[0]);
+                            fprintf(stderr,"graph-id\n");
+                            exit(1);*/
+                            sprintf(error_text,"Usage:\n-graph [graph_number]\nPlease set a graph-id to select\nRecognized option(s):\ngraph_number\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             sscanf(argv[i], "%d", &gno);
                             if (set_graph_active(gno) == RETURN_SUCCESS) {
                                 cur_graph = gno;
                                 select_graph(gno);
                             } else {
-                                fprintf(stderr, "Error activating graph %d\n", gno);
+                                fprintf(stdout, "Error activating graph %d\n", gno);
                             }
                         }
-                    } else if (argmatch(argv[i], "-block", 6)) {
+                    } else if (argmatch(argv[i], "-block", 3)) {
                         i++;
                         if (i == argc)
                         {
-                            fprintf(stderr, "Missing filename for block data\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing filename for block data\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-block [block_data]\nPlease set a file name with block data\nRecognized option(s):\nblock_data\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         }
                         else
                         {
-                            prepare_strings_for_saving();
+                            do_postprocessing=TRUE;
                             getdata(cur_graph, argv[i], cursource, LOAD_BLOCK);
-                            resume_strings_after_load_or_save();
                         }
-                    } else if (argmatch(argv[i], "-bxy", 4)) {
+                    } else if (argmatch(argv[i], "-bxy", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing parameter for block data set creation\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing parameter for block data set creation\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-bxy [x:y:etc.]\nPlease set a column-format for the import of the current block data\nRecognized option(s):\nformat_string(like x:y:etc.)\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             int nc, *cols, scol;
-                            if (field_string_to_cols(argv[i], &nc, &cols, &scol) !=
-                                    RETURN_SUCCESS) {
-                                errmsg(QObject::tr("Erroneous field specifications").toLocal8Bit().constData());
-                                return 1;
+                            if (field_string_to_cols(argv[i], &nc, &cols, &scol) != RETURN_SUCCESS) {
+                                //errmsg(QObject::tr("Erroneous field specifications").toLocal8Bit().constData());
+                                strcpy(error_text,QObject::tr("Erroneous field specifications").toLocal8Bit().constData());
+                                fprintf(stdout, "%s", error_text);
+                                exit(1);
                             }
-                            create_set_fromblock(cur_graph, NEW_SET,
-                                                 curtype, nc, cols, scol, autoscale_onread);
+                            create_set_fromblock(cur_graph, NEW_SET, curtype, nc, cols, scol, autoscale_onread);
                             xfree(cols);
                         }
-                    } else if (argmatch(argv[i], "-nxy", 4)) {
+                    } else if (argmatch(argv[i], "-nxy", 3)) {
                         i++;
                         if (i == argc)
                         {
-                            fprintf(stderr, "Missing filename for nxy data\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing filename for nxy data\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-nxy [nxy_file]\nPlease set a filename to import data in xy-format from\nRecognized option(s):\nfilename\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         }
                         else
                         {
-                            prepare_strings_for_saving();
+                            do_postprocessing=TRUE;
+                            //qDebug() << "-nxy: Working_dir=#" << get_workingdir() << "#";
                             getdata(cur_graph, argv[i], cursource, LOAD_NXY);
-                            resume_strings_after_load_or_save();
                         }
-                    } else if (argmatch(argv[i], "-type", 2) ||
-                               argmatch(argv[i], "-settype", 8)) {
-                        /* set types */
+                    } else if (argmatch(argv[i], "-type", 3) ||
+                               argmatch(argv[i], "-settype", 4)) {
                         i++;
+                        if (i == argc)
+                        {
+                        fprintf(stdout, "Usage:\n-settype [xy|xydx|...]\nPlease set the set-format for the next file to import\nRecognized option(s):\n");
+                        fprintf(stdout, "xy\nbar\nbardy\nbardydy\nxyz\nxydx\nxydy\nxydxdx\nxydydy\nxydxdy\nxydxdxdydy\nxyhilo\nxyr\nxycolor\nxycolpat\nxyvmap\nxyboxplot\nxysize\nxyband\n");
+                        exit(1);
+                        }
+                        else
+                        {
+                        /* set types */
                         curtype = get_settype_by_name(argv[i]);
-                        if (curtype == -1) {
-                            fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
-                            usage(stderr, argv[0]);
+                        if (curtype == SET_BAD)
+                        {
+                            fprintf(stdout, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
+                            fprintf(stdout, "Usage:\n-settype [xy|xydx|...]\nPlease set the set-format for the next file to import\nRecognized option(s):\n");
+                            fprintf(stdout, "xy\nbar\nbardy\nbardydy\nxyz\nxydx\nxydy\nxydxdx\nxydydy\nxydxdy\nxydxdxdydy\nxyhilo\nxyr\nxycolor\nxycolpat\nxyvmap\nxyboxplot\nxysize\nxyband\n");
+                            exit(1);
+                            //usage(stderr, argv[0]);
+                        }
                         }
                     } else if (argmatch(argv[i], "-graphtype", 7)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for graph type\n");
+                            sprintf(error_text,"Usage:\n-graphtype [graph_type]\nPlease set the current graph type\nRecognized option(s):\nxy\npolar\npolar2\nbar\nsmith\nfixed\npie\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
+                            /*fprintf(stderr, "Missing argument for graph type\n");
+                            fprintf(stderr,"xy\npolar\npolar2\nbar\nsmith\nfixed\npie\n");
+                            exit(1);*/
                         } else {
                             if (!strcmp("xy", argv[i])) {
                                 set_graph_type(cur_graph, GRAPH_XY);
                             } else if (!strcmp("polar", argv[i])) {
                                 set_graph_type(cur_graph, GRAPH_POLAR);
+                            } else if (!strcmp("polar2", argv[i])) {
+                                set_graph_type(cur_graph, GRAPH_POLAR2);
                             } else if (!strcmp("bar", argv[i])) {
                                 set_graph_type(cur_graph, GRAPH_CHART);
                             } else if (!strcmp("smith", argv[i])) {
@@ -1025,41 +1284,58 @@ int replacement_main(int argc, char **argv)
                             } else if (!strcmp("pie", argv[i])) {
                                 set_graph_type(cur_graph, GRAPH_PIE);
                             } else {
-                                fprintf(stderr, "%s: Improper argument for -graphtype\n", argv[0]);
-                                usage(stderr, argv[0]);
+                                fprintf(stdout, "%s: Improper argument for -graphtype %s\n", argv[0], argv[i]);
+                                //usage(stderr, argv[0]);
+                                exit(1);
                             }
                         }
-                    } else if (argmatch(argv[i], "-legend", 4)) {
+                    } else if (argmatch(argv[i], "-legend", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for -legend\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing argument for -legend\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-legend [load]\nPlease type load to turn graph legend on\nRecognized option(s):\nload\non\noff\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
-                            if (!strcmp("load", argv[i])) {
+                            if (!strcmp("load", argv[i]) || !strcmp("on", argv[i])) {/// Das ist komisch, man muss "load" schreiben, um die Legende einzuschalten? Wäre nicht on/off besser?
                                 loadlegend = TRUE;
                                 set_graph_legend_active(cur_graph, TRUE);
+                            } else if (!strcmp("off", argv[i])) {
+                                loadlegend = FALSE;
+                                set_graph_legend_active(cur_graph, FALSE);
                             } else {
-                                fprintf(stderr, "Improper argument for -legend\n");
-                                usage(stderr, argv[0]);
+                                fprintf(stdout, "Improper argument for -legend: %s\n",argv[i]);
+                                //usage(stderr, argv[0]);
+                                sprintf(error_text,"Usage:\n-legend [load]\nPlease type load to turn graph legend on\nRecognized option(s):\nload\non\noff\n");
+                                fprintf(stdout, "%s", error_text);
+                                exit(1);
                             }
                         }
-                    } else if (argmatch(argv[i], "-rvideo", 7)) {
+                    } else if (argmatch(argv[i], "-rvideo", 3)) {
                         reverse_video();
-                    } else if (argmatch(argv[i], "-param", 2)) {
+                    } else if (argmatch(argv[i], "-param", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing parameter file name\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing parameter file name\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-param [parameter_file]\nPlease give the filename of a parameter file\nRecognized option(s):\nfilename\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             if (!getparms(argv[i])) {
-                                fprintf(stderr, "Unable to read parameter file %s\n", argv[i]);
+                                fprintf(stdout, "Unable to read parameter file %s\n", argv[i]);
+                                exit(1);
                             }
                         }
-                    } else if (argmatch(argv[i], "-results", 2)) {
+                    } else if (argmatch(argv[i], "-results", 4)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing results file name\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing results file name\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-results [results_file]\nPlease give a filename to write results of data manipulation to\nRecognized option(s):\nfilename\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             /*  open resfile if -results option given */
                             if ((resfp = grace_openw(argv[i])) == NULL) {
@@ -1067,41 +1343,63 @@ int replacement_main(int argc, char **argv)
                             }
                             setvbuf(resfp, NULL, _IOLBF, 0);
                         }
-                    } else if (argmatch(argv[i], "-saveall", 8)) {
+                    } else if (argmatch(argv[i], "-saveall", 4)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing save file name\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing save file name\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-saveall [save_file]\nPlease give a filename for saving\nRecognized option(s):\nfilename\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             save_project(argv[i]);
                         }
                     } else if (argmatch(argv[i], "-wd", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing parameters for working directory\n");
-                            usage(stderr, argv[0]);
+                            /*fprintf(stderr, "Missing parameters for working directory\n");
+                            usage(stderr, argv[0]);*/
+                            sprintf(error_text,"Usage:\n-wd [directory]\nPlease give a working directory\nRecognized option(s):\ndirectory\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             if (set_workingdir(argv[i]) != RETURN_SUCCESS) {
-                                fprintf(stderr, "Can't change to directory %s, fatal error", argv[i]);
+                                fprintf(stdout, "Can't change to directory %s, fatal error", argv[i]);
                                 exit(1);
                             }
                         }
-                    } else if (argmatch(argv[i], "-source", 2)) {
+                    } else if (argmatch(argv[i], "-source", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for data source parameter\n");
-                            usage(stderr, argv[0]);
+                            sprintf(error_text,"Usage:\n-source [disk|pipe]\nPlease give a source type for the next file to load\nRecognized option(s):\ndisc\npipe\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
+                            /*fprintf(stderr, "Missing argument for data source parameter\n");
+                            //usage(stderr, argv[0]);
+                            fprintf(stderr,"pipe\n");
+                            fprintf(stderr,"disk\n");
+                            exit(1);*/
                         }
                         if (argmatch(argv[i], "pipe", 4)) {
                             cursource = SOURCE_PIPE;
                         } else if (argmatch(argv[i], "disk", 4)) {
                             cursource = SOURCE_DISK;
+                        } else {
+                            fprintf(stdout, "Improper argument for -source: %s\n",argv[i]);
+                            sprintf(error_text,"Usage:\n-source [disk|pipe]\nPlease give a source type for the next file to load\nRecognized option(s):\ndisc\npipe\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         }
-                    } else if (argmatch(argv[i], "-viewport", 2)) {
+                    } else if (argmatch(argv[i], "-viewport", 3)) {
                         i++;
                         if (i > argc - 4) {
-                            fprintf(stderr, "Missing parameter(s) for viewport setting\n");
+                            /*fprintf(stderr, "Missing parameter(s) for viewport setting\n");
                             usage(stderr, argv[0]);
+                            fprintf(stderr,"xv1 yv1 xv2 yv2\n");
+                            exit(1);*/
+                            sprintf(error_text,"Usage:\n-viewport [xmin ymin xmax ymax]\nPlease set all the viewport coordinates for the current graph\nRecognized option(s):\nxmin\nymin\nxmax\nymax\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             v.xv1 = atof(argv[i++]);
                             v.yv1 = atof(argv[i++]);
@@ -1112,11 +1410,16 @@ int replacement_main(int argc, char **argv)
                     }
                 //2013-13-09 Nimalendiran Kailasanathan added command to hide QtGrace main application window and communication
                 //with ViewBeast
-                    else if (argmatch(argv[i], "-ServerMode", 4)) {
+                    else if (argmatch(argv[i], "-ServerMode", 2)) {
                         i++;
                         if (i > argc - 2) {
-                            fprintf(stderr, "Missing parameter(s) to connect to client\n");
+                            /*fprintf(stderr, "Missing parameter(s) to connect to client\n");
                             usage(stderr, argv[0]);
+                            fprintf(stderr,"SendTo ReadFrom\n");
+                            exit(1);*/
+                            sprintf(error_text,"Usage:\n-ServerMode [Server1 Server2]\nPlease set sending and receiving server id\nRecognized option(s):\nServer1\nServer2\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             //connectToViewBeast = TRUE;
                             enableServerMode = TRUE;
@@ -1124,15 +1427,20 @@ int replacement_main(int argc, char **argv)
                             strcpy(readFromBeast, argv[i]);
                         }
                     }
-                    else if (argmatch(argv[i], "-hideMainWindow", 15)) {
+                    else if (argmatch(argv[i], "-hideMainWindow", 3)) {
                         hideMainWindow = TRUE;
                         disableConsole = FALSE;
                     }
-                    else if (argmatch(argv[i], "-world", 2)) {
+                    else if (argmatch(argv[i], "-world", 3)) {
                         i++;
                         if (i > argc - 4) {
-                            fprintf(stderr, "Missing parameter(s) for world setting\n");
+                            /*fprintf(stderr, "Missing parameter(s) for world setting\n");
                             usage(stderr, argv[0]);
+                            fprintf(stderr,"xg1 yg1 xg2 yg2\n");
+                            exit(1);*/
+                            sprintf(error_text,"Usage:\n-world [xmin ymin xmax ymax]\nPlease set all the world coordinates for the current graph\nRecognized option(s):\nxmin\nymin\nxmax\nymax\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
                         } else {
                             w.xg1 = atof(argv[i++]);
                             w.yg1 = atof(argv[i++]);
@@ -1140,11 +1448,14 @@ int replacement_main(int argc, char **argv)
                             w.yg2 = atof(argv[i]);
                             set_graph_world(cur_graph, w);
                         }
-                    } else if (argmatch(argv[i], "-seed", 5)) {
+                    } else if (argmatch(argv[i], "-seed", 4)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing seed for srand48()\n");
-                            usage(stderr, argv[0]);
+                            sprintf(error_text,"Usage:\n-seed [seed_value]\nPlease give a seed value for the random number generator\nRecognized option(s):\nseed_value(long-integer)\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
+                            /*fprintf(stderr, "Missing seed for srand48()\n");
+                            usage(stderr, argv[0]);*/
                         } else {
 #ifndef WINDOWS_SYSTEM
                             srand48(atol(argv[i]));	/* note atol() */
@@ -1152,55 +1463,89 @@ int replacement_main(int argc, char **argv)
                             srand(atol(argv[i]));
 #endif
                         }
-                    } else if (argmatch(argv[i], "-maxpath", 8)) {
+                    } else if (argmatch(argv[i], "-maxpath", 3)) {
                         i++;
                         if (i == argc) {
-                            fprintf(stderr, "Missing argument for max drawing path\n");
-                            usage(stderr, argv[0]);
+                            sprintf(error_text,"Usage:\n-maxpath [length]\nPlease set the maximum drawing path length\nRecognized option(s):\nlength(integer)\n");
+                            fprintf(stdout, "%s", error_text);
+                            exit(1);
+                            /*fprintf(stderr, "Missing argument for max drawing path\n");
+                            usage(stderr, argv[0]);*/
                         } else {
                             set_max_path_limit(atoi(argv[i]));
                         }
-                    } else if (argmatch(argv[i], "-safe", 5)) {
+                    } else if (argmatch(argv[i], "-safe", 4)) {
                         safe_mode = TRUE;
-                    } else if (argmatch(argv[i], "-nosafe", 7)) {
+                    } else if (argmatch(argv[i], "-nosafe", 5)) {
                         safe_mode = FALSE;
-                    } else if (argmatch(argv[i], "-help", 2)) {
+                    } else if (argmatch(argv[i], "-help", 2) || argmatch(argv[i], "-usage", 2)) {
                         usage(stdout, argv[0]);
-                    } else if (argmatch(argv[i], "-usage", 5)) {
-                        usage(stdout, argv[0]);
+                        exit(0);
                     } else {
-                        fprintf(stderr, "No option %s\n", argv[i]);
+                        fprintf(stdout, "Option %s not recognized\n", argv[i]);
                         usage(stderr, argv[0]);
+                        exit(1);
                     }
             } else {
                 if (i != argc)
                 {
-                    prepare_strings_for_saving();
-                    if (getdata(cur_graph, argv[i], cursource, LOAD_SINGLE) == RETURN_SUCCESS)
+                    do_postprocessing=TRUE;
+/*qDebug() << "wdir1=" << wdir1;
+qDebug() << "Cur Working Dir=" << get_workingdir();
+                (void)getcwd(dummy, GR_MAXPATHLEN - 1);
+qDebug() << "Cur Working Dir=" << dummy;*/
+                strcpy(dummy,argv[i]);
+#ifdef DEBUG_OUT_LOG
+debug_out << "Trying to find file: " << dummy << endl;
+#endif
+//qDebug() << "A argv[i]=" << dummy;
+                (void)look_for_file(dummy);
+#ifdef DEBUG_OUT_LOG
+debug_out << "Found file-location: " << dummy << ", trying to load..." << endl;
+#endif
+//qDebug() << "B argv[i]=" << dummy << "autoscaleonread=" << autoscale_onread << " cur_graph=" << cur_graph;
+                    if (getdata(cur_graph, dummy, cursource, LOAD_SINGLE) == RETURN_SUCCESS)
                     {
-                        set_docname(argv[i]);
+                        set_docname(dummy);
                         if (remove_flag)
                         {
-                            unlink(argv[i]);
+                            unlink(dummy);
                         }
                         update_default_props();
                         clear_dirtystate();
+                    #ifdef DEBUG_OUT_LOG
+                    debug_out << "Load successfull." << endl;
+                    #endif
                     }
-                    resume_strings_after_load_or_save();
+                    else
+                    {
+                    ;
+                    #ifdef DEBUG_OUT_LOG
+                    debug_out << "Loading failed!" << endl;
+                    #endif
+                    }
+
                 }		/* end if */
             }			/* end else */
         }			/* end for */
     }				/* end if */
 
-    
-    /*
-     * Process events.
-     */
-    if (sigcatch == TRUE) {
+if (do_postprocessing==TRUE)
+{
+resume_strings_after_load_or_save();
+}
+if (hdevice!=stdOutputFormat)
+stdOutputFormat=hdevice;
+
+/*
+ * Process events.
+ */
+    if (sigcatch == TRUE)
+    {
         installSignal();
     }
 
-    /*
+/*
  * load legend
  */
     if (loadlegend) {
@@ -1213,11 +1558,14 @@ int replacement_main(int argc, char **argv)
         }
     }
 
-    /*
+/*
  * if -hardcopy on command line or executed as gracebat,
  * just plot the graph and quit
  */
     if (gracebat == TRUE) {
+#ifdef DEBUG_OUT_LOG
+debug_out << "QtGrace opened as batch-process." << endl;
+#endif
         if (hdevice == DEVICE_SCREEN)
         {
             errmsg(QObject::tr("Terminal device can't be used for batch plotting").toLocal8Bit().constData());
@@ -1226,7 +1574,9 @@ int replacement_main(int argc, char **argv)
         if (inpipe == TRUE)
         {
             prepare_strings_for_saving();
-            getdata(cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE);
+            //getdata(cur_graph,"stdin", SOURCE_DISK, LOAD_SINGLE);
+            getdata(cur_graph,QString("stdin").toLatin1().data(), SOURCE_DISK, LOAD_SINGLE);
+            //getdata(cur_graph, QString("stdin").toLatin1().data(), SOURCE_PIPE, LOAD_SINGLE);
             resume_strings_after_load_or_save();
             inpipe = FALSE;
         }
@@ -1240,12 +1590,28 @@ int replacement_main(int argc, char **argv)
         }
         if (!noprint)
         {
-        cout << "ptofile=" << get_ptofile() << endl;
-        cout << "outfile=" << print_file << endl;
+        /*qDebug() << "ptofile=" << get_ptofile();
+        qDebug() << "outfile A=" << print_file;*/
+        QString pf1;
+        Device_entry dev = get_device_props(hdevice);
+        pf1=QString::fromLocal8Bit(print_file);
+        replaceSuffix(pf1,QString(dev.fext));
+        strcpy(print_file,pf1.toLocal8Bit().constData());
+        //qDebug() << "outfile B=" << print_file;
+            select_device(hdevice);
+            set_ptofile(true);
+            printing_in_file=true;
+            print_target=PRINT_TARGET_SCREEN;
             do_hardcopy();
         }
         bailout();
-    } else {
+        #ifdef DEBUG_OUT_LOG
+        debug_out.close();
+        #endif
+    } else {/*no gracebat*/
+#ifdef DEBUG_OUT_LOG
+debug_out << "QtGrace started in normal GUI-mode." << endl;
+#endif
         /*
  * go main loop
  */
@@ -1260,11 +1626,12 @@ int replacement_main(int argc, char **argv)
         cli_loop();
 #endif        
 */
-
         if (inpipe == TRUE)
         {
             prepare_strings_for_saving();
-            getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
+            //getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
+            getdata(get_cg(), QString("stdin").toLatin1().data(), SOURCE_DISK, LOAD_SINGLE);
+            //getdata(get_cg(), QString("stdin").toLatin1().data(), SOURCE_PIPE, LOAD_SINGLE);
             resume_strings_after_load_or_save();
             inpipe = FALSE;
         }
@@ -1273,19 +1640,16 @@ int replacement_main(int argc, char **argv)
             getparms(batchfile);
         }
     }
-
-    init_color_icons(number_of_colors(),cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);
-    //init_color_icons();
-
-    /* never reaches */
-    ///exit(0);
-    return 0;
+    //init_color_icons(number_of_colors(),cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);
+    update_color_selectors();//to adapt to a change in the color palette
+/* never reaches -- now it does, because the event loop is elsewhere*/
+return 0;
 }
 
 /*
  * command interface loop
  */
-void cli_loop(void)//never used--replaced by the Qt-event-loop of QApplication
+void cli_loop(void)//never used -- replaced by the Qt-event-loop of QApplication
 {
     Input_buffer *ib_stdin;
     int previous = -1;
@@ -1293,7 +1657,7 @@ void cli_loop(void)//never used--replaced by the Qt-event-loop of QApplication
     if (inpipe == TRUE)
     {
         prepare_strings_for_saving();
-        getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
+        getdata(get_cg(), QString("stdin").toLatin1().data(), SOURCE_DISK, LOAD_SINGLE);
         resume_strings_after_load_or_save();
         inpipe = FALSE;
     }
@@ -1326,91 +1690,96 @@ static void usage(FILE *stream, char *progname)
 {
     /* We use alphabetial order */
 
-    fprintf(stream, "Usage of %s command line arguments: \n", progname);
+    fprintf(stream, "Usage of %s command line arguments (minimum argument): \n", progname);
 
-    fprintf(stream, "-autoscale [x|y|xy|none]              Set autoscale type\n");
+    fprintf(stream, "-autoscale [x|y|xy|none]              Set autoscale type (-a)\n");
 #ifndef NONE_GUI
-    fprintf(stream, "-barebones                            Turn off all toolbars\n");
+    fprintf(stream, "-barebones                            Turn off all toolbars (-bar)\n");
 #endif
-    fprintf(stream, "-batch     [batch_file]               Execute batch_file on start up\n");
-    fprintf(stream, "-block     [block_data]               Assume data file is block data\n");
+    fprintf(stream, "-batch     [batch_file]               Execute batch_file on start up (-bat)\n");
+    fprintf(stream, "-block     [block_data]               Assume data file is block data (-bl)\n");
     fprintf(stream, "-bxy       [x:y:etc.]                 Form a set from the current block data set\n");
     fprintf(stream, "                                        using the current set type from columns\n");
-    fprintf(stream, "                                        given in the argument\n");
-    fprintf(stream, "-ServerMode [Server1 Server2]         start in Server-Mode\n");
+    fprintf(stream, "                                        given in the argument (-bx)\n");
     fprintf(stream, "-datehint  [iso|european|us\n");
-    fprintf(stream, "            |days|seconds|nohint]     Set the hint for dates analysis\n");
+    fprintf(stream, "            |nohint]                  Set the hint for dates analysis (-da)\n");
     fprintf(stream, "                                        (it is only a hint for the parser)\n");
 #if defined(DEBUG)
-    fprintf(stream, "-debug     [debug_level]              Set debugging options\n");
+    fprintf(stream, "-debug     [debug_level]              Set debugging options (-de)\n");
 #endif
-    fprintf(stream, "-dpipe     [descriptor]               Read data from descriptor on startup\n");
-    fprintf(stream, "-fixed     [width] [height]           Set canvas size fixed to width*height\n");
+    fprintf(stream, "-dpipe     [descriptor]               Read data from descriptor on startup (-dp)\n");
+    fprintf(stream, "-fixed     [width] [height]           Set canvas size fixed to width*height (-fi)\n");
 #ifndef NONE_GUI
-    fprintf(stream, "-free                                 Use free page layout\n");
+    fprintf(stream, "-free                                 Use free page layout (-fr)\n");
 #endif
-    fprintf(stream, "-graph     [graph_number]             Set the current graph number\n");
-    fprintf(stream, "-graphtype [graph_type]               Set the type of the current graph\n");
+    fprintf(stream, "-graph     [graph_number]             Set the current graph number (exact argument match)\n");
+    fprintf(stream, "-graphtype [graph_type]               Set the type of the current graph (-grapht)\n");
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");
-    fprintf(stream, "                                        quit\n");
-    fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
-    fprintf(stream, "-hideMainWindow                       hide the QtGrace application window\n");
+    fprintf(stream, "                                        quit (-ha)\n");
+    fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device (-hd)\n");
+    fprintf(stream, "-hideMainWindow                       hide the QtGrace application window (-hi)\n");
 #ifndef NONE_GUI
-    fprintf(stream, "-install                              Install private colormap\n");
+    fprintf(stream, "-install                              Install private colormap (-i)\n");
 #endif
-    fprintf(stream, "-legend    [load]                     Turn the graph legend on\n");
+    fprintf(stream, "-legend    [load]                     Turn the graph legend on (-le)\n");
     fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
-    fprintf(stream, "                                        to logarithmic\n");
-    fprintf(stream, "-maxpath   [length]                   Set the maximal drawing path length\n");
+    fprintf(stream, "                                        to logarithmic (-lo)\n");
+    fprintf(stream, "-maxpath   [length]                   Set the maximal drawing path length (-ma)\n");
 #ifndef NONE_GUI
     fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
-    fprintf(stream, "                                        the display only)\n");
+    fprintf(stream, "                                        the display only) (-mo)\n");
 #endif
 #ifdef HAVE_NETCDF
-    fprintf(stream, "-netcdf    [netcdf file]              Assume data file is in netCDF format\n");
-    fprintf(stream, "-netcdfxy  [X var name] [Y var name]  If -netcdf was used previously, read from\n");
+    fprintf(stream, "-netcdf|-hdf    [netcdf file]         Assume data file is in netCDF format (exact argument match)\n");
+    fprintf(stream, "-netcdfxy|-hdfxy [X var name] [Y var name]  If -netcdf was used previously, read from\n");
     fprintf(stream, "                                        the netCDF file 'X var name' and 'Y\n");
     fprintf(stream, "                                        var name' and create a set. If 'X var\n");
     fprintf(stream, "                                        name' is \"null\" then load the\n");
-    fprintf(stream, "                                        index of Y to X\n");
+    fprintf(stream, "                                        index of Y to X (-netcdfx)\n");
 #endif
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
     fprintf(stream, "                                        if the operation would overwrite a file,\n");
-    fprintf(stream, "                                        grace will do so without prompting\n");
+    fprintf(stream, "                                        grace will do so without prompting (-noa)\n");
 #ifndef NONE_GUI
-    fprintf(stream, "-noinstall                            Don't use private colormap\n");
+    fprintf(stream, "-noinstall                            Don't use private colormap (-noi)\n");
 #endif
-    fprintf(stream, "-noprint                              In batch mode, do not print\n");
-    fprintf(stream, "-nosafe                               Disable safe mode\n");
-    fprintf(stream, "-nosigcatch                           Don't catch signals\n");
-    fprintf(stream, "-npipe     [file]                     Read data from named pipe on startup\n");
-    fprintf(stream, "-nxy       [nxy_file]                 Assume data file is in X Y1 Y2 Y3 ...\n");
+    fprintf(stream, "-noprint                              In batch mode, do not print (-nop)\n");
+    fprintf(stream, "-nosafe                               Disable safe mode (-nosa)\n");
+    fprintf(stream, "-nosigcatch                           Don't catch signals (-nosi)\n");
+    fprintf(stream, "-NoWizard                             Don't show setup-wizard-dialog (-N)\n");
+    fprintf(stream, "-npipe     [file]                     Read data from named pipe on startup (-np)\n");
+    fprintf(stream, "-nxy       [nxy_file]                 Assume data file is in X Y1 Y2 Y3 ... (-nx)\n");
     fprintf(stream, "                                        format\n");
     fprintf(stream, "-param     [parameter_file]           Load parameters from parameter_file to the\n");
-    fprintf(stream, "                                        current graph\n");
+    fprintf(stream, "                                        current graph (-pa)\n");
     fprintf(stream, "-pexec     [parameter_string]         Interpret string as a parameter setting\n");
-    fprintf(stream, "-pipe                                 Read data from stdin on startup\n");
-    fprintf(stream, "-printfile [file for hardcopy output] Save print output to file \n");
-    fprintf(stream, "-remove                               Remove data file after read\n");
+    fprintf(stream, "-pipe                                 Read data from stdin on startup (-pe)\n");
+    fprintf(stream, "-printfile [file for hardcopy output] Save print output to file (-pr)\n");
+    fprintf(stream, "-QtFonts                              Use QtFonts instead of classic T1-fonts (-Q)\n");
+    fprintf(stream, "-remove                               Remove data file after read (-rem)\n");
     fprintf(stream, "-results   [results_file]             Write results of some data manipulations\n");
-    fprintf(stream, "                                        to results_file\n");
+    fprintf(stream, "                                        to results_file (-res)\n");
     fprintf(stream, "-rvideo                               Exchange the color indices for black and\n");
-    fprintf(stream, "                                        white\n");
-    fprintf(stream, "-safe                                 Safe mode (default)\n");
-    fprintf(stream, "-saveall   [save_file]                Save all to save_file\n");
-    fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator\n");
-    fprintf(stream, "-source    [disk|pipe]                Source type of next data file\n");
+    fprintf(stream, "                                        white (-rv)\n");
+    fprintf(stream, "-safe                                 Safe mode (default) (-saf)\n");
+    fprintf(stream, "-saveall   [save_file]                Save all to save_file (-sav)\n");
+    fprintf(stream, "-seed      [seed_value]               Integer seed for random number generator (-see)\n");
+    fprintf(stream, "-ServerMode [Server1 Server2]         Start in Server-Mode (-S)\n");
+    fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file (-set)\n");
+    fprintf(stream, "-source    [disk|pipe]                Source type of next data file (-so)\n");
+    fprintf(stream, "-UseDefaultDialogSizes                Use the default sizes for all dialogs");
+    fprintf(stream, "-UseLastDialogSizes                   Use the sizes for all dialogs from the last session");
     fprintf(stream, "-timer     [delay]                    Set allowed time slice for real time\n");
-    fprintf(stream, "                                        inputs to delay ms\n");
-    fprintf(stream, "-timestamp                            Add timestamp to plot\n");
-    fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file\n");
-    fprintf(stream, "-version                              Show the program version\n");
-    fprintf(stream, "-viewport  [xmin ymin xmax ymax]      Set the viewport for the current graph\n");
-    fprintf(stream, "-wd        [directory]                Set the working directory\n");
-    fprintf(stream, "-world     [xmin ymin xmax ymax]      Set the world coordinates for the\n");
-    fprintf(stream, "                                        current graph\n");
+    fprintf(stream, "                                        inputs to delay ms (-timer)\n");
+    fprintf(stream, "-timestamp                            Add timestamp to plot (-times)\n");
 
-    fprintf(stream, "-usage|-help                          This message\n");
+    fprintf(stream, "-version                              Show the program version (-ve)\n");
+    fprintf(stream, "-viewport  [xmin ymin xmax ymax]      Set the viewport for the current graph (-vi)\n");
+    fprintf(stream, "-wd        [directory]                Set the working directory (-wd)\n");
+    fprintf(stream, "-world     [xmin ymin xmax ymax]      Set the world coordinates for the\n");
+    fprintf(stream, "                                        current graph (-wo)\n");
+
+    fprintf(stream, "-usage|-help                          This message (-u | -he)\n");
     fprintf(stream, "\n");
     fprintf(stream, " ** If it scrolls too fast, run `%s -help | more\' **\n", progname);
     exit(0);
@@ -1471,7 +1840,7 @@ static void VersionInfo(void)
     
     fprintf(stdout, "(C) Copyright 1991-1995 Paul J Turner\n");
     fprintf(stdout, "(C) Copyright 1996-2008 Grace Development Team\n");
-    fprintf(stdout, "QtGrace: (C) Copyright 2008-2015 Andreas Winter\n");
+    fprintf(stdout, "QtGrace: (C) Copyright 2008-2020 Andreas Winter\n");
     fprintf(stdout, "All Rights Reserved\n");
 
     return;
@@ -1575,12 +1944,13 @@ extern int ReqUpdateColorSel;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 void update_all(void)
 {
-    static int gno;
-    bool sav_imm_upd;
-//qDebug() << "Update All updateRunning=" << updateRunning << endl;
-    if (updateRunning==true) return;
+static int gno;
+bool sav_imm_upd;
+//qDebug() << "Update All updateRunning=" << updateRunning;
+    if (updateRunning==true || mainWin==NULL) return;
     sav_imm_upd=immediateUpdate;
     immediateUpdate=false;
     updateRunning=true;
@@ -1591,9 +1961,10 @@ void update_all(void)
     //cout << "update all: upd. set lists" << endl;
     update_set_lists(gno);
     //cout << "update all: upd. set sel" << endl;
-    update_set_selectors(ALL_GRAPHS);
+    ///update_set_selectors(ALL_GRAPHS);
     //cout << "update all: upd. set edit" << endl;
-    update_ss_editors(ALL_GRAPHS);
+    ///update_ss_editors(ALL_GRAPHS);
+    updateAllSelectors();
     if (ReqUpdateColorSel == TRUE)
     {
         //qDebug() << "ReqUpdateColorSel=" << ReqUpdateColorSel << endl;
@@ -1615,38 +1986,66 @@ void update_all(void)
     }
     if (FormLocatorProps!=NULL) FormLocatorProps->update_locator_items(gno);
     if (FormSetAppearance!=NULL) FormSetAppearance->flp->tabLi->cmbSet->update_entries(gno,true);
-    if (FormExplorer!=NULL)
-    {
-        QList<QTreeWidgetItem *> items=FormExplorer->tree->selectedItems();
-        if (items.length()>0)
-        {
-            char selected_type;
-            int gno,sno;
-            FormExplorer->tree->getItemData(items.at(0),selected_type,gno,sno);
-            FormExplorer->tree->RecreateCompleteTree();
-            FormExplorer->tree->selectItem(selected_type,gno,sno);
-        }
-    }
+    update_explorer();
     if (FormRegionMaster!=NULL) FormRegionMaster->init();
     if (FormPlotAppearance!=NULL) FormPlotAppearance->init();
     mainWin->set_stack_message();
     mainWin->lstGraphs->update_number_of_entries_preserve_selection();
-    set_left_footer(NULL);
+    set_left_footer_to_action(action_flag,current_axis_restriction);
+
+    if (EditTextProps!=NULL)//the graph-selector here is special (it dows not show the current graph-id, but the linked graph-id)
+    {
+        if (EditTextProps->isVisible()==true)
+        EditTextProps->flp->selGno->setCurrentValue(pstr[EditTextProps->flp->obj_id].gno);
+    }
+
     immediateUpdate=sav_imm_upd;
     updateRunning=false;
 }
+
 #ifdef __cplusplus
 }
 #endif
 
 void update_all_cb(void *data)
 {
+    (void)data;
     update_all();
+}
+
+void setDefaultsInSetList(void)
+{
+int i;
+    for (i = 0; i < nset_selectors; i++)
+    {
+    set_selectors[i]->show_hidden=DefaultSetListShowHidden;
+    set_selectors[i]->show_data_less=DefaultSetListShowDataless;
+    set_selectors[i]->show_comments=DefaultSetListShowComments;
+    set_selectors[i]->show_legends=DefaultSetListShowLegends;
+    set_selectors[i]->show_icons=DefaultSetListShowIcons;
+    }
+}
+
+void update_explorer(void)
+{
+if (FormExplorer!=NULL)
+{
+    QList<QTreeWidgetItem *> items=FormExplorer->tree->selectedItems();
+    if (items.length()>0)
+    {
+        char selected_type;
+        int gno,sno;
+        FormExplorer->tree->getItemData(items.at(0),selected_type,gno,sno);
+        FormExplorer->tree->RecreateCompleteTree();
+        FormExplorer->tree->selectItem(selected_type,gno,sno);
+    }
+}
 }
 
 void update_set_lists(int gno)
 {
     int i;
+//qDebug() << "update set lists: gno=" << gno << " get_cg=" << get_cg();
     if (gno == GRAPH_SELECT_CURRENT) {
         update_set_selectors(get_cg());
         update_ss_editors(get_cg());
@@ -1655,11 +2054,13 @@ void update_set_lists(int gno)
         update_ss_editors(gno);
     }
     //if (1) { //inwin) {
+    //qDebug() << "nplist=" << nplist;
     for (i = 0; i < nplist; i++)
     {
-        if (plist[i]->gr_no == gno || (gno == get_cg() && plist[i]->gr_no == GRAPH_SELECT_CURRENT) && plist[i]->prevent_from_autoupdate==false)
+        if ((plist[i]->gr_no == gno || (gno == get_cg() && plist[i]->gr_no == GRAPH_SELECT_CURRENT)) && plist[i]->prevent_from_autoupdate==false)
         {
             update_set_list(gno, plist[i]);
+            //qDebug() << "gno=" << gno;
         }
     }
     //}
@@ -1670,6 +2071,16 @@ void update_set_lists(int gno)
  */
 void set_left_footer(char *s)
 {
+QString additional_text;
+additional_text.clear();
+    if (show_PickButton==2)
+    {
+    additional_text=QString(" [Pick-and-Move ACTIVE]");
+    }
+    else if (show_PanButton==2)
+    {
+    additional_text=QString(" [Pan ACTIVE]");
+    }
     if (s == NULL)
     {
     QString dispText("");
@@ -1730,12 +2141,224 @@ void set_left_footer(char *s)
         delete[] hbuf;
         delete[] buf;
         */
-    mainWin->statusBar->showMessage(dispText);
+    mainWin->statusBar->showMessage(dispText+additional_text);
     }
     else
     {
-    mainWin->statusBar->showMessage(QString(s));
+    mainWin->statusBar->showMessage(QString::fromLocal8Bit(s)+additional_text);
     }
+}
+
+void set_left_footer_to_action(CanvasAction act,int axis_restrict)
+{
+    switch (act)
+    {
+    case PICK_MOVE:
+    set_left_footer(QObject::tr("Click on any object / graph / label / legend or title to move it").toLocal8Bit().data());
+    break;
+    case PAN_1ST:
+    set_left_footer(QObject::tr("Pick startingpoint for panning").toLocal8Bit().data());
+    break;
+    case PAN_2ND:
+    set_left_footer(QObject::tr("Pan the graph").toLocal8Bit().data());
+    break;
+    case ZOOM_1ST:
+    set_left_footer(QObject::tr("Pick first corner for zoom").toLocal8Bit().data());
+    break;
+    case ZOOM_2ND:
+    set_left_footer(QObject::tr("Pick second corner for zoom").toLocal8Bit().data());
+    break;
+    case ZOOMX_1ST:
+    set_left_footer(QObject::tr("Pick first point for zoom along X-axis").toLocal8Bit().data());
+    break;
+    case ZOOMX_2ND:
+    set_left_footer(QObject::tr("Pick second point for zoom along X-axis").toLocal8Bit().data());
+    break;
+    case ZOOMY_1ST:
+    set_left_footer(QObject::tr("Pick first point for zoom along Y-axis").toLocal8Bit().data());
+    break;
+    case ZOOMY_2ND:
+    set_left_footer(QObject::tr("Pick second point for zoom along Y-axis").toLocal8Bit().data());
+    break;
+    case VIEW_1ST:
+    set_left_footer(QObject::tr("Pick first corner of viewport").toLocal8Bit().data());
+    break;
+    case VIEW_2ND:
+    set_left_footer(QObject::tr("Pick second corner of viewport").toLocal8Bit().data());
+    break;
+    case CORNER_2ND:
+    set_left_footer(QObject::tr("Change plot viewport").toLocal8Bit().data());
+    break;
+    case EDIT_OBJECT:
+    set_left_footer(QObject::tr("Pick object to edit").toLocal8Bit().data());
+    break;
+    case DEL_OBJECT:
+    set_left_footer(QObject::tr("Delete object").toLocal8Bit().data());
+    break;
+    case MOVE_OBJECT_1ST:
+    set_left_footer(QObject::tr("Pick object to move").toLocal8Bit().data());
+    break;
+    case COPY_OBJECT1ST:
+    set_left_footer(QObject::tr("Pick object to copy").toLocal8Bit().data());
+    break;
+    case MOVE_OBJECT_2ND:
+        if (axis_restrict==X_AXIS)
+        set_left_footer(QObject::tr("Place object [restricted to X-axis]").toLocal8Bit().data());
+        else if (axis_restrict==Y_AXIS)
+        set_left_footer(QObject::tr("Place object [restricted to Y-axis]").toLocal8Bit().data());
+        else
+        set_left_footer(QObject::tr("Place object").toLocal8Bit().data());
+    break;
+    case COPY_OBJECT2ND:
+        if (axis_restrict==X_AXIS)
+        set_left_footer(QObject::tr("Place object [restricted to X-axis]").toLocal8Bit().data());
+        else if (axis_restrict==Y_AXIS)
+        set_left_footer(QObject::tr("Place object [restricted to Y-axis]").toLocal8Bit().data());
+        else
+        set_left_footer(QObject::tr("Place object").toLocal8Bit().data());
+    break;
+    case STR_LOC:
+    set_left_footer(QObject::tr("Pick beginning of text").toLocal8Bit().data());
+    break;
+    case MAKE_LINE_1ST:
+    set_left_footer(QObject::tr("Pick beginning of line").toLocal8Bit().data());
+    break;
+    case MAKE_LINE_2ND:
+        if (axis_restrict==X_AXIS)
+        set_left_footer(QObject::tr("Pick end of line [restricted to X-axis]").toLocal8Bit().data());
+        else if (axis_restrict==Y_AXIS)
+        set_left_footer(QObject::tr("Pick end of line [restricted to Y-axis]").toLocal8Bit().data());
+        else
+        set_left_footer(QObject::tr("Pick end of line").toLocal8Bit().data());
+    break;
+    case MAKE_BOX_1ST:
+    set_left_footer(QObject::tr("First corner of box").toLocal8Bit().data());
+    break;
+    case MAKE_BOX_2ND:
+    set_left_footer(QObject::tr("Second corner of box").toLocal8Bit().data());
+    break;
+    case MAKE_ELLIP_1ST:
+    set_left_footer(QObject::tr("Pick beginning of bounding box for ellipse").toLocal8Bit().data());
+    break;
+    case MAKE_ELLIP_2ND:
+    set_left_footer(QObject::tr("Pick opposite corner of bounding box for ellipse").toLocal8Bit().data());
+    break;
+    case AUTO_NEAREST:
+    set_left_footer(QObject::tr("Autoscale on nearest set - click near a point of the set to autoscale").toLocal8Bit().data());
+    break;
+    case TRACKER:
+    set_left_footer(QObject::tr("Tracker").toLocal8Bit().data());
+    break;
+    case DEL_POINT:
+    set_left_footer(QObject::tr("Delete point").toLocal8Bit().data());
+    break;
+    case MOVE_AXIS_LABEL_1ST:
+    set_left_footer(QObject::tr("Pick axis-label to move").toLocal8Bit().data());
+    break;
+    case MOVE_AXIS_LABEL_2ND:
+        if (axis_restrict==X_AXIS)
+        set_left_footer(QObject::tr("Place axis-label [restricted to X-axis]").toLocal8Bit().data());
+        else if (axis_restrict==Y_AXIS)
+        set_left_footer(QObject::tr("Place axis-label [restricted to Y-axis]").toLocal8Bit().data());
+        else
+        set_left_footer(QObject::tr("Place axis-label").toLocal8Bit().data());
+    break;
+    case MOVE_GRAPH_1ST:
+    set_left_footer(QObject::tr("Pick graph to move").toLocal8Bit().data());
+    break;
+    case MOVE_GRAPH_2ND:
+        if (axis_restrict==X_AXIS)
+        set_left_footer(QObject::tr("Place graph [restricted to X-axis]").toLocal8Bit().data());
+        else if (axis_restrict==Y_AXIS)
+        set_left_footer(QObject::tr("Place graph [restricted to Y-axis]").toLocal8Bit().data());
+        else
+        set_left_footer(QObject::tr("Place graph").toLocal8Bit().data());
+    break;
+    case MOVE_TITLE_1ST:
+    set_left_footer(QObject::tr("Pick graph title or subtitle to move").toLocal8Bit().data());
+    break;
+    case MOVE_TITLE_2ND:
+        if (axis_restrict==X_AXIS)
+        set_left_footer(QObject::tr("Place graph title or subtitle [restricted to X-axis]").toLocal8Bit().data());
+        if (axis_restrict==Y_AXIS)
+        set_left_footer(QObject::tr("Place graph title or subtitle [restricted to Y-axis]").toLocal8Bit().data());
+        else
+        set_left_footer(QObject::tr("Place graph title or subtitle").toLocal8Bit().data());
+    break;
+    case MOVE_POINT1ST:
+    set_left_footer(QObject::tr("Pick point to move").toLocal8Bit().data());
+    break;
+    case MOVE_POINT2ND:
+    set_left_footer(QObject::tr("Pick final location").toLocal8Bit().data());
+    break;
+    case ADD_POINT:
+    set_left_footer(QObject::tr("Add point").toLocal8Bit().data());
+    break;
+    case PLACE_LEGEND_1ST:
+    set_left_footer(QObject::tr("Pick legend").toLocal8Bit().data());
+    break;
+    case PLACE_LEGEND_2ND:
+        if (axis_restrict==X_AXIS)
+        set_left_footer(QObject::tr("Move legend [restricted to X-axis]").toLocal8Bit().data());
+        else if (axis_restrict==Y_AXIS)
+        set_left_footer(QObject::tr("Move legend [restricted to Y-axis]").toLocal8Bit().data());
+        else
+        set_left_footer(QObject::tr("Move legend").toLocal8Bit().data());
+    break;
+    case PLACE_TIMESTAMP_1ST:
+    set_left_footer(QObject::tr("Pick timestamp").toLocal8Bit().data());
+    break;
+    case PLACE_TIMESTAMP_2ND:
+        if (axis_restrict==X_AXIS)
+        set_left_footer(QObject::tr("Place timestamp [restricted to X-axis]").toLocal8Bit().data());
+        else if (axis_restrict==Y_AXIS)
+        set_left_footer(QObject::tr("Place timestamp [restricted to Y-axis]").toLocal8Bit().data());
+        else
+        set_left_footer(QObject::tr("Place timestamp").toLocal8Bit().data());
+    break;
+    case SEL_POINT:
+    set_left_footer(QObject::tr("Pick reference point").toLocal8Bit().data());
+    break;
+    case DEF_REGION1ST:
+    set_left_footer(QObject::tr("Pick first point for region").toLocal8Bit().data());
+    break;
+    case DEF_REGION2ND:
+    set_left_footer(QObject::tr("Pick second point for region").toLocal8Bit().data());
+    break;
+    case DEF_REGION:
+    set_left_footer(QObject::tr("Define region").toLocal8Bit().data());
+    break;
+    case COMP_AREA:
+    set_left_footer(QObject::tr("Compute area").toLocal8Bit().data());
+    break;
+    case COMP_PERIMETER:
+    set_left_footer(QObject::tr("Compute perimeter").toLocal8Bit().data());
+    break;
+    case DISLINE1ST:
+    set_left_footer(QObject::tr("Pick start of line for distance computation").toLocal8Bit().data());
+    break;
+    case DISLINE2ND:
+    set_left_footer(QObject::tr("Pick ending point").toLocal8Bit().data());
+    break;
+    default:
+    set_left_footer(NULL);
+    break;
+    }
+}
+
+void set_footer_background_color(QString s, int color)
+{
+    if(color == 0){
+    mainWin->statusBarLabel->setStyleSheet("background-color: rgb(255,255, 0);");
+    }else if(color == 1){
+    mainWin->statusBarLabel->setStyleSheet("background-color: rgb(255,0, 0);");
+    }else if(color == 2){
+    mainWin->statusBarLabel->setStyleSheet("background-color: gray;");
+    mainWin->statusBarLabel->setText("");
+    return;
+    }
+mainWin->statusBarLabel->setText(s);
+mainWin->statusBar->insertPermanentWidget(0, mainWin->statusBarLabel);
 }
 
 QBitmap generate_Bitmap_from_Bits(unsigned char * bits,int length,int rows,int cols)//generates a rows x cols-QBitmap(black and white) form the bits[] with length entries (number of bytes)
@@ -1773,7 +2396,7 @@ QBitmap generate_Bitmap_from_Bits(unsigned char * bits,int length,int rows,int c
     return result;
 }
 
-void generate_Pixmap_from_Bits(unsigned char * bits,int length,int rows,int cols,QPixmap * target)
+void generate_Pixmap_from_Bits(unsigned char * bits, int length, int rows, int cols, double factor, QPixmap * target)
 {
     /*QBitmap tempBitMap(rows,cols);
 QPainter paint;
@@ -1813,7 +2436,8 @@ painter.setBrush(Qt::color1);
         }
     }
     painter.end();
-    *target=result.copy();
+    //*target=result.copy();
+    *target=result.scaled(cols*factor,rows*factor);
 }
 
 void generate_Pixmap_from_Bits(unsigned char * bits,int length,int rows,int cols,QPixmap * target,int color)
@@ -1871,11 +2495,116 @@ void convertBitmapToPixmap(QBitmap * source,QPixmap * dest)
 #endif
 }
 
+void convertBitmapToIcon(QBitmap * source,QIcon * dest)
+{
+    QPixmap pdest;
+    convertBitmapToPixmap(source,&pdest);
+    QImage img1=pdest.toImage();
+    QImage img2(img1.size(),QImage::Format_ARGB32);
+    img2.fill(Qt::transparent);
+    QRgb r1;
+    QColor col1;
+    QPainter paint1;
+    int w,h;
+    w=img1.width();
+    h=img1.height();
+    paint1.begin(&img2);
+    for (int i=0;i<h;i++)
+    {
+        for (int j=0;j<w;j++)
+        {
+        r1=img1.pixel(j,i);
+            if (qRed(r1)==255 && qGreen(r1)==255 && qBlue(r1)==255)
+            {
+            ;
+            }
+            else
+            {
+            col1=QColor(r1);
+            paint1.setPen(col1);
+            paint1.drawPoint(j,i);
+            }
+        }
+    }
+    paint1.end();
+    *dest=QIcon(QPixmap::fromImage(img2,Qt::AutoColor));
+}
+
+void convertBitmapToScaledIcon(QBitmap * source,QIcon * dest,QSize s)
+{
+static QPixmap pm1,pm2;
+convertBitmapToIcon(source,dest);
+pm1=dest->pixmap(s);
+pm2=pm1.scaled(s,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+//pm2=pm1.scaled(s,Qt::IgnoreAspectRatio,Qt::FastTransformation);
+*dest=QIcon(pm2);
+}
+
+void RecreatePatternIcons(int w,int h)
+{
+QPixmap pm(w,h);
+QPainter paint;
+QBrush brush;
+QTransform trans;
+trans=trans.scale(toolBarSizeFactor,toolBarSizeFactor);
+/*int appfontsize=QApplication::font().pixelSize();
+//qDebug() << "Recreate Patterns";
+if (appfontsize<=0)
+{
+appfontsize=QApplication::font().pointSize();
+if (appfontsize<=0) appfontsize=9;
+}
+double rel_size=appfontsize/13.0*toolBarSizeFactor;*/
+QFont standardfont=qApp->font();
+    /*
+    if (int(13.0*rel_size)<13)//9
+    standardfont.setPixelSize(13);//9
+    else
+    standardfont.setPixelSize(int(13.0*rel_size));//9
+    */
+standardfont.setPixelSize((int)(h*0.75));
+//QFontMetrics fi(standardfont);
+//QRect bb=fi.boundingRect(QObject::tr("None"));
+//qDebug() << "w x h=" << w << "x" << h << " / bb=" << bb.width() << "x" << bb.height() << "PixelSize=" << standardfont.pixelSize();
+//qDebug() << "position=" << (w-bb.width())/2 << "/" << h-ceil((h-bb.height())*0.5);
+for (int i=0;i<MAXPATTERNS;i++)
+{
+paint.begin(&pm);
+paint.setPen(Qt::NoPen);
+paint.setFont(standardfont);
+paint.fillRect(0,0,w+1,h+1,QApplication::palette().window().color());
+paint.setBrush(Qt::NoBrush);
+    if (i==0)
+    {
+        paint.setPen(Qt::black);
+        //paint.drawText((w-bb.width())/2,h-(h-(bb.height()))/2,QObject::tr("None"));//16
+        ///paint.drawText((w-bb.width())/2,h-int(3.0*rel_size),QObject::tr("None"));//int(4.0*rel_size)
+        ///paint.drawText((w-bb.width())/2,h-ceil((h-bb.height())*0.5),QObject::tr("None"));
+        paint.drawText(QRect(0,0,w,h), Qt::AlignCenter, QObject::tr("None"));
+        paint.setPen(Qt::NoPen);
+        //qDebug() << "Text Pixel Size=" << paint.font().pixelSize();
+    }
+    else
+    {
+        brush.setColor(Qt::black);
+        brush.setTexture(*(patterns[i]));
+        brush.setTransform(trans);
+        paint.setBrush(brush);
+        paint.drawRect(0,0,w,h);
+        //paint.drawRect((w-h)/2,0,h,h);
+    }
+paint.end();
+delete PatternPixmaps[i];
+PatternPixmaps[i]=new QPixmap(pm);
+//qDebug() << "Recreate Patterns: PatternPixmaps[i].size=" << PatternPixmaps[i]->size();
+}
+}
+
 int openPipe(char * pname,int * fd)
 {
     int ret=RETURN_SUCCESS;
     *fd = open(pname, O_RDONLY | O_NONBLOCK); //open a pipe!!
-    if (fd < 0)
+    if (*fd < 0)
     {
         fprintf(stderr, "Can't open fifo\n");
     }
@@ -1894,11 +2623,12 @@ int openPipe(char * pname,int * fd)
 #ifdef __cplusplus
 extern "C" {
 #endif
-void HelpCB(char *data)
+void HelpCB(const char *data)
 {
     ///this opens the default web-browser to open a help-file
     ///simple and portable, but the fragment is lost :-(
     ///this means, that "help on context" always opens the users guide at the top of the page instead of the apropriate position
+    QFileInfo fi1(data);
     QString strbuf;
     if (data==strstr(data, "http:") || data==strstr(data, "file:"))
     {
@@ -1906,11 +2636,22 @@ void HelpCB(char *data)
     }
     else
     {
+        if (fi1.isAbsolute())
+        {
 #ifdef WINDOWS_SYSTEM
-        strbuf=QString("file:///")+QString(qt_grace_exe_dir)+QString("/../")+QString(data);
+        strbuf=QString("file:///")+QString::fromLocal8Bit(data);
 #else
-        strbuf=QString("file://")+QString(qt_grace_exe_dir)+QString("/../")+QString(data);
+        strbuf=QString("file://")+QString::fromLocal8Bit(data);
 #endif
+        }
+        else
+        {
+#ifdef WINDOWS_SYSTEM
+        strbuf=QString("file:///")+QString(qt_grace_share_dir)+QDir::separator()+QString(data);
+#else
+        strbuf=QString("file://")+QString(qt_grace_share_dir)+QDir::separator()+QString(data);
+#endif
+        }
     }
     //qDebug(strbuf.toLocal8Bit());
     ///QUrl helpUrl=QUrl::fromUserInput(strbuf);//not necessary

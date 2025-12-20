@@ -639,7 +639,7 @@ void CommunicationsProtocol::waitToConnectedToServer(){
     while( comMode_m != endState ){
         // We need to wait until the TCP connection signal has been receive
         QApplication::instance()->processEvents();
-        QThread::sleep(0.01);
+        QThread::usleep(10000);
     }
 
 }

@@ -117,8 +117,7 @@ static unsigned short Q[] = {
 
 extern double INFINITY, NAN;
 
-double atanh(x)
-double x;
+double atanh(double x)
 {
 double s, z;
 

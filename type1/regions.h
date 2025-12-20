@@ -66,7 +66,7 @@ void t1_ChangeDirection();    /* called when we change direction in Y         */
 void t1_MoreWorkArea();       /* get longer edge list for stepping            */
 struct region *t1_CopyRegion();  /* duplicate a region                       */
 void t1_KillRegion();         /* destroy a region                             */
-struct region *t1_BoxClip();  /* clip a region to a rectangle                 */
+struct region *BoxClip(register struct region *R,register pel xmin,register pel ymin,register pel xmax,register pel ymax);  /* clip a region to a rectangle                 */
 struct edgelist *t1_SortSwath();  /* sort edges onto growing edge list        */
 struct edgelist *t1_SwathUnion();  /* 'union' two edges into a swath          */
 struct segment *t1_RegionBounds();  /* returns bounding box of a region       */
@@ -95,9 +95,9 @@ void t1_UnJumble();           /* sort the edges and reset the jumbled flag    */
    else if (x2 > R->edgexmax) R->edgexmax = x2; \
 }
  
- 
-#define    MINPEL    (-1<<(8*sizeof(pel)-1))  /* smallest value fitting in a pel */
-#define    MAXPEL    ((1<<(8*sizeof(pel)-1))-1)/* largest value fitting in a pel */
+#define    MINPEL    -(1<<(8*sizeof(pel)-1))      /* edited by Andreas Winter 2016, because modern compilers do not like shifting negative values */
+/*#define    MINPEL    (-1<<(8*sizeof(pel)-1))*/  /* smallest value fitting in a pel */
+#define    MAXPEL    ((1<<(8*sizeof(pel)-1))-1)   /* largest value fitting in a pel */
  
 /*
 The "Unique"-type macro is different (unique?) for regions, because some

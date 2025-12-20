@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -82,16 +82,39 @@ typedef enum {
     ZOOMY_1ST,
     ZOOMY_2ND,
     DISLINE1ST,
-    DISLINE2ND
+    DISLINE2ND,
+    PAN_1ST,
+    PAN_2ND,
+    PICK_MOVE,
+    MOVE_AXIS_LABEL_1ST,
+    MOVE_AXIS_LABEL_2ND,
+    MOVE_GRAPH_1ST,
+    MOVE_GRAPH_2ND,
+    MOVE_TITLE_1ST,
+    MOVE_TITLE_2ND,
+    CORNER_2ND
 } CanvasAction;
+
+typedef enum {
+    TARGET_NOTHING,
+    TARGET_TIMESTAMP,
+    TARGET_GRAPH,
+    TARGET_SET,
+    TARGET_OBJECT,
+    TARGET_AXIS,
+    TARGET_AXIS_LABEL,
+    TARGET_TITLE,
+    TARGET_LEGEND,
+    TARGET_LEGEND_BOX
+} ClickTarget;
 
 typedef struct {
 int type;
 struct{int x;int y;} xmotion;
 struct{int x;int y;int button;} xbutton;
 int key;
-bool alt,ctrl;
-int delta;
+bool alt,ctrl,shift;
+int delta,axis_restrict;
 bool doubleClick;
 } special_XEvent;
 
@@ -110,7 +133,7 @@ bool doubleClick;
  */
 #define CLICKINT 400
 
-#define MAXPICKDIST 0.015      /* the maximum distance away from an object */
+#define MAXPICKDIST 0.015     /* the maximum distance away from an object */
                               /* you may be when picking it (in viewport  */
                               /* coordinates)                             */  
 
@@ -118,6 +141,7 @@ void anchor_point(int curx, int cury, VPoint curvp);
 void my_proc(special_XEvent *event);
 ///void set_actioncb(void *data);
 void set_action(CanvasAction act);
+CanvasAction get_action(void);
 void track_point(int gno, int setno, int *loc, int shift);
 void getpoints(VPoint *vpp);
 void set_stack_message(void);
@@ -126,17 +150,24 @@ void do_select_peri(void);
 void do_dist_proc(void);
 void do_select_region(void);
 int next_graph_containing(int cg, VPoint vp);
+int get_graph_truly_containing_vp(VPoint vp);
 int graph_clicked(int gno, VPoint vp);
 int focus_clicked(int cg, VPoint vp, VPoint *avp);
+int lower_right_corner_clicked(VPoint vp);
 int legend_clicked(int gno, VPoint vp, view *bb);
 int timestamp_clicked(VPoint vp, view *bb);
 int axis_clicked(int gno, VPoint vp, int *axisno);
+int axis_custom_tick_clicked(int gno, VPoint vp, int * axisno, int * tick_nr);
+int get_axis_label_viewport(int gno, int ax,view * vp,bool for_click,int * rot,int alt);
+int axis_label_clicked(int *gno, VPoint vp, int *axisno, int * alt);
 int title_clicked(int gno, VPoint vp, int *lower);
 int find_insert_location(int gno, int setno, VPoint vp);
 int find_point(int gno, VPoint vp, int *setno, int *loc);
 void newworld(int gno, int axes, VPoint vp1, VPoint vp2);
 void push_and_zoom(void);
 int hideDialog(void);
+ClickTarget getClickTarget(VPoint vp, view * bb, int * parameters);/*parameters return the ids of the different objects (max parameters = 4)*/
+void debugClickTarget(ClickTarget ct, view bb, int * parameters);/*just for debug to report on the found click target*/
 
 /* action routines */
 void set_viewport_action(void);

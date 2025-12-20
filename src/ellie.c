@@ -58,8 +58,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 extern double PI, PIO2, MACHEP;
 
-double ellie( phi, m )
-double phi, m;
+double ellie(double phi,double m )
 {
 double a, b, c, e, temp;
 double lphi, t, E;

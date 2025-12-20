@@ -51,7 +51,7 @@
 #include "../type1/objects.h"
 #include "../type1/spaces.h"
 #include "../type1/util.h"
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 #include "../type1/regions.h"
 
 #include "t1types.h"
@@ -709,8 +709,6 @@ static void T1_AADoLine ( int level, int x, int y, int width,
   
 }
 
-
-
 /* T1_DoLine(): Generate a scanline of bytes from a scanline of bits */
 static void T1_DoLine ( long wd, long paddedW, char *ptr, register char *target_ptr )
 {
@@ -718,7 +716,7 @@ static void T1_DoLine ( long wd, long paddedW, char *ptr, register char *target_
   register unsigned char *in_ptr;
   T1_AA_TYPE16 *starget_ptr;
   T1_AA_TYPE32 *ltarget_ptr;
-  
+  (void)paddedW;
   in_ptr=(unsigned char *)ptr;
   
   if (T1aa_bpp==8) {
@@ -754,7 +752,7 @@ GLYPH *T1_AASetChar( int FontID, char charcode, float size,
   long n_horz, n_horz_pad, n_vert, n_asc, n_dsc;
   long v_start, v_end;
   char *target_ptr;
-  long offset;
+  //long offset;
   char *ptr;
   int y;
   long lsb, aalsb, aahstart;
@@ -763,7 +761,6 @@ GLYPH *T1_AASetChar( int FontID, char charcode, float size,
   int savelevel;
   FONTSIZEDEPS *font_ptr=NULL;
   unsigned char ucharcode;
-  
 
   /* Reset character glyph, if necessary */
   if (aaglyph.bits!=NULL){
@@ -957,9 +954,8 @@ GLYPH *T1_AASetChar( int FontID, char charcode, float size,
     return(NULL);
   }
   
-
   paddedW=PAD(wd,pFontBase->bitmap_pad)/8;
-  offset=0;
+  //offset=0;
   target_ptr=aaglyph.bits;
   
   /* We must check for n_vert==1 because the computation above is not
@@ -1023,14 +1019,13 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
   long n_horz, n_horz_pad, n_vert, n_asc, n_dsc;
   long v_start, v_end;
   char *target_ptr;
-  long offset;
+  //long offset;
   char *ptr;
   int y;
   long lsb, aalsb, aahstart;
   int memsize;
   LONG paddedW;
   int savelevel;
-  
   
   /* Reset character glyph, if necessary */
   if (aastring_glyph.bits!=NULL){
@@ -1045,7 +1040,6 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
   aastring_glyph.metrics.descent=0;
   aastring_glyph.pFontCacheInfo=NULL;
   aastring_glyph.bpp=T1aa_bpp;
-  
 
   /* Check for smart antialiasing */
   savelevel=T1aa_level;
@@ -1063,8 +1057,7 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
     
   /* First, call routine to rasterize character, all error checking is
      done in this function: */ 
-  if ((glyph=T1_SetString( FontID, string, len, spaceoff,
-			   modflag, T1aa_level*size, transform))==NULL){
+  if ((glyph=T1_SetString( FontID, string, len, spaceoff, modflag, T1aa_level*size, transform))==NULL){
     /* restore level */
     T1aa_level=savelevel;
     return(NULL); /* An error occured */
@@ -1085,7 +1078,6 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
     T1aa_level=savelevel;
     return(&aastring_glyph);
   }
-
 
   /* Get dimensions of bitmap: */
   asc=glyph->metrics.ascent;
@@ -1121,7 +1113,6 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
     T1aa_level=savelevel;
     return(&aastring_glyph);
   }
-  
 
   /* Set some looping parameters for subsampling */
   if (lsb<0){
@@ -1181,7 +1172,7 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
   }
   
   paddedW=PAD(wd,pFontBase->bitmap_pad)/8;
-  offset=0;
+  //offset=0;
   target_ptr=aastring_glyph.bits;
   
   /* We must check for n_vert==1 because the computation above is not
@@ -1217,8 +1208,6 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
   return(&aastring_glyph);
 }
 
-
-
 /* T1_AASetGrayValues(): Sets the byte values that are put into the
    pixel position for the respective entries:
    Returns 0 if successfull.
@@ -1248,8 +1237,6 @@ int T1_AASetGrayValues(unsigned long white,
   return(0);
   
 }
-
-		     
 
 /* T1_AAHSetGrayValues(): Sets the byte values that are put into the
    pixel position for the respective entries (for 17 gray levels):
@@ -1350,7 +1337,7 @@ int T1_AAHGetGrayValues( long *pgrayvals)
   }
 
   for ( i=0; i<17; i++) { /* bg (i=0)  to fg (i=16) */
-    pgrayvals[i]=gv[i];
+    pgrayvals[i]=gv_h[i];
   }
   return( 0);
 }
@@ -1467,13 +1454,12 @@ GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag)
   long n_horz, n_horz_pad, n_vert, n_asc, n_dsc;
   long v_start, v_end;
   char *target_ptr;
-  long offset;
+  //long offset;
   char *ptr;
   int y;
   long lsb, aalsb, aahstart;
   int memsize;
   LONG paddedW;
- 
 
   /* Reset character glyph, if necessary */
   if (aaglyph.bits!=NULL){
@@ -1488,7 +1474,6 @@ GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag)
   aaglyph.metrics.descent=0;
   aaglyph.pFontCacheInfo=NULL;
   aaglyph.bpp=T1aa_bpp;
-
 
   /* First, scale outline appropriately: */
   path=T1_ScaleOutline( path, T1aa_level);
@@ -1519,7 +1504,6 @@ GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag)
   ht=asc-dsc;
   wd=glyph->metrics.rightSideBearing-lsb;
   
-
   if (T1aa_level==T1_AA_NONE){
     /* we only convert bitmap to bytemap */
     aaglyph=*glyph;
@@ -1545,7 +1529,6 @@ GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag)
     return(&aaglyph);
   }
   
-
   /* Set some looping parameters for subsampling */
   if (lsb<0){
     aalsb=lsb/T1aa_level-1;
@@ -1603,7 +1586,7 @@ GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag)
   }
   
   paddedW=PAD(wd,pFontBase->bitmap_pad)/8;
-  offset=0;
+  //offset=0;
   target_ptr=aaglyph.bits;
   
   /* We must check for n_vert==1 because the computation above is not
@@ -1636,13 +1619,10 @@ GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag)
   return(&aaglyph);
 }
 
-
-
 /* T1_AASetSmartLimits(): Set the limit-values for smart
    antialiasing. Returns 0 if OK, and -1 else. */
 int T1_AASetSmartLimits( float limit1, float limit2)
 {
-
   if (limit1 > 0.0 && limit2 > 0.0 && limit2 >= limit2) {
     T1aa_smartlimit1=limit1;
     T1aa_smartlimit2=limit2;
@@ -1654,12 +1634,9 @@ int T1_AASetSmartLimits( float limit1, float limit2)
   }
 }
 
-
-
 /* T1_AASetSmartMode(): Enable or disable smart anialiasing */
 int T1_AASetSmartMode( int smart)
 {
-
   if (smart==T1_YES) {
     T1aa_SmartOn=1;
   }

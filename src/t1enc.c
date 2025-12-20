@@ -49,7 +49,7 @@
 #include "../type1/objects.h"
 #include "../type1/spaces.h"
 #include "../type1/util.h"
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 #include "../type1/regions.h"
 
 
@@ -454,7 +454,7 @@ static int TryT1LibEncoding( char *linebuf, int filesize, char *charnames)
    generate an array char *enc[257]. Return the pointer to the data area
    or NULL in case of an error.
    */
-static char **ScanEncodingFile( char *FileName) 
+static char **ScanEncodingFile(const char *FileName)
 {
   
   char *linebuf;
@@ -497,7 +497,7 @@ static char **ScanEncodingFile( char *FileName)
     return(NULL);
   }
   
-  fread((char *)linebuf, sizeof(char), filesize, enc_fp);
+  (void)fread((char *)linebuf, sizeof(char), filesize, enc_fp);
   fclose(enc_fp);
 
 
@@ -577,7 +577,7 @@ static char **ScanEncodingFile( char *FileName)
    available. If successful, the pointer to the encoding array is
    returned. In case of an error, the return value is NULL.
    */
-char **T1_LoadEncoding( char *FileName)
+char **T1_LoadEncoding(const char *FileName)
 {
   char **Encoding;
   char *EncFileName;

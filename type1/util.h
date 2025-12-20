@@ -30,6 +30,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 #include "types.h" 
+/*#include "fontfcn.h"*/
  
 #ifndef boolean
 typedef int boolean;
@@ -174,9 +175,11 @@ typedef struct ps_dict {
 #define objPSetName(o)           ((o)->type = OBJ_NAME)
 #define objPSetFile(o)           ((o)->type = OBJ_FILE)
  
+#include "fontfcn.h"
+
 /***================================================================***/
 /* Entry point for Type1Char to get entry from CharStrings            */
 /***================================================================***/
-extern psobj *GetType1CharString();
+extern psobj *GetType1CharString(psfont * fontP,unsigned char  code);
  
 #endif

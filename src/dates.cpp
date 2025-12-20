@@ -7,7 +7,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -98,6 +98,7 @@
 #include "noxprotos.h"
 
 static double ref_date = 0.0;
+extern double rint_v2(double x);
 
 /*
  * store the reference date
@@ -152,7 +153,6 @@ int two_digits_years_allowed(void)
     return two_digits_years_flag;
 }
 
-
 static int wrap_year = 1950;
 static int century   = 2000;
 static int wy        = 50;
@@ -197,13 +197,12 @@ static int reduced_year(int y)
     }
 }
 
-
 /*
  * expand years according to the following rules :
  * [wy ; 99] -> [ wrap_year ; 100*(1 + wrap_year/100) - 1 ]
  * [00 ; wy-1] -> [ 100*(1 + wrap_year/100) ; wrap_year + 99]
  */
-static int expanded_year(Int_token y)
+int expanded_year(Int_token y)
 {
     if (two_digits_years_allowed()) {
         if (y.value >= 0 && y.value < wy && y.digits <= 2) {
@@ -249,7 +248,6 @@ static int neg_julian_year_estimate(long n)
     return (int) ((4L*n - 6887153L)/1461L);
 }
 
-
 /*
  * set of functions to convert julian calendar elements
  * with positive years to julian day
@@ -284,7 +282,6 @@ static int pos_julian_year_estimate(long n)
     return (y < 1) ? 1 : y;
 
 }
-
 
 /*
  * set of functions to convert gregorian calendar elements to julian day
@@ -321,6 +318,32 @@ static int gregorian_year_estimate(long n)
     return (int) ((400L*n - 688570288L)/146097L);
 }
 
+int gregorian_month_lengths[12]={31,28,31,30,31,30,31,31,30,31,30,31};//in a non leap year
+
+int gregorian_dayofyear_to_monthday(int dayofyear,int year,int * month,int * day)
+{
+int non_leap=gregorian_non_leap(year);
+int counter=0,cur_month;
+*month=0;
+*day=0;
+if (dayofyear<1 || dayofyear>366 || (non_leap && dayofyear>365) ) return RETURN_FAILURE;
+for (int i=1;i<=12;i++)
+{
+    cur_month=gregorian_month_lengths[i-1];
+    if (i==2 && non_leap==0) cur_month++;//one day more in february in a leap year
+    if (dayofyear-counter<=cur_month)//we are in the correct month
+    {
+    *day=dayofyear-counter;
+    *month=i;
+    break;
+    }
+    else counter+=cur_month;
+}
+if (dayofyear-counter>gregorian_month_lengths[11])
+return RETURN_FAILURE;
+else
+return RETURN_SUCCESS;
+}
 
 /*
  * convert calendar elements to Julian day
@@ -343,7 +366,6 @@ long cal_to_jul(int y, int m, int d)
 
 }
 
-
 /*
  * convert julian day to calendar elements
  */
@@ -351,7 +373,7 @@ static void jul_to_some_cal(long n,
                             int (*some_non_leap) (int),
                             long (*some_cal_to_jul) (int, int, int),
                             int (*some_year_estimate) (long),
-                            int *y, int *m, int *d)
+                            int *y, int *m, int *d, int *yday)
 {
     int non_leap, day_of_year, days_until_end_of_year;
 
@@ -368,6 +390,7 @@ static void jul_to_some_cal(long n,
     }
 
     day_of_year = (non_leap ? 365 : 366) - days_until_end_of_year;
+    *yday = day_of_year;
 
     /* estimate of the month : one too high only on last days of January */
     *m = (16*(day_of_year + (non_leap ? 32 : 31))) / 489;
@@ -383,27 +406,34 @@ static void jul_to_some_cal(long n,
 
 }
 
+/*
+ * convert julian day to calendar elements
+ */
+void jul_to_cal_with_yday(long n, int *y, int *m, int *d, int *day_of_year)
+{
+    if (n < 1721424L) {
+       jul_to_some_cal(n, neg_julian_non_leap,
+                       neg_julian_cal_to_jul, neg_julian_year_estimate,
+                       y, m, d, day_of_year);
+    } else if (n < 2299161L) {
+       jul_to_some_cal(n, pos_julian_non_leap,
+                       pos_julian_cal_to_jul, pos_julian_year_estimate,
+                       y, m, d, day_of_year);
+    } else {
+       jul_to_some_cal(n, gregorian_non_leap,
+                       gregorian_cal_to_jul, gregorian_year_estimate,
+                       y, m, d, day_of_year);
+    }
+}
 
 /*
  * convert julian day to calendar elements
  */
 void jul_to_cal(long n, int *y, int *m, int *d)
 {
-    if (n < 1721424L) {
-       jul_to_some_cal(n, neg_julian_non_leap,
-                       neg_julian_cal_to_jul, neg_julian_year_estimate,
-                       y, m, d);
-    } else if (n < 2299161L) {
-       jul_to_some_cal(n, pos_julian_non_leap,
-                       pos_julian_cal_to_jul, pos_julian_year_estimate,
-                       y, m, d);
-    } else {
-       jul_to_some_cal(n, gregorian_non_leap,
-                       gregorian_cal_to_jul, gregorian_year_estimate,
-                       y, m, d);
-    }
+    int day_of_year;
+    jul_to_cal_with_yday(n, y, m, d, &day_of_year);
 }
-
 
 /*
  * convert julian day and hourly elements to julian day
@@ -415,7 +445,6 @@ double jul_and_time_to_jul(long jul, int hour, int min, double sec)
 
 }
 
-
 /*
  * convert calendar and hourly elements to julian day
  */
@@ -425,16 +454,17 @@ double cal_and_time_to_jul(int y, int m, int d,
     return jul_and_time_to_jul (cal_to_jul(y, m, d), hour, min, sec);
 }
 
-
 /*
  * convert julian day to calendar and hourly elements
  */
-void jul_to_cal_and_time(double jday, int rounding,
+void jul_to_cal_and_time_with_yday(double jday, int round,
                          int *y, int *m, int *d,
-                         int *hour, int *min, int *sec)
+                         int *hour, int *min, int *sec,
+                         double *fracsec, int *day_of_year)
 {
     long n;
-    double tmp;
+    double tmp,tmp2;
+    int rounding=round;
 
     /* compensate for the reference date */
     jday += get_ref_date();
@@ -446,9 +476,21 @@ void jul_to_cal_and_time(double jday, int rounding,
     tmp = 60.0*(tmp - *hour);
     *min = (int) floor(tmp);
     tmp  = 60.0*(tmp - *min);
-    *sec = (int) floor(tmp + 0.5);
-
+    //*sec = (int) floor(tmp + 0.5);
+    *sec = (int) floor(tmp);
+    *fracsec = tmp - *sec;
     /* perform some rounding */
+    if (rounding<=0)//sub-second-rounding
+    {
+    tmp2=(*fracsec)*pow(10.0,-rounding);
+    tmp2=rint_v2(tmp2)/pow(10.0,-rounding);
+        if (tmp2>=1.0)
+        {
+        *sec+=1;
+        *fracsec = tmp2 - 1.0;
+        }
+    round=NO_ROUND;//no further rounding
+    }
     if (*sec >= 60 || rounding > ROUND_SECOND) {
         /* we should round to at least nearest minute */
         if (*sec >= 30) {
@@ -472,7 +514,7 @@ void jul_to_cal_and_time(double jday, int rounding,
     }
 
     /* now find the date */
-    jul_to_cal(n, y, m, d);
+    jul_to_cal_with_yday(n, y, m, d, day_of_year);
 
     /* perform more rounding */
     if (rounding == ROUND_MONTH) {
@@ -497,6 +539,47 @@ void jul_to_cal_and_time(double jday, int rounding,
     /* introduce the y2k bug for those who want it :) */
     *y = reduced_year(*y);
 
+}
+
+/*
+ * convert julian day to calendar and hourly elements
+ */
+void jul_to_cal_and_time_with_frac(double jday, int rounding,
+                                   int *y, int *m, int *d,
+                                   int *hour, int *min, int *sec,
+                                   double *fracsec)
+{
+    int day_of_year = 0;
+    jul_to_cal_and_time_with_yday(jday, rounding, y, m, d, hour, min, sec, fracsec, &day_of_year);
+}
+
+/*
+ * convert julian day to calendar and hourly elements
+ */
+void jul_to_cal_and_time(double jday, int rounding,
+                         int *y, int *m, int *d,
+                         int *hour, int *min, int *sec)
+{
+    double fracsec = 0.;
+    int day_of_year = 0;
+    jul_to_cal_and_time_with_yday(jday, rounding, y, m, d, hour, min, sec, &fracsec, &day_of_year);
+    if (fracsec>0.5)//we ignore the fractions here, therefore we have to round (up)
+    {
+    jul_to_cal_and_time_with_yday(jday+0.5/86400.0, rounding, y, m, d, hour, min, sec, &fracsec, &day_of_year);
+    }
+}
+
+
+/*
+ * convert julian day to "day of year" and hourly elements
+ */
+void jul_to_yday_and_time(double jday, int rounding,
+                         int *y, int *day_of_year,
+                         int *hour, int *min, int *sec,
+                         double *fracsec)
+{
+    int m, d;
+    jul_to_cal_and_time_with_yday(jday, rounding, y, &m, &d, hour, min, sec, fracsec, day_of_year);
 }
 
 /*
@@ -525,6 +608,30 @@ static int check_date(Int_token y, Int_token m, Int_token d, long *jul)
 
 }
 
+/*
+ * check the existence of given calendar elements
+ * this includes either number of day in the month
+ * and calendars pecularities (year 0 and October 1582)
+ */
+int simple_check_date(int y, int m, int d)
+{
+int y_expand, y_check, m_check, d_check;
+long jul;
+char td[16];
+sprintf(td,"%d",y);
+Int_token yt;
+yt.value=y;
+yt.digits=strlen(td);
+    y_expand = expanded_year(yt);
+jul = cal_to_jul(y_expand, m, d);
+jul_to_cal(jul, &y_check, &m_check, &d_check);
+    if (y_expand != y_check || m != m_check || d != d_check) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
+
+}
 
 /*
  * lexical analyzer for float data. Knows about fortran exponent
@@ -606,7 +713,6 @@ int parse_float(const char* s, double *value, const char **after)
     return RETURN_SUCCESS;
 
 }
-
 
 /*
  * lexical analyzer for calendar dates
@@ -710,7 +816,6 @@ static int parse_calendar_date(const char* s,
 
 }
 
-
 /*
  * parse a date given either in calendar or numerical format
  */
@@ -805,4 +910,17 @@ int parse_date_or_number(const char* s, int absolute, double *value)
     } else {
         return RETURN_FAILURE;
     }
+}
+
+int force_four_digit_year(int year)
+{
+static int sav_two_diggit_year_allowed,n_year;
+static Int_token test_token;
+sav_two_diggit_year_allowed=two_digits_years_allowed();
+test_token.value=year;
+test_token.digits=1;
+if (year>=10 || year<=-10) test_token.digits=(int)(log10(abs(year)));
+n_year=expanded_year(test_token);
+allow_two_digits_years(sav_two_diggit_year_allowed);
+return n_year;
 }

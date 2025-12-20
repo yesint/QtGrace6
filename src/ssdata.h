@@ -54,12 +54,18 @@ typedef struct _ss_data
 double *copy_data_column(double *src, int nrows);
 double *allocate_index_data(int nrows);
 double *allocate_mesh(double start, double stop, int len);
+double *allocate_logarithmic_mesh(double start, double stop, int len);
 
 void set_blockdata(ss_data *ssd);
+
+void set_block_origin(char * s);
+char * get_block_origin(void);
 
 int get_blockncols(void);
 int get_blocknrows(void);
 int *get_blockformats(void);
+double * get_blockdata_column_d(int col);
+char ** get_block_data_column_s(int col);
 
 int realloc_ss_data(ss_data *ssd, int nrows);
 void free_ss_data(ss_data *ssd);
@@ -67,10 +73,9 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats);
 
 int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats);
 int insert_data_row(ss_data *ssd, int row, char *s);
-int store_data(ss_data *ssd, int load_type, char *label);
+int store_data(ss_data *ssd, int load_type, const char *label);
 
-int create_set_fromblock(int gno, int setno,
-    int type, int nc, int *coli, int scol, int autoscale);
+int create_set_fromblock(int gno, int setno, int type, int nc, int *coli, int scol, int autoscale);
 char *cols_to_field_string(int nc, int *cols, int scol);
 int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);
 

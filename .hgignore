@@ -1,2 +1,0 @@
-syntax: glob
-src/LINUX64/*.gcno

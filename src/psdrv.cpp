@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -113,7 +113,8 @@ static Device_entry dev_ps = {DEVICE_PRINT,
           FALSE,
           {3300, 2550, 300.0},
           NULL,
-          1
+          1,
+          "PS"
          };
 
 static Device_entry dev_eps = {DEVICE_FILE,
@@ -126,7 +127,8 @@ static Device_entry dev_eps = {DEVICE_FILE,
           FALSE,
           {2500, 2500, 300.0},
           NULL,
-          1
+          1,
+          ""
          };
 
 VPoint CenterOfMass(int n,VPoint *p)
@@ -154,7 +156,8 @@ int register_eps_drv(void)
 
 static int ps_initgraphics(int format)
 {
-    int i, j;
+    unsigned int i;
+    int j;
     Page_geometry pg;
     fRGB *frgb;
     int width_pp, height_pp, page_offset_x, page_offset_y;
@@ -332,7 +335,7 @@ static int ps_initgraphics(int format)
         fprintf(prstream, " [%.4f 0 0 %.4f 0 0]\n", 1.0/page_scalef, 1.0/page_scalef);
         fprintf(prstream, " makepattern\n");
         fprintf(prstream, "} def\n");
-        for (i = 0; i < number_of_patterns(); i++) {
+        for (i = 0; i < (unsigned int)number_of_patterns(); i++) {
             fprintf(prstream, "/Pattern%d {<", i);
             for (j = 0; j < 32; j++) {
                 fprintf(prstream, "%02x", pat_bits[i][j]);
@@ -898,7 +901,8 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
 void ps_leavegraphics(void)
 {
     view v;
-    int i, first;
+    unsigned int i;
+    int first;
     
     if (curformat == PS_FORMAT) {
         fprintf(prstream, "showpage\n");
@@ -1020,7 +1024,7 @@ int epsinitgraphics(void)
     return (result);
 }
 
-int ps_op_parser(char *opstring)
+int ps_op_parser(const char *opstring)
 {
     if (!strcmp(opstring, "grayscale")) {
         ps_setup_grayscale = TRUE;
@@ -1069,7 +1073,7 @@ int ps_op_parser(char *opstring)
     }
 }
 
-int eps_op_parser(char *opstring)
+int eps_op_parser(const char *opstring)
 {
     if (!strcmp(opstring, "grayscale")) {
         eps_setup_grayscale = TRUE;

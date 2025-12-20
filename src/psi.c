@@ -113,8 +113,7 @@ static unsigned short A[] = {
 extern double PI, MAXNUM;
 
 
-double psi(x)
-double x;
+double psi(double x)
 {
 double p, q, nz, s, w, y, z;
 int i, n, negative;

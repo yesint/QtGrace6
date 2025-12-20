@@ -46,6 +46,8 @@ The included files are:
 #include "regions.h"
 #include "lines.h"
  
+extern int pathcounter(struct region * R);
+
 /*
 :h3.Functions Provided to the TYPE1IMAGER User
  
@@ -73,10 +75,10 @@ The main work is done by Bresenham(); here we just perform checks and
 get the line so that its Y direction is always increasing:
 */
  
-void StepLine(R, x1, y1, x2, y2)
-       register struct region *R;  /* region being built                     */
-       register fractpel x1,y1;  /* starting point                           */
-       register fractpel x2,y2;  /* ending point                             */
+void StepLine(register struct region *R,register fractpel x1,register fractpel y1,register fractpel x2,register fractpel y2)
+       /*R;   region being built
+       register fractpel x1,y1;   starting point
+       register fractpel x2,y2;   ending point                             */
 {
        register fractpel dy;
  
@@ -89,8 +91,12 @@ void StepLine(R, x1, y1, x2, y2)
 We execute the "GOING_TO" macro to call back the REGIONS module, if
 necessary (like if the Y direction of the edge has changed):
 */
+       /*printf("StepLine: goto, dy=%d\n",dy);*/
+       /*printf("before goto Length R=%d\n",pathcounter(R));
+       fflush(stdout);*/
        GOING_TO(R, x1, y1, x2, y2, dy);
- 
+       /*printf("after goto Length R=%d\n",pathcounter(R));
+       fflush(stdout);*/
        if (dy == 0)
                return;
  
@@ -98,6 +104,8 @@ necessary (like if the Y direction of the edge has changed):
                Bresenham(R->edge, x2, y2, x1, y1);
        else
                Bresenham(R->edge, x1, y1, x2, y2);
+       /*printf("after Bresenham Length R=%d\n",pathcounter(R));
+       fflush(stdout);*/
        return;
 }
 /*
@@ -124,10 +132,10 @@ TruncFP() truncates down by 'b' bits:
 #define  TruncFP(xy,b)   ((xy)>>(b))
  
  
-void Bresenham(edgeP,x1,y1,x2,y2)
-       register pel *edgeP;               /* pointer to top of list (y == 0) */
-       register fractpel x1,y1;           /* starting point on line          */
-       register fractpel x2,y2;           /* ending point on the line (down) */
+void Bresenham(register pel *edgeP,register fractpel x1,register fractpel y1,register fractpel x2,register fractpel y2)
+       /*edgeP;                pointer to top of list (y == 0)
+       register fractpel x1,y1;            starting point on line
+       register fractpel x2,y2;            ending point on the line (down) */
 {
        register LONG dx,dy;  /* change in x and y, in my own precision       */
        register LONG x,y;    /* integer pel starting point                   */

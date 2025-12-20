@@ -8,6 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -59,8 +60,8 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
 
 void ps_leavegraphics(void);
 
-int ps_op_parser(char *opstring);
-int eps_op_parser(char *opstring);
+int ps_op_parser(const char *opstring);
+int eps_op_parser(const char *opstring);
 
 extern void setup_null(void);
 

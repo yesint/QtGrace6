@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -34,6 +34,7 @@
  *
  */
 
+#include <QObject>
 ///#include <config.h>
 #include <cmath>
 
@@ -48,9 +49,11 @@
 #include "graphutils.h"
 #include "utils.h"
 #include "noxprotos.h"
+#include "device.h"
+#include "fundamentals.h"
 
 defaults d_d =
-{1, 0, 1, 1, 1, 1.0, 0, 1.0};
+{1, 255, 0, 255, 1, 1, 1, 1.0, 0, 1.0};
 
 /* defaults:
     int color;
@@ -106,6 +109,7 @@ void set_region_defaults(int rno)
     rg[rno].active = FALSE;
     rg[rno].type = 0;
     rg[rno].color = grdefaults.color;
+    rg[rno].alpha = grdefaults.alpha;
     rg[rno].lines = grdefaults.lines;
     rg[rno].linew = grdefaults.linew;
     rg[rno].n = 0;
@@ -120,8 +124,10 @@ void set_default_framep(framep * f)
     f->lines = grdefaults.lines;
     f->linew = grdefaults.linew;
     f->pen.color = grdefaults.color;
+    f->pen.alpha = grdefaults.alpha;
     f->pen.pattern = grdefaults.pattern;
     f->fillpen.color = grdefaults.bgcolor;      /* fill background */
+    f->fillpen.alpha = grdefaults.bgalpha;
     f->fillpen.pattern = 0;
 }
 
@@ -140,12 +146,15 @@ void set_default_string(plotstr * s)
     s->active = FALSE;
     s->path = FALSE;
     s->loctype = COORD_VIEW;
-    s->gno = -1;
+    s->gno = 0;
     s->x = s->y = 0.0;
     s->color = grdefaults.color;
+    s->alpha = grdefaults.alpha;
     s->rot = 0;
     s->font = grdefaults.font;
     s->just = JUST_LEFT|JUST_BLINE;
+    s->align = JUST_LEFT;
+    s->master_align = 0;
     s->charsize = grdefaults.charsize;
     s->s_plotstring = NULL;
     s->alt_plotstring = NULL;
@@ -163,11 +172,12 @@ void set_default_line(linetype * l)
 {
     l->active = FALSE;
     l->loctype = COORD_VIEW;
-    l->gno = -1;
+    l->gno = 0;
     l->x1 = l->y1 = l->x2 = l->y2 = 0.0;
     l->lines = grdefaults.lines;
     l->linew = grdefaults.linew;
     l->color = grdefaults.color;
+    l->alpha = grdefaults.alpha;
     l->arrow_end = 0;
     set_default_arrow(&l->arrow);
 }
@@ -176,33 +186,42 @@ void set_default_box(boxtype * b)
 {
     b->active = FALSE;
     b->loctype = COORD_VIEW;
-    b->gno = -1;
+    b->gno = 0;
     b->rot = 0;
     b->x1 = b->y1 = b->x2 = b->y2 = 0.0;
     b->lines = grdefaults.lines;
     b->linew = grdefaults.linew;
     b->color = grdefaults.color;
+    b->alpha = grdefaults.alpha;
     b->fillcolor = grdefaults.color;
+    b->fillalpha = grdefaults.alpha;
     b->fillpattern = grdefaults.pattern;
+    b->filltype = 0;//static color (no image)
+    setDefaultImage(b->fillimage);
 }
 
 void set_default_ellipse(ellipsetype * e)
 {
     e->active = FALSE;
     e->loctype = COORD_VIEW;
-    e->gno = -1;
+    e->gno = 0;
     e->rot = 0;
     e->x1 = e->y1 = e->x2 = e->y2 = 0.0;
     e->lines = grdefaults.lines;
     e->linew = grdefaults.linew;
     e->color = grdefaults.color;
+    e->alpha = grdefaults.alpha;
     e->fillcolor = grdefaults.color;
+    e->fillalpha = grdefaults.alpha;
     e->fillpattern = grdefaults.pattern;
+    e->filltype = 0;//static color (no image)
+    setDefaultImage(e->fillimage);
 }
 
 void set_default_legend(int gno, legend * l)
 {
     l->active = TRUE;
+    //l->nr_of_entries = 0;
     l->loctype = COORD_VIEW;
     l->vgap = 1;
     l->hgap = 1;
@@ -211,11 +230,15 @@ void set_default_legend(int gno, legend * l)
     l->legx = 0.5;
     l->legy = 0.8;
     l->font = grdefaults.font;
+    l->align = JUST_LEFT;
     l->charsize = grdefaults.charsize;
     l->color = grdefaults.color;
+    l->alpha = grdefaults.alpha;
     l->boxpen.color = grdefaults.color;
+    l->boxpen.alpha = grdefaults.alpha;
     l->boxpen.pattern = grdefaults.pattern;
     l->boxfillpen.color = 0;
+    l->boxfillpen.alpha = grdefaults.alpha;
     l->boxfillpen.pattern = grdefaults.pattern;
     l->boxlinew = grdefaults.linew;
     l->boxlines = grdefaults.lines;
@@ -233,13 +256,15 @@ void set_default_plotarr(plotarr * p)
     p->hotlink = FALSE;                         /* hot linked set */
     p->hotfile[0] = '\0';                       /* hot linked file name */
 
-    p->sym = 0;                                 /* set plot symbol */
+    p->sym = SYM_NONE;                          /* set plot symbol */
     p->symlines = grdefaults.lines;             /* set plot sym line style */
     p->symsize = grdefaults.symsize;            /* size of symbols */
     p->symlinew = grdefaults.linew;             /* set plot sym line width */
     p->sympen.color = grdefaults.color;         /* color for symbol line */
+    p->sympen.alpha = grdefaults.alpha;
     p->sympen.pattern = grdefaults.pattern;     /* pattern */
     p->symfillpen.color = grdefaults.color;     /* color for symbol fill */
+    p->symfillpen.alpha = grdefaults.alpha;
     p->symfillpen.pattern = 0;                  /* pattern for symbol fill */
 
     p->symchar = 'A';
@@ -251,7 +276,9 @@ void set_default_plotarr(plotarr * p)
     p->avalue.type = AVALUE_TYPE_Y;             /* type */
     p->avalue.size = 1.0;                       /* char size */
     p->avalue.font = grdefaults.font;           /* font */
+    p->avalue.align = JUST_LEFT;
     p->avalue.color = grdefaults.color;         /* color */
+    p->avalue.alpha = grdefaults.alpha;
     p->avalue.angle = 0;                        /* rotation angle */
     p->avalue.format = FORMAT_GENERAL;          /* format */
     p->avalue.prec = 3;                         /* precision */
@@ -266,6 +293,7 @@ void set_default_plotarr(plotarr * p)
     p->lines = grdefaults.lines;
     p->linew = grdefaults.linew;
     p->linepen.color = grdefaults.color;
+    p->linepen.alpha = grdefaults.alpha;
     p->linepen.pattern = grdefaults.pattern;
     
     p->baseline_type = BASELINE_TYPE_0;
@@ -275,12 +303,16 @@ void set_default_plotarr(plotarr * p)
     p->filltype = SETFILL_NONE;                 /* fill type */
     p->fillrule = FILLRULE_WINDING;             /* fill type */
     p->setfillpen.color = grdefaults.color;     /* fill color */
+    p->setfillpen.alpha = grdefaults.alpha;
     p->setfillpen.pattern = grdefaults.pattern; /* fill pattern */
     p->polygone_base_set=-1;                    /* don't fill area compared to other set */
 
     p->errbar.active = TRUE;                      /* on by default */
+    p->errbar.connect_bars = FALSE;               /* by default the error bars are bars, 'connect' draws lines instead of the bar-lines*/
+    p->errbar.show_in_legend = FALSE;             /* by default do not show error bars in legends */
     p->errbar.ptype = PLACEMENT_BOTH;             /* error bar placement */
     p->errbar.pen.color = grdefaults.color;       /* color */
+    p->errbar.pen.alpha = grdefaults.alpha;
     p->errbar.pen.pattern = grdefaults.pattern;   /* pattern */
     p->errbar.lines = grdefaults.lines;           /* error bar line width */
     p->errbar.linew = grdefaults.linew;           /* error bar line style */
@@ -298,10 +330,13 @@ void set_default_plotarr(plotarr * p)
     p->data.len = 0;                              /* dataset length */
     for (i = 0; i < MAX_SET_COLS; i++) {
         p->data.ex[i] = NULL;
+        p->pref_col_format[i] = SpreadsheetColumnFormat;
+        p->pref_col_prec[i] = SpreadsheetColumnPrecision;
     }
     p->data.s = NULL;                   /* pointer to strings */
+    p->data.orig_s = NULL;
+    p->ignore_in_autoscale = FALSE;
 }
-
 
 void set_default_ticks(tickmarks *t)
 {
@@ -341,8 +376,10 @@ void set_default_ticks(tickmarks *t)
     t->tl_gap.x = 0.0;
     t->tl_gap.y = 0.01;
     t->tl_font = grdefaults.font;
+    t->tl_align = JUST_LEFT;
     t->tl_charsize = grdefaults.charsize;
     t->tl_color = grdefaults.color;
+    t->tl_alpha = grdefaults.alpha;
     t->tl_appstr[0] = 0;
     t->tl_prestr[0] = 0;
     t->orig_tl_appstr[0] = 0;
@@ -355,14 +392,17 @@ void set_default_ticks(tickmarks *t)
     t->mprops.size = grdefaults.charsize / 2;
     t->t_drawbar = TRUE;
     t->t_drawbarcolor = grdefaults.color;
+    t->t_drawbaralpha = grdefaults.alpha;
     t->t_drawbarlines = grdefaults.lines;
     t->t_drawbarlinew = grdefaults.linew;
     t->props.gridflag = FALSE;
     t->mprops.gridflag = FALSE;
     t->props.color = grdefaults.color;
+    t->props.alpha = grdefaults.alpha;
     t->props.lines = grdefaults.lines;
     t->props.linew = grdefaults.linew;
     t->mprops.color = grdefaults.color;
+    t->mprops.alpha = grdefaults.alpha;
     t->mprops.lines = grdefaults.lines;
     t->mprops.linew = grdefaults.linew;
     t->nticks = 0;
@@ -373,3 +413,18 @@ void set_default_ticks(tickmarks *t)
         t->tloc[i].orig_label=NULL;
     }
 }
+
+void set_default_userdevicegeometry(UserDeviceGeometry * udg)
+{
+    udg->active=TRUE;
+    strcpy(udg->name,QObject::tr("No Changes").toLocal8Bit().constData());
+    udg->dev_nr=-1;
+    udg->orientation=-1;//0=Landscape, 1=Portrait, -1=no change
+    udg->width=-1;
+    udg->height=-1;
+    udg->unit=-1;//0=pix, 1=inch, 2=cm, -1=no change
+    udg->dpi=-1;
+    udg->Antialiasing=-1;//0=No Antialiasing,1=Font Antialiasing Only,2=Graph Antialiaing Only, 3=Graph and Font Antialiasing, -1=no change
+    udg->ScaleLineWidth=-1;//0=no Scaling, 1=Scaling, -1=no change
+}
+

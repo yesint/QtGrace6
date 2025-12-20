@@ -199,8 +199,7 @@ static double C1 = 1.3862943611198906188E0; /* log(4) */
 
 extern double MACHEP, MAXNUM;
 
-double ellpk(x)
-double x;
+double ellpk(double x)
 {
 
 if( (x < 0.0) || (x > 1.0) )

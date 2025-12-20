@@ -129,8 +129,7 @@ static unsigned short Q[] = {
 
 extern double LOGE2, INFINITY, NAN;
 
-double acosh(x)
-double x;
+double acosh(double x)
 {
 double a, z;
 

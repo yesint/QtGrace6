@@ -76,9 +76,7 @@ extern int MAXPOL; /* initialized by polini() */
 /* See polyn.c.  */
 void polmov(), polclr(), poladd(), polmul();
 
-void revers( y, x, n)
-double y[], x[];
-int n;
+void revers(double y[],double x[],int n)
 {
 double *yn, *yp, *ysum;
 int j;

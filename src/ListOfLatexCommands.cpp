@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2015 by Andreas Winter                             *
+ *   Copyright (C) 2008-2022 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -37,9 +37,9 @@ static bool underline,overline;
 
 struct SpecialLatexCommands
 {
-    char * la_com;
-    char * gr_com;
-    char * stop_com;
+    const char * la_com;
+    const char * gr_com;
+    const char * stop_com;
     int nr_of_exp_args;
 };
 
@@ -286,7 +286,7 @@ void find_first_command(QString & text,int & start_command,int & command_length,
     brace_pos[0]=brace_pos[1]=brace_pos[2]=brace_pos[3]=-1;
     for (i=0;i<len;i++)
     {
-        if (text[i]=='\\' || text[i]=='_' || text[i]=='^')//beginning of a command
+        if (text[i]==QChar('\\') || text[i]==QChar('_') || text[i]==QChar('^'))//beginning of a command
         {
             start_command=i;
             break;
@@ -294,25 +294,25 @@ void find_first_command(QString & text,int & start_command,int & command_length,
     }
     if (start_command!=-1)
     {
-        if (text[start_command]=='\\')//we found a real command
+        if (text[start_command]==QChar('\\'))//we found a real command
         {
             for (i=start_command+1;i<=len;i++)
             {
-                if (text[i]=='\\' || text[i]==' ' || text[i]=='=' || text[i]==')' || text[i]=='(' || text[i]=='{' || text[i]=='_' || text[i]=='^' || text[i]=='\0')
+                if (text[i]==QChar('\\') || text[i]==QChar(' ') || text[i]==QChar('=') || text[i]==QChar(')') || text[i]==QChar('(') || text[i]==QChar('{') || text[i]==QChar('_') || text[i]==QChar('^') || text[i]==QChar('\0'))
                 {
                     command_length=i;//at the moment: this is the position of the first character after the command, not the length
                     break;
                 }
             }
-            if (text[command_length]=='{')
+            if (text[command_length]==QChar('{'))
             {//brace found
                 brace_pos[0]=command_length;
                 bracecounter=1;
                 for (i=brace_pos[0]+1;i<len;i++)
                 {
-                    if (text[i]=='{') bracecounter++;
-                    if (text[i]=='}') bracecounter--;
-                    if (text[i]=='}' && bracecounter==0)
+                    if (text[i]==QChar('{')) bracecounter++;
+                    if (text[i]==QChar('}')) bracecounter--;
+                    if (text[i]==QChar('}') && bracecounter==0)
                     {
                         brace_pos[1]=i;
                         break;
@@ -320,15 +320,15 @@ void find_first_command(QString & text,int & start_command,int & command_length,
                 }//hopefully: closing brace found
                 if (brace_pos[1]<len-1)//not the last character
                 {
-                    if (text[brace_pos[1]+1]=='{')//another brace found
+                    if (text[brace_pos[1]+1]==QChar('{'))//another brace found
                     {
                         brace_pos[2]=brace_pos[1]+1;
                         bracecounter=1;
                         for (i=brace_pos[2]+1;i<len;i++)
                         {
-                            if (text[i]=='{') bracecounter++;
-                            if (text[i]=='}') bracecounter--;
-                            if (text[i]=='}' && bracecounter==0)
+                            if (text[i]==QChar('{')) bracecounter++;
+                            if (text[i]==QChar('}')) bracecounter--;
+                            if (text[i]==QChar('}') && bracecounter==0)
                             {
                                 brace_pos[3]=i;
                                 break;
@@ -344,7 +344,7 @@ void find_first_command(QString & text,int & start_command,int & command_length,
             command_length=1;
             brace_pos[0]=start_command+1;//may not actually be a brace
             bracecounter=0;
-            if (text[brace_pos[0]]!='\\' && text[brace_pos[0]]!='{')//regular text --> only one character counts
+            if (text[brace_pos[0]]!=QChar('\\') && text[brace_pos[0]]!=QChar('{'))//regular text --> only one character counts
             {
                 brace_pos[1]=brace_pos[0]+1;
             }
@@ -352,20 +352,20 @@ void find_first_command(QString & text,int & start_command,int & command_length,
             {
                 for (i=start_command+1;i<=len;i++)
                 {
-                    if (text[i]=='\0')
+                    if (text[i]==QChar('\0'))
                     {
                         brace_pos[1]=i;
                         break;
                     }
-                    if (text[i]=='{') bracecounter++;
-                    if (text[i]=='}') bracecounter--;
-                    if (bracecounter==0 && i<len-1 && text[i]=='}' && text[i+1]=='{')
+                    if (text[i]==QChar('{')) bracecounter++;
+                    if (text[i]==QChar('}')) bracecounter--;
+                    if (bracecounter==0 && i<len-1 && text[i]==QChar('}') && text[i+1]==QChar('{'))
                     {
                         bracecounter++;
                         i++;//we already counted the next one
                         continue;
                     }
-                    if ((text[i]=='}' || text[i]==' ') && bracecounter==0)
+                    if ((text[i]==QChar('}') || text[i]==QChar(' ')) && bracecounter==0)
                     {
                         brace_pos[1]=i;
                         break;
@@ -490,6 +490,7 @@ char * right_part=new char[128+len];*/
             arg_splitter(argument_part,argument1,argument2);//split this to be on the save side!
             //cout << "#" << left_part << "#" << middle_part << "#" << argument_part << "#" << right_part << "#" << endl;
             if (middle_part.length()>0)
+            {
                 if (replace_command(middle_part,new_font)==RETURN_SUCCESS)
                 {
                     //cout << "new_font=" << new_font << endl;
@@ -543,13 +544,13 @@ char * right_part=new char[128+len];*/
                         }
                         else
                         {
-                            if (com_nr==5 && argument1[0]!='\0')//special case 'frac'
+                            if (com_nr==5 && argument1.at(0)!=QChar('\0'))//special case 'frac'
                             {
-                                int count1,count2,max_count;
+                                int count1,count2;//,max_count;
                                 count1=count2=0;
                                 count1=recursive_replacer(argument1);
                                 count2=recursive_replacer(argument2);
-                                max_count = count1>count2 ? count1 : count2;
+                                //max_count = count1>count2 ? count1 : count2;
                                 temp2.clear();
                                 //cout << "frac found " << count1 << " " << count2 << " max=" << max_count << endl;
                                 if (count1>=count2)
@@ -615,6 +616,7 @@ char * right_part=new char[128+len];*/
                         command_count+=middle_part.length();
                     }
                 }
+            }
             command_count+=recursive_replacer(right_part);//right part is clear with this
             result=result.left(res_pos)+right_part;
             /// strcpy(result+res_pos,right_part);//go on with right part
@@ -644,20 +646,21 @@ delete[] temp;
 
 void last_settings_in_string(QString text,int & font,double & oblique,double & vshift,double & hshift,double & zoom,bool & underline,bool & overline)
 {
-    static QRegExp regex_f1("\\\\f\\{");//should find \f{
-    static QRegExp regex_f2("\\\\\\d");//should find \0...\9
-    static QRegExp regex_obl1("\\q");
-    static QRegExp regex_obl2("\\Q");
-    static QRegExp regex_obl3("\\\\l\\{");
-    static QRegExp regex_vshift1("\\\\v\\{");
-    static QRegExp regex_hshift1("\\\\h\\{");
-    static QRegExp regex_zoom1("\\\\\\+");
-    static QRegExp regex_zoom2("\\\\\\-");
-    static QRegExp regex_zoom3("\\\\z\\{");
-    static QRegExp regex_ul1("\\\\u");
-    static QRegExp regex_ul2("\\\\U");
-    static QRegExp regex_ol1("\\\\o");
-    static QRegExp regex_ol2("\\\\O");
+    static QRegularExpressionMatch rm;
+    static QRegularExpression regex_f1("\\\\f\\{");//should find \f{
+    static QRegularExpression regex_f2("\\\\\\d");//should find \0...\9
+    static QRegularExpression regex_obl1("\\\\q");
+    static QRegularExpression regex_obl2("\\\\Q");
+    static QRegularExpression regex_obl3("\\\\l\\{");
+    static QRegularExpression regex_vshift1("\\\\v\\{");
+    static QRegularExpression regex_hshift1("\\\\h\\{");
+    static QRegularExpression regex_zoom1("\\\\\\+");
+    static QRegularExpression regex_zoom2("\\\\\\-");
+    static QRegularExpression regex_zoom3("\\\\z\\{");
+    static QRegularExpression regex_ul1("\\\\u");
+    static QRegularExpression regex_ul2("\\\\U");
+    static QRegularExpression regex_ol1("\\\\o");
+    static QRegularExpression regex_ol2("\\\\O");
 
     bool ok;
     static QString result,mtext;
@@ -670,7 +673,11 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
 
     //First part: find font type
     pos1=pos2=pos3=0;
-    while ((pos1=regex_f1.indexIn(result,pos1))>=0 || (pos2=regex_f2.indexIn(result,pos2))>=0)
+    rm=regex_f1.match(result,pos1);
+    pos1=rm.capturedStart();
+    rm=regex_f1.match(result,pos2);
+    pos2=rm.capturedStart();
+    while (pos1>=0 || pos2>=0)
     {
         if (pos1>=0)//long font-nr like \f{Symbol}
         {
@@ -695,12 +702,22 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
             //cout << "ueber number: mfont=" << font << endl;
             pos1=pos2=pos2+2;
         }
+        rm=regex_f1.match(result,pos1);
+        pos1=rm.capturedStart();
+        rm=regex_f1.match(result,pos2);
+        pos2=rm.capturedStart();
     }
     //now font should be known
 
     //Second part: find oblique setting
     pos1=pos2=pos3=0;
-    while ((pos1=regex_obl1.indexIn(result,pos1))>=0 || (pos2=regex_obl2.indexIn(result,pos2))>=0 || (pos3=regex_obl3.indexIn(result,pos3))>=0)
+    rm=regex_obl1.match(result,pos1);
+    pos1=rm.capturedStart();
+    rm=regex_obl2.match(result,pos2);
+    pos2=rm.capturedStart();
+    rm=regex_obl3.match(result,pos3);
+    pos3=rm.capturedStart();
+    while (pos1>=0 || pos2>=0 || pos3>=0)
     {
         if (pos1>=0)//q-->+0.25
         {
@@ -729,12 +746,22 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
             }
             pos1=pos2=pos3=pos2+1;
         }
+        rm=regex_obl1.match(result,pos1);
+        pos1=rm.capturedStart();
+        rm=regex_obl2.match(result,pos2);
+        pos2=rm.capturedStart();
+        rm=regex_obl3.match(result,pos3);
+        pos3=rm.capturedStart();
     }
     //now we should know the oblique setting
 
     //Third part: find shifts
     pos1=pos2=pos3=0;
-    while ((pos1=regex_vshift1.indexIn(result,pos1))>=0 || (pos2=regex_hshift1.indexIn(result,pos2))>=0)
+    rm=regex_vshift1.match(result,pos1);
+    pos1=rm.capturedStart();
+    rm=regex_hshift1.match(result,pos2);
+    pos2=rm.capturedStart();
+    while (pos1>=0 || pos2>=0)
     {
         if (pos1>=0)//vshift
         {
@@ -770,12 +797,22 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
             }
             pos1=pos2=pos3=pos3+1;
         }
+        rm=regex_vshift1.match(result,pos1);
+        pos1=rm.capturedStart();
+        rm=regex_hshift1.match(result,pos2);
+        pos2=rm.capturedStart();
     }
     //now we should know the actual shifts
 
     //Fourth part: find zoom factor
     pos1=pos2=pos3=0;
-    while ((pos1=regex_zoom1.indexIn(result,pos1))>=0 || (pos2=regex_zoom2.indexIn(result,pos2))>=0 || (pos3=regex_zoom3.indexIn(result,pos3))>=0)
+    rm=regex_zoom1.match(result,pos1);
+    pos1=rm.capturedStart();
+    rm=regex_zoom2.match(result,pos2);
+    pos2=rm.capturedStart();
+    rm=regex_zoom3.match(result,pos3);
+    pos3=rm.capturedStart();
+    while (pos1>=0 || pos2>=0 || pos3>=0)
     {
         if (pos1>=0)// \+ --> \z{1.19} --> *1.19
         {
@@ -806,12 +843,22 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
                 zoom=1.0;
             pos1=pos2=pos3=pos2+1;
         }
+        rm=regex_zoom1.match(result,pos1);
+        pos1=rm.capturedStart();
+        rm=regex_zoom2.match(result,pos2);
+        pos2=rm.capturedStart();
+        rm=regex_zoom3.match(result,pos3);
+        pos3=rm.capturedStart();
     }
     //now we should know the zoom factor
 
     //Fifth part: find underline
     pos1=pos2=pos3=0;
-    while ((pos1=regex_ul1.indexIn(result,pos1))>=0 || (pos2=regex_ul2.indexIn(result,pos2))>=0)
+    rm=regex_ul1.match(result,pos1);
+    pos1=rm.capturedStart();
+    rm=regex_ul2.match(result,pos2);
+    pos2=rm.capturedStart();
+    while (pos1>=0 || pos2>=0)
     {
         if (pos1>=0)// \u
         {
@@ -823,12 +870,20 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
             underline=false;
             pos1=pos2=pos3=pos2+2;
         }
+        rm=regex_ul1.match(result,pos1);
+        pos1=rm.capturedStart();
+        rm=regex_ul2.match(result,pos2);
+        pos2=rm.capturedStart();
     }
     //now we should know wether underline is present
 
     //Sixth part: find overline
     pos1=pos2=pos3=0;
-    while ((pos1=regex_ol1.indexIn(result,pos1))>=0 || (pos2=regex_ol2.indexIn(result,pos2))>=0)
+    rm=regex_ol1.match(result,pos1);
+    pos1=rm.capturedStart();
+    rm=regex_ol2.match(result,pos2);
+    pos2=rm.capturedStart();
+    while (pos1>=0 || pos2>=0)
     {
         if (pos1>=0)// \o
         {
@@ -840,8 +895,12 @@ void last_settings_in_string(QString text,int & font,double & oblique,double & v
             overline=false;
             pos1=pos2=pos3=pos2+2;
         }
+        rm=regex_ol1.match(result,pos1);
+        pos1=rm.capturedStart();
+        rm=regex_ol2.match(result,pos2);
+        pos2=rm.capturedStart();
     }
-    //now we should know wether overline is present
+//now we should know whether overline is present
 }
 
 void include_spec_text_settings(QString & text,int & font,double & oblique,double & vshift,double & hshift,double & zoom,bool & underline,bool & overline,bool minimal)
@@ -888,7 +947,7 @@ void include_spec_text_settings(QString & text,int & font,double & oblique,doubl
 
 void complete_LaTeX_to_Grace_Translator(QString & text)
 {
-    static int pos,pos2,altpos,ret;
+    static int pos,pos2,altpos;//,ret;
     static QString str,str2;
     static QString ref("$$");
     static QString result,intermediate,new_text;
@@ -924,7 +983,8 @@ void complete_LaTeX_to_Grace_Translator(QString & text)
         //cout << "intermediate #" << intermediate.toLocal8Bit().constData() << "#" << endl;
         /// strcpy(dummy,str2.toLocal8Bit());//dummy is now the LaTeX-command without the '$$'
         //cout << "without dollar #" << dummy << "#" << endl;
-        ret=recursive_replacer(str2);//everything will be replaced by Grace-commands here
+        //ret=recursive_replacer(str2);
+        (void)recursive_replacer(str2);//everything will be replaced by Grace-commands here
         new_text=str2+text_incl_options;
         //result.replace(intermediate,QString(dummy)+text_incl_options);//replace commands in actual string
         result.replace(pos-2,intermediate.length(),new_text);//replace only one command

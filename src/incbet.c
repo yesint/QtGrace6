@@ -77,8 +77,7 @@ static double big = 4.503599627370496e15;
 static double biginv =  2.22044604925031308085e-16;
 
 
-double incbet( aa, bb, xx )
-double aa, bb, xx;
+double incbet(double aa,double bb,double xx )
 {
 double a, b, t, x, xc, w, y;
 int flag;
@@ -175,8 +174,7 @@ return( t );
  * for incomplete beta integral
  */
 
-static double incbcf( a, b, x )
-double a, b, x;
+static double incbcf(double a,double b,double x )
 {
 double xk, pk, pkm1, pkm2, qk, qkm1, qkm2;
 double k1, k2, k3, k4, k5, k6, k7, k8;
@@ -267,8 +265,7 @@ return(ans);
  * for incomplete beta integral
  */
 
-static double incbd( a, b, x )
-double a, b, x;
+static double incbd(double a,double b,double x )
 {
 double xk, pk, pkm1, pkm2, qk, qkm1, qkm2;
 double k1, k2, k3, k4, k5, k6, k7, k8;
@@ -357,8 +354,7 @@ return(ans);
 /* Power series for incomplete beta integral.
    Use when b*x is small and x not too close to 1.  */
 
-static double pseries( a, b, x )
-double a, b, x;
+static double pseries(double a,double b,double x )
 {
 double s, t, u, v, n, t1, z, ai;
 

@@ -27,8 +27,8 @@
 
 #ifdef T1ENC_C
 
-static char **ScanEncodingFile( char *FileName);
-char **T1_LoadEncoding( char *FileName);
+static char **ScanEncodingFile(const char *FileName);
+char **T1_LoadEncoding(const char *FileName);
 int T1_DeleteEncoding( char **encoding);
 int T1_ReencodeFont( int FontID, char **Encoding);
 int T1_SetDefaultEncoding( char **encoding);
@@ -37,7 +37,7 @@ static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2);
 
 #else
 
-extern char **T1_LoadEncoding( char *FileName);
+extern char **T1_LoadEncoding(const char *FileName);
 extern int T1_DeleteEncoding( char **encoding);
 extern int T1_ReencodeFont( int FontID, char **Encoding);
 extern int T1_SetDefaultEncoding( char **encoding);

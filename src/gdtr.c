@@ -98,8 +98,7 @@ Copyright 1984, 1987, 1995 by Stephen L. Moshier
 #include "mconf.h"
 #include "cephes.h"
 
-double gdtr( a, b, x )
-double a, b, x;
+double gdtr(double a,double b,double x )
 {
 
 if( x < 0.0 )
@@ -112,8 +111,7 @@ return(  igam( b, a * x )  );
 
 
 
-double gdtrc( a, b, x )
-double a, b, x;
+double gdtrc(double a,double b,double x )
 {
 
 if( x < 0.0 )

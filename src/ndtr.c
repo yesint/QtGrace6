@@ -386,8 +386,7 @@ static unsigned short U[] = {
 
 #endif /* HAVE_ERF or HAVE_ERFC */
 
-double ndtr(a)
-double a;
+double ndtr(double a)
 {
 double x, y, z;
 
@@ -410,11 +409,9 @@ return(y);
 
 #ifndef HAVE_ERFC
 
-double erfc(a)
-double a;
+double erfc(double a)
 {
 double p,q,x,y,z;
-
 
 if( a < 0.0 )
 	x = -a;
@@ -463,8 +460,7 @@ return(y);
 
 #ifndef HAVE_ERF
 
-double erf(x)
-double x;
+double erf(double x)
 {
 double y, z;
 

@@ -31,24 +31,24 @@
 void intT1_FreeSearchPaths( void);
 void intT1_SetupDefaultSearchPaths( void);
 int intT1_ScanConfigFile( void);
-char *intT1_Env_GetCompletePath( char *FileName, char **env_ptr );
-int T1_SetFileSearchPath( int type, char *pathname);
+char *intT1_Env_GetCompletePath(const char *FileName, char **env_ptr );
+int T1_SetFileSearchPath( int type, const char *pathname);
 int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname);
 char *T1_GetFileSearchPath( int type);
-int T1_SetFontDataBase( char *filename);
-int T1_AddFontDataBase( int mode, char *filename);
+int T1_SetFontDataBase( const char *filename);
+int T1_AddFontDataBase( int mode, const char *filename);
 
 #else
 
 extern void intT1_FreeSearchPaths( void);
 extern void intT1_SetupDefaultSearchPaths( void);
 extern int intT1_ScanConfigFile( void);
-extern char *intT1_Env_GetCompletePath( char *FileName, char **env_ptr );
-extern int T1_SetFileSearchPath( int type, char *pathname);
+extern char *intT1_Env_GetCompletePath( const char *FileName, char **env_ptr );
+extern int T1_SetFileSearchPath( int type, const char *pathname);
 extern int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname);
 extern char *T1_GetFileSearchPath( int type);
-extern int T1_SetFontDataBase( char *filename);
-extern int T1_AddFontDataBase( int mode, char *filename);
+extern int T1_SetFontDataBase( const char *filename);
+extern int T1_AddFontDataBase( int mode, const char *filename);
 
 #endif
 

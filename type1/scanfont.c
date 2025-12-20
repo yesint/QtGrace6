@@ -33,7 +33,7 @@
 #include "t1stdio.h"
 #include "util.h"
 #include "token.h"
-#include "fontfcn.h"
+//#include "fontfcn.h"
 #include "blues.h"
 
 
@@ -241,8 +241,7 @@ static EncodingTable StdEnc[] = {
 psobj *StdEncArrayP = NULL;
 
 
-static psobj *MakeEncodingArrayP(encodingTable)
-    EncodingTable *encodingTable;
+static psobj *MakeEncodingArrayP(EncodingTable * encodingTable)
 {
   int i;
   psobj *encodingArrayP;
@@ -265,7 +264,7 @@ static psobj *MakeEncodingArrayP(encodingTable)
   return(encodingArrayP);
 }
  
-boolean Init_BuiltInEncoding()
+boolean Init_BuiltInEncoding(void)
 {
   StdEncArrayP = MakeEncodingArrayP(StdEnc);
   if (StdEncArrayP==NULL)
@@ -276,8 +275,7 @@ boolean Init_BuiltInEncoding()
  
 /********************************************************************/
 /***================================================================***/
-static int getNextValue(valueType)
-    int valueType;
+static int getNextValue(int valueType)
 {
   scan_token(inputP);
   if (tokenType != valueType) {
@@ -289,7 +287,7 @@ static int getNextValue(valueType)
 /***================================================================***/
 /*  This routine will set the global rc if there is an error          */
 /***================================================================***/
-static int getInt()
+static int getInt(void)
 {
   scan_token(inputP);
   if (tokenType != TOKEN_INTEGER) {
@@ -306,8 +304,7 @@ static int getInt()
  * See Sec 10.3 of ``Adobe Type 1 Font Format'' v1.1,
  * for parsing Encoding.
  */
-static int getEncoding(arrayP)
-    psobj *arrayP;
+static int getEncoding(psobj *arrayP)
 {
 
   scan_token(inputP);
@@ -420,8 +417,7 @@ static int getEncoding(arrayP)
   return (SCAN_ERROR);
 }
 /***================================================================***/
-static int getArray(arrayP)
-    psobj *arrayP;
+static int getArray(psobj *arrayP)
 {
   int N;   /* count the items in the array */
   psobj *objP;
@@ -481,8 +477,7 @@ static int getArray(arrayP)
 */
 
 /***================================================================***/
-static int getNbytes(N)
-    int N;
+static int getNbytes(int N)
 {
   int I;
  
@@ -502,8 +497,7 @@ static int getNbytes(N)
 /*    It means that the CharStrings does not have as many characters  */
 /*    as the dictionary said it would and that is ok.                 */
 /***================================================================***/
-static int getLiteralName(nameObjP)
-    psobj *nameObjP;
+static int getLiteralName(psobj *nameObjP)
 {
   do {
     scan_token(inputP);
@@ -531,8 +525,7 @@ static int getLiteralName(nameObjP)
  */
 /***================================================================***/
  
-static int BuildSubrs(FontP)
-    psfont *FontP;
+static int BuildSubrs(psfont *FontP)
 {
    int N;   /* number of values in Subrs */
    int I;   /* index into Subrs */
@@ -632,8 +625,7 @@ static int BuildSubrs(FontP)
  */
 /***================================================================***/
  
-static int BuildCharStrings(FontP)
-    psfont   *FontP;
+static int BuildCharStrings(psfont *FontP)
 {
    int N;   /* number of values in CharStrings */
    int i;   /* loop thru  Subrs */
@@ -697,8 +689,7 @@ static int BuildCharStrings(FontP)
  *   BuildFontInfo Dictionary
  */
 /***================================================================***/
-static int BuildFontInfo(fontP)
-    psfont *fontP;
+static int BuildFontInfo(psfont *fontP)
 {
   psdict *dictP;
   
@@ -751,8 +742,7 @@ static int BuildFontInfo(fontP)
 /* "LenIV" corrected to be "lenIV", otherwise fonts with some specific
    lenIV value could not be decrypted. (RMz, Author of t1lib, 06/03/1998)*/
 /***================================================================***/
-static int BuildPrivate(fontP)
-    psfont *fontP;
+static int BuildPrivate(psfont *fontP)
 {
   psdict *Private;
  
@@ -810,8 +800,7 @@ static int BuildPrivate(fontP)
 /*                                                                    */
 /*                                                                    */
 /**********************************************************************/
-static int GetType1Blues(fontP)
-    psfont *fontP;
+static int GetType1Blues(psfont *fontP)
 {
   psdict *PrivateDictP;   /* the Private dict relating to hints */
   struct blues_struct *blues;  /* ptr for the blues struct we will allocate */
@@ -1083,9 +1072,7 @@ static int GetType1Blues(fontP)
 /*                                                                    */
 /*   Returns a psobj (string)                                         */
 /**********************************************************************/
-psobj *GetType1CharString(fontP, code)
-psfont *fontP;
-unsigned char code;
+psobj *GetType1CharString(psfont * fontP,unsigned char  code)
 {
   int  N;           /* the 'Nth' entry in the CharStrings       */
   psobj *charnameP; /* points to psobj that is name of character*/
@@ -1127,8 +1114,7 @@ unsigned char code;
  */
 /***================================================================***/
  
-static int FindDictValue(dictP)
-    psdict    *dictP;
+static int FindDictValue(psdict * dictP)
 {
    psobj LitName;
    int   N;
@@ -1212,11 +1198,8 @@ static int FindDictValue(dictP)
  *  Result is placed on the Operand Stack as next object
  * -------------------------------------------------------------------
  */
-int scan_font(FontP)
-  psfont *FontP;
+int scan_font(psfont * FontP)
 {
- 
- 
   char   filename[128];
   FILE   *fileP;
   char   *nameP;

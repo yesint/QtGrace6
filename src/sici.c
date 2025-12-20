@@ -580,9 +580,7 @@ static unsigned short GD8[] = {
 extern double MAXNUM, PIO2, MACHEP;
 
 
-int sici( x, si, ci )
-double x;
-double *si, *ci;
+int sici(double x,double * si,double * ci )
 {
 double z, c, s, f, g;
 short sign;

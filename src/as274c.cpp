@@ -43,6 +43,7 @@ int includ(int np, int nrbar, double w,
 {
     int ier=0, i, k, nextr;
     double cbar, sbar, di, xi, xk, dpi, wxi;
+    (void)nrbar;
 
 /* ALGORITHM AS274.1  APPL. STATIST. (1992) VOL 41, NO. 2
    Calling this routine updates d, rbar, thetab and sserr by the
@@ -301,6 +302,7 @@ void inv(int np, int nrbar, double *rbar, int nreq, double *rinv)
    produced by AS75.1. */
 {
     int pos, row;
+    (void)nrbar;
 
     --rinv; --rbar;
 
@@ -604,19 +606,25 @@ void pr_utdm_v(double *x, int N, int width, int precision)
 {
     int pos=0, i, j, leavespace;
     char s[100], fmt[100];      /* will be used in making printf() formats */
-    char buf[256];
+    char buf[512],buf2[128];
 
     sprintf(fmt, "%%%d.%dg", width, precision);
     for (i=0; i<N; i++) {
         leavespace = i*width;
         sprintf(s, "%%%ds", leavespace); 
 	sprintf(buf, s, "");
-	stufftext(buf);
+    //stufftext(buf);
         for (j=i; j<N; j++) {
-	    sprintf(buf, fmt, x[pos++]);
-	    stufftext(buf);
+            /*if (j==i)
+            sprintf(buf, fmt, x[pos++]);
+            else
+            {*/
+            sprintf(buf2, fmt, x[pos++]);
+            strcat(buf,buf2);
+            //}
 	}
-        stufftext("\n");
+        stufftext(buf);
+        //stufftext("\n");
     }
 }
 
@@ -678,13 +686,20 @@ double **dmatrix(int rl, int rh, int cl, int ch)
 void putdvec(const char *s, double *x, int l, int h)
 {
     int i;
-    char buf[512];
-    sprintf(buf, "Vector %-10s: \n", s);
+    char buf[512],buf2[128];
+    sprintf(buf, "Vector %-10s:", s);//\n
     stufftext(buf);
     for (i=l; i<=h; i++) {
-	sprintf(buf, " %d: %.4g \n", i, x[i]);
-        stufftext(buf);
+        if (i==l)
+        sprintf(buf, " %d: %.4g \n", i, x[i]);
+        else
+        {
+        sprintf(buf2, " %d: %.4g \n", i, x[i]);
+        strcat(buf,buf2);
+        }
     }
+    buf[strlen(buf)-1]='\0';
+    stufftext(buf);
 }
 
 int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c)
@@ -693,7 +708,7 @@ int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c)
     double *tol, *rss;
     int i, j, nvars = nd + 1, nrbar = 100, *vorder, *lindep, error;
     double xval;
-    char buf[256];
+    char buf[256],buf2[256];
 
     x = dmatrix(0, cnt - 1, 0, nvars - 1);
     y = dvector(0, cnt - 1);
@@ -736,7 +751,7 @@ int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c)
 
     error = tolset(nvars, nrbar, d, rbar, tol);
     if (error) {
-	sprintf(buf, "as274c: tolset() returned %d\n", error);
+    sprintf(buf, "as274c: tolset() returned %d", error);//\n
 	errmsg(buf);
 	goto bustout;
     }
@@ -746,7 +761,7 @@ int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c)
 	errmsg(buf);
 	goto bustout;
     }
-    sprintf(buf, "SSerr = %17g\n", sserr);
+    sprintf(buf, "SSerr = %17g", sserr);//\n
     stufftext(buf);
 
     error = regcf(nvars, nrbar, d, rbar, thetab, tol, beta, nvars);
@@ -755,16 +770,22 @@ int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c)
 	errmsg(buf);
 	goto bustout;
     }
-    stufftext("\nVariable order:\n ");
+    stufftext("\nVariable order:");//\n
     for (j=0; j<nvars; j++) {
-	sprintf(buf, "   %d ", vorder[j]);
-	stufftext(buf);
+        if (j==0)
+        sprintf(buf, "   %d ", vorder[j]);
+        else
+        {
+        sprintf(buf2, "   %d ", vorder[j]);
+        strcat(buf,buf2);
+        }
     }
-    stufftext("\n");
+    stufftext(buf);
+    //stufftext("\n");
 
     putdvec("Beta", beta, 0, nvars - 1);
     putdvec("d", d, 0, nvars - 1);
-    sprintf(buf, "rbar matrix:\n"); 
+    sprintf(buf, "rbar matrix:");//\n
     stufftext(buf);
     pr_utdm_v(rbar, nvars - 1, 14, 6);
     putdvec("thetab", thetab, 0, nvars - 1);

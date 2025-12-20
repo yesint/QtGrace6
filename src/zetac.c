@@ -497,8 +497,7 @@ static unsigned short S[20] = {
  */
 extern double MACHEP;
 
-double zetac(x)
-double x;
+double zetac(double x)
 {
 int i;
 double a, b, s, w;

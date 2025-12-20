@@ -119,6 +119,7 @@ extern int current_origin_graph,current_origin_set;
 extern int current_target_graph,current_target_set;
 extern void prepare_strings_for_saving(void);
 extern void resume_strings_after_load_or_save(void);
+extern double log2_wrap(double x);
 
 extern char print_file[];
 extern char *close_input;
@@ -140,7 +141,7 @@ static int yyparse(void);
 static void yyerror(char *s);
 
 static int findf(symtab_entry *keytable, char *s);
-static double rint_2(double v);
+double rint_2(double v);
 
 /* Total (intrinsic + user-defined) list of functions and keywords */
 symtab_entry *key;
@@ -389,6 +390,7 @@ symtab_entry *key;
 %token <ival> PLACE
 %token <ival> POINT
 %token <ival> POLAR
+%token <ival> POLARV2
 %token <ival> POLYI
 %token <ival> POLYO
 %token <ival> POP
@@ -525,6 +527,8 @@ symtab_entry *key;
 %token <ival> YMIN
 %token <ival> YYMMDD
 %token <ival> YYMMDDHMS
+%token <ival> YYDYHMS
+%token <ival> YYYY
 %token <ival> ZERO
 %token <ival> ZNORM
 
@@ -4459,6 +4463,7 @@ graphtype:
 	XY { $$ = GRAPH_XY; }
 	| CHART { $$ = GRAPH_CHART; }
 	| POLAR { $$ = GRAPH_POLAR; }
+        | POLARV2 { $$ = GRAPH_POLAR2; }
 	| SMITH { $$ = GRAPH_SMITH; }
 	| FIXED { $$ = GRAPH_FIXED; }
 	| PIE   { $$ = GRAPH_PIE;   }
@@ -4558,6 +4563,8 @@ formatchoice: DECIMAL { $$ = FORMAT_DECIMAL; }
 	| DEGREESMMLAT { $$ = FORMAT_DEGREESMMLAT; }
 	| DEGREESMMSSLAT { $$ = FORMAT_DEGREESMMSSLAT; }
 	| MMSSLAT { $$ = FORMAT_MMSSLAT; }
+    | YYYY { $$ = FORMAT_YYYY; }
+    | YYDYHMS { $$ = FORMAT_YYDYHMS; }
 	;
 
 signchoice: NORMAL { $$ = SIGN_NORMAL; }
@@ -4685,7 +4692,7 @@ color_select:
         COLOR nexpr
         {
             int c = $2;
-            if (c >= 0 && c < number_of_colors()) {
+            if (c >= 0 && c < (int)number_of_colors()) {
                 $$ = c;
             } else {
                 errmsg("Invalid color ID");
@@ -5465,7 +5472,7 @@ symtab_entry ikey[] = {
 	{"LOCTYPE", LOCTYPE, NULL},
 	{"LOG", LOG, NULL},
 	{"LOG10", FUNC_D, (void *) log10},
-	{"LOG2", FUNC_D, (void *) log2},
+    {"LOG2", FUNC_D, (void *) log2_wrap},
 	{"LOGARITHMIC", LOGARITHMIC, NULL},
 	{"LOGX", LOGX, NULL},
 	{"LOGXY", LOGXY, NULL},
@@ -5534,6 +5541,7 @@ symtab_entry ikey[] = {
 	{"PLACE", PLACE, NULL},
 	{"POINT", POINT, NULL},
 	{"POLAR", POLAR, NULL},
+        {"POLARV2", POLARV2, NULL},
 	{"POLYI", POLYI, NULL},
 	{"POLYO", POLYO, NULL},
 	{"POP", POP, NULL},
@@ -5690,6 +5698,8 @@ symtab_entry ikey[] = {
 	{"YV", FUNC_DD, (void *) yv_wrap},
 	{"YYMMDD", YYMMDD, NULL},
 	{"YYMMDDHMS", YYMMDDHMS, NULL},
+    {"YYDYHMS", YYDYHMS, NULL},
+    {"YYYY", YYYY, NULL},
 	{"ZERO", ZERO, NULL},
 	{"ZEROXAXIS", ALTXAXIS, NULL},
 	{"ZEROYAXIS", ALTYAXIS, NULL},
@@ -5960,7 +5970,7 @@ static void copy_vrbl(grarr *dest, grarr *src)
     }
 }
 
-grarr *get_parser_arr_by_name(char * const name)
+grarr *get_parser_arr_by_name(const char * const name)
 {
      int position;
      char *s;
@@ -6124,9 +6134,9 @@ void init_symtab(void)
 
 static int getcharstr(void)
 {
-    if (pos >= strlen(f_string))
+    if (pos >= (int)(strlen(f_string)))
 	 return EOF;
-    return (f_string[pos++]);
+    return ((int)f_string[pos++]);
 }
 
 static void ungetchstr(void)
@@ -6406,7 +6416,7 @@ static void yyerror(char *s)
     interr = 1;
 }
 
-static double rint_2(double v)
+double rint_2(double v)
 {
 return (double)( (int)( (v>=0.0) ? (v+0.5) : (v-0.5) ) );
 }

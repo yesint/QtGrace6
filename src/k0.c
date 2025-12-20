@@ -278,8 +278,7 @@ static unsigned short B[] = {
 extern double PI;
 extern double MAXNUM;
 
-double k0(x)
-double x;
+double k0(double x)
 {
 double y, z;
 
@@ -300,11 +299,7 @@ y = exp(-x) * chbevl( z, B, 25 ) / sqrt(x);
 return(y);
 }
 
-
-
-
-double k0e( x )
-double x;
+double k0e(double x)
 {
 double y;
 

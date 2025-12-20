@@ -80,8 +80,7 @@ boolean vm_init()
     return(FALSE);
 }
  
-char *vm_alloc(bytes)
-  unsigned int bytes;
+char *vm_alloc(unsigned int bytes)
 {
   char *answer;
  
@@ -90,7 +89,7 @@ char *vm_alloc(bytes)
   
   
   /* take space from what is left otherwise allocate another CHUNK */
-  if (bytes > vm_free){
+  if (bytes > (unsigned int)vm_free){
     if (!vm_init()) return NULL;
   }
   else{

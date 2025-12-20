@@ -50,7 +50,7 @@
 #include "../type1/objects.h"
 #include "../type1/spaces.h"
 #include "../type1/util.h"
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 #include "../type1/regions.h"
 
 
@@ -1330,7 +1330,7 @@ int T1_IsInternalChar( int FontID, char char1)
     /* if len=0, then the CharStrings dict is larger that required which
        is valid and allowed by the spec.*/ 
     if ((j=pCharStrings[i].key.len)!=0) {
-      if ( (j==strlen(charname)) &&
+      if ( (j==(signed int)strlen(charname)) &&
 	   (strncmp( charname, pCharStrings[i].key.data.nameP, j)==0) ) {
 	/* we have found an internal definition */
 	return( 1);

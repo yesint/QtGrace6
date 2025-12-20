@@ -58,8 +58,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 extern double MACHEP, MAXNUM;
 
-double iv( v, x )
-double v, x;
+double iv(double v,double x )
 {
 int sign;
 double t, ax;

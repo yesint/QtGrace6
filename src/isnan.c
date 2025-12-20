@@ -61,7 +61,7 @@ Copyright 1984, 1995 by Stephen L. Moshier
 
 #include "mconf.h"
 #include "cephes.h"
-
+#if 0 //defined(MAC_SYSTEM)
 #if !defined(HAVE_ISNAN) && !defined(HAVE_ISNAN_MACRO)
 
 #ifdef UNK
@@ -77,8 +77,7 @@ Copyright 1984, 1995 by Stephen L. Moshier
 
 /* Return 1 if the sign bit of x is 1, else 0.  */
 
-int signbit(x)
-double x;
+int signbit(double x)
 {
 union
 	{
@@ -118,8 +117,7 @@ else
 
 /* Return 1 if x is a number that is Not a Number, else return 0.  */
 
-int isnan(x)
-double x;
+int isnan(double x)
 {
 #ifdef NANS
 union
@@ -202,8 +200,7 @@ return(0);
 
 /* Return 1 if x is not infinite and is not a NaN.  */
 
-int isfinite(x)
-double x;
+int isfinite(double x)
 {
 #ifdef INFINITIES
 union
@@ -254,3 +251,4 @@ return(1);
 }
 
 #endif /* HAVE_(IS)FINITE */
+#endif

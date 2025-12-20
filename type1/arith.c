@@ -54,7 +54,7 @@ The included files are:
 #include "objects.h"
 #include "spaces.h"
 #include "arith.h"
- 
+
 /*
 :h3.
 */
@@ -152,9 +152,7 @@ void DLmult(product, u, v)
 Both the dividend and the divisor must be positive.
 */
  
-void DLdiv(quotient, divisor)
-       doublelong *quotient;       /* also where dividend is, originally     */
-       ULONG divisor;
+void DLdiv(doublelong * quotient,ULONG divisor)/* also where dividend is, originally     */
 {
        register ULONG u1u2 = quotient->high;
        register ULONG u3u4 = quotient->low;
@@ -223,7 +221,7 @@ void DLdiv(quotient, divisor)
                /*
                * Step D3:  make a guess (qhat) at the next quotient denominator:
                */
-               qhat = (HIGHDIGIT(u1u2) == v1) ? MAXSHORT : u1u2 / v1;
+               qhat = (HIGHDIGIT(u1u2) == (unsigned int)v1) ? MAXSHORT : u1u2 / v1;
                /*
                * At this point Knuth would have us further refine our
                * guess, since we know qhat is too big if
@@ -248,7 +246,7 @@ void DLdiv(quotient, divisor)
                */
                t = HIGHDIGIT(u3);
                if (t > 0)
-                       t |= -1 << SHORTSIZE;
+                       t |= -(1 << SHORTSIZE);/* edited by Andreas Winter 2016, because modern compilers do not like shifting negative values */
                t += u1u2 - qhat * v1;
 /* printf("..>divide step qhat=%x t=%x u3=%x u1u2=%x v1=%x v2=%x\n",
                              qhat, t, u3, u1u2, v1, v2); */

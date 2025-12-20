@@ -72,8 +72,7 @@ extern double MAXNUM, MACHEP, MINLOG, MAXLOG;
 #define BIG  1.44115188075855872E+17
 int airy();
 
-double jv( n, x )
-double n, x;
+double jv(double n,double x )
 {
 double k, q, t, y, an;
 int i, sign, nint;
@@ -252,13 +251,9 @@ done:	return( sign * y);
  * AMS55 #9.1.27 and 9.1.73.
  */
 
-static double recur( n, x, newn, cancel )
-double *n;
-double x;
-double *newn;
-int cancel;
+static double recur(double * n, double x, double * newn,int cancel )
 {
-double pkm2, pkm1, pk, pkp1, qkm2, qkm1;
+double pkm2, pkm1, pk, qkm2, qkm1;//pkp1
 double k, ans, qk, xk, yk, r, t, kf;
 static double big = BIG;
 int nflag, ctr;
@@ -356,7 +351,7 @@ r = 2 * k;
 do
 	{
 	pkm2 = (pkm1 * r  -  pk * x) / x;
-	pkp1 = pk;
+    //pkp1 = pk;
 	pk = pkm1;
 	pkm1 = pkm2;
 	r -= 2.0;
@@ -404,8 +399,7 @@ return( pkm2 );
 
 extern double PI;
 
-static double jvs( n, x )
-double n, x;
+static double jvs(double n, double x )
 {
 double t, u, y, z, k;
 int ex;
@@ -478,8 +472,7 @@ return(y);
  * AMS55 #9.2.5.
  */
 
-static double hankel( n, x )
-double n, x;
+static double hankel(double n,double x )
 {
 double t, u, z, k, sign, conv;
 double p, q, j, m, pp, qq;
@@ -619,8 +612,7 @@ static double P7[] = {
 };
 
 
-static double jnx( n, x )
-double n, x;
+static double jnx(double n,double x )
 {
 double zeta, sqz, zz, zp, np;
 double cbn, n23, t, z, sz;
@@ -804,8 +796,7 @@ static double PG3[] = {
 };
 
 
-static double jnt( n, x )
-double n, x;
+static double jnt(double n,double x )
 {
 double z, zz, z3;
 double cbn, n23, cbtwo;

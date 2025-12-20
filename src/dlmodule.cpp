@@ -144,6 +144,10 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     return retval;
 
 #else /* no support for DL */
+    (void)fname;
+    (void)dl_function;
+    (void)dl_key;
+    (void)dl_type;
     errmsg("No support for DL modules on your OS");
     return RETURN_FAILURE;
 #endif

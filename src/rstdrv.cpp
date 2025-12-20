@@ -8,7 +8,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  *
  *                           All Rights Reserved
  *
@@ -113,7 +113,8 @@ static Device_entry dev_pnm = {DEVICE_FILE,
                                TRUE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL,
-                               1
+                               1,
+                               ""
                               };
 
 #ifdef HAVE_LIBJPEG
@@ -142,7 +143,8 @@ static Device_entry dev_png = {
     TRUE,
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
     NULL,
-    1
+    1,
+    "HPNG"
 };
 
 /*#ifdef HAVE_LIBPNG
@@ -185,7 +187,8 @@ int register_png_drv(void)
 
 static void rst_updatecmap(void)
 {
-    int i, c;
+    unsigned int i;
+    int c;
     RGB *prgb;
     int red, green, blue;
     
@@ -473,9 +476,9 @@ void rst_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
 {
     gdPoint gdp1, gdp2, gdc;
     int w, h;
-    double ra=-1.74532925199e-2*RotationAngle;
+    /*double ra=-1.74532925199e-2*RotationAngle;
     double ca=cos(ra),sa=sin(ra);
-    double x,y;
+    double x,y;*/
 
     gdp1 = VPoint2gdPoint(vp1);
     gdp2 = VPoint2gdPoint(vp2);
@@ -812,7 +815,7 @@ static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
     jpeg_destroy_compress(&cinfo);
 }
 
-int jpg_op_parser(char *opstring)
+int jpg_op_parser(const char *opstring)
 {
     char *bufp;
     
@@ -873,7 +876,7 @@ int jpg_op_parser(char *opstring)
 }
 #endif
 
-int pnm_op_parser(char *opstring)
+int pnm_op_parser(const char *opstring)
 {
     if (!strcmp(opstring, "rawbits:on")) {
         pnm_setup_rawbits = TRUE;
@@ -1014,7 +1017,7 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
     xfree(palette);
 }
 
-int png_op_parser(char *opstring)
+int png_op_parser(const char *opstring)
 {
     char *bufp;
 

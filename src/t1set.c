@@ -51,7 +51,7 @@
 #include "../type1/objects.h"
 #include "../type1/spaces.h"
 #include "../type1/util.h"
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 #include "../type1/regions.h"
 
 
@@ -76,8 +76,6 @@
 extern char *t1_get_abort_message( int number);
 extern struct region *Interior(struct segment *path, int fillrule);
 extern unsigned T1_AA_TYPE32 T1aa_bg;          /* white value */
-  
-  
 
 static int T1_bit=T1GLYPH_BIT;
 static int T1_byte;
@@ -87,7 +85,6 @@ static int T1_wordsize;
 static int c_shift=8;
 static int s_shift=16;
 static int l_shift=32;
-
 
 
 /* T1_SetChar(...): Generate the bitmap for a character */
@@ -347,7 +344,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   /* initialize this to NULL just to be on the safe side */
   struct region *area = NULL;
   struct XYspace *Current_S, *S;
-  int cache_flag=1;
+  //int cache_flag=1;
   volatile int rot_flag=0;
   int *kern_pairs;       /* use for accessing the kern pairs if kerning is
 			    requested */
@@ -355,12 +352,10 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   static int lastno_chars=0;
   float factor;
   long spacewidth;       /* This is given to fontfcnb_string() */
-  
-  
+    
   FONTSIZEDEPS *font_ptr;
   FONTPRIVATE  *fontarrayP;
   
-
   volatile int memsize=0;
 
   long h,w;
@@ -369,7 +364,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   static int *pixel_h_anchor_corr=NULL;
   static int *flags=NULL;
   int lsb_min, rsb_max;
-  long overallwidth=0;
+  //long overallwidth=0;
   long overallascent=0;
   long overalldescent=0;
 
@@ -409,16 +404,16 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   /* We return to this if something goes wrong deep in the rasterizer */
   if ((i=setjmp( stck_state))!=0) {
     T1_errno=T1ERR_TYPE1_ABORT;
-    sprintf( err_warn_msg_buf, "t1_abort: Reason: %s",
-	     t1_get_abort_message( i));
-    T1_PrintLog( "T1_SetString()", err_warn_msg_buf,
-	       T1LOG_ERROR);
+    sprintf( err_warn_msg_buf, "t1_abort: Reason: %s", t1_get_abort_message( i));
+    T1_PrintLog( "T1_SetString()", err_warn_msg_buf, T1LOG_ERROR);
     return( NULL);
   }
 
   /* force string elements into unsigned */
   ustring=(unsigned char*)string;
 
+/// printf("T1_SetString: %s\n", string);
+/// printf("T1_SetString: %s\n",ustring);
 
   /* Check for valid string */
   if (string==NULL){
@@ -462,7 +457,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   string_glyph.bpp=1;
   
   /* We don't want to cache the resulting bitmap: */
-  cache_flag=0;
+  //cache_flag=0;
   
   /* First, check for a correct ID */
   i=CheckForFontID(FontID);
@@ -502,7 +497,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   if (transform!=NULL){
     /* there's rotation requested => do not cache the resulting bitmap */
     rot_flag=1;
-    cache_flag=0;
+    //cache_flag=0;
   }
   
   /* font is now loaded into memory =>
@@ -581,8 +576,8 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
      */
   /* First, ensure that all needed characters are in the Cache; if not,
      generate them */
-  if ((rot_flag==0)){
-    overallwidth=0;
+  if (rot_flag==0){
+    //overallwidth=0;
     for (i=0; i<no_chars; i++) {
       currchar= &(font_ptr->pFontCache[ustring[i]]);
       if (currchar->bpp<1) {
@@ -591,7 +586,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	/*  Don't try to generate space-character: */
 	if (ustring[i]!=fontarrayP->space_position){
 	  /* Note: Never underline etc. cached chars --> modflag=0 */ 
-	  area=fontfcnB( FontID, 0, Current_S,
+      area=fontfcnB( FontID, 0, Current_S,
 			 fontarrayP->pFontEnc,
 			 ustring[i], &mode,
 			 fontarrayP->pType1Data,
@@ -881,6 +876,10 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	  else if (T1_pad==16)
 	    ByteOffset *=2;
 	}  
+
+/*printf("sizeoflong=%lu\n",sizeof(long));
+fflush(stdout);*/
+
 #ifdef T1_AA_TYPE64
 	/* We compile this part only if long is 64 bits to be conform to ANSI C */
 	if (T1_pad==32 && T1_byte==0){
@@ -1147,14 +1146,12 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   return(&string_glyph);
 }
 
-
-
-void fill(dest, h, w, area, byte, bit, wordsize)
-     register char *dest;  /* destination bitmap                           */
-     int h,w;              /* dimensions of 'dest', w padded               */
-     register struct region *area;  /* region to write to 'dest'           */
-     int byte,bit;         /* flags; LSBFirst or MSBFirst                  */
-     int wordsize;         /* number of bits per word for LSB/MSB purposes */
+/*dest = destination bitmap
+h/w = dimensions of 'dest', w padded
+area = region to write to 'dest'
+byte/bit = flags; LSBFirst or MSBFirst
+wordsize = number of bits per word for LSB/MSB purposes */
+void fill(register char *dest,int h,int w,register struct region * area,int byte,int bit,int wordsize)
 {
   register struct edgelist *edge;  /* for looping through edges         */
   register char *p;     /* current scan line in 'dest'                  */
@@ -1163,7 +1160,9 @@ void fill(dest, h, w, area, byte, bit, wordsize)
   register pel *leftP,*rightP;  /* pointers to X values, left and right */
   int xmin = area->xmin;  /* upper left X                               */
   int ymin = area->ymin;  /* upper left Y                               */
-  
+  (void)h;
+  (void)byte;
+  (void)wordsize;
   for (edge = area->anchor; VALIDEDGE(edge); edge = edge->link->link) {
     
     p = dest + (edge->ymin - ymin) * wbytes;

@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -38,11 +38,14 @@
 ///#include <Xm/Xm.h>
 
 #include "defines.h"
+#include "events.h"
 
 int initialize_gui(int *argc, char **argv);
 void startup_gui(void);
 
 void set_left_footer(char *s);
+void set_left_footer_to_action(CanvasAction act,int axis_restrict);
+void set_footer_background_color(QString s, int color);
 
 void xdrawgraph(void);
 ///void expose_resize(Widget w, XtPointer client_data, XmDrawingAreaCallbackStruct *cbs);
@@ -63,7 +66,7 @@ char *display_name(void);
 /*void xunregister_rti(XtInputId);
 void xregister_rti(Input_buffer *ib);*/
 
-int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
+int yesnowin(const char *msg1,const  char *msg2,const  char *s1,const  char *help_anchor);
 
 void create_file_popup(void *data);
 void create_netcdfs_popup(void *data);
@@ -115,7 +118,9 @@ void define_region(int nr, int rtype);
 void define_status_popup(void *data);
 void create_about_grtool(void *data);
 
+void setDefaultsInSetList(void);
 void update_set_lists(int gno);
+void update_explorer(void);
 
 void updatesymbols(int gno, int value);
 void updatelegends(int gno);
@@ -172,16 +177,6 @@ void string_edit_popup(int no);
 
 //int object_edit_popup(int type, int id);
 void set_title(char * ts);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-void HelpCB(char *data);
-void set_pagelayout(int layout);
-void update_all(void);
-#ifdef __cplusplus
-}
-#endif
 
 int get_pagelayout(void);
 

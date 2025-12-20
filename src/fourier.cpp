@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -302,10 +302,11 @@ void dft_fftw3(double *jr, double *ji, int n, int iflag)
     if(wisdom_file && wisdom_file[0] ) {
       /* if a file was specified in GRACE_FFTW_WISDOM_FILE, try to read it */
       FILE *wf;
-      int fstat;
+      //int fstat;
       wf=fopen(wisdom_file,"r");
       if(wf) {
-    fstat=fftw_dll_import_wisdom_from_file(wf);
+    //fstat=fftw_dll_import_wisdom_from_file(wf);
+    (void)fftw_dll_import_wisdom_from_file(wf);
 	fclose(wf);
     initial_wisdom=fftw_dll_export_wisdom_to_string();
       } else initial_wisdom=0;
@@ -342,8 +343,9 @@ void dft_fftw3(double *jr, double *ji, int n, int iflag)
 
 void fft_fftw3(double *real_data, double *imag_data, int n_pts, int nu, int inv)
 {
-  /* let FFTW handle DFT's and FFT's identically */
-  dft_fftw3(real_data, imag_data, n_pts, inv);
+    (void)nu;
+    /* let FFTW handle DFT's and FFT's identically */
+    dft_fftw3(real_data, imag_data, n_pts, inv);
 }
 
 //#endif

@@ -64,7 +64,7 @@ char *t1_ErrorMsg();          /* return last TYPE1IMAGER error message          
 #define   Copy(obj)         t1_Copy(obj)
 #define   Unique(obj)       t1_Unique(obj)
  
-void t1_abort();              /* crash; software logic error                  */
+void t1_abort(char * string,int no);              /* crash; software logic error                  */
 struct xobject *t1_Allocate();    /* allocate memory                          */
 void t1_Free();               /* free memory                                  */
 struct xobject *t1_Unique();  /* make a unique temporary copy of an object    */
@@ -152,12 +152,21 @@ struct xobject {
 /*END SHARED*/
 /*SHARED*/
  
-#define  LONGCOPY(dest,source,bytes) { \
+/*#define  LONGCOPY(dest,source,bytes) { \
     register LONG *p1 = (LONG *)dest;  register LONG *p2 = (LONG *)source; \
     register int count = (bytes) / sizeof(LONG); \
-    while (--count >= 0) *p1++ = *p2++; }
- 
- 
+    while (--count >= 0) *p1++ = *p2++; }*/
+
+/*#define  LONGCOPY(dest,source,bytes) { \
+    register int count = (bytes) / sizeof(LONG); \
+    memcpy(dest,source,count*sizeof(LONG)); }*/
+
+#define  LONGCOPY(dest,source,bytes) { \
+    memcpy(dest,source,(bytes)-((bytes)%sizeof(LONG))); }
+
+/*#define  LONGCOPY(dest,source,bytes) { \
+    memcpy(dest,source,bytes); }*/
+
 /*END SHARED*/
 /*SHARED*/
  

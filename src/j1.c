@@ -454,8 +454,7 @@ static unsigned short DZ2[] = {0x4048,0x9bf6,0x6072,0xa432};
 
 extern double TWOOPI, THPIO4, SQ2OPI;
 
-double j1(x)
-double x;
+double j1(double x)
 {
 double w, z, p, q, xn;
 
@@ -486,8 +485,7 @@ return( p * SQ2OPI / sqrt(x) );
 
 extern double MAXNUM;
 
-double y1(x)
-double x;
+double y1(double x)
 {
 double w, z, p, q, xn;
 

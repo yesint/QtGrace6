@@ -7,7 +7,8 @@
  * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
- * 
+ *
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -48,19 +49,21 @@ int add_io_filter( int type, int method, char *id, char *comm );
 int add_input_filter( int method, char *id, char *comm );
 int add_output_filter( int method, char *id, char *comm );
 void clear_io_filters( int f );
-FILE *filter_read( char *fn );
-FILE *filter_write(  char *fn );
+FILE *filter_read( const char *fn );
+FILE *filter_write( const char *fn );
 
-char *grace_path(char *fn);
-char *grace_exe_path(char *fn);
+const char *grace_path(const char *fn);
+const char *grace_exe_path(const char *fn);
+
+int look_for_file(char * fn);
 
 FILE *grace_openw(char *fn);
-FILE *grace_openr(char *fn, int src);
+FILE *grace_openr(const char *fn, int src);
 void grace_close(FILE *fp);
 
 int getparms(char *plfile);
 int getdata(int gno, char *fn, int src, int type);
-int readDataFromClient(char* dataIn, int load_type,char *label);
+int readDataFromClient(char* dataIn, int load_type,const char *label);
 int update_set_from_file(int gno, int setno, char *fn, int src);
 
 int readblockdata(int gno, char *fn, FILE * fp);
@@ -71,7 +74,7 @@ int new_project(char *n_template);
 int load_project(char *fn);
 int save_project(char *fn);
 
-int write_set(int gno, int setno, FILE *cp, char *format, int rawdata);
+int write_set(int gno, int setno, FILE *cp, char *format, int rawdata,int write_to_cp);
 void outputset(int gno, int setno, char *fname, char *dformat);
 
 int readnetcdf(int gno,
@@ -88,6 +91,7 @@ char *grace_fgets(char *s, int size, FILE *stream);
 int is_Gould_file(char * file);
 int is_agr_file(char * file);
 int is_csv_file(char * file);
+void write_data_as_wav(char * filename,int nr_of_sets,int * gnos,int * snos);
 
 #ifdef __cplusplus
 }
@@ -109,6 +113,7 @@ QStringList set_comments,set_legends,set_types;
 QString project_description;
 QList<int> import,color,lines,pattern,linet;
 QList<double> linew;
+QString encoding;
 };
 
 void init_agr_file_info(struct agr_file_info & afi);

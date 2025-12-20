@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -1339,6 +1339,7 @@ L220:
 	lda, logical *pivot, integer *ipvt, integer *lipvt, doublereal *rdiag,
 	 doublereal *acnorm, doublereal *wa)
 {
+    (void)lipvt;
     /* Initialized data */
 
     static doublereal one = 1.;

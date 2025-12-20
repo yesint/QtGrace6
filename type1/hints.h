@@ -38,5 +38,7 @@ void t1_CloseHints();   /* Reverse hints that are still open */
 void t1_ProcessHint();   /* Process a rasterization hint */
  
 #define   ApplyContinuity(R)  t1_ApplyContinuity(R)
-void t1_ApplyContinuity();    /* fix false connection breaks in a region      */
+void t1_ApplyContinuity(struct region *R);    /* fix false connection breaks in a region      */
+
+int pathcounter(struct region *R);/*for debugging*/
 /*END SHARED*/

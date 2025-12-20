@@ -8,6 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -31,11 +32,12 @@
 
 /* for size_t */
 #include <sys/types.h>
+#include <stdarg.h>
 
 #define  PAD(bits, pad)  (((bits)+(pad)-1)&-(pad))
 
-#define MIN2(a, b) (((a) < (b)) ? a : b)
-#define MAX2(a, b) (((a) > (b)) ? a : b)
+#define MIN2(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX2(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN3(a, b, c) (((a) < (b)) ? MIN2(a, c) : MIN2(b, c))
 #define MAX3(a, b, c) (((a) > (b)) ? MAX2(a, c) : MAX2(b, c))
 
@@ -62,8 +64,8 @@ void xfree(void *ptr);
 
 void fswap(double *x, double *y);
 void iswap(int *x, int *y);
-int isoneof(int c, char *s);
-int argmatch(char *s1, char *s2, int atleast);
+int isoneof(int c, const char *s);
+int argmatch(char *s1, const char *s2, int atleast);
 void lowtoupper(char *s);
 void convertchar(char *s);
 int ilog2(int n);
@@ -113,9 +115,9 @@ void errmsg(const char *msg);
 void echomsg(char *msg);
 void stufftext(const char *msg);
 
-int yesnoterm(char *msg);
+int yesnoterm(const char *msg);
 int yesnosave(int version);
-int yesno(char *msg, char *s1, char *s2, char *help_anchor);
+int yesno(const char *msg, const char *s1, const char *s2, const char *help_anchor);
 
 char *mybasename(const char *s);
 
@@ -145,13 +147,13 @@ void set_locale_num(int flag);
 long bi_version_id(void);
 char *bi_version_string(void);
 char *bi_system(void);
-char *bi_date(void);
-char *bi_gui(void);
+const char *bi_date(void);
+const char *bi_gui(void);
 /*#ifdef MOTIF_GUI
 char *bi_gui_xbae(void);
 #endif*/
-char *bi_ccompiler(void);
-char *bi_t1lib(void);
+const char *bi_ccompiler(void);
+const char *bi_t1lib(void);
 #ifdef HAVE_LIBPNG
 char *bi_pnglib(void);
 #endif
@@ -163,11 +165,18 @@ char *bi_libpdf(void);
 #endif
 
 void close_ss_editor(int gno,int setno);
+void parser_preprocessor(char * c);
+
+char * create_list_of_arguments(int n,...);/*produces a list like "{a;b;c}"*/
+int process_list_of_arguments(char * list,int ** args);/*converts a list into int-values: "{a;b;c}"-->a,b,c*/
 
 #ifdef DEBUG
 void set_debuglevel(int level);
 int get_debuglevel(void);
 #endif
+
+int which_day_of_week(const char * day);
+int which_month_of_year(const char * month);
 
 #ifdef __cplusplus
 }

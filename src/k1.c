@@ -281,8 +281,7 @@ static unsigned short B[] = {
 extern double PI;
 extern double MINLOG, MAXNUM;
 
-double k1(x)
-double x;
+double k1(double x)
 {
 double y, z;
 
@@ -303,11 +302,7 @@ if( x <= 2.0 )
 return(  exp(-x) * chbevl( 8.0/x - 2.0, B, 25 ) / sqrt(x) );
 }
 
-
-
-
-double k1e( x )
-double x;
+double k1e(double x)
 {
 double y;
 

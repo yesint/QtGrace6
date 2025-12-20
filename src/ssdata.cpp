@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -53,6 +53,7 @@
 extern bool exchange_point_comma;
 extern int new_set_no;
 extern int * new_set_nos;
+extern char DecimalPointToUse;
 
 double *copy_data_column(double *src, int nrows)
 {
@@ -97,18 +98,83 @@ double *allocate_mesh(double start, double stop, int len)
 {
     int i;
     double *retval;
-    
+//qDebug() << "alloc_LIN_mesh: n=" << len << "start=" << start << "stop=" << stop;
     retval = (double*)xmalloc(len*sizeof(double));
     if (retval != NULL) {
         double s = (start + stop)/2, d = (stop - start)/2;
-        for (i = 0; i < len; i++) {
-            retval[i] = s + d*((double) (2*i + 1 - len)/(len - 1));
+        if (len==1)
+        {
+        retval[0] = start;
+        }
+        else
+        {
+            for (i = 0; i < len; i++) {
+                retval[i] = s + d*((double) (2*i + 1 - len)/(len - 1));
+            }
         }
     }
     return retval;
 }
 
+double *allocate_logarithmic_mesh(double start, double stop, int len)//warning: if start or stop are <=0 NULL is returned!
+{
+    if ((start==0 || stop==0) || (start<=0 && stop>=0)) return NULL;//in this case calculating a logarithm does not work
+    int i;
+    int neg_sgn=(start<0 || stop<0)?1:0;
+    double *retval;
+//qDebug() << "alloc_LOG_mesh: n=" << len << "start=" << start << "stop=" << stop;
+    retval = (double*)xmalloc(len*sizeof(double));
+    if (retval != NULL)
+    {
+        double l_start=log(fabs(start));//log is in fact the natural logarithm
+        double l_stop=log(fabs(stop));
+        double l_s,l_d;
+        if (l_stop<l_start)
+        {
+        l_s=l_start;
+        l_start=l_stop;
+        l_stop=l_s;
+        }
+        l_s = (l_start + l_stop)*0.5;
+        l_d = (l_stop - l_start)*0.5;
+        if (len==1)
+        {
+        retval[0] = start;
+        }
+        else
+        {
+            if (neg_sgn==1)
+            {
+                for (i = 0; i < len; i++)
+                {
+                    retval[len-1-i] = -exp(l_s + l_d*((double) (2*i + 1 - len)/(len - 1)));
+                }
+            }
+            else
+            {
+                for (i = 0; i < len; i++)
+                {
+                    retval[i] = exp(l_s + l_d*((double) (2*i + 1 - len)/(len - 1)));
+                }
+            }
+
+        }
+    }
+    return retval;
+}
+
+static char block_data_origin_file[GR_MAXPATHLEN];
 static ss_data blockdata = {0, 0, NULL, NULL};
+
+void set_block_origin(char * s)
+{
+strcpy(block_data_origin_file,s);
+}
+
+char * get_block_origin(void)
+{
+return block_data_origin_file;
+}
 
 void set_blockdata(ss_data *ssd)
 {
@@ -131,6 +197,20 @@ int get_blocknrows(void)
 int *get_blockformats(void)
 {
     return blockdata.formats;
+}
+
+double * get_blockdata_column_d(int col)
+{
+    if (col<0 || col>blockdata.ncols) return NULL;
+    else
+    return ((double *) blockdata.data[col]);
+}
+
+char ** get_block_data_column_s(int col)
+{
+    if (col<0 || col>blockdata.ncols) return NULL;
+    else
+    return ((char **) blockdata.data[col]);
 }
 
 int realloc_ss_data(ss_data *ssd, int nrows)
@@ -301,6 +381,122 @@ i++;
 }
 }
 
+void removePoint(char * token)
+{
+static int i,j;
+i=0;
+while (token[i]!='\0')
+{
+if (token[i]=='.')
+{
+    j=i+1;
+    while (token[j]!='\0')
+    {
+    token[j-1]=token[j];
+    j++;
+    }
+    token[j-1]='\0';
+i--;
+}
+i++;
+}
+}
+
+void exchangePointCommaInFormat(char * token,int type)//only exchanges '.' and ',' in certain formats
+{
+switch (type)
+{
+default:
+case FORMAT_STRING:
+case FORMAT_INVALID:
+case FORMAT_DDMMYY:
+case FORMAT_MMDDYY:
+case FORMAT_YYMMDD:
+case FORMAT_MMYY:
+case FORMAT_MMDD:
+case FORMAT_MONTHDAY:
+case FORMAT_DAYMONTH:
+case FORMAT_MONTHS:
+case FORMAT_MONTHSY:
+case FORMAT_MONTHL:
+case FORMAT_DAYOFWEEKS:
+case FORMAT_DAYOFWEEKL:
+case FORMAT_DAYOFYEAR:
+case FORMAT_HMS:
+case FORMAT_MMDDHMS:
+case FORMAT_MMDDYYHMS:
+case FORMAT_YYMMDDHMS:
+case FORMAT_YYYY:
+case FORMAT_YYDYHMS:
+break;
+case FORMAT_DECIMAL:
+case FORMAT_EXPONENTIAL:
+case FORMAT_GENERAL:
+case FORMAT_POWER:
+case FORMAT_SCIENTIFIC:
+case FORMAT_ENGINEERING:
+case FORMAT_COMPUTING:
+case FORMAT_DEGREESLON:
+case FORMAT_DEGREESMMLON:
+case FORMAT_DEGREESMMSSLON:
+case FORMAT_MMSSLON:
+case FORMAT_DEGREESLAT:
+case FORMAT_DEGREESMMLAT:
+case FORMAT_DEGREESMMSSLAT:
+case FORMAT_MMSSLAT:
+exchangePointComma(token);
+break;
+}
+}
+
+void removePointInFormat(char * token,int type)//remove '.' if needed (if ',' is decimal separator, '.' is iritating)
+{
+if (DecimalPointToUse=='.') return;
+switch (type)
+{
+default:
+case FORMAT_STRING:
+case FORMAT_INVALID:
+case FORMAT_DDMMYY:
+case FORMAT_MMDDYY:
+case FORMAT_YYMMDD:
+case FORMAT_MMYY:
+case FORMAT_MMDD:
+case FORMAT_MONTHDAY:
+case FORMAT_DAYMONTH:
+case FORMAT_MONTHS:
+case FORMAT_MONTHSY:
+case FORMAT_MONTHL:
+case FORMAT_DAYOFWEEKS:
+case FORMAT_DAYOFWEEKL:
+case FORMAT_DAYOFYEAR:
+case FORMAT_HMS:
+case FORMAT_MMDDHMS:
+case FORMAT_MMDDYYHMS:
+case FORMAT_YYMMDDHMS:
+case FORMAT_YYYY:
+case FORMAT_YYDYHMS:
+break;
+case FORMAT_DECIMAL:
+case FORMAT_EXPONENTIAL:
+case FORMAT_GENERAL:
+case FORMAT_POWER:
+case FORMAT_SCIENTIFIC:
+case FORMAT_ENGINEERING:
+case FORMAT_COMPUTING:
+case FORMAT_DEGREESLON:
+case FORMAT_DEGREESMMLON:
+case FORMAT_DEGREESMMSSLON:
+case FORMAT_MMSSLON:
+case FORMAT_DEGREESLAT:
+case FORMAT_DEGREESMMLAT:
+case FORMAT_DEGREESMMSSLAT:
+case FORMAT_MMSSLAT:
+removePoint(token);
+break;
+}
+}
+
 /* NOTE: the input string will be corrupted! */
 int insert_data_row(ss_data *ssd, int row, char *s)
 {
@@ -367,7 +563,7 @@ int insert_data_row(ss_data *ssd, int row, char *s)
 }
 
 
-int store_data(ss_data *ssd, int load_type, char *label)
+int store_data(ss_data *ssd, int load_type, const char *label)
 {
     int ncols, nncols, nncols_req, nscols, nrows;
     int i, j;
@@ -441,7 +637,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
                 nncols++;
             }
         }
-        if (!strlen(getcomment(gno, setno))) {
+        if (!strlen(getcomment(gno, setno)) && projectfileloading==0) {
             setcomment(gno, setno, label);
         }
         
@@ -571,12 +767,12 @@ char *cols_to_field_string(int nc, int *cols, int scol)
     return s;
 }
 
-int create_set_fromblock(int gno, int setno,
-    int type, int nc, int *coli, int scol, int autoscale)
+int create_set_fromblock(int gno, int setno, int type, int nc, int *coli, int scol, int autoscale)
 {
     int i, ncols, blockncols, blocklen, column;
     double *cdata;
-    char buf[256], *s;
+    char *s;//buf[256],
+    QString tmp_str;
 
     blockncols = get_blockncols();
     if (blockncols <= 0) {
@@ -659,11 +855,11 @@ int create_set_fromblock(int gno, int setno,
     }
 
     s = cols_to_field_string(nc, coli, scol);
-    sprintf(buf, "Cols %s", s);
+    //sprintf(buf, "Cols %s", s);
+    tmp_str=QObject::tr("Cols ")+QString(s);
     xfree(s);
-    setcomment(gno, setno, buf);
-
+    //setcomment(gno, setno, buf);
+    setcomment(gno, setno, tmp_str.toLocal8Bit().constData());
     autoscale_graph(gno, autoscale);
-
     return RETURN_SUCCESS;
 }

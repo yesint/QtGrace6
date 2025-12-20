@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -56,7 +56,8 @@ static Device_entry dev_mf = {DEVICE_FILE,
           FALSE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
           NULL,
-          1
+          1,
+          "MF"
          };
 
 int register_mf_drv(void)
@@ -66,7 +67,7 @@ int register_mf_drv(void)
 
 int mfinitgraphics(void)
 {
-    int i, j;
+    unsigned int i, j;
     Page_geometry pg;
     
     /* device-dependent routines */
@@ -100,7 +101,7 @@ int mfinitgraphics(void)
     fprintf(prstream, "}\n");
 
     fprintf(prstream, "PatternResources {\n");
-    for (i = 0; i < number_of_patterns(); i++) {
+    for (i = 0; i < (unsigned int)number_of_patterns(); i++) {
         fprintf(prstream, "\t( %d , ", i);
         for (j = 0; j < 32; j++) {
             fprintf(prstream, "%02x", pat_bits[i][j]);
@@ -110,9 +111,9 @@ int mfinitgraphics(void)
     fprintf(prstream, "}\n");
 
     fprintf(prstream, "DashResources {\n");
-    for (i = 0; i < number_of_linestyles(); i++) {
+    for (i = 0; i < (unsigned int)number_of_linestyles(); i++) {
         fprintf(prstream, "\t( %d , [ ", i);
-        for (j = 0; j < dash_array_length[i]; j++) {
+        for (j = 0; j < (unsigned int)dash_array_length[i]; j++) {
             fprintf(prstream, "%d ", dash_array[i][j]);
         }
         fprintf(prstream, "] )\n");
@@ -190,10 +191,8 @@ void mf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
 
 void mf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
-    char *name;
-    
+const char *name;
     mf_setpen();
-    
     /* FIXME - mode */
     if (mode == ARCFILL_CHORD) {
         name = "FillChord";

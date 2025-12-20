@@ -60,9 +60,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 extern double MAXNUM, MAXLOG;
 
-double yn( n, x )
-int n;
-double x;
+double yn( int n,double x )
 {
 double an, anm1, anm2, r;
 int k, sign;
@@ -77,7 +75,6 @@ if( n < 0 )
 	}
 else
 	sign = 1;
-
 
 if( n == 0 )
 	return( sign * y0(x) );

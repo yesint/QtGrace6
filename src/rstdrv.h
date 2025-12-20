@@ -8,6 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -66,7 +67,7 @@ void rst_putpixmap(VPoint vp, int width, int height,
 void rst_leavegraphics(void);
 
 int pnminitgraphics(void);
-int pnm_op_parser(char *opstring);
+int pnm_op_parser(const char *opstring);
 ///#ifdef NONE_GUI
 #  define pnm_gui_setup setup_null
 ///#else
@@ -75,7 +76,7 @@ int pnm_op_parser(char *opstring);
 
 #ifdef HAVE_LIBJPEG
 int jpginitgraphics(void);
-int jpg_op_parser(char *opstring);
+int jpg_op_parser(const char *opstring);
 ///#  ifdef NONE_GUI
 #    define jpg_gui_setup NULL
 ///#  else
@@ -85,7 +86,7 @@ int jpg_op_parser(char *opstring);
 
 #ifdef HAVE_LIBPNG
 int pnginitgraphics(void);
-int png_op_parser(char *opstring);
+int png_op_parser(const char *opstring);
 ///#  ifdef NONE_GUI
 #    define png_gui_setup NULL
 ///#  else

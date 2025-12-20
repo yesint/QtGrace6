@@ -283,8 +283,7 @@ extern double NAN;
 /* Gamma function computed by Stirling's formula.
  * The polynomial STIR is valid for 33 <= x <= 172.
  */
-static double stirf(x)
-double x;
+static double stirf(double x)
 {
 double y, w, v;
 
@@ -308,8 +307,7 @@ return( y );
 int sgngam = 0;
 #endif
 
-double true_gamma(x)
-double x;
+double true_gamma(double x)
 {
 double p, q, z;
 int i;
@@ -555,8 +553,7 @@ static union us2d_t LS2P = { { 0x3fed,0x67f1,0xc864,0xbeb5} };
 
 /* Logarithm of gamma function */
 
-double lgam(x)
-double x;
+double lgam(double x)
 {
 double p, q, u, w, z;
 int i;

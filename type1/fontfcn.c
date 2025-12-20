@@ -35,16 +35,16 @@
 
 #include "t1imager.h" 
 #include "util.h"
-#include "fontfcn.h"
+//#include "fontfcn.h"
 #include "fontmisc.h"
 #include "paths_rmz.h" 
 
-#include "../t1lib/parseAFM.h" 
-#include "../t1lib/t1types.h"
-#include "../t1lib/t1extern.h"
-#include "../t1lib/t1misc.h"
-#include "../t1lib/t1base.h"
-#include "../t1lib/t1finfo.h"
+#include "../src/parseAFM.h"
+#include "../src/t1types.h"
+#include "../src/t1extern.h"
+#include "../src/t1misc.h"
+#include "../src/t1base.h"
+#include "../src/t1finfo.h"
 
 extern xobject Type1Char(psfont *env, struct XYspace *S,
 			 psobj *charstrP, psobj *subrsP,
@@ -92,9 +92,7 @@ psfont TheCurrentFont;
 /*                return 0 - not found.                               */
 /*                return n - nth element in dictionary.               */
 /***================================================================***/
-int SearchDictName(dictP,keyP)
- psdict *dictP;
- psobj  *keyP;
+int SearchDictName(psdict *dictP,psobj  *keyP)
 {
   int i,n;
  
@@ -115,7 +113,7 @@ int SearchDictName(dictP,keyP)
 /***================================================================***/
 /* assignment of &TheCurrentFont removed by RMz:
  */
-boolean initFont()
+boolean initFont(void)
 {
   if (!(vm_init())) return(FALSE);
   vm_base = vm_next_byte();
@@ -127,8 +125,7 @@ boolean initFont()
   return(TRUE);
 }
 /***================================================================***/
-int resetFont(env)
-char *env;
+int resetFont(char * env)
 {
  
   vm_next =  FontP->vm_start;
@@ -156,8 +153,7 @@ char *env;
    amounts of memory until it really runs out or the font loads
    successfully. (ndw)
 */
-int readFont(env)
-char *env;
+int readFont(char * env)
 {
   int rcode;
   /* int memscale = 2; */ /* initially, try twice just like we used to ... */
@@ -172,8 +168,7 @@ char *env;
 }
 
 
-static int isCompositeChar( int FontID,
-			    char *charname) 
+static int isCompositeChar( int FontID, char *charname)
 {
   int i;
   FontInfo *pAFMData;
@@ -243,7 +238,6 @@ xobject fontfcnB(int FontID, int modflag,
 		 psfont *Font_Ptr,
 		 int do_raster)
 {
- 
   psobj *charnameP; /* points to psobj that is name of character*/
   FontInfo *pAFMData=NULL;
   int i=-1;
@@ -264,8 +258,15 @@ xobject fontfcnB(int FontID, int modflag,
   struct segment *tmppath2=NULL;
   struct segment *tmppath3=NULL;
   struct segment *tmppath4=NULL;
-  
-   
+/*printf("fontcnB: FontID=%d, modflag=%d, index=%d, do_raster=%d\n",FontID,modflag,index,do_raster);*/
+
+           /*struct XYspace *S, char **ev,
+           unsigned char index, int *mode,
+           psfont *Font_Ptr,*/
+
+/*fflush(stdout);*/
+(void) modflag;
+
   /* set the global font pointer to the address of already allocated
      structure and setup pointers*/
   FontP=Font_Ptr;
@@ -446,11 +447,7 @@ xobject fontfcnB(int FontID, int modflag,
 #define MAXTRIAL              4
 
 /***================================================================***/
-Bool fontfcnA(env,mode,Font_Ptr)
-char *env;
-int  *mode;
-psfont *Font_Ptr;
-
+Bool fontfcnA(char *env,int * mode,psfont *Font_Ptr)
 {
   int i, result;
   
@@ -501,11 +498,8 @@ psfont *Font_Ptr;
 /*     3) use the font to call getInfo for that value.                */
 /***================================================================***/
 
-void QueryFontLib(env,infoName,infoValue,rcodeP)
-char *env;
-char *infoName;
-pointer infoValue;    /* parameter returned here    */
-int  *rcodeP;
+void QueryFontLib(char * env,char * infoName,pointer infoValue,int * rcodeP)
+/*infoValue  parameter returned here    */
 {
 
   int rc,N,i;
@@ -923,7 +917,6 @@ xobject fontfcnB_ByName( int FontID, int modflag,
 			 int *mode, psfont *Font_Ptr,
 			 int do_raster)
 {
- 
   psobj *charnameP; /* points to psobj that is name of character*/
   FontInfo *pAFMData=NULL;
   int i=-1;
@@ -945,7 +938,8 @@ xobject fontfcnB_ByName( int FontID, int modflag,
   struct segment *tmppath3=NULL;
   struct segment *tmppath4=NULL;
   
-   
+  (void)modflag;
+
   /* set the global font pointer to the address of already allocated
      structure and setup pointers*/
   FontP=Font_Ptr;

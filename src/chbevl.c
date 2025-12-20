@@ -59,10 +59,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 #include "cephes.h"
 
-double chbevl( x, array, n )
-double x;
-void *array;
-int n;
+double chbevl(double  x,void * array,int  n )
 {
 double b0, b1, b2, *p;
 int i;

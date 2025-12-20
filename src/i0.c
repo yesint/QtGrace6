@@ -353,8 +353,7 @@ static unsigned short B[] = {
 };
 #endif
 
-double i0(x)
-double x;
+double i0(double x)
 {
 double y;
 
@@ -370,11 +369,7 @@ return(  exp(x) * chbevl( 32.0/x - 2.0, B, 25 ) / sqrt(x) );
 
 }
 
-
-
-
-double i0e( x )
-double x;
+double i0e(double x )
 {
 double y;
 

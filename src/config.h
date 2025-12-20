@@ -1,4 +1,8 @@
-/* config.h.  Generated from config.h.in by configure.  */
+/* config.h.  Generated from config.h.in by configure.
+ * fixed as static file to run on different platforms
+ * by Andreas Winter 2008-2022
+ */
+
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
  * 

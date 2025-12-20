@@ -8,7 +8,8 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter and Nimal Kailasanathan, 2014-2015
+ * Modified by Andreas Winter 2014-2022
+ * additional changes by Nimal Kailasanathan
  *
  *                           All Rights Reserved
  * 
@@ -31,7 +32,7 @@
 #define __DRAW_H_
 
 #include "defines.h"
-#include "jbitmaps.h"
+//#include "jbitmaps.h"
 
 /* bpp that Grace uses internally ( = 256 colors) */
 #define GRACE_BPP	8
@@ -90,6 +91,7 @@ extern "C" {
 typedef struct {
     Pen pen;
     int bgcolor;
+    int bgalpha;
     int bgfilled;
     int lines;
     double linew;
@@ -126,13 +128,14 @@ typedef struct {
 
 typedef struct {
     RGB rgb;
-    char *cname;
+    char * cname;
     int ctype;
     int tstamp;
 } CMap_entry;
 
 #define BBOX_TYPE_GLOB	0
 #define BBOX_TYPE_TEMP	1
+#define BBOX_TYPE_LOCAL	2
 
 typedef struct {
     int active;
@@ -145,7 +148,7 @@ typedef struct {
     unsigned char *bitmap;
 } BitmapOptionItem;
 
-static BitmapOptionItem just_option_items[12] =
+/*static BitmapOptionItem just_option_items[12] =
 {
     {JUST_LEFT  |JUST_BLINE , j_lm_o_bits},
     {JUST_CENTER|JUST_BLINE , j_cm_o_bits},
@@ -159,11 +162,11 @@ static BitmapOptionItem just_option_items[12] =
     {JUST_LEFT  |JUST_TOP   , j_lt_b_bits},
     {JUST_CENTER|JUST_TOP   , j_ct_b_bits},
     {JUST_RIGHT |JUST_TOP   , j_rt_b_bits}
-};
+};*/
 
 
 /* The default max drawing path limit */
-#define MAX_DRAWING_PATH  20000
+#define MAX_DRAWING_PATH  100000
 
 void setpen(Pen pen);
 Pen getpen(void);
@@ -171,8 +174,14 @@ Pen getpen(void);
 void setcolor(int color);
 int getcolor(void);
 
+void setalpha(int alpha);
+int getalpha(void);
+
 void setbgcolor(int bgcolor);
 int getbgcolor(void);
+
+void setbgalpha(int alpha);
+int getbgalpha(void);
 
 void setbgfill(int flag);
 int getbgfill(void);
@@ -221,8 +230,10 @@ void DrawFilledCircle(VPoint vp, double radius);
 
 void WriteString(VPoint vp, int rot, int just, char *theString);
 
+int is_inside_angle_range(double a,double start,double stop);
 int is_wpoint_inside(WPoint *wp, world *w);
 int is_vpoint_inside(view v, VPoint vp, double epsilon);
+int is_vpoint_truly_inside(view v, VPoint vp);
 
 void setclipping(int fl);
 int doclipping(void);
@@ -259,19 +270,56 @@ int isvalid_viewport(view v);
 
 double fscale(double wc, int scale);
 double ifscale(double vc, int scale);
+double fscale2(double vc,int gno,int axis);
+double ifscale2(double vc,int gno,int axis);
 
 int polar2xy(double phi, double rho, double *x, double *y);
 void xy2polar(double x, double y, double *phi, double *rho);
+int polar2xy2(double phi, double rho, double *x, double *y);
+void xy2polar2(double x, double y, double *phi, double *rho);
 
-double xy_xconv(double wx);
-double xy_yconv(double wy);
+//double (*xy_xconv) (double wx);
+double xy_xconv_general(double wx);
+double xy_xconv_rec(double wx);
+double xy_xconv_logit(double wx);
+double xy_xconv_log(double wx);
+double xy_xconv_simple(double wx);
+//double (*xy_yconv) (double wy);
+double xy_yconv_general(double wy);
+double xy_yconv_rec(double wy);
+double xy_yconv_logit(double wy);
+double xy_yconv_log(double wy);
+double xy_yconv_simple(double wy);
+
 VPoint Wpoint2Vpoint(WPoint wp);
+WPoint Vpoint2Wpoint(VPoint wp);
 int world2view(double x, double y, double *xv, double *yv);
 void view2world(double xv, double yv, double *xw, double *yw);
+void view2_graph_world(int gno, double xv, double yv, double *xw, double *yw);
 
 int definewindow(world w, view v, int gtype,
                  int xscale, int yscale,
                  int xinv, int yinv);
+int definewindow_local(world w, view v, int gtype,
+                       int xscale, int yscale,
+                       int invx, int invy,
+                       world * l_worldwin,
+                       view * l_viewport,
+                       int * l_coordinates,
+                       int * l_scaletypex,
+                       int * l_scaletypey,
+                       long double * l_xv_med,
+                       long double * l_yv_med,
+                       long double * l_xv_rc,
+                       long double * l_yv_rc,
+                       long double * l_polar2_f,
+                       long double * l_phi0,
+                       long double * l_rhomin,
+                       long double * l_roffset,
+                       long double * l_rmax,
+                       long double * l_fxg_med,
+                       long double * l_fyg_med,
+                       int gno);
 
 void reset_bbox(int type);
 void reset_bboxes(void);
@@ -291,7 +339,7 @@ int VPoints2bbox(VPoint *vp1, VPoint *vp2, view *bb);
 void set_draw_mode(int mode);
 int get_draw_mode(void);
 
-int number_of_colors(void);
+unsigned int number_of_colors(void);
 int get_main_color_indices(int ** maincolors,int * nr_of_aux_cols);
 int number_of_patterns(void);
 int number_of_linestyles(void);
@@ -301,6 +349,8 @@ int points_overlap(VPoint vp1, VPoint vp2);
 
 void set_max_path_limit(int limit);
 int get_max_path_limit(void);
+
+void rotateVPoint(VPoint * vp,VPoint center,double angle);
 
 #ifdef __cplusplus
 }

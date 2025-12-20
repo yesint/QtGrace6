@@ -8,6 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -42,7 +43,8 @@ typedef enum {
     GRAPH_POLAR,
     GRAPH_SMITH,
     GRAPH_FIXED,
-    GRAPH_PIE
+    GRAPH_PIE,
+    GRAPH_POLAR2
 } GraphType;
 
 /* Set types */
@@ -65,6 +67,7 @@ typedef enum {
     SET_XYCOLPAT  ,
     SET_XYVMAP    ,
     SET_BOXPLOT   ,
+    SET_BAND      ,
     SET_BAD
 } SetType;
 #define NUMBER_OF_SETTYPES  SET_BAD
@@ -81,33 +84,41 @@ typedef enum {
 } DataColumn;
 #define MAX_SET_COLS    DATA_BAD
 
-
 /* target graph & set*/
 typedef struct {
     int gno;    /* graph # */
     int setno;  /* set # */
 } target;
 
+/* string-variables ending in 'alt' or beginning with 'orig' are the originals in UTF-8 format (always UTF-8 / always original user input without LaTeX-conversion)
+ * in the original grace-strings (like title.s or .label) text has to be in isoLatin1 (or UTF-8 if QtFonts are to be used)
+ * during load/save: s=UTF-8, orig/alt=nothing
+ * during normal use: s=isoLatin1/UTF-8(if QtFonts), orig/alt=UTF-8 */
+
 typedef struct {
     int len;                    /* dataset length */
-    double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
-    char **s;                   /* pointer to strings */
+    double * ex[MAX_SET_COLS];  /* arrays of x, y, z, ... depending on type */
+    char ** s;                  /* pointer to strings */
+    char ** orig_s;             /* pointer to original-strings (UTF-8) */
 } Dataset;
 
 typedef struct {
-    double ex[MAX_SET_COLS];   /* x, y, dx, z, ... depending on dataset type */
-    char *s;                   /* string */
+    double ex[MAX_SET_COLS];    /* x, y, dx, z, ... depending on dataset type */
+    char * s;                   /* string */
+    char * orig_s;              /* original-string */
 } Datapoint;
 
 typedef struct {
     Dataset data;               /* dataset */
     
+    int pref_col_format[MAX_SET_COLS],pref_col_prec[MAX_SET_COLS];/*prefered column format and precision for spreadsheets*/
+
     int hidden;                 /* hidden set */
 
     int type;                   /* dataset type */
 
-    char comments[MAX_STRING_LENGTH];   /* how did this set originate */
-    char orig_comments[MAX_STRING_LENGTH];/*original comments*/
+    char comments[MAX_STRING_LENGTH];      /* how did this set originate */
+    char orig_comments[MAX_STRING_LENGTH]; /*original comments (in UTF8-encoding!)*/
 
     int hotlink;                /* hot linked set */
     int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
@@ -143,6 +154,8 @@ typedef struct {
 
     AValue avalue;              /* Parameters for annotative string */
     Errbar errbar;              /* error bar properties */
+
+    int ignore_in_autoscale;    /* do not use this set for autoscaling (useful if you want to define a constant or a set much larger than the others in a graph)*/
 } plotarr;
 
 /* Locator props */
@@ -152,6 +165,7 @@ typedef struct {
     double dsx, dsy;            /* locator fixed point */
     int fx, fy;                 /* locator format type */
     int px, py;                 /* locator precision */
+    int plot_in_file;           /* added in v0.2.7: shot a locator fixpoint in an exported file*/
 } GLocator;
 
 /*
@@ -192,13 +206,15 @@ typedef struct {
     world_stack ws[MAX_ZOOM_STACK]; /* zoom stack */
     int ws_top;                 /* stack pointer */
     int curw;                   /* for cycling through the stack */
+
+    double phi0,roffset;        /* parameters for Polar2-Plot (phi0=position of phi=0, phi0=0=3oclock, phi0=PI/4=12oclock | roffset=empty space in the center=[-infinity,ymin])*/
 } graph;
 
 
 int get_cg(void);
 
-char *graph_types(int it);
-char *set_types(int it);
+const char *graph_types(int it);
+const char *set_types(int it);
 int get_settype_by_name(char *s);
 
 int kill_graph(int gno);
@@ -210,7 +226,8 @@ int swap_graph(int from, int to);
 int duplicate_graph(int gno);
 
 tickmarks *new_graph_tickmarks(void);
-tickmarks *copy_graph_tickmarks(tickmarks *);
+tickmarks *copy_graph_tickmarks(tickmarks * t);
+int copy_part_of_graph_tickmarks(tickmarks * t_to,tickmarks * t_from,int axis_label,int tick_marks);
 tickmarks *get_graph_tickmarks(int gno, int a);
 void free_graph_tickmarks(tickmarks *t);
 int set_graph_tickmarks(int gno, int a, tickmarks *t);
@@ -255,6 +272,9 @@ int islogy(int gno);
 int islogitx(int gno);
 int islogity(int gno);
 
+int isrecx(int gno);
+int isrecy(int gno);
+
 int number_of_graphs(void);
 int number_of_visible_graphs(void);
 int select_graph(int gno);
@@ -283,6 +303,8 @@ int is_set_active(int gno, int setno);
 int is_set_hidden(int gno, int setno);
 int set_set_hidden(int gno, int setno, int flag);
 
+int get_next_set_ids(int gno,int n,int * ids);//the next n ids new sets would get
+
 #define is_set_drawable(gno, setno) (is_set_active(gno, setno) && !is_set_hidden(gno, setno))
 
 int number_of_sets(int gno);
@@ -292,9 +314,10 @@ int first_set(int gno,int active, int vis);//returns the index of the first set 
 int load_comments_to_legend(int gno, int setno);
 
 int settype_cols(int type);
+int get_number_of_columns(int gno,int sno);
 int dataset_type(int gno, int setno);
 int dataset_cols(int gno, int setno);
-char *dataset_colname(int col);
+const char *dataset_colname(int col);
 
 int is_refpoint_active(int gno);
 
@@ -307,15 +330,17 @@ double *getcol(int gno, int setno, int col);
 #define gety(gno, setno) getcol(gno, setno, 1)
 
 char *get_legend_string(int gno, int setno);
-int set_legend_string(int gno, int setno, char *s);
+int set_legend_string(int gno, int setno, const char *s);
 
 int set_dataset_type(int gno, int set, int stype);
 
 char *getcomment(int gno, int setno);
-int setcomment(int gno, int setno, char *s);
+int setcomment(int gno, int setno, const char *s);
 
+int init_set_string(int gno, int setno);
 int set_set_strings(int gno, int setno, int len, char **s);
 char **get_set_strings(int gno, int setno);
+char **get_set_original_strings(int gno, int setno);
 
 int setlength(int gno, int setno, int length);
 int getsetlength(int gno, int setno);
@@ -335,6 +360,7 @@ int is_zero_axis(int gno, int axis);
 void cycle_world_stack(void);
 void clear_world_stack(void);
 void show_world_stack(int n);
+void rename_stack_world(int gr_no,int st,char * n_name);
 void add_world(int gno, double x1, double x2, double y1, double y2);
 void push_world(void);
 
@@ -364,6 +390,11 @@ void set_project_description(char *descr);
 char *get_project_description(void);
 
 void postprocess_project(int version);
+int set_parameters_polar_v2(int gno,double new_phi0,double new_roffset);
+void make_nice_polar_plot_v2(int gno);
+
+void create_format_preferences_string(int gno,int sno,char * text);
+void parse_format_preferences_string(char * text, int * pref_format, int * pref_prec);//there are always MAX_SET_COLS entries (if entries are missing, the default[SpreadsheetColumnFormat,SpreadsheetColumnPrecision] will be used )
 
 #ifdef __cplusplus
 }

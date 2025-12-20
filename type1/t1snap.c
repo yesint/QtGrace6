@@ -40,8 +40,7 @@
 This is a user operator.  Its new name is QueryHandle.
 */
  
-struct segment *t1_Phantom(obj)
-       register struct xobject *obj;  /* object to take the Phantom of       */
+struct segment *t1_Phantom(register struct xobject * obj)/* object to take the Phantom of       */
 {
        struct fractpoint pt; /* handle size will built here                  */
  
@@ -59,8 +58,7 @@ struct segment *t1_Phantom(obj)
 This is a user operator.
 */
  
-struct xobject *t1_Snap(p)
-       register struct segment *p;  /* path to snap                          */
+struct xobject *t1_Snap(register struct segment * p)/* path to snap                          */
 {
        struct fractpoint pt; /* for finding length of path                   */
  

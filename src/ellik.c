@@ -59,8 +59,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 extern double PI, PIO2, MACHEP, MAXNUM;
 
-double ellik( phi, m )
-double phi, m;
+double ellik(double phi,double m )
 {
 double a, b, c, e, temp, t, K;
 int d, mod, sign, npio2;

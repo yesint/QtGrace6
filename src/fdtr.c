@@ -163,9 +163,7 @@ Copyright 1984, 1987, 1995 by Stephen L. Moshier
 #include "mconf.h"
 #include "cephes.h"
 
-double fdtrc( ia, ib, x )
-int ia, ib;
-double x;
+double fdtrc(int ia,int ib,double x )
 {
 double a, b, w;
 
@@ -182,9 +180,7 @@ return( incbet( 0.5*b, 0.5*a, w ) );
 
 
 
-double fdtr( ia, ib, x )
-int ia, ib;
-double x;
+double fdtr(int ia,int ib,double x )
 {
 double a, b, w;
 
@@ -201,9 +197,7 @@ return( incbet(0.5*a, 0.5*b, w) );
 }
 
 
-double fdtri( ia, ib, y )
-int ia, ib;
-double y;
+double fdtri(int ia,int ib,double y )
 {
 double a, b, w, x;
 

@@ -38,8 +38,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 #ifndef HAVE_ROUND
 
-double round(x)
-double x;
+double round(double x)
 {
 double y, r;
 

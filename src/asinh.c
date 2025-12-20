@@ -115,8 +115,7 @@ static unsigned short Q[] = {
 
 extern double LOGE2, INFINITY;
 
-double asinh(xx)
-double xx;
+double asinh(double xx)
 {
 double a, z, x;
 int sign;

@@ -8,6 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -65,11 +66,13 @@
 #define G_LB_ATTACH_TOP    4
 #define G_LB_ATTACH_BOTTOM 8
 
+#include "defines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-char *get_format_types(int f);
+const char *get_format_types(int f);
 
 int wipeout(void);
 
@@ -85,7 +88,10 @@ int arrange_graphs(int *graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
-                   int hpack, int vpack, int move_legend, double legendX, double legendY);
+                   int hpack, int vpack, int move_legend,
+                   double legendX, double legendY,
+                   int packXInner, int packXOuter, int packYInner, int packYOuter,
+                   int packXInnerDir, int packXOuterDir, int packYInnerDir, int packYOuterDir);
 int arrange_graphs_simple(int nrows, int ncols,
     int order, int snake, double offset, double hgap, double vgap);
 
@@ -101,6 +107,29 @@ void rescale_viewport(double ext_x, double ext_y);
 //get the position (nvx,nvy) in viewport-coordinates needed to align the legendbox from the graph from_gno to the attachement-axis of graph to_gno
 void position_leg_box(int from_gno,int to_gno,int attachement,double * nvx,double * nvy);
 int CheckWorldIntegrity(int gno);
+void zoomGraphWorld(int gno, world orig_world, WPoint wp, double factor);//sets the center of the Graph gno to wp and scales by factor (orig_world is the initial graph world)
+void zoomGraphWorldKeepingFixedPoint(int gno,world orig_world,WPoint wp,double factor,int axis);//same as above, but with the wp not in the center, but at the same viewport-position as before (courtesy of Francesco Sanfilippo)
+int find_nearest_graph(VPoint vp);//finds the graph nearest to a point (in viewport coordinates); inside a graph or outside a graph does not matter - the one with the lowest distance is found
+void quickSetAxisFormat(int gno,int axis,int quickformat);//select an axis transformation (normel/degrees/multiples of PI)
+
+/*shifts an axis-label by a vector (and sets the axis-label-position to special)*/
+void move_axis_label(int gno,int axis,VVector shift);
+/*moves a graph to a new viewport (the shift is defined by a vector) */
+void move_graph_vp(int gno,VVector shift);
+/*moves a title of a graph (title_subtitle=0=Title, title_subtitle=1=Subtitle)*/
+void move_graph_title(int gno,int title_subtitle,VVector shift);
+/*increases or decreases font-size for axis-label by factor*/
+void change_axis_label_size(int gno,int axis,double factor);
+/*increases or decreases font-size for axis-tick-labels by factor*/
+void change_axis_tick_label_size(int gno,int axis,double factor);
+/*increases or decreases font-size for axis-label by factor*/
+void change_title_size(int gno,int title_subtitle,double factor);
+/*increases or decreases font-size for the timestamp by factor*/
+void change_timestamp_size(double factor);
+/*increases or decreases font-size for the legend by factor*/
+void change_legend_font_size(int gno,double factor);
+/*increases or decreases size of an object (font size for text)*/
+void change_object_size(int type,int id,double factor);
 
 #ifdef __cplusplus
 }

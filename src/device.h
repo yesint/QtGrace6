@@ -84,18 +84,32 @@ typedef struct {
     float dpi;
 } Page_geometry;
 
+typedef struct {//negative values mean: do not change existing settings
+    int active;
+    char name[128];
+    signed char dev_nr;//the output-format
+    signed char orientation;//0=Landscape, 1=Portrait, -1=no change
+    double width;
+    double height;
+    signed char unit;//0=pix, 1=inch, 2=cm, -1=no change
+    float dpi;
+    signed char Antialiasing;//0=No Antialiasing,1=Font Antialiasing Only,2=Graph Antialiaing Only, 3=Graph and Font Antialiasing, -1=no change
+    signed char ScaleLineWidth;//0=no Scaling, 1=Scaling, -1=no change
+} UserDeviceGeometry;
+
 typedef struct {
     int type;
-    char *name;             /* name of device */
+    const char *name;       /* name of device */
     int (*init)(void);	    /* function to initialize device */
-    int (*parser)(char *);  /* function to parse device-specific commands */
+    int (*parser)(const char *);  /* function to parse device-specific commands */
     void (*setup)(void);    /* function (GUI interface) to setup device */
-    char *fext;             /* filename extension */
+    const char *fext;             /* filename extension */
     int devfonts;           /* device has its own fonts */
     int fontaa;             /* font antialiasing */
     Page_geometry pg;       /* device defaults */
     void *data;             /* device private data */
     int active;             /* device selectable for output */
+    const char *alt_name;   /* alternative name of device */
 } Device_entry;
 
 /* device exit */
@@ -116,6 +130,8 @@ extern void (*devputpixmap) (VPoint vp, int width, int height, char *databits,in
 extern void (*devputtext) (VPoint vp, char *s, int len, int font,TextMatrix *tm, int underline, int overline, int kerning);
 /* update color map */
 extern void (*devupdatecmap) (void);
+extern double (*xy_xconv) (double wx);
+extern double (*xy_yconv) (double wy);
 
 int register_device(Device_entry device);
 int select_device(int dindex);
@@ -127,7 +143,8 @@ Device_entry get_curdevice_props(void);
 void setDeviceActive(int nr, int active);
 int isDeviceActive(int nr);
 
-char *get_device_name(int device);
+const char * get_device_name(int device);
+const char * get_device_alt_name(int device);
 
 void *get_curdevice_data(void);
 void set_curdevice_data(void *data);
@@ -143,12 +160,12 @@ Page_geometry get_page_geometry(void);
 int set_page_dimensions(int wpp, int hpp, int rescale);
 int get_device_page_dimensions(int dindex, int *wpp, int *hpp);
 
-int get_device_by_name(char *dname);
+int get_device_by_name(const char *dname);
 
 int parse_device_options(int dindex, char *options);
 
 int set_printer(int device);
-int set_printer_by_name(char *dname);
+int set_printer_by_name(const char *dname);
 void set_ptofile(int flag);
 int get_ptofile(void);
 

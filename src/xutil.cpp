@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -49,7 +49,7 @@
 
 extern int depth;
 
-static QPixmap * bufpixmap;// = (Pixmap) NULL;
+//static QPixmap * bufpixmap;// = (Pixmap) NULL;
 
 extern QPainter * GeneralPainter;
 extern MainWindow * mainWin;
@@ -142,6 +142,8 @@ void set_wait_cursor(void)
     {
     ///DefineDialogCursor(wait_cursor);
     mainWin->setCursor(*wait_cursor);
+    qApp->processEvents();
+    //set_cursor(CURSOR_WAIT);
     }
 }
 
@@ -151,48 +153,101 @@ void unset_wait_cursor(void)
     {
     ///UndefineDialogCursor();
     //mainWin->setCursor(Qt::ArrowCursor);
-    mainWin->unsetCursor();
-    if (cur_cursor >= 0) {
+        if (cur_cursor >= 0)
+        {
         set_cursor(cur_cursor);
+        }
+        else
+        {
+        mainWin->unsetCursor();
+        }
+    qApp->processEvents();
     }
+}
+
+void set_cursor_mainArea(int c)
+{
+    if (mainWin==NULL) return;
+    if (mainWin->mainArea==NULL) return;
+    switch (c) {
+    case CURSOR_LINE:
+    mainWin->mainArea->setCursor(*line_cursor);
+        break;
+    case CURSOR_FIND:
+    mainWin->mainArea->setCursor(*find_cursor);
+        break;
+    case CURSOR_TEXT:
+    mainWin->mainArea->setCursor(*text_cursor);
+        break;
+    case CURSOR_KILL:
+    mainWin->mainArea->setCursor(*kill_cursor);
+        break;
+    case CURSOR_MOVE:
+    mainWin->mainArea->setCursor(*move_cursor);
+        break;
+    case CURSOR_WHAT:
+    mainWin->mainArea->setCursor(*what_cursor);
+        break;
+    case CURSOR_OPENHAND:
+    mainWin->mainArea->setCursor(QCursor(Qt::OpenHandCursor));
+        break;
+    case CURSOR_CLOSEDHAND:
+    mainWin->mainArea->setCursor(QCursor(Qt::ClosedHandCursor));
+        break;
+    case CURSOR_POINTINGHAND:
+    mainWin->mainArea->setCursor(QCursor(Qt::PointingHandCursor));
+        break;
+    case CURSOR_WAIT:
+    mainWin->mainArea->setCursor(QCursor(Qt::WaitCursor));
+        break;
+    default:
+        cur_cursor = -1;
+    mainWin->mainArea->unsetCursor();
+        break;
     }
 }
 
 void set_cursor(int c)
 {
     if (mainWin==NULL) return;
-    ///XUndefineCursor(disp, xwin);
     cur_cursor = c;
     switch (c) {
-    case 0:
+    case CURSOR_LINE:
 	mainWin->setCursor(*line_cursor);
-        ///XDefineCursor(disp, xwin, line_cursor);
         break;
-    case 1:
+    case CURSOR_FIND:
 	mainWin->setCursor(*find_cursor);
-        ///XDefineCursor(disp, xwin, find_cursor);
         break;
-    case 2:
+    case CURSOR_TEXT:
 	mainWin->setCursor(*text_cursor);
-        ///XDefineCursor(disp, xwin, text_cursor);
         break;
-    case 3:
+    case CURSOR_KILL:
 	mainWin->setCursor(*kill_cursor);
-        ///XDefineCursor(disp, xwin, kill_cursor);
         break;
-    case 4:
+    case CURSOR_MOVE:
 	mainWin->setCursor(*move_cursor);
-        ///XDefineCursor(disp, xwin, move_cursor);
         break;
-    case 5:
+    case CURSOR_WHAT:
     mainWin->setCursor(*what_cursor);
+        break;
+    case CURSOR_OPENHAND:
+    mainWin->setCursor(QCursor(Qt::OpenHandCursor));
+        break;
+    case CURSOR_CLOSEDHAND:
+    mainWin->setCursor(QCursor(Qt::ClosedHandCursor));
+        break;
+    case CURSOR_POINTINGHAND:
+    mainWin->setCursor(QCursor(Qt::PointingHandCursor));
+        break;
+    case CURSOR_WAIT:
+    mainWin->setCursor(QCursor(Qt::WaitCursor));
         break;
     default:
         cur_cursor = -1;
 	mainWin->unsetCursor();
         break;
     }
-    ///XFlush(disp);
+    set_cursor_mainArea(c);
 }
 
 void init_cursors(void)
@@ -201,16 +256,119 @@ void init_cursors(void)
     line_cursor = new QCursor(Qt::CrossCursor);
     find_cursor = new QCursor(Qt::PointingHandCursor);
     text_cursor = new QCursor(Qt::IBeamCursor);
-    kill_cursor = new QCursor(Qt::ForbiddenCursor);///TODO:load spezial kill-cursor
+    //kill_cursor = new QCursor(Qt::ForbiddenCursor);///TODO:load spezial kill-cursor
     move_cursor = new QCursor(Qt::SizeAllCursor);
     what_cursor = new QCursor(Qt::WhatsThisCursor);
-    /*wait_cursor = XCreateFontCursor(disp, XC_watch);
-    line_cursor = XCreateFontCursor(disp, XC_crosshair);
-    find_cursor = XCreateFontCursor(disp, XC_hand2);
-    text_cursor = XCreateFontCursor(disp, XC_xterm);
-    kill_cursor = XCreateFontCursor(disp, XC_pirate);
-    move_cursor = XCreateFontCursor(disp, XC_fleur);*/
     cur_cursor = -1;
+QBitmap * mask=new QBitmap(32,32);
+QBitmap * picture=new QBitmap(32,32);
+picture->fill(Qt::color0);
+mask->fill(Qt::color0);
+QPainter p1(picture);
+QPainter p2(mask);
+QPen pen1(Qt::color1);
+pen1.setWidth(1);
+p1.setPen(pen1);
+p2.setPen(pen1);
+p1.setBrush(Qt::color1);
+p2.setBrush(Qt::color1);
+//left half
+p1.drawEllipse(6,4,10,10);
+p2.drawEllipse(4,2,14,14);
+//right half
+p1.drawEllipse(6+10,4,10,10);
+p2.drawEllipse(4+10,2,14,14);
+p1.drawRect(11,4,10,5);
+p2.drawRect(11,32,10,7);
+//bottom half
+p1.drawEllipse(11,13,10,10);
+p2.drawEllipse(9,11,14,14);
+p1.drawRect(11,9,10,9);
+p2.drawRect(9,9,14,9);
+
+p2.drawEllipse(0,13,6,6);
+p1.drawEllipse(2,15,2,2);
+
+p2.drawEllipse(32-6,13,6,6);
+p1.drawEllipse(28,15,2,2);
+
+p2.drawEllipse(0,21,6,6);
+p1.drawEllipse(2,22,2,2);
+
+p2.drawEllipse(32-6,21,6,6);
+p1.drawEllipse(28,22,2,2);
+
+p1.setPen(Qt::color0);
+p1.setBrush(Qt::color0);
+p2.setPen(Qt::color1);
+p2.setBrush(Qt::color1);
+//left eye
+p1.drawEllipse(11-2,9-2,4,4);
+p2.drawEllipse(11-2,9-2,4,4);
+//right eye
+p1.drawEllipse(11-2+10,9-2,4,4);
+p2.drawEllipse(11-2+10,9-2,4,4);
+
+p1.setPen(Qt::color1);
+p1.setBrush(Qt::color1);
+p2.setPen(Qt::color1);
+p2.setBrush(Qt::color1);
+//pupils
+p1.drawEllipse(10,8,1,1);
+p1.drawEllipse(10+10,8,1,1);
+p2.drawEllipse(10,8,1,1);
+p2.drawEllipse(10+10,8,1,1);
+
+pen1.setWidth(1);
+p1.setPen(pen1);
+pen1.setWidth(3);
+p2.setPen(pen1);
+//bones
+/*p1.drawLine(2,15,30,21);
+p1.drawLine(2,21,30,15);
+p2.drawLine(1,14,31,22);
+p2.drawLine(1,22,31,14);*/
+p1.drawLine(2,15+1,30,21+1);
+p1.drawLine(2,21+1,30,15+1);
+p2.drawLine(1,14+1,31,22+1);
+p2.drawLine(1,22+1,31,14+1);
+
+//mouth
+pen1.setWidth(1);
+pen1.setColor(Qt::color0);
+p1.setPen(pen1);
+p2.setPen(pen1);
+p1.setBrush(Qt::color0);
+p2.setBrush(Qt::color0);
+
+p1.drawRect(16-3,18-3,6,5);
+p2.drawRect(16-3,18-3,6,5);
+
+pen1.setColor(Qt::color1);
+p1.setPen(pen1);
+p2.setPen(pen1);
+p1.drawLine(16-4,18,16+4,18);
+p2.drawLine(16-4,18,16+4,18);
+p1.drawLine(16,18-3,16,18+3);
+p2.drawLine(16,18-3,16,18+3);
+p1.drawLine(16-2,18-3,16-2,18+3);
+p2.drawLine(16-2,18-3,16-2,18+3);
+p1.drawLine(16+2,18-3,16+2,18+3);
+p2.drawLine(16+2,18-3,16+2,18+3);
+pen1.setColor(Qt::color0);
+p1.setPen(pen1);
+p2.setPen(pen1);
+p1.drawEllipse(15,17,2,2);
+p2.drawEllipse(15,17,2,2);
+
+p1.end();
+p2.end();
+kill_cursor = new QCursor(*picture,*mask,16,18);
+delete mask;
+delete picture;
+
+/*Qt::color0
+Qt::color1*/
 }
 
 /*
@@ -237,6 +395,7 @@ void set_title(char * ts)
             buf1 = concat_strings(buf1, " (modified)");
         }
         ///XtVaSetValues(app_shell, XtNtitle, buf1, XtNiconName, buf2, NULL);
+        if (mainWin)
 mainWin->setWindowTitle(QString::fromLocal8Bit(buf1));
         xfree(buf1);
         xfree(buf2);
@@ -246,7 +405,7 @@ mainWin->setWindowTitle(QString::fromLocal8Bit(buf1));
 /*
  *  Auxiliary routines for simultaneous drawing on display and pixmap
  */
-static void aux_XDrawLine(int x1, int y1, int x2, int y2)
+/*static void aux_XDrawLine(int x1, int y1, int x2, int y2)
 {
 int startx=MIN2(x1,x2),starty=MIN2(y1,y2),c_width=abs(x2-x1),c_height=abs(y2-y1),endx=MAX2(x1,x2),endy=MAX2(y1,y2);
 GeneralPainter->end();
@@ -264,16 +423,11 @@ painter.end();
 QImage res(paintXOR(&hd_copy,&content));
 GeneralPainter->begin(MainPixmap);
 GeneralPainter->drawImage(startx,starty,res);
-//GeneralPainter->drawLine(x1,y1,x2,y2);
-    /*///XDrawLine(disp, xwin, gcxor, x1, y1, x2, y2);
-    if (bufpixmap != (Pixmap) NULL) {
-        ///XDrawLine(disp, bufpixmap, gcxor, x1, y1, x2, y2);
-    }*/
 }
 
 static void aux_XDrawRectangle(int x1, int y1, int x2, int y2)
 {
-int startx=MIN2(x1,x2),starty=MIN2(y1,y2),c_width=abs(x2-x1),c_height=abs(y2-y1),endx=MAX2(x1,x2),endy=MAX2(y1,y2);
+int startx=MIN2(x1,x2),starty=MIN2(y1,y2),c_width=abs(x2-x1),c_height=abs(y2-y1);//,endx=MAX2(x1,x2),endy=MAX2(y1,y2);
 GeneralPainter->end();
 QImage hd_copy(MainPixmap->copy(startx,starty,c_width,c_height));//get area that will be painted on
 QImage content(hd_copy);
@@ -290,12 +444,7 @@ painter.end();
 QImage res(paintXOR(&hd_copy,&content));
 GeneralPainter->begin(MainPixmap);
 GeneralPainter->drawImage(startx,starty,res);
-//GeneralPainter->drawRect(MIN2(x1,x2),MIN2(y1,y2),abs(x2-x1),abs(y1-y2));
-    /*///XDrawRectangle(disp, xwin, gcxor, x1, y1, x2, y2);
-    if (bufpixmap != (Pixmap) NULL) {
-        ///XDrawRectangle(disp, bufpixmap, gcxor, x1, y1, x2, y2);
-    }*/
-}
+}*/
 
 static void aux_XFillRectangle(int x, int y, unsigned int width, unsigned int height)
 {
@@ -326,6 +475,7 @@ GeneralPainter->drawImage(x,y,res);
  */
 void draw_focus(int gno)
 {
+/// This function is not needed anymore, because the focus indicators are now drawn only on screen in the main paint event and not on the image itself
     int ix1, iy1, ix2, iy2;
     view v;
     VPoint vp;
@@ -350,8 +500,8 @@ void draw_focus(int gno)
  */
 void select_line(int x1, int y1, int x2, int y2, int erase)
 {
-static int x1_old, y1_old, x2_old, y2_old;
-
+    (void)erase;
+/*static int x1_old, y1_old, x2_old, y2_old;
     if (erase)
     {
     ///aux_XDrawLine(x1_old, y1_old, x2_old, y2_old);
@@ -359,7 +509,7 @@ static int x1_old, y1_old, x2_old, y2_old;
     x1_old = x1;
     y1_old = y1;
     x2_old = x2;
-    y2_old = y2;
+    y2_old = y2;*/
     VPoint vp;
     vp = xlibdev2VPoint(x1, y1);
     rg[MAXREGION].type=REGION_POLYI;
@@ -379,7 +529,6 @@ static int x1_old, y1_old, x2_old, y2_old;
     rg[MAXREGION].y2=y2;*/
     rg[MAXREGION].active=TRUE;
     ///aux_XDrawLine(x1, y1, x2, y2);
-	
     /*
     if (nr_rubber_lines==alloc_rubber_lines)
 	{
@@ -396,7 +545,8 @@ static int x1_old, y1_old, x2_old, y2_old;
  */
 void select_region(int x1, int y1, int x2, int y2, int erase)
 {
-    static int x1_old, y1_old, dx_old, dy_old;
+    (void)erase;
+//static int x1_old, y1_old, dx_old, dy_old;
     int dx = x2 - x1;
     int dy = y2 - y1;
 
@@ -408,7 +558,7 @@ void select_region(int x1, int y1, int x2, int y2, int erase)
 	iswap(&y1, &y2);
 	dy = -dy;
     }
-    if (erase) {
+    /*if (erase) {
         ///aux_XDrawRectangle(x1_old, y1_old, dx_old, dy_old);
     }
     x1_old = x1;
@@ -416,6 +566,7 @@ void select_region(int x1, int y1, int x2, int y2, int erase)
     dx_old = dx;
     dy_old = dy;
     ///aux_XDrawRectangle(x1, y1, dx, dy);
+    */
 }
 
 /*
@@ -455,14 +606,20 @@ void reset_crosshair(void)
 void crosshair_motion(int x, int y)
 {
     //static int cursor_oldx, cursor_oldy;
-    
+    (void)x;
+    (void)y;
     /* Erase the previous crosshair */
     /*if (crosshair_erase == TRUE) {
         aux_XDrawLine(0, cursor_oldy, win_w, cursor_oldy);
         aux_XDrawLine(cursor_oldx, 0, cursor_oldx, win_h);
     }*/
     simple_draw_setting|=SIMPLE_DRAW_CROSSHAIR;
-mainWin->mainArea->completeRedraw();
+    print_target=PRINT_TARGET_SCREEN;//this is the standard (is only changed in do_hardcopy())
+    mainWin->mainArea->compl_redraw_running=true;
+    drawgraph();
+    mainWin->mainArea->compl_redraw_running=false;
+    simple_draw_setting|=SIMPLE_DRAW_CROSSHAIR;//the redraw deletes the simple_draw_settings
+//mainWin->mainArea->completeRedraw();
     /* Draw the new crosshair */
     /*aux_XDrawLine(0, y, win_w, y);
     aux_XDrawLine(x, 0, x, win_h);
@@ -533,18 +690,18 @@ drawgraph();
 unset_wait_cursor();
 }
 
-void xlibredraw(MainArea * ma, int x, int y, int width, int height)
+/*void xlibredraw(MainArea * ma, int x, int y, int width, int height)
 {
 ///cout << "xlibredraw" << endl;
 ///bufpixmap != (Pixmap) NULL
     if (inwin == TRUE && 1) {
         ///XCopyArea(disp, bufpixmap, window, gc, x, y, width, height, x, y);
     }
-}
+}*/
 
-QPixmap resize_bufpixmap(unsigned int w, unsigned int h)
+/*QPixmap resize_bufpixmap(unsigned int w, unsigned int h)
 {
-    /*static unsigned int pixmap_w = 0, pixmap_h = 0;
+    static unsigned int pixmap_w = 0, pixmap_h = 0;
     
     if (w == 0 || h == 0) {
         return (*bufpixmap);
@@ -568,10 +725,9 @@ QPixmap resize_bufpixmap(unsigned int w, unsigned int h)
         pixmap_w = w;
         pixmap_h = h;
         return (*bufpixmap);
-    }*/
-
+    }
  return (*bufpixmap);
-}
+}*/
 
 /*static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
 {
@@ -613,10 +769,12 @@ void setpointer(VPoint vp)
     
     /* Make sure we remain inside the DA widget dimensions */
     x = MAX2(x, 0);
-    x = MIN2(x, win_w)+4;
+    x = MIN2(x, (int)win_w);//+4
     y = MAX2(y, 0);
-    y = MIN2(y, win_h)+4;
-    QCursor::setPos(mainWin->mainArea->mapToGlobal(QPoint(x,y)));
+    y = MIN2(y, (int)win_h);//+4
+
+    QCursor::setPos(mainWin->mainArea->lblBackGr->mapToGlobal(QPoint(x,y)));
+//QCursor::setPos(mainWin->mainArea->mapToGlobal(QPoint(x,y)));
     ///XWarpPointer(disp, None, xwin, 0, 0, 0, 0, x, y);
 }
 

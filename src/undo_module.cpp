@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2015 by Andreas Winter                             *
+ *   Copyright (C) 2008-2022 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,6 +21,7 @@
 #include "undo_module.h"
 #include "MainWindow.h"
 #include "allWidgets.h"
+#include "editWidgets.h"
 #include "globals.h"
 #include "xprotos.h"
 #include "device.h"
@@ -31,7 +32,6 @@ extern graph *g;
 
 extern MainWindow * mainWin;
 extern frmUndoList * FormUndoList;
-extern bool undo_active;
 extern int used_Nodes;
 extern int akt_Node;
 extern int NodeNr;
@@ -50,6 +50,9 @@ extern int new_set_no;
 extern int * new_set_nos;
 extern bool exchange_point_comma;
 extern int ReqUpdateColorSel;
+extern imageinfo bg_fill_image;//for the plot
+extern imageinfo bg_box_fill_image;//default for boxes
+extern imageinfo bg_ellipse_fill_image;//default for ellipses
 
 int saved_col_table_entries=0;
 CMap_entry * sav_col_table=NULL;
@@ -79,12 +82,17 @@ boxtype * sav_bt=NULL;
 ellipsetype * sav_et=NULL;
 plotstr * sav_st=NULL;
 Device_entry * saved_entry=NULL;
+imageinfo tmp_undo_image;
 struct all_fit_settings old_fit_settings;
 void * old_general_data=NULL;
 
 bool wait_till_update=false;
 bool dont_delete_saved_set_memory=false;
 extern void CheckLaTeXLinesForAddress(char * o_adr,char * n_adr);
+
+extern void createSetList(int gno,QList<int> & new_index,int nr_of_sets,int * shift_sets,int after_set);
+extern void reSortSets(int gno,QList<int> new_index);
+extern void invertedList(QList<int> list, QList<int> & inv_list);
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,7 +132,7 @@ plotstr ** st;
 plotarr ** pa;
 tickmarks ** tick;
 graph ** gr;
-char *ssav;
+char *ssav,*ssav2;
 world w;
 view v;
 double * dd;
@@ -133,6 +141,7 @@ region * regio;
 Device_entry ** dev_entr;
 GLocator ** glt;
 CMap_entry ** cmp;
+QList<int> set_order_list,set_order_list2;
 struct agr_file_info * afi;
 int findindex;
 char ** old_str;
@@ -140,6 +149,8 @@ struct all_fit_settings * ps;
 int * gnos, * snos, slen, kkk;
 int cursource,load;
 gnos=snos=NULL;
+set_order_list.clear();
+set_order_list2.clear();
     switch (type)
     {
     case UNDO_TYPE_DATAPOINT_EDIT:
@@ -180,8 +191,11 @@ gnos=snos=NULL;
                 {
                 for (int i=0;i<settype_cols(g[origin[0]].p[origin[1]].type);i++)
                 g[origin[0]].p[origin[1]].data.ex[i][id[0][j]]=dp[j].ex[i];
-                if (dp[j].s!=NULL)
-                g[origin[0]].p[origin[1]].data.s[id[0][j]]=copy_string(g[origin[0]].p[origin[1]].data.s[id[0][j]],dp[j].s);
+                    if (dp[j].s!=NULL)
+                    {
+                    g[origin[0]].p[origin[1]].data.s[id[0][j]]=copy_string(g[origin[0]].p[origin[1]].data.s[id[0][j]],dp[j].s);
+                    g[origin[0]].p[origin[1]].data.orig_s[id[0][j]]=copy_string(g[origin[0]].p[origin[1]].data.orig_s[id[0][j]],dp[j].orig_s);
+                    }
                 }
             }
             else
@@ -190,8 +204,11 @@ gnos=snos=NULL;
                 {
                 for (int i=0;i<settype_cols(g[origin[0]].p[origin[1]].type);i++)
                 g[origin[0]].p[origin[1]].data.ex[i][id[0][j]]=dp[j+origin[2]].ex[i];
-                if (dp[j].s!=NULL)
-                g[origin[0]].p[origin[1]].data.s[id[0][j]]=copy_string(g[origin[0]].p[origin[1]].data.s[id[0][j]],dp[j+origin[2]].s);
+                    if (dp[j].s!=NULL)
+                    {
+                    g[origin[0]].p[origin[1]].data.s[id[0][j]]=copy_string(g[origin[0]].p[origin[1]].data.s[id[0][j]],dp[j+origin[2]].s);
+                    g[origin[0]].p[origin[1]].data.orig_s[id[0][j]]=copy_string(g[origin[0]].p[origin[1]].data.orig_s[id[0][j]],dp[j+origin[2]].orig_s);
+                    }
                 }
             }
         }
@@ -313,6 +330,18 @@ gnos=snos=NULL;
         {
         killset(id[0][i],id[1][i]);
         }
+    break;
+    case UNDO_TYPE_CHANGE_SET_ORDER:
+        set_order_list.append(*((QList<int>*)data));
+        if (this->active==true)//not undone yet --> do inverse order
+        {
+        invertedList(set_order_list,set_order_list2);
+        //qDebug() << "SetOrder      =" << set_order_list;
+        //qDebug() << "Inverse-Order =" << set_order_list2;
+        set_order_list.clear();
+        set_order_list.append(set_order_list2);
+        }
+        reSortSets(origin[0],set_order_list);
     break;
     case UNDO_TYPE_IMPORT_ASCII:
         old_str=(char**) this->data;
@@ -629,14 +658,26 @@ gnos=snos=NULL;
     case UNDO_TYPE_PLOT_APPEARANCE:
         st=(plotstr**)data;
         if (this->active==true)//not undone yet --> reinstall previous stuff
+        {
         offset=0;
+        draw_props.bgalpha=id[0][0];
+        universal_font_size_factor=ddata[0][0]/100.0;
+        memcpy(&bg_fill_image,(imageinfo*)((void*)ddata[1]),sizeof(imageinfo));
+        }
         else//reinstall state after change
+        {
         offset=2;
+        draw_props.bgalpha=id[0][1];
+        universal_font_size_factor=ddata[0][1]/100.0;
+        memcpy(&bg_fill_image,(imageinfo*)((void*)ddata[2]),sizeof(imageinfo));
+        }
         draw_props.bgcolor=origin[offset];
         draw_props.bgfilled=origin[offset+1];
         ssav=timestamp.s_plotstring;
+        ssav2=timestamp.alt_plotstring;
         memcpy(&timestamp,st[offset/2],sizeof(plotstr));
         timestamp.s_plotstring=ssav;
+        timestamp.alt_plotstring=ssav2;
         if (FormPlotAppearance!=NULL) FormPlotAppearance->init();
     break;
     case UNDO_TYPE_OBJECT_MODIFIED:
@@ -707,9 +748,9 @@ gnos=snos=NULL;
         for (int l=0;l<origin[3];l++)
         {
             kkk=id[0][2+l];//current graph-id
-            for (int j=id[0][0];j<=id[0][1];j++)//axes
+            for (int j=0;j<origin[0];j++)//axes
             {
-            set_graph_tickmarks(kkk,j,tick[offset]);
+            set_graph_tickmarks(kkk,id[2][j],tick[offset]);
             w.xg1=ddata[0][offset];
             w.xg2=ddata[1][offset];
             w.yg1=ddata[2][offset];
@@ -1001,6 +1042,7 @@ case UNDO_TYPE_DATAPOINT_EDIT:
         for (int i=0;i<2*origin[2];i++)
         {
         xfree(dp[i].s);
+        xfree(dp[i].orig_s);
         }
     delete[] dp;
 break;
@@ -1019,6 +1061,9 @@ case UNDO_TYPE_PLOT_APPEARANCE:
     delete st[0];
     delete st[1];
     delete[] st;
+    delete (imageinfo*)((void*)ddata[1]);
+    delete (imageinfo*)((void*)ddata[2]);
+    ddata[1]=ddata[2]=NULL;
 break;
 case UNDO_TYPE_DEVICE_MODIFIED:
     dev_entr=(Device_entry**)data;
@@ -1277,7 +1322,7 @@ return ret;
 void ObjectsDeleted(int len,int * ids,int type)
 {
 undo_node * nn;
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 
 wait_till_update=true;
 ObjectsCreated(len,ids,type);
@@ -1298,7 +1343,7 @@ boxtype ** bt;
 ellipsetype ** et;
 plotstr ** st;
 undo_node * nn;
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 nn=getNextNode();
 nn->clearContents();//to be on the save side
     if (len>1)
@@ -1377,8 +1422,8 @@ if (wait_till_update==false) updateUndoList();
 void Undo(void)
 {
 if (UndoPossible()==false) return;
-bool sav_und_act=undo_active;
-undo_active=false;
+int sav_und_act=undo_active;
+undo_active=FALSE;
 wait_till_update=true;
 Node[akt_Node].reStoreData();//make the undo-command
 if (akt_Node==0 && used_Nodes==max_node_nr)//wrap around has occured
@@ -1401,8 +1446,8 @@ FormUndoList->chkActive->setChecked(undo_active);
 void Redo(void)
 {
 if (RedoPossible()==false) return;
-bool sav_und_act=undo_active;
-undo_active=false;
+int sav_und_act=undo_active;
+undo_active=FALSE;
 wait_till_update=true;
 if (akt_Node==-1 && used_Nodes>0)//Nodes present and Undo done a lot of times --> ReDo the first Node saved
 {
@@ -1475,6 +1520,8 @@ void CheckActive(void)
     {
     mainWin->actUndo->setEnabled(UndoPossible());
     mainWin->actRedo->setEnabled(RedoPossible());
+    mainWin->cmdUndo->setEnabled(UndoPossible());
+    mainWin->cmdRedo->setEnabled(RedoPossible());
     }
     if (FormUndoList!=NULL)
     {
@@ -1641,18 +1688,18 @@ return ret;
 
 void SetsDeleted(int len,int * gnos,int * snos,int what)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->type=UNDO_TYPE_KILL_SET;
 nn->active=true;
 if (what==UNDO_DATA)
 {
-nn->Description=QObject::tr("Kill set data");
+nn->Description=QObject::tr("Kill set data ");
 }
 else
 {
-nn->Description=QObject::tr("Kill set");
+nn->Description=QObject::tr("Kill set ");
 }
     if (len>1)
     {
@@ -1691,7 +1738,7 @@ if (wait_till_update==false) updateUndoList();
 
 void SetsCreated(int len,int * gnos,int * snos,int what)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 wait_till_update=true;
 SetsDeleted(len,gnos,snos,what);
 wait_till_update=false;
@@ -1703,9 +1750,24 @@ nn->Description=nn->Description.replace(0,QObject::tr("Kill").size(),QObject::tr
 updateUndoList();
 }
 
+void SetsReorderd(int gno,QList<int> new_set_order)
+{
+if (undo_active==FALSE) return;
+undo_node * nn=getNextNode();
+nn->clearContents();
+nn->type=UNDO_TYPE_CHANGE_SET_ORDER;
+nn->active=true;
+nn->Description=QObject::tr("Set order changed");
+nn->origin[0]=gno;
+QList<int> * list_data=new QList<int>(new_set_order);
+nn->data=(void*)list_data;
+NextNode();//finish writing and prepare the next node
+if (wait_till_update==false) updateUndoList();
+}
+
 void SetRegression(int n_sets,int * gnos,int * snos,int n_n_sets,int * n_gnos,int * n_snos,int ideg,int iresid,int rno,int invr,double start,double stop,int points,int rx,char * formula)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 QString regressionCommand;
 undo_node * nn=getNextNode();
 nn->clearContents();
@@ -1788,7 +1850,7 @@ if (wait_till_update==false) updateUndoList();
 
 void SetFilter(int o_n_sets,int * o_gnos,int * o_snos,int n_sets,int * gnos,int * snos,int type,int realization,double * limits,int * orders,char * x_formula,double ripple,int absolute,int debug,int point_extension,int oversampling,int rno,int invr)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 int what=UNDO_COMPLETE;
 char tmp_str[256];
 undo_node * nn=getNextNode();
@@ -1803,7 +1865,7 @@ nn->type=UNDO_TYPE_SET_FILTER;
     }
     else
     {
-    nn->Description=QObject::tr("Filter sets");
+    nn->Description=QObject::tr("Filter sets ");
     nn->multiple=true;
     }
 //cout << "Number of saved sets:" << saved_prev_sets << endl;
@@ -1915,14 +1977,14 @@ if (wait_till_update==false) updateUndoList();
 
 void GraphsDeleted(int len,int * gnos,int what)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 //int col;
 undo_node * nn=getNextNode();
 nn->clearContents();
 graph ** gr=new graph*[len];
 nn->type=UNDO_TYPE_KILL_GRAPH;
 nn->active=true;
-nn->Description=QObject::tr("Kill graph");
+nn->Description=QObject::tr("Kill graph ");
     if (len>1)
     {
     nn->multiple=true;
@@ -1950,7 +2012,7 @@ if (wait_till_update==false) updateUndoList();
 
 void GraphsCreated(int len,int * gnos,int what)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 wait_till_update=true;
 GraphsDeleted(len,gnos,what);
 wait_till_update=false;
@@ -1973,6 +2035,7 @@ cols=settype_cols(pa->type);
     for (i=0;i<MAX_SET_COLS;i++)
     pa->data.ex[i]=NULL;//set to invalid values!
     pa->data.s=NULL;//set to invalid values!
+    pa->data.orig_s=NULL;//set to invalid values!
 if (what==UNDO_COMPLETE || what&UNDO_DATA)//do not copy data if only appearance is asked
 {
 for (i=0;i<cols;i++)//copy coulmns
@@ -1983,11 +2046,15 @@ memcpy(pa->data.ex[i],g[gno].p[setno].data.ex[i],(pa->data.len)*sizeof(double));
 }
     if (pa->data.s!=NULL)//copy strings
     {
+//qDebug() << "Original Set has Strings G" << gno << ".S" << setno;
     pa->data.s = new char*[pa->data.len];
+    pa->data.orig_s = new char*[pa->data.len];
         for (i=0;i<pa->data.len;i++)
         {
         pa->data.s[i]=new char[strlen(g[gno].p[setno].data.s[i]) + 1];
         strcpy(pa->data.s[i], g[gno].p[setno].data.s[i]);
+        pa->data.orig_s[i]=new char[strlen(g[gno].p[setno].data.orig_s[i]) + 1];
+        strcpy(pa->data.orig_s[i], g[gno].p[setno].data.orig_s[i]);
         }
     }
         for (i=cols;i<MAX_SET_COLS;i++)
@@ -2010,8 +2077,12 @@ if (what==UNDO_COMPLETE || what&UNDO_DATA)//do not delete data if only appearanc
     if (pa->data.s!=NULL)
     {
         for (i=0;i<pa->data.len;i++)
+        {
         delete[] pa->data.s[i];
+        delete[] pa->data.orig_s[i];
+        }
     delete[] pa->data.s;
+    delete[] pa->data.orig_s;
     }
 }
     if (dont_delete_saved_set_memory==false)
@@ -2024,8 +2095,8 @@ if (what==UNDO_COMPLETE || what&UNDO_DATA)//do not delete data if only appearanc
 void reinstallSet(int gno,int setno,plotarr * pa,int what)
 {
 int i;
-int cols,old_cols;
-bool activ;
+int cols;//,old_cols;
+//bool activ;
 bool valid=is_valid_setno(gno,setno);
 if (pa==NULL) return;//there is nothing to reinstall
     if (valid==FALSE)
@@ -2037,19 +2108,20 @@ if (pa==NULL) return;//there is nothing to reinstall
         return;
         }
     }
-old_cols=dataset_cols(gno, setno);
+//old_cols=dataset_cols(gno, setno);
 cols=settype_cols(pa->type);
-activ=is_set_active(gno,setno);
+//activ=is_set_active(gno,setno);
 
 char ** sav_s=g[gno].p[setno].data.s;
+char ** sav_orig_s=g[gno].p[setno].data.orig_s;
 double * sav_ex[MAX_SET_COLS];
 int sav_type=g[gno].p[setno].type;
 int sav_length=g[gno].p[setno].data.len;
 memcpy(sav_ex,g[gno].p[setno].data.ex,sizeof(double*)*MAX_SET_COLS);//save old adresses
 
-if (valid==false)//set completely new -- should not happen, because we are talking about undo and a deleted set has been existend in the past
+if (valid==false)//set completely new -- should not happen, because we are talking about undo and a deleted set has existend in the past
 {
-    cout << "invalid set: G" << gno << ".S" << setno << ", unable to restore yet" << endl;
+    qDebug() << "invalid set: G" << gno << ".S" << setno << ", unable to restore yet";
 }
 else//set exists or has existed (in any way: memory already allocated)
 {
@@ -2058,6 +2130,7 @@ else//set exists or has existed (in any way: memory already allocated)
 
     //do not override data (at first) --> copy old addresses back to set
     g[gno].p[setno].data.s=sav_s;
+    g[gno].p[setno].data.orig_s=sav_orig_s;
     memcpy(g[gno].p[setno].data.ex,sav_ex,sizeof(double*)*MAX_SET_COLS);
     g[gno].p[setno].type=sav_type;
     g[gno].p[setno].data.len=sav_length;
@@ -2078,6 +2151,7 @@ else//set exists or has existed (in any way: memory already allocated)
             ///g[gno].p[setno].data.s[i]=(char*)xrealloc(g[gno].p[setno].data.s[i], (strlen(pa->data.s[i]) + 1)*sizeof(char));
             ///strcpy(g[gno].p[setno].data.s[i],pa->data.s[i]);
             g[gno].p[setno].data.s[i] = copy_string(g[gno].p[setno].data.s[i],pa->data.s[i]);
+            g[gno].p[setno].data.orig_s[i] = copy_string(g[gno].p[setno].data.orig_s[i],pa->data.orig_s[i]);
             }
         }
     }//end UNDO_APPEARANCE
@@ -2242,6 +2316,7 @@ FormUndoList->init();
 
 void addAditionalDescriptionToLastNode(int type,QString description,QString additional,int mult)
 {
+if (undo_active==FALSE) return;
 undo_node * nn=getPreviousNode();
     if (type!=-1)//we do not set invalid types!
     nn->type=type;
@@ -2254,9 +2329,20 @@ undo_node * nn=getPreviousNode();
 updateUndoList();
 }
 
+void SaveSingleSetStatePrevious(int gno,int setno,int what)
+{
+int * gnos=new int[2];
+int * snos=new int[2];
+gnos[0]=gnos[1]=gno;
+snos[0]=snos[1]=setno;
+    SaveSetStatesPrevious(1,gnos,snos,what);
+delete[] gnos;
+delete[] snos;
+}
+
 void SaveSetStatesPrevious(int len,int * gnos,int * snos,int what)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 ///cout << "begin save set states previous" << endl;
     if (prev_sets!=NULL)
     {
@@ -2294,9 +2380,20 @@ memcpy(old_idata[1],snos,len*sizeof(int));
     saved_prev_sets=len;
 }
 
+void SingleSetModified(int gno,int setno,int what)
+{
+int * gnos=new int[2];
+int * snos=new int[2];
+gnos[0]=gnos[1]=gno;
+snos[0]=snos[1]=setno;
+    SetsModified(1,gnos,snos,what);
+delete[] gnos;
+delete[] snos;
+}
+
 void SetsModified(int len,int * gnos,int * snos,int what)
 {
-if (undo_active==false || gnos==NULL || snos==NULL) return;
+if (undo_active==FALSE || gnos==NULL || snos==NULL) return;
 undo_node * nn=getNextNode();
 ///cout << "sets modified begins" << endl;
 nn->clearContents();
@@ -2304,12 +2401,12 @@ nn->active=true;
 if (what==UNDO_APPEARANCE)
 {
 nn->type=UNDO_TYPE_SET_APPEARANCE;
-nn->Description=QObject::tr("Set appearance changed");
+nn->Description=QObject::tr("Set appearance changed ");
 }
 else
 {
 nn->type=UNDO_TYPE_SET_MODIFIED;
-nn->Description=QObject::tr("Set modified");
+nn->Description=QObject::tr("Set modified ");
 }
     if (len>1 || saved_prev_sets>1)
     {
@@ -2362,9 +2459,17 @@ NextNode();//finish writing and prepare the next node
 updateUndoList();
 }
 
+void SaveSingleGraphState(int gno,int what)
+{
+int * gnos=new int[2];
+gnos[0]=gnos[1]=gno;
+SaveGraphStatesPrevious(1,gnos,what);
+delete[] gnos;
+}
+
 void SaveGraphStatesPrevious(int len,int * gnos,int what)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 if (prev_graphs!=NULL)
 {
 for (int i=0;i<saved_prev_graphs;i++)
@@ -2383,14 +2488,22 @@ saved_prev_graphs=len;
     }
 }
 
+void SingleGraphModified(int gno,int what)
+{
+int * gnos=new int[2];
+gnos[0]=gnos[1]=gno;
+GraphsModified(1,gnos,what);
+delete[] gnos;
+}
+
 void GraphsModified(int len,int * gnos,int what)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
 nn->type=UNDO_TYPE_GRAPH_APPEARANCE;
-nn->Description=QObject::tr("Graph appearance changed");
+nn->Description=QObject::tr("Graph appearance changed ");
     if (len>1)
     {
     nn->multiple=true;
@@ -2425,8 +2538,19 @@ NextNode();//finish writing and prepare the next node
 updateUndoList();
 }
 
+void SaveSingleGraphTickmarks(int gno)
+{
+if (undo_active==FALSE) return;
+//qDebug() << "SaveSingleGraphTickmarks, gno=" << gno;
+    int * graph_nrs=new int[2];
+    graph_nrs[0]=graph_nrs[1]=gno;
+SaveTickmarksStatesPrevious(0,3,1,graph_nrs);
+    delete[] graph_nrs;
+}
+
 void SaveTickmarksStatesPrevious(int axis_start,int axis_stop,int graph_start,int graph_stop)
 {
+if (undo_active==FALSE) return;
 int nr_of_graphs=graph_stop-graph_start+1;
 int * graph_nrs=new int[2+nr_of_graphs];
 //cout << "Save start_graph=" << graph_start << " graph_stop=" << graph_stop << endl;
@@ -2441,11 +2565,24 @@ delete[] graph_nrs;
 
 void SaveTickmarksStatesPrevious(int axis_start,int axis_stop,int nr_of_graphs,int * graph_nrs)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
+int nr_of_axes=axis_stop-axis_start+1;
+int * axes=new int[nr_of_axes+1];
+    for (int i=axis_start;i<=axis_stop;i++)
+    {
+    axes[i-axis_start]=i;
+    }
+SaveTickmarksStatesPrevious(nr_of_axes,axes,nr_of_graphs,graph_nrs);
+delete[] axes;
+}
+
+void SaveTickmarksStatesPrevious(int nr_of_axes,int * axes,int nr_of_graphs,int * graph_nrs)
+{
+if (undo_active==FALSE) return;
 //int counter=(graph_stop-graph_start+1)*(axis_stop-axis_start+1);
-int counter=nr_of_graphs*(axis_stop-axis_start+1);
-int i;
+int counter=nr_of_graphs*nr_of_axes;
 if (counter<1) return;
+int i;
 world w;
 for (int i=0;i<4;i++)
 {
@@ -2477,24 +2614,38 @@ old_idata[i]=new int[counter];
     {
         i=graph_nrs[j];
         get_graph_world(i, &w);
-        for (int j=axis_start;j<=axis_stop;j++)
+        for (int j=0;j<nr_of_axes;j++)
         {
-        prev_tickmarks[counter]=copy_graph_tickmarks(g[i].t[j]);//deep copy of all contents
+        prev_tickmarks[counter]=copy_graph_tickmarks(g[i].t[axes[j]]);//deep copy of all contents
+
         old_ddata[0][counter]=w.xg1;
         old_ddata[1][counter]=w.xg2;
         old_ddata[2][counter]=w.yg1;
         old_ddata[3][counter]=w.yg2;
+
         old_idata[0][counter]=get_graph_xscale(i);
         old_idata[1][counter]=get_graph_yscale(i);
         old_idata[2][counter]=is_graph_xinvert(i);
         old_idata[3][counter]=is_graph_yinvert(i);
+
         counter++;
         }
     }
 }
 
+void SingleGraphTickmarksModified(int gno)
+{
+if (undo_active==FALSE) return;
+//qDebug() << "SingleGraphTickmarksModified, gno=" << gno;
+    int * graph_nrs=new int[2];
+    graph_nrs[0]=graph_nrs[1]=gno;
+TickmarksModified(0,3,1,graph_nrs);
+    delete[] graph_nrs;
+}
+
 void TickmarksModified(int axis_start,int axis_stop,int graph_start,int graph_stop)
 {
+if (undo_active==FALSE) return;
 int nr_of_graphs=graph_stop-graph_start+1;
 int * graph_nrs=new int[2+nr_of_graphs];
 //cout << "Modified start_graph=" << graph_start << " graph_stop=" << graph_stop << endl;
@@ -2509,17 +2660,31 @@ delete[] graph_nrs;
 
 void TickmarksModified(int axis_start,int axis_stop,int nr_of_graphs,int * graph_nrs)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
+int nr_of_axes=axis_stop-axis_start+1;
+int * axes=new int[1+nr_of_axes];
+    for (int i=axis_start;i<=axis_stop;i++)
+    {
+    axes[i-axis_start]=i;
+    }
+TickmarksModified(nr_of_axes,axes,nr_of_graphs,graph_nrs);
+delete[] axes;
+}
+
+void TickmarksModified(int nr_of_axes,int * axes,int nr_of_graphs,int * graph_nrs)
+{
+if (undo_active==FALSE) return;
 //int counter=(graph_stop-graph_start+1)*(axis_stop-axis_start+1);
-int counter=nr_of_graphs*(axis_stop-axis_start+1);
+int counter=nr_of_graphs*nr_of_axes;
 int i;
 if (counter<1) return;
 world w;
 undo_node * nn=getNextNode();
+//qDebug() << "Counter=" << counter;
 nn->clearContents();
 nn->active=true;
 nn->type=UNDO_TYPE_AXIS_PROPERTIES;
-nn->Description=QObject::tr("Axis properties changed");
+nn->Description=QObject::tr("Axis properties changed ");
     if (counter>1)
     {
     nn->multiple=true;
@@ -2529,26 +2694,29 @@ nn->Description=QObject::tr("Axis properties changed");
     nn->multiple=false;
     sprintf(dummy,"[G%d.",graph_nrs[0]);//graph_start);
     nn->Description+=QString(dummy);
-        if (axis_start==0)
+        if (axes[0]==0)
         nn->Description+=QObject::tr("X-axis");
-        else if (axis_start==1)
+        else if (axes[0]==1)
         nn->Description+=QObject::tr("Y-axis");
-        else if (axis_start==2)
+        else if (axes[0]==2)
         nn->Description+=QObject::tr("Alt-X-axis");
-        else if (axis_start==3)
+        else if (axes[0]==3)
         nn->Description+=QObject::tr("Alt-Y-axis");
     nn->Description+=QString("]");
     }
 nn->origin[2]=counter;//important!
-nn->origin[0]=axis_start;
-nn->origin[1]=axis_stop;
+nn->origin[0]=nr_of_axes;
+nn->origin[1]=0;
 nn->origin[3]=nr_of_graphs;//graph_start;
 nn->id[0]=new int[2+nr_of_graphs];//save axis numbers concerned and graph numbers
-nn->id[0][0]=axis_start;
-nn->id[0][1]=axis_stop;
+nn->id[0][0]=nr_of_axes;
+nn->id[0][1]=0;
 //nn->id[0][2]=graph_start;
 //nn->id[0][3]=graph_stop;
 nn->id[1]=new int[4*(counter*2)+4];//4 integer entries per counter (xscale,yscale,xinvert,yinvert)
+nn->id[2]=new int[nr_of_axes];
+for (int i=0;i<nr_of_axes;i++)
+nn->id[2][i]=axes[i];
 for (int i=0;i<4;i++)
 nn->ddata[i]=new double[counter*2];
 tickmarks ** t_tickmarks=new tickmarks*[counter*2];//'*2' because: previous and after
@@ -2557,8 +2725,9 @@ counter=0;
 for (int l=0;l<nr_of_graphs;l++)
 {
     nn->id[0][2+l]=i=graph_nrs[l];
-    for (int j=axis_start;j<=axis_stop;j++)
+    for (int j=0;j<nr_of_axes;j++)
     {
+    //qDebug() << "counter=" << counter << "prev_tickmarks=" << prev_tickmarks;
     t_tickmarks[counter]=prev_tickmarks[counter];//copy pointer only
     prev_tickmarks[counter]=NULL;//do not delete this next time!
         for (int k=0;k<4;k++)
@@ -2577,9 +2746,9 @@ saved_prev_tickmarks=0;
     {
     i=graph_nrs[l];
         get_graph_world(i, &w);
-        for (int j=axis_start;j<=axis_stop;j++)
+        for (int j=0;j<nr_of_axes;j++)
         {
-        t_tickmarks[counter]=copy_graph_tickmarks(g[i].t[j]);//copy new states
+        t_tickmarks[counter]=copy_graph_tickmarks(g[i].t[axes[j]]);//copy new states
         nn->ddata[0][counter]=w.xg1;
         nn->ddata[1][counter]=w.xg2;
         nn->ddata[2][counter]=w.yg1;
@@ -2604,16 +2773,25 @@ NextNode();//finish writing and prepare the next node
 
 void SavePlotAppearance(void)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 old_data[0]=draw_props.bgcolor;
 old_data[1]=draw_props.bgfilled;
+if (old_idata[0]!=NULL) delete[] old_idata[0];
+old_idata[0]=new int[2];
+if (old_ddata[0]!=NULL) delete[] old_ddata[0];
+old_ddata[0]=new double[2];
+old_idata[0][0]=draw_props.bgalpha;
+old_ddata[0][0]=universal_font_size_factor*100.0;
 if (old_tmstmp==NULL) old_tmstmp=new plotstr;
 memcpy(old_tmstmp,&timestamp,sizeof(plotstr));//remember: this will copy the adress of the string as well --> string should not be made undone!
+old_tmstmp->s_plotstring=copy_string(NULL,timestamp.s_plotstring);
+old_tmstmp->alt_plotstring=copy_string(NULL,timestamp.alt_plotstring);
+memcpy(&tmp_undo_image,&bg_fill_image,sizeof(imageinfo));
 }
 
 void PlotAppearanceModified(void)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -2624,19 +2802,45 @@ nn->origin[0]=old_data[0];
 nn->origin[1]=old_data[1];
 nn->origin[2]=draw_props.bgcolor;
 nn->origin[3]=draw_props.bgfilled;
+if (nn->id[0]!=NULL) delete[] nn->id[0];
+nn->id[0]=new int[2];
+nn->id[0][0]=old_idata[0][0];
+nn->id[0][1]=draw_props.bgalpha;
+if (nn->ddata[0]!=NULL) delete[] nn->ddata[0];
+nn->ddata[0]=new double[2];
+nn->ddata[0][0]=old_ddata[0][0];
+nn->ddata[0][1]=universal_font_size_factor*100.0;
+imageinfo * sav_image=new imageinfo;
+memcpy(sav_image,&tmp_undo_image,sizeof(imageinfo));
+nn->ddata[1]=(double*)((void*)sav_image);
+sav_image=new imageinfo;
+memcpy(sav_image,&bg_fill_image,sizeof(imageinfo));
+nn->ddata[2]=(double*)((void*)sav_image);
 plotstr ** tmstmp=new plotstr*[2];
 tmstmp[0]=old_tmstmp;
 tmstmp[1]=new plotstr;
 old_tmstmp=NULL;
 memcpy(tmstmp[1],&timestamp,sizeof(plotstr));//remember: this will copy the adress of the string as well --> string should not be made undone!
+tmstmp[1]->s_plotstring=copy_string(NULL,timestamp.s_plotstring);
+tmstmp[1]->alt_plotstring=copy_string(NULL,timestamp.alt_plotstring);
 nn->data=(void*)tmstmp;
 NextNode();//finish writing and prepare the next node
 updateUndoList();
+if (old_idata[0]!=NULL)
+{
+    delete[] old_idata[0];
+    old_idata[0]=NULL;
+}
+    if (old_ddata[0]!=NULL)
+    {
+    delete[] old_ddata[0];
+    old_ddata[0]=NULL;
+    }
 }
 
 void SaveObjectData(int id,int type)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 switch (type)
 {
 case OBJECT_BOX:
@@ -2674,7 +2878,27 @@ break;
 
 void ObjectDataModified(int id,int type)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
+bool ok=false;
+switch (type)
+{
+case OBJECT_BOX:
+ok=(is_valid_box(id)==TRUE)?true:false;
+break;
+case OBJECT_LINE:
+ok=(is_valid_line(id)==TRUE)?true:false;
+break;
+case OBJECT_ELLIPSE:
+ok=(is_valid_ellipse(id)==TRUE)?true:false;
+break;
+case OBJECT_STRING:
+ok=(is_valid_string(id)==TRUE)?true:false;
+break;
+default:
+ok=false;
+break;
+}
+if (ok==false) return;//invalid id --> stop this
 undo_node * nn=getNextNode();
 linetype ** lt;
 boxtype ** bt;
@@ -2765,7 +2989,7 @@ updateUndoList();
 
 void SaveHotlinkData(int len,int * gnos,int * snos)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 if (old_strings!=NULL)
 {
     for (int i=0;i<number_of_old_strings;i++)
@@ -2797,7 +3021,8 @@ old_idata[1]=new int[len+2];
     for (int i=0;i<number_of_old_strings;i++)
     {
     old_idata[0][i]=g[gnos[i]].p[snos[i]].hotlink;
-        if (g[gnos[i]].p[snos[i]].hotfile!=NULL && old_idata[0][i])
+        //if (g[gnos[i]].p[snos[i]].hotfile!=NULL && old_idata[0][i])
+        if (g[gnos[i]].p[snos[i]].hotfile[0]!='\0' && old_idata[0][i])
         {
         old_idata[1][i]=g[gnos[i]].p[snos[i]].hotsrc;
         old_strings[i]=new char[strlen(g[gnos[i]].p[snos[i]].hotfile)+2];
@@ -2813,12 +3038,12 @@ old_idata[1]=new int[len+2];
 
 void HotlinkModified(int len,int * gnos,int * snos)
 {
-if (undo_active==false || len<=0) return;
+if (undo_active==FALSE || len<=0) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
 nn->type=UNDO_TYPE_HOTLINK;
-nn->Description=QObject::tr("Hotlink modified");
+nn->Description=QObject::tr("Hotlink modified ");
 if (len==1)
 {
 sprintf(dummy,"[G%d.S%d]",gnos[0],snos[0]);
@@ -2853,7 +3078,8 @@ old_strings[i]=NULL;
 for (int i=0;i<len;i++)//new states
 {
 nn->id[0][i+len]=g[gnos[i]].p[snos[i]].hotlink;
-    if (nn->id[0][i+len] && g[gnos[i]].p[snos[i]].hotfile!=NULL)
+    //if (nn->id[0][i+len] && g[gnos[i]].p[snos[i]].hotfile!=NULL)
+    if (nn->id[0][i+len] && g[gnos[i]].p[snos[i]].hotfile[0]!='\0')
     {
     nn->id[1][i+len]=g[gnos[i]].p[snos[i]].hotsrc;
     fnames[i+len]=new char[strlen(g[gnos[i]].p[snos[i]].hotfile)+2];
@@ -2873,7 +3099,7 @@ updateUndoList();
 void SaveLocatorFixPoint(int gno)
 {
 GLocator locator;
-if (undo_active==false || get_graph_locator(gno, &locator) != RETURN_SUCCESS) return;
+if (undo_active==FALSE || get_graph_locator(gno, &locator) != RETURN_SUCCESS) return;
 GLocator *loc2=new GLocator;
 memcpy(loc2,&locator,sizeof(GLocator));
 old_general_data=(void*)loc2;
@@ -2882,7 +3108,7 @@ old_general_data=(void*)loc2;
 void LocatorFixPointModified(int gno)
 {
 GLocator locator;
-if (undo_active==false || get_graph_locator(gno, &locator) != RETURN_SUCCESS) return;
+if (undo_active==FALSE || get_graph_locator(gno, &locator) != RETURN_SUCCESS) return;
 GLocator ** loc2=new GLocator*[2];
 loc2[1]=new GLocator;
 memcpy(loc2[1],&locator,sizeof(GLocator));
@@ -2892,7 +3118,7 @@ undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
 nn->type=UNDO_TYPE_LOCATOR_FIXPOINT;
-nn->Description=QObject::tr("Locator fixpoint modified");
+nn->Description=QObject::tr("Locator fixpoint modified ");
 sprintf(dummy,"[G%d]",gno);
 nn->Description+=QString(dummy);
 nn->multiple=false;
@@ -2908,12 +3134,12 @@ updateUndoList();
 
 void UndoSwapGraphs(int g1,int g2)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
 nn->type=UNDO_TYPE_GRAPH_SWAP;
-nn->Description=QObject::tr("Graphs swapped");
+nn->Description=QObject::tr("Graphs swapped ");
 sprintf(dummy,"[G%d<->G%d]",g1,g2);
 nn->Description+=QString(dummy);
 nn->multiple=false;
@@ -2921,6 +3147,33 @@ nn->origin[0]=g1;
 nn->origin[1]=UNDO_GRAPH;
 nn->origin[2]=1;
 nn->origin[3]=g2;
+//we need to concider object-associations
+//We have to find all objects that contain graph g1 and g2
+/// should work without doing anything, because every objects knows it parent and is swapped automatically
+/*
+int * f_id=NULL;
+int * f_type=NULL;
+int objects_g1=find_objects_associated_with_graph(&f_id,&f_type,g1);
+nn->id[0]=new int[1+objects_g1];
+nn->id[1]=new int[1+objects_g1];
+nn->id[0][0]=objects_g1;
+nn->id[1][0]=objects_g1;
+    if (objects_g1>0)
+    {
+    memcpy(nn->id[0]+1,f_id,sizeof(int)*objects_g1);
+    memcpy(nn->id[1]+1,f_type,sizeof(int)*objects_g1);
+    }
+int objects_g2=find_objects_associated_with_graph(&f_id,&f_type,g2);
+nn->id[2]=new int[1+objects_g2];
+nn->id[3]=new int[1+objects_g2];
+nn->id[2][0]=objects_g2;
+nn->id[3][0]=objects_g2;
+    if (objects_g2>0)
+    {
+    memcpy(nn->id[2]+1,f_id,sizeof(int)*objects_g2);
+    memcpy(nn->id[3]+1,f_type,sizeof(int)*objects_g2);
+    }
+*/
 //no additional data needed here! No data is destroyed!
 NextNode();//finish writing and prepare the next node
 updateUndoList();
@@ -2928,12 +3181,12 @@ updateUndoList();
 
 void UndoSwapSets(int g1,int s1,int g2,int s2)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
 nn->type=UNDO_TYPE_SET_SWAP;
-nn->Description=QObject::tr("Sets swapped");
+nn->Description=QObject::tr("Sets swapped ");
 sprintf(dummy,"[G%d.S%d<->G%d.S%d]",g1,s1,g2,s2);
 nn->Description+=QString(dummy);
 nn->multiple=false;
@@ -2949,12 +3202,12 @@ updateUndoList();
 
 void SetsAboutToBePacked(int gno)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
 nn->type=UNDO_TYPE_PACK_SETS;
-nn->Description=QObject::tr("Sets packed");
+nn->Description=QObject::tr("Sets packed ");
 sprintf(dummy,"[G%d]",gno);
 nn->Description+=QString(dummy);
 nn->multiple=false;
@@ -2977,12 +3230,12 @@ updateUndoList();
 
 void ViewportChanged(int gno,view v)
 {
-if (undo_active==false || !is_valid_gno(gno)) return;
+if (undo_active==FALSE || !is_valid_gno(gno)) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
 nn->type=UNDO_TYPE_VIEWPORT_CHANGED;
-nn->Description=QObject::tr("Graph viewport changed");
+nn->Description=QObject::tr("Graph viewport changed ");
 sprintf(dummy,"[G%d]",gno);
 nn->Description+=QString(dummy);
 nn->multiple=false;
@@ -3000,8 +3253,19 @@ views[5]=v.xv2;
 views[6]=v.yv1;
 views[7]=v.yv2;
 nn->data=(void*)views;
+ListOfChanges.clear();
+ListOfOldStates.clear();
+sprintf(dummy,"with G%d",gno);
+ListOfChanges << QString(dummy);
+ListOfOldStates << QString(dummy);
+sprintf(dummy,"    view %f, %f, %f, %f",old_v.xv1,old_v.yv1,old_v.xv2,old_v.yv2);
+ListOfOldStates << QString(dummy);
+sprintf(dummy,"    view %f, %f, %f, %f",v.xv1,v.yv1,v.xv2,v.yv2);
+ListOfChanges << QString(dummy);
 NextNode();//finish writing and prepare the next node
 updateUndoList();
+ListOfChanges.clear();
+ListOfOldStates.clear();
 }
 
 void copy_Datapoint(int gno,int sno,int nr,Datapoint * p)
@@ -3017,14 +3281,20 @@ static Datapoint p2;
 for (int i=0;i<ncols;i++)
 p->ex[i]=p2.ex[i];
     if (p2.s!=NULL)
+    {
     p->s=copy_string(NULL,p2.s);
+    p->orig_s=copy_string(NULL,p2.orig_s);
+    }
     else
+    {
     p->s=NULL;
+    p->orig_s=NULL;
+    }
 }
 
 void DataPointEdited(int gno,int sno,int * nrs,int len,Datapoint * p,int type)
 {
-if (undo_active==false || !is_valid_gno(gno)) return;
+if (undo_active==FALSE || !is_valid_gno(gno)) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3042,7 +3312,10 @@ Datapoint * ps=new Datapoint[2*len];
         {
             memcpy(ps+i,p+i,sizeof(Datapoint));
             if (p[i].s!=NULL)
+            {
             ps[i].s = copy_string(NULL,p[i].s);
+            ps[i].orig_s = copy_string(NULL,p[i].orig_s);
+            }
         }
         else
         {
@@ -3052,20 +3325,23 @@ Datapoint * ps=new Datapoint[2*len];
     }
     if (type==0)
     {
-    nn->Description=QObject::tr("New Datapoint");
+    nn->Description=QObject::tr("New Datapoint ");
     }
     else if (type==1)
     {
-    nn->Description=QObject::tr("Datapoint deleted");
+    nn->Description=QObject::tr("Datapoint deleted ");
     }
     else
     {
-    nn->Description=QObject::tr("Datapoint modified");
+    nn->Description=QObject::tr("Datapoint modified ");
         for (int i=0;i<len;i++)
         {
         memcpy(ps+i+len,p+i,sizeof(Datapoint));
             if (p[i].s!=NULL)
+            {
             ps[i+len].s = copy_string(NULL,p[i].s);
+            ps[i+len].orig_s = copy_string(NULL,p[i].orig_s);
+            }
         }
     }
 nn->data=(void*)ps;
@@ -3109,7 +3385,7 @@ XCFREE(regi->y);
 
 void RegionModified(int nr,region * newregion,int type)
 {
-if (undo_active==false || nr>MAXREGION || nr<0) return;
+if (undo_active==FALSE || nr>MAXREGION || nr<0) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3131,7 +3407,7 @@ sprintf(dummy," %d ",nr);
     }
     else if (type==1)//killed --> save old only
     {
-        if (nr<MAXREGION)
+        if (nr<MAXREGION)//one region
         {
         ps=new region[2];
         ps[1].x=ps[1].y=ps[0].x=ps[0].y=NULL;
@@ -3157,7 +3433,7 @@ updateUndoList();
 
 void SaveFitSettings(void)
 {
-    if (undo_active==false) return;
+    if (undo_active==FALSE) return;
     if (prev_sets!=NULL)
     {
     delete[] prev_sets;
@@ -3180,7 +3456,7 @@ get_fit_settings(&old_fit_settings);
 
 void SaveFitAfter(void)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3235,7 +3511,7 @@ updateUndoList();
 
 void ChangeSetOrdering(int gno,int setno,int type)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3297,7 +3573,7 @@ realloc_colors(number_of_new_cols);
 memcpy(cmap_table,colors,sizeof(CMap_entry)*number_of_new_cols);
     for (int i=0;i<number_of_new_cols;i++)
     {
-    cmap_table[i].cname = NULL;//has to be reset to NULL again, becaus the colors.cname has been copied into it
+    cmap_table[i].cname = NULL;//has to be reset to NULL again, because the colors.cname has been copied into it
     cmap_table[i].cname = copy_string(cmap_table[i].cname, colors[i].cname);
     }
 //I copied the main entries, not the aux-entries ... It is expected, that 'colors' contains ALL colors (main + aux)
@@ -3307,7 +3583,7 @@ ReqUpdateColorSel = TRUE;
 
 void CurrentColorMapChanged(void)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3330,7 +3606,7 @@ updateUndoList();
 
 void ShowHideSets(int len,int * gnos,int * sets)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3343,7 +3619,7 @@ nn->id[0]=new int[len+1];
 nn->id[1]=new int[len+1];
 memcpy(nn->id[0],gnos,len*sizeof(int));
 memcpy(nn->id[1],sets,len*sizeof(int));
-nn->Description=QObject::tr("Set visibility changed");
+nn->Description=QObject::tr("Set visibility changed ");
 sprintf(dummy,"[G%d.S%d]",gnos[0],sets[0]);
     if (len==1)
     {
@@ -3361,7 +3637,7 @@ updateUndoList();
 
 void ShowHideGraphs(int len,int * gnos)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3372,7 +3648,7 @@ nn->origin[2]=len;
 nn->origin[3]=UNDO_GRAPH;
 nn->id[0]=new int[len+1];
 memcpy(nn->id[0],gnos,len*sizeof(int));
-nn->Description=QObject::tr("Graph visibility changed");
+nn->Description=QObject::tr("Graph visibility changed ");
 sprintf(dummy,"[G%d]",gnos[0]);
     if (len==1)
     {
@@ -3390,7 +3666,7 @@ updateUndoList();
 
 void get_fit_settings(struct all_fit_settings * fit)
 {
-    if (undo_active==false) return;
+    if (undo_active==FALSE) return;
     if (FormNonlinCurveFit==NULL) return;
 GetSingleListChoice(FormNonlinCurveFit->grpSource->listGraph, &fit->src_gno);
 fit->src_sets=new int[2];
@@ -3422,7 +3698,7 @@ fit->nr=FormNonlinCurveFit->tabAdvanced->ledNumberOfPoints->text();
 
 void set_fit_settings(struct all_fit_settings * fit)
 {
-    if (undo_active==false) return;
+    if (undo_active==FALSE) return;
     if (FormNonlinCurveFit==NULL) return;
 FormNonlinCurveFit->grpSource->listGraph->set_graph_number(fit->src_gno,true);
 FormNonlinCurveFit->grpSource->set_graph_nr(fit->src_gno);
@@ -3457,7 +3733,7 @@ FormNonlinCurveFit->tabAdvanced->ledNumberOfPoints->setText(fit->nr);
 
 void SaveDeviceState(int id,bool sync)
 {
-    if (undo_active==false) return;
+    if (undo_active==FALSE) return;
     if (saved_entry!=NULL) delete saved_entry;
     saved_entry=new Device_entry;
     saved_entry[0] = get_device_props(id);
@@ -3476,7 +3752,7 @@ void SaveDeviceState(int id,bool sync)
 
 void DeviceModified(int id,bool sync)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3641,7 +3917,7 @@ return ret;
 
 void SetImported(int gno,int setno,char * filename,int cursource,int load,int autoscale)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3671,7 +3947,7 @@ updateUndoList();
 
 void SetsImported(int len,int * gnos,int * snos,int files,char ** filename,int cursource,int load,int autoscale)
 {//please do not use this if there is only one set!
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3714,7 +3990,7 @@ updateUndoList();
 
 void SetsImportedFromAgr(int len,int * snos,struct agr_file_info afi,int autoscale)
 {
-if (undo_active==false || len<=0) return;
+if (undo_active==FALSE || len<=0) return;
 undo_node * nn=getNextNode();
 nn->clearContents();
 nn->active=true;
@@ -3754,7 +4030,7 @@ updateUndoList();
 
 void SetImportBlockData(int gno, int setno,char * filename,int source, int nc, int *coli, int scol,int load,int autoscale)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 SetImported(gno,setno,filename,source,load,autoscale);
 undo_node * nn=getPreviousNode();
 nn->type=UNDO_TYPE_IMPORT_BLOCK_DATA;
@@ -3776,7 +4052,7 @@ copySet(gno,setno,nn->p[0],UNDO_COMPLETE);
 
 void SetNewSetNo(int setno)
 {
-if (undo_active==false) return;
+if (undo_active==FALSE) return;
 undo_node * nn=getPreviousNode();
 if (nn->type==UNDO_TYPE_IMPORT_BLOCK_DATA)
 {
@@ -3787,7 +4063,7 @@ nn->Description=QObject::tr("BlockData --> ")+QString(dummy);
 updateUndoList();
 }
 
-void SetImportBinaryData(int gno,int setno,char * filename,struct importSettings * set)
+/*void SetImportBinaryData(int gno,int setno,char * filename,struct importSettings * set)
 {
 
 }
@@ -3800,7 +4076,7 @@ void CopyBinaryImportSettings(struct importSettings * from,struct importSettings
 void DeleteBinaryImportSettings(struct importSettings * set)
 {
 
-}
+}*/
 
 void getHotlinkedSets(int * nr,int ** gnos,int ** snos)
 {

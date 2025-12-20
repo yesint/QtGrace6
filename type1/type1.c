@@ -58,7 +58,7 @@
  
 typedef struct xobject xobject;
 #include  "util.h"       /* PostScript objects */
-#include  "fontfcn.h"
+//#include  "fontfcn.h"
 #include  "blues.h"          /* Blues structure for font-level hints */
  
 /**********************************/
@@ -201,8 +201,8 @@ static int CallSubr();
 static int Return();
 static int EndChar();
 static int RMoveTo();
-static int DotSection();
-static int Seac();
+static int DotSection(void);
+static int Seac(DOUBLE asb,DOUBLE adx,DOUBLE ady,unsigned char bchar,unsigned char achar);
 static int Sbw();
 static int CallOtherSubr();
 static int SetCurrentPoint();
@@ -1493,7 +1493,7 @@ static int Return()
 /* HSBW or SBW.  It then calls a special version of FILL */
 /* or STROKE depending on the value of PaintType in the */
 /* font dictionary */
-static int EndChar()
+static int EndChar(void)
 {
   IfTrace0((FontDebug), "EndChar\n");
  
@@ -1511,8 +1511,7 @@ static int EndChar()
  
 /* |- dx dy RMOVETO |- */
 /* Behaves like RMOVETO in PostScript */
-static int RMoveTo(dx,dy)
-  DOUBLE dx,dy;
+static int RMoveTo(DOUBLE dx,DOUBLE dy)
 {
   struct segment *B;
  
@@ -1534,7 +1533,7 @@ static int RMoveTo(dx,dy)
 /* - DOTSECTION |- */
 /* Brackets an outline section for the dots in */
 /* letters such as "i", "j", and "!". */
-static int DotSection()
+static int DotSection(void)
 {
   IfTrace0((FontDebug), "DotSection\n");
   InDotSection = !InDotSection;
@@ -1543,9 +1542,7 @@ static int DotSection()
  
 /* |- asb adx ady bchar achar SEAC |- */
 /* Standard Encoding Accented Character. */
-static int Seac(asb, adx, ady, bchar, achar)
-  DOUBLE asb, adx, ady;
-  unsigned char bchar, achar;
+static int Seac(DOUBLE asb,DOUBLE adx,DOUBLE ady,unsigned char bchar,unsigned char achar)
 {
   int Code;
   struct segment *mypath;
@@ -1565,7 +1562,7 @@ static int Seac(asb, adx, ady, bchar, achar)
   path = NULL;
  
   /* Go find the CharString for the accent's code via an upcall */
-  CharStringP = GetType1CharString(Environment, achar);
+  CharStringP = GetType1CharString((psfont*)Environment, achar);
   if (CharStringP == NULL) {
      Error1i("Invalid accent ('%03o) in SEAC\n", achar);
   }
@@ -1588,7 +1585,7 @@ static int Seac(asb, adx, ady, bchar, achar)
   accentoffsetX = accentoffsetY = 0;
  
   /* go find the CharString for the base char's code via an upcall */
-  CharStringP = GetType1CharString(Environment, bchar);
+  CharStringP = GetType1CharString((psfont*)Environment, bchar);
   StartDecrypt();
  
   ClearStack();

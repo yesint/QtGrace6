@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -43,6 +43,10 @@
  *
  */
 
+/// #define DEBUG_OUT_LOG 1
+
+#define READ_UTF8_ONLY 0
+
 #define MAX_HISTORY 20
 #define MAX_BIN_IMPORT_CHANNELS 32
 
@@ -74,6 +78,7 @@
 #define BI_DATE __DATE__
 ///#define BI_SYSTEM "LINUX"
 #define BI_T1LIB "T1"
+#define QTGRACE_VERSION_STRING "v0.2.7"
 
 #ifdef _MSC_VER
 #define BI_CCOMPILER "Visual C++"
@@ -82,17 +87,16 @@
 #endif
 
 /* max path length */
-#define GR_MAXPATHLEN 1024
+#define GR_MAXPATHLEN 4096
 
 /* max length for strings */
-#define MAX_STRING_LENGTH 512
-
+#define MAX_STRING_LENGTH 2048
 
 #define MAXAXES 4               /* max number of axes per graph */
 #define MAX_TICKS 256           /* max number of ticks/labels per axis */
 #define MAXREGION 5             /* max number of regions */
 
-#define MAX_ZOOM_STACK 20       /* max stack depth for world stack */
+#define MAX_ZOOM_STACK 1000       /* max stack depth for world stack */
 
 #define MAXPARM 20              /* max number of parameters for non-lin fit */
 
@@ -101,6 +105,9 @@
 
 /* number of extra objects of a given type to allocate if not enough */
 #define OBJECT_BUFNUM 10
+
+/* number of extra columns (A,B,C,...) for postprocessing of csv-files */
+#define MAX_DUMMY_COLS 15
 
 #define MAX_ARROW 3
 #define MAX_PREC 10
@@ -124,6 +131,11 @@
 #define CHAR_SHIFT_TO_SYMBOL 1
 #define CHAR_SHIFT_TO_UPPERSET 2
 
+#define OPTYPE_COPY 0
+#define OPTYPE_MOVE 1
+#define OPTYPE_SWAP 2
+#define OPTYPE_COPY_LEGEND 3
+
 /* max number of symbols defined */
 #define MAXSYM  12
 
@@ -135,6 +147,7 @@
  */
 #define COORDINATES_XY      0       /* Cartesian coordinates */
 #define COORDINATES_POLAR   1       /* Polar coordinates */
+#define COORDINATES_POLAR2  2       /* special Polar coordinates */
                                 
 /*
  * types of axis scale mappings
@@ -142,7 +155,7 @@
 #define SCALE_NORMAL    0       /* normal linear scale */
 #define SCALE_LOG       1       /* logarithmic  scale */
 #define SCALE_REC       2       /* reciprocal, reserved */
-#define SCALE_LOGIT	  3	  /* logit scale */
+#define SCALE_LOGIT	    3	    /* logit scale */
 
 /*
  * coordinates
@@ -158,12 +171,11 @@
 #define ALL_AXES    -3
 #define ALL_X_AXES  -2
 #define ALL_Y_AXES  -1
-
+#define NO_AXIS -4
 #define X_AXIS  0
 #define Y_AXIS  1
 #define ZX_AXIS 2
 #define ZY_AXIS 3
-
 
 /* setno == all sets selected */
 #define ALL_SETS    -1
@@ -207,13 +219,17 @@
 #define LAYOUT_PARALLEL         0
 #define LAYOUT_PERPENDICULAR    1
 
-/* states for simple drawing on background */
+/* States for simple drawing on background */
 #define SIMPLE_DRAW_NONE 0
 #define SIMPLE_DRAW_CROSSHAIR 1
 #define SIMPLE_DRAW_LINE 2
 #define SIMPLE_DRAW_REGION 4
+#define SIMPLE_DRAW_HIGHLIGHT 8
+#define SIMPLE_DRAW_RUBBER_DONUT 16
+#define SIMPLE_DRAW_GRAPH_FOCUS 32
+#define SIMPLE_DRAW_LOCATORFIXPOINT 64
 
-/* Placement (axis labels, ticks, error bars */
+/* Placement (axis labels, ticks, error bars) */
 typedef enum {
     PLACEMENT_NORMAL,
     PLACEMENT_OPPOSITE,
@@ -234,6 +250,7 @@ typedef enum {
 #define SIGN_NEGATE     2
 
 /* Tick label/display formats */
+#define FORMAT_STRING          -2
 #define FORMAT_INVALID         -1
 #define FORMAT_DECIMAL          0
 #define FORMAT_EXPONENTIAL      1
@@ -268,6 +285,11 @@ typedef enum {
 #define FORMAT_DEGREESMMSSLAT  30
 #define FORMAT_MMSSLAT         31
 #define FORMAT_YYYY            32
+#define FORMAT_YYDYHMS         33
+
+#define DATE_SEPARATOR_MINUS 0
+#define DATE_SEPARATOR_DOT 1
+#define DATE_SEPARATOR_DASH 2
 
 /* Focus policy */
 #define FOCUS_CLICK     0
@@ -441,12 +463,95 @@ typedef enum {
 #define FEATURE_X_OF_YMIN 26
 #define FEATURE_Y_OF_XMIN 27
 
+/* dataset-operations */
+#define DATASETOP_SORT 0
+#define DATASETOP_REVERSE 1
+#define DATASETOP_JOIN 2
+#define DATASETOP_SPLIT 3
+#define DATASETOP_DROP 4
+#define DATASETOP_RESTRICT 5
+#define DATASETOP_SWAP_COLS 6
+#define DATASETOP_AVERAGE_SET 7
+
+/*cursors*/
+#define CURSOR_LINE 0
+#define CURSOR_FIND 1
+#define CURSOR_TEXT 2
+#define CURSOR_KILL 3
+#define CURSOR_MOVE 4
+#define CURSOR_WHAT 5
+#define CURSOR_OPENHAND 6
+#define CURSOR_CLOSEDHAND 7
+#define CURSOR_POINTINGHAND 8
+#define CURSOR_WAIT 9
+
+/*image transformations*/
+#define TRANSFORMATION_NONE 0
+#define TRANSFORMATION_STRETCH_W 1
+#define TRANSFORMATION_STRETCH_H 2
+#define TRANSFORMATION_STRETCH_FIT 3
+#define TRANSFORMATION_PATTERN 4
+
+/*What to put into comment/legend after dropping files*/
+#define DROP_LEGEND_NONE 0
+#define DROP_LEGEND_PATH_FILE_COLUMN 1
+#define DROP_LEGEND_PATH_FILE 2
+#define DROP_LEGEND_FILE_COLUMN 3
+#define DROP_LEGEND_FILE 4
+#define DROP_LEGEND_COLUMN 5
+
+/*How to behave concerning the ticks on the axes when packing graphs*/
+#define TICK_PACK_UNCHANGED 0
+#define TICK_PACK_LEFT 1
+#define TICK_PACK_RIGHT 2
+#define TICK_PACK_UP 1
+#define TICK_PACK_DOWN 2
+#define TICK_PACK_IN 4
+#define TICK_PACK_OUT 8
+#define TICK_PACK_NONE -2
+
+#define TICK_PACK_DIRECTION_UNCHANGED 0
+#define TICK_PACK_DIRECTION_IN 1
+#define TICK_PACK_DIRECTION_OUT 2
+
+#define DEFAULT_TICK_PACK_X_INNER (TICK_PACK_OUT | TICK_PACK_IN)
+#define DEFAULT_TICK_PACK_Y_INNER (TICK_PACK_OUT | TICK_PACK_IN)
+#define DEFAULT_TICK_PACK_X_OUTER (TICK_PACK_OUT | TICK_PACK_IN)
+#define DEFAULT_TICK_PACK_Y_OUTER (TICK_PACK_OUT | TICK_PACK_IN)
+
+#define DEFAULT_TICK_PACK_X_INNER_DIR (TICK_PACK_DIRECTION_IN)
+#define DEFAULT_TICK_PACK_Y_INNER_DIR (TICK_PACK_DIRECTION_IN)
+#define DEFAULT_TICK_PACK_X_OUTER_DIR (TICK_PACK_DIRECTION_IN)
+#define DEFAULT_TICK_PACK_Y_OUTER_DIR (TICK_PACK_DIRECTION_IN)
+
+#define SAMPLING_MESH           0
+#define SAMPLING_SET            1
+#define SAMPLING_INSIDE_BOUNDS  2
+#define SAMPLING_EXPAND_KEEP_STEPPING    3
+#define SAMPLING_LOG_MESH       4
+#define SAMPLING_PARAMETRIC     5
+
+#define OPERATION_NONE 0
+#define OPERATION_PLUS 1
+#define OPERATION_MINUS 2
+#define OPERATION_MULT 3
+#define OPERATION_DIV 4
+#define OPERATION_POWER 5
+#define OPERATION_10_POWER 6
+#define OPERATION_2_POWER 7
+
+#define COMPARISON_TOLERANCE 2
+
+//#define AUTOLAYOUT_FOR_TOOLBAR 1
+
 /*
  * defaults
  */
 typedef struct {
     int color;
+    int alpha;
     int bgcolor;
+    int bgalpha;
     int pattern;
     int lines;
     double linew;
@@ -458,9 +563,7 @@ typedef struct {
 typedef struct {
     int color;
     int pattern;
-/*
- *     int transparency;
- */
+    int alpha;
 } Pen;
 
 /* A point in world coordinates */
@@ -490,6 +593,20 @@ typedef struct {
 } view;
 
 /*
+ * information for an image to show somewhere
+ */
+typedef struct {
+    int relpath;/*0=absolute paht, 1=relative path*/
+    char imgpath[GR_MAXPATHLEN];/*the actual path*/
+    int imgtransform;/*how to adjust the image to the available space:*/
+    /*0=no transformation, just insert as it is --> image size changes with resolution, clipping at the borders
+      1=stretch (or shrink) to fit the available width, keep aspect ratio
+      2=stretch (or shrink) to fit the available height, keep aspect ratio
+      3=stretch (or shrink) to fit all available space, does change aspect ratio
+      4=use the image multiple times to create a tiled space*/
+} imageinfo;
+
+/*
  * typedefs for objects
  */
 typedef struct {
@@ -503,10 +620,14 @@ typedef struct {
     int lines;
     double linew;
     int color;
+    int alpha;
     int fillcolor;
+    int fillalpha;
     int fillpattern;
     view bb;
     int rot;
+    int filltype;/*color or image*/
+    imageinfo fillimage;/*information on where to find and how to use an image*/
 } boxtype;
 
 typedef struct {
@@ -527,6 +648,7 @@ typedef struct {
     int lines;
     double linew;
     int color;
+    int alpha;
     int arrow_end;
     Arrow arrow;
     view bb;
@@ -543,10 +665,14 @@ typedef struct {
     int lines;
     double linew;
     int color;
+    int alpha;
     int fillcolor;
+    int fillalpha;
     int fillpattern;
     view bb;
     int rot;
+    int filltype;/*color or image*/
+    imageinfo fillimage;/*information on where to find and how to use an image*/
 } ellipsetype;
 
 typedef struct {
@@ -557,9 +683,12 @@ typedef struct {
     double x;
     double y;
     int color;
+    int alpha;
     int rot;
     int font;
     int just;
+    int align;//added by Andreas Winter, 2018 (for text orientation in multi-line-texts)
+    int master_align;//added by Andreas Winter, 2018 (for text-box orientation in graph or page)
     double charsize;
     char * s_plotstring;
     char * alt_plotstring;//added by Andreas Winter, 2011 (to keep original text in LaTeX-format)
@@ -571,11 +700,14 @@ typedef struct {
  */
 typedef struct {
     world w;                    /* current world */
+    char * w_name;
 } world_stack;
 
 typedef struct {
     plotstr title;              /* graph title */
     plotstr stitle;             /* graph subtitle */
+    VVector shift_title;        /* title shift vector */
+    VVector shift_subtitle;     /* subtitle shift vector */
 } labels;
 
 typedef struct {
@@ -600,6 +732,8 @@ typedef struct {
 
 typedef struct {
     int active;          /* on/off */
+    int connect_bars;    /* instead of a bar-lines connect the error-bar-maxima or -minima*/
+    int show_in_legend;  /* show error bars in legend */
     PlacementType ptype; /* placement type */
     Pen pen;             /* pen */
     double linew;        /* error bar line width */
@@ -617,7 +751,9 @@ typedef struct {
     int type;                   /* type */
     double size;                /* char size */
     int font;                   /* font */
+    int align;                  /* alignment */
     int color;                  /* color */
+    int alpha;                  /* alpha-channel*/
     int angle;                  /* angle */
     int format;                 /* format */
     int prec;                   /* precision */
@@ -633,15 +769,22 @@ typedef struct {
     double wtpos;
     char *label;
     char *orig_label;
+    view bb;
 } tickloc;
 
 typedef struct {
     double size;              /* length of tickmarks */
     int color;                /* color of tickmarks */
+    int alpha;                /* alpha-channel */
     double linew;             /* linewidth of tickmarks */
     int lines;                /* linestyle of tickmarks */
     int gridflag;             /* grid lines at tick marks */
 } tickprops;
+
+#define QUICK_AXIS_TRANSFORM_NORMAL 0
+#define QUICK_AXIS_TRANSFORM_DEGREES 1
+#define QUICK_AXIS_TRANSFORM_MULT_PI 2
+#define QUICK_AXIS_TRANSFORM_ALT_AXIS 3
 
 typedef struct {
     int active;                 /* active or not */
@@ -655,13 +798,14 @@ typedef struct {
 
     int t_drawbar;              /* draw a bar connecting tick marks */
     int t_drawbarcolor;         /* color of bar */
+    int t_drawbaralpha;         /* alpha-channel */
     int t_drawbarlines;         /* linestyle of bar */
     double t_drawbarlinew;      /* line width of bar */
 
     double offsx, offsy;        /* offset of axes in viewport coords
-                                   (attention: these
-				   are not x and y coordinates but
-				   perpendicular and parallel offsets */
+                                    (attention: these
+                                    are not x and y coordinates but
+                                    perpendicular and parallel offsets */
 
     int t_flag;                 /* toggle tickmark display */
     int t_autonum;              /* approximate default number of major ticks */
@@ -683,7 +827,7 @@ typedef struct {
     tickprops props;
     tickprops mprops;
 
-    int tl_flag;                /* toggle ticmark labels on or off */
+    int tl_flag;                /* toggle tickmark labels on or off */
     int tl_angle;               /* angle to draw labels */
 
     int tl_format;              /* tickmark label format */
@@ -702,21 +846,28 @@ typedef struct {
 
     int tl_gaptype;             /* tick label placement auto or specified */
     VVector tl_gap;             /* tick label to tickmark distance
-				   (parallel and perpendicular to axis) */
+                                    (parallel and perpendicular to axis) */
 
     int tl_font;                /* font to use for tick labels */
+    int tl_align;               /* alignment for tick labels */
     double tl_charsize;         /* character size for tick labels */
     int tl_color;               /* color of tick labels */
+    int tl_alpha;               /* alpha-channel of tick labels */
 
     char tl_appstr[64];         /* append string to tick label */
     char tl_prestr[64];         /* prepend string to tick label */
     char orig_tl_appstr[64];    /* original append string to tick label */
     char orig_tl_prestr[64];    /* original prepend string to tick label */
 
+    VPoint al_vp;               /* the start-position of the axis-label */
+    view al_bb;                 /* bounding box for axis-label */
+    view tl_bb;                 /* bounding box for all tick-labels */
+
 } tickmarks;
 
 typedef struct {
     int active;                 /* legend on or off */
+    //int nr_of_entries;
     int loctype;                /* locate in world or viewport coords */
     int vgap;                   /* verticle gap between entries */
     int hgap;                   /* horizontal gap(s) between legend string
@@ -727,8 +878,10 @@ typedef struct {
     double legx;                /* location on graph */
     double legy;
     int font;
+    int align;
     double charsize;
     int color;
+    int alpha;
     Pen boxpen;
     Pen boxfillpen;
     double boxlinew;            /* legend frame line width */
@@ -742,6 +895,7 @@ typedef struct {
     int active;                 /* region on or off */
     int type;                   /* region type */
     int color;                  /* region color */
+    int alpha;                  /* alpha-channel */
     int lines;                  /* region linestyle */
     double linew;               /* region line width */
     int linkto;                 /* associated with graph linkto */
@@ -799,6 +953,7 @@ typedef enum   { FMT_iso,
                } Dates_format;
 
 /* rounding types for dates */
+#define NO_ROUND     0
 #define ROUND_SECOND 1
 #define ROUND_MINUTE 2
 #define ROUND_HOUR   3
@@ -815,55 +970,20 @@ typedef struct { int value;
 #define WSTACK_CYCLE        2
 #define WSTACK_PUSH_ZOOM    3
 
+#define NUM_FMT_OPTION_ITEMS 34
+
 typedef struct {
     int value;
     const char *label;
 } OptionItem;
 
-static OptionItem fmt_option_items[33] =
-{
-    {FORMAT_DECIMAL,        "Decimal"             },
-    {FORMAT_EXPONENTIAL,    "Exponential"         },
-    {FORMAT_GENERAL,        "General"             },
-    {FORMAT_POWER,          "Power"               },
-    {FORMAT_SCIENTIFIC,     "Scientific"          },
-    {FORMAT_ENGINEERING,    "Engineering"         },
-    {FORMAT_COMPUTING,      "Computing (K,M,G,...)"},
-    {FORMAT_DDMMYY,         "DD-MM-YY"            },
-    {FORMAT_MMDDYY,         "MM-DD-YY"            },
-    {FORMAT_YYMMDD,         "YY-MM-DD"            },
-    {FORMAT_MMYY,           "MM-YY"               },
-    {FORMAT_MMDD,           "MM-DD"               },
-    {FORMAT_MONTHDAY,       "Month-DD"            },
-    {FORMAT_DAYMONTH,       "DD-Month"            },
-    {FORMAT_MONTHS,         "Month (abrev.)"      },
-    {FORMAT_MONTHSY,        "Month (abrev.)-YY"   },
-    {FORMAT_MONTHL,         "Month"               },
-    {FORMAT_DAYOFWEEKS,     "Day of week (abrev.)"},
-    {FORMAT_DAYOFWEEKL,     "Day of week"         },
-    {FORMAT_DAYOFYEAR,      "Day of year"         },
-    {FORMAT_HMS,            "HH:MM:SS"            },
-    {FORMAT_MMDDHMS,        "MM-DD HH:MM:SS"      },
-    {FORMAT_MMDDYYHMS,      "MM-DD-YY HH:MM:SS"   },
-    {FORMAT_YYMMDDHMS,      "YY-MM-DD HH:MM:SS"   },
-    {FORMAT_DEGREESLON,     "Degrees (lon)"       },
-    {FORMAT_DEGREESMMLON,   "DD MM' (lon)"        },
-    {FORMAT_DEGREESMMSSLON, "DD MM' SS.s\" (lon)" },
-    {FORMAT_MMSSLON,        "MM' SS.s\" (lon)"    },
-    {FORMAT_DEGREESLAT,     "Degrees (lat)"       },
-    {FORMAT_DEGREESMMLAT,   "DD MM' (lat)"        },
-    {FORMAT_DEGREESMMSSLAT, "DD MM' SS.s\" (lat)" },
-    {FORMAT_MMSSLAT,        "MM' SS.s\" (lat)"    },
-    {FORMAT_YYYY,           "Year (YYYY)"         }
-};
-
-static OptionItem as_option_items[4] = 
+/*static OptionItem as_option_items[4] =
 {
     {AUTOSCALE_NONE, "None"},
     {AUTOSCALE_X,    "X"},
     {AUTOSCALE_Y,    "Y"},
     {AUTOSCALE_XY,   "XY"}
-};
+};*/
 
 struct DIAdem_Global_Header
 {
@@ -916,9 +1036,9 @@ struct DIAdem_Channel_Header * channels;
 #include <QString>
 struct LatexCommands
 {
-    char * la_com;
+    const char * la_com;
     char font;
-    char * ch;
+    const char * ch;
     QString utf8;
     unsigned short unicode;
 };

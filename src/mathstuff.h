@@ -66,6 +66,17 @@ double voigt(double gamma, double sigma, double x);
   double deg_uconst(void);
   double rad_uconst(void);
 
+/* the following functions are modified comparisons including a tolerance-value (the tolerance here is the representable range near b, i.e. the range between the next lower and higher double-value near b) */
+/* these functions behave like: if a is inside [b-tolerance,b+tolerance] then a is concidered as a==b */
+/* COMPARISON_TOLERANCE gives the amount of steps to be taken lower and higher than b */
+  int tolerant_lt(double a,double b); /*1 if a<next_lower_value_than(b)*/
+  int tolerant_gt(double a,double b); /*1 if a>next_higher_value_than(b)*/
+  int tolerant_leq(double a,double b);/*1 if a<next_higher_value_than(b)*/
+  int tolerant_geq(double a,double b);/*1 if a>next_lower_value_than(b)*/
+  int tolerant_eq(double a,double b); /*1 if a>next_lower_value_than(b) && a<next_higher_value_than(b)*/
+double low_tol_val(double a);
+double high_tol_val(double a);
+
 #ifdef __cplusplus
 }
 #endif

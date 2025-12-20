@@ -8,6 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -35,6 +36,7 @@
 
 #include "defines.h"
 #include "draw.h"
+#include "graphs.h"
 
 #ifndef M_PI
 #  define M_PI  3.14159265358979323846
@@ -87,8 +89,7 @@ void drawcirclexy(plotarr *p);
 void drawsetvmap(int gno, plotarr *p);
 void drawsetboxplot(plotarr *p);
 
-int drawxysym(VPoint vp, double size, int symtype,
-    Pen sympen, Pen symfillpen, char s);
+int drawxysym(VPoint vp, double size, int symtype, Pen sympen, Pen symfillpen, char s);
 void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb);
 
 void draw_region(int r);

@@ -54,7 +54,7 @@
 #include "../type1/objects.h"
 #include "../type1/spaces.h"
 #include "../type1/util.h"
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 #include "../type1/regions.h"
 
 
@@ -183,32 +183,32 @@ void *T1_InitLib( int log)
   T1_PrintLog( "T1_InitLib()", "System-Info: char is signed",
 	       T1LOG_DEBUG);
 #endif
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(char):         %d",
-	   SIZEOF_CHAR);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(char):         %lu",
+       (unsigned long)SIZEOF_CHAR);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(short):        %d",
-	   SIZEOF_SHORT);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(short):        %lu",
+       (unsigned long)SIZEOF_SHORT);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(int):          %d",
-	   SIZEOF_INT);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(int):          %lu",
+       (unsigned long)SIZEOF_INT);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(long):         %d",
-	   SIZEOF_LONG);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(long):         %lu",
+       (unsigned long)SIZEOF_LONG);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(long long):    %d",
-	   SIZEOF_LONG_LONG);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(long long):    %lu",
+       (unsigned long)SIZEOF_LONG_LONG);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(float):        %d",
-	   SIZEOF_FLOAT);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(float):        %lu",
+       (unsigned long)SIZEOF_FLOAT);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(double):       %d",
-	   SIZEOF_DOUBLE);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(double):       %lu",
+       (unsigned long)SIZEOF_DOUBLE);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(long double):  %d",
-	   SIZEOF_LONG_DOUBLE);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(long double):  %lu",
+       (unsigned long)SIZEOF_LONG_DOUBLE);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
-  sprintf( err_warn_msg_buf, "System-Info: sizeof(void *):       %d",
-	   SIZEOF_VOID_P);
+  sprintf( err_warn_msg_buf, "System-Info: sizeof(void *):       %lu",
+       (unsigned long)SIZEOF_VOID_P);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
   
   intT1_SetupDefaultSearchPaths();

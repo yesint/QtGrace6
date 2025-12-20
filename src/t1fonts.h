@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2014
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -104,6 +104,7 @@ typedef struct {
     int len;
     int font;
     int color;
+    int alpha;
     TextMatrix tm;
     double hshift;
     double vshift;
@@ -116,8 +117,10 @@ typedef struct {
     int ligatures;
     int kerning;
     int qtCharShift;
-    VPoint start;
-    VPoint stop;
+    /*start and stop give you a vector to indicate the length and orientation of the string*/
+    VPoint start;/*start-point of baseline*/
+    VPoint stop;/*end-point of baseline*/
+    double ascent,descent;/*how far the text goes above and below the baseline (perpendicular to baseline)*/
     GLYPH *glyph;
 } CompositeString;
 
@@ -129,7 +132,7 @@ typedef struct {
 
 int init_t1(void);
 
-int number_of_fonts(void);
+unsigned int number_of_fonts(void);
 char *get_fontname(int font);
 char *get_fontfullname(int font);
 char *get_fontfamilyname(int font);
@@ -146,11 +149,11 @@ double get_overline_pos(int font);
 double get_italic_angle(int font);
 double *get_kerning_vector(char *str, int len, int font);
 
-int get_font_by_name(char *fname);
+int get_font_by_name(const char *fname);
 int get_font_mapped_id(int font);
 int get_mapped_font(int mapped_id);
 int map_font(int font, int mapped_id);
-int map_font_by_name(char *fname, int mapped_id);
+int map_font_by_name(const char *fname, int mapped_id);
 void map_fonts(int map);
 int font_map_equals_font_ids(void);
 

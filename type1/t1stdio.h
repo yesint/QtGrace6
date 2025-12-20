@@ -68,9 +68,9 @@ typedef struct F_FILE {
  
 #define getc(f) \
   ( \
-   ( ((f)->b_cnt > 0) && ((f)->flags == 0) ) ? \
-   ( (f)->b_cnt--, (unsigned int)*( (f)->b_ptr++ ) ) : \
-   T1Getc(f) \
+   ( ((f)->b_cnt > 0) && ((f)->flags == (unsigned char)0 )) ? \
+   ( (unsigned int)((f)->b_cnt--), (unsigned int)*( (f)->b_ptr++ ) ) : \
+   (unsigned int)T1Getc(f) \
   )
  
 extern FILE *T1Open(), *T1eexec();

@@ -51,7 +51,7 @@
 #include "../type1/objects.h"
 #include "../type1/spaces.h"
 #include "../type1/util.h"
-#include "../type1/fontfcn.h"
+//#include "../type1/fontfcn.h"
 #include "../type1/blues.h"
 #include "../type1/regions.h"
 
@@ -65,17 +65,13 @@
 #include "t1finfo.h"
 #include "t1afmtool.h"
 
-
-
 extern psobj *StdEncArrayP;       /* For checking of a fonts encoding */
 extern char not_def[];            /* for checking the ".notdef"-string */
-
-
 
 /* T1_LoadFont(FontID): Loads a Type1 font into memory and allocates all
    memory, necessary for this. */
 
-int T1_LoadFont( int FontID)
+int T1_LoadFont(int FontID)
 {
   int i, j, k, l, m;
   char *FileName, *FileNamePath;
@@ -490,7 +486,7 @@ int T1_LoadFont( int FontID)
 		 i ,FontID);
 	T1_PrintLog( "T1_LoadFont()", err_warn_msg_buf, T1LOG_STATISTIC);
 	if ((pFontBase->pFontArray[FontID].pAFMData=
-	     T1_GenerateAFMFallbackInfo(FontID))==NULL){
+         T1_GenerateAFMFallbackInfo(FontID))==NULL){
 	  sprintf( err_warn_msg_buf,
 		   "Ultimately failed to generate metrics information Font %d!",
 		   FontID);
@@ -716,7 +712,7 @@ int T1_LoadFont( int FontID)
   }
   
   pFontBase->pFontArray[FontID].OvrLnPos=ascender
-    + (float) abs( (double)pFontBase->pFontArray[FontID].UndrLnPos);
+    + (float) fabs( (double)pFontBase->pFontArray[FontID].UndrLnPos);
   pFontBase->pFontArray[FontID].OvrStrkPos=ascender / 2.0;
   pFontBase->pFontArray[FontID].OvrLnThick=pFontBase->pFontArray[FontID].UndrLnThick;
   pFontBase->pFontArray[FontID].OvrStrkThick=pFontBase->pFontArray[FontID].UndrLnThick;

@@ -7,7 +7,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  *
  *                           All Rights Reserved
  *
@@ -42,11 +42,13 @@
 #include "cmath.h"
 #include "draw.h"
 #include "graphs.h"
-#include "patterns.h"
+//#include "patterns.h"
 #include "svgdrv.h"
 #include "external_libs.h"
 #include "pdfdrv.h"
 #include "QObject"
+#include <QDebug>
+#include <QFile>
 
 using namespace std;
 
@@ -61,7 +63,8 @@ static Device_entry dev_pdf = {
     TRUE,
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72},
     NULL,
-    1
+    1,
+    ""
 };
 
 int register_pdf_drv(void)
@@ -73,8 +76,8 @@ static unsigned long page_scale;
 static float pixel_size;
 static float page_scalef;
 
-static int *pdf_font_ids;
-static int *pdf_pattern_ids;
+/*static int *pdf_font_ids;
+static int *pdf_pattern_ids;*/
 
 static int pdf_color;
 static int pdf_pattern;
@@ -575,7 +578,7 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     xfree(buf);
 }
 
-static char *pdf_builtin_fonts[] = 
+static const char *pdf_builtin_fonts[] =
 {
     "Times-Roman",              /// 0
     "Times-Italic",             /// 1
@@ -778,6 +781,7 @@ extern Prototype_HPDF_AddPage libHaru_HPDF_AddPage;
 extern Prototype_HPDF_Free libHaru_HPDF_Free;
 extern Prototype_HPDF_SaveToFile libHaru_HPDF_SaveToFile;
 extern Prototype_HPDF_New libHaru_HPDF_New;
+extern Prototype_HPDF_ResetError libHaru_HPDF_ResetError;
 extern Prototype_HPDF_Page_GetWidth libHaru_HPDF_Page_GetWidth;
 extern Prototype_HPDF_Page_GetHeight libHaru_HPDF_Page_GetHeight;
 extern Prototype_HPDF_GetFont libHaru_HPDF_GetFont;
@@ -826,13 +830,14 @@ static Device_entry dev_haru_pdf = {DEVICE_FILE,
                                FALSE,
                                {792, 612, 72.0},
                                NULL,
-                               1
+                               1,
+                               "HPDF"
                               };
 //std-size changed from{3300, 2550, 300.0},
 
 static HPDF_Doc  pdf;
 static HPDF_Page page;
-static jmp_buf env;
+//static jmp_buf env;
 
 int nr_of_dash_patterns=0;
 int nr_of_alloc_dash_patterns=0;
@@ -875,8 +880,13 @@ y0/=1.0*n;
 
 void error_handler(HPDF_STATUS   error_no,HPDF_STATUS   detail_no,void *user_data)
 {
-    printf ("ERROR: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
-    longjmp(env, 1);
+    (void) user_data;
+    char err_buf[128];
+    sprintf(err_buf,"Problem while saving pdf: error_no=%04X, detail_no=%u", (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
+    errmsg(err_buf);
+    //longjmp(env, 1);
+    throw std::exception();
+    libHaru_HPDF_ResetError(pdf);
 }
 
 int register_haru_pdf_drv(void)
@@ -1019,6 +1029,7 @@ int haru_pdf_initgraphics(void)
     devleavegraphics = haru_pdf_leavegraphics;
 
     pg = get_page_geometry();
+//qDebug() << "target pg:" << pg.width << "x" << pg.height;
 
     page_scale = MIN2(pg.height, pg.width);
     pixel_size = 1.0/page_scale;
@@ -1043,27 +1054,30 @@ int haru_pdf_initgraphics(void)
         return RETURN_FAILURE;
     }
 
-    if (setjmp(env)) {
+    /*if (setjmp(env)) {
         libHaru_HPDF_Free (pdf);
 //cout << "FAILURE setjmp: FREE PDF" << endl;
         return RETURN_FAILURE;
-    }
+    }*/
 
     libHaru_HPDF_SetCompressionMode(pdf, HPDF_COMP_ALL);
     //libHaru_HPDF_SetCurrentEncoder(pdf, "WinAnsiEncoding");
 
     libHaru_HPDF_SetInfoAttr(pdf,HPDF_INFO_SUBJECT,get_project_description());
-    libHaru_HPDF_SetInfoAttr(pdf,HPDF_INFO_CREATOR,"QtGrace v0.2.5a");
+    char dummy_n[GR_MAXPATHLEN+2];
+    sprintf(dummy_n,"QtGrace %s",QTGRACE_VERSION_STRING);
+    libHaru_HPDF_SetInfoAttr(pdf,HPDF_INFO_CREATOR,dummy_n);
 
     /* add a new page object. */
     page = libHaru_HPDF_AddPage (pdf);
 
-//cout << "pdf: size=" << libHaru_HPDF_Page_GetWidth(page) << "x" << libHaru_HPDF_Page_GetHeight(page) << endl;
+//qDebug() << "pdf: size=" << libHaru_HPDF_Page_GetWidth(page) << "x" << libHaru_HPDF_Page_GetHeight(page) << endl;
+//qDebug() << "target pg:" << pg.width << "x" << pg.height;
 
     libHaru_HPDF_Page_SetHeight (page, pg.height);
     libHaru_HPDF_Page_SetWidth (page, pg.width);
 
-//cout << "pdf: size=" << libHaru_HPDF_Page_GetWidth(page) << "x" << libHaru_HPDF_Page_GetHeight(page) << endl;
+//qDebug() << "pdf: size=" << libHaru_HPDF_Page_GetWidth(page) << "x" << libHaru_HPDF_Page_GetHeight(page) << endl;
 
     /// phandle = PDF_new2(pdf_error_handler, NULL, NULL, NULL, (void *) prstream);
 /*    if (phandle == NULL) {
@@ -1110,10 +1124,24 @@ int haru_pdf_initgraphics(void)
 
 void haru_pdf_leavegraphics(void)
 {
+/*QFile fi(print_file);
+if (fi.exists()==true)
+{
+qDebug() << "File exists --> delete it!";
+qDebug() << "Success?" << fi.remove();
+}*/
+try
+{
     /* save the document to a file */
     libHaru_HPDF_SaveToFile(pdf, print_file);
+}
+catch (...)
+{
+qDebug() << "Error during pdf-save!";
+}
     /* clean up */
     libHaru_HPDF_Free(pdf);
+
 //cout << "PrintFile: " << print_file << endl;
 }
 
@@ -1122,6 +1150,7 @@ void haru_pdf_puttext(VPoint vp, char *s, int len, int font,
 {
 static float tw;
 static double w, pos;
+(void) kerning;
 
 if (useQtFonts==true)
 {
@@ -1148,6 +1177,7 @@ return;//do not plot text if QtFonts are to be used
     fsize*=page_scale*9.0/445.0*1.38;//why *1.38 ?
 
 //cout << "PutText: " << tmp_txt << " font_size=" << fsize << endl;
+//cout << "Text=" << tmp_txt << " Pos=" << (float)vp.x*page_scale << "|" << (float)vp.y*page_scale << endl;
 
     libHaru_HPDF_Page_SetFontAndSize(page, pdf_font, (float)fsize);
     libHaru_HPDF_Page_BeginText(page);
@@ -1250,7 +1280,7 @@ void haru_pdf_drawpixel(VPoint vp)
         /// PDF_setpolydash(phandle, NULL, 0);
         pdf_lines = 1;
     }
-
+//cout << "Pixel: pos=" << (float) vp.x*page_scale << "|" << (float) vp.y*page_scale << endl;
     libHaru_HPDF_Page_MoveTo(page, (float) vp.x*page_scale, (float) vp.y*page_scale);
     libHaru_HPDF_Page_LineTo(page, (float) vp.x*page_scale, (float) vp.y*page_scale);
     libHaru_HPDF_Page_Stroke(page);
@@ -1279,6 +1309,7 @@ if (linepattern==0 || linepattern==8) return;//invisible patterns
     {
     nvps[0][i]=(float) (vps[i].x*page_scale);
     nvps[1][i]=(float) (vps[i].y*page_scale);
+    //cout << "polyline: pos=" << nvps[0][i] << "|" << nvps[1][i] << endl;
     }
 
 center_of_mass(nvps[0],nvps[1],n,x_0,y_0);
@@ -1330,6 +1361,7 @@ pattern=getpattern();
     {
     nvps[0][i]=(float) (vps[i].x*page_scale);
     nvps[1][i]=(float) (vps[i].y*page_scale);
+    //cout << "fill polyline: pos=" << nvps[0][i] << "|" << nvps[1][i] << endl;
     }
 center_of_mass(nvps[0],nvps[1],nc,x_0,y_0);
 rad=-RotationAngle*M_PI/180.0;
@@ -1364,7 +1396,7 @@ libHaru_HPDF_Page_GRestore(page);
 void haru_pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
 {
 static VPoint vpc;
-static float rx, ry, rfactor;
+static float rx, ry;//, rfactor;
 static double rad;
 
     if (getlinestyle() == 0)
@@ -1382,20 +1414,18 @@ if (linepattern==0 || linepattern==8) return;//invisible patterns
     vpc.y = (vp1.y + vp2.y)*0.5*page_scale;
     rx = (float)(fabs(vp2.x - vp1.x)*0.5*page_scale);
     ry = (float)(fabs(vp2.y - vp1.y)*0.5*page_scale);
-
+    //cout << "drawarc rx=" << rx << " ry=" << ry << " vpc.x=" << vpc.x << " vpc.y=" << vpc.y << " a1=" << a1 << "a2=" << a2 << endl;
     if (rx == 0.0 || ry == 0.0)
     {
         return;
     }
-    rfactor = ry/rx;
-
+    //rfactor = ry/rx;
 rad=-RotationAngle*M_PI/180.0;
 libHaru_HPDF_Page_GSave(page);
 libHaru_HPDF_Page_Concat(page, cos(rad), sin(rad), -sin(rad), cos(rad), (float) vpc.x,(float) vpc.y);
-
 //cout << "center= " << vpc.x*page_scale << " | "<< vpc.y*page_scale << " Radius=" << rx*page_scale << " a1=" << a1 << " a2=" << a2 << endl;
-
-    if(a1==0 && a2==360)
+    //if(a1==0 && a2==360)
+    if (a2-a1>=360)//a full circle
     {
     //libHaru_HPDF_Page_Ellipse(page,(float) vpc.x*page_scale,(float) vpc.y*page_scale,(float) rx*page_scale,(float) ry*page_scale);
     libHaru_HPDF_Page_Ellipse(page,(float) 0.0,(float) 0.0, rx, ry);
@@ -1404,17 +1434,14 @@ libHaru_HPDF_Page_Concat(page, cos(rad), sin(rad), -sin(rad), cos(rad), (float) 
     {
     libHaru_HPDF_Page_Arc(page,(float) 0.0,(float) 0.0,(float) rx, 90-a2, 90-a1);
     }
-
     libHaru_HPDF_Page_Stroke(page);
-
 libHaru_HPDF_Page_GRestore(page);
-
 }
 
 void haru_pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
 static VPoint vpc;
-static float rx, ry, rfactor;
+static float rx, ry;//rfactor;
 static int pattern;
 static double rad;
 static int fg_color;
@@ -1429,23 +1456,19 @@ pattern=getpattern();
     vpc.y = (vp1.y + vp2.y)*0.5*page_scale;
     rx = (float)(fabs(vp2.x - vp1.x)*0.5*page_scale);
     ry = (float)(fabs(vp2.y - vp1.y)*0.5*page_scale);
-
+    //cout << "fillarc rx=" << rx << " ry=" << ry << " vpc.x=" << vpc.x << " vpc.y=" << vpc.y << endl;
     if (rx == 0.0 || ry == 0.0)
     {
         return;
     }
-    rfactor = ry/rx;
-
+    //rfactor = ry/rx;
 rad=-RotationAngle*M_PI/180.0;
 libHaru_HPDF_Page_GSave(page);
 libHaru_HPDF_Page_Concat(page, cos(rad), sin(rad), -sin(rad), cos(rad), (float) vpc.x,(float) vpc.y);
-
     fg_color=getcolor();//for filling something
     fRGB * frgb = get_frgb(fg_color);
-
     libHaru_HPDF_Page_SetRGBFill(page, (float) frgb->red, (float) frgb->green, (float) frgb->blue);
     ///do not use Stroke here! only fill!
-
     if (mode==ARCFILL_PIESLICE)//only segment not pie
     {
     libHaru_HPDF_Page_MoveTo(page,0,0);
@@ -1467,9 +1490,7 @@ libHaru_HPDF_Page_Concat(page, cos(rad), sin(rad), -sin(rad), cos(rad), (float) 
     libHaru_HPDF_Page_Eofill(page);
     else*/
     libHaru_HPDF_Page_Fill(page);
-
 libHaru_HPDF_Page_GRestore(page);
-
 }
 
 /* TODO: transparent pixmaps */
@@ -1477,12 +1498,12 @@ void haru_pdf_putpixmap(VPoint vp, int width, int height, char *databits,
                    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     char *buf, *bp;
-    int image;
+    /*int image;*/
     int cindex;
     RGB *fg, *bg;
     int	i, k, j;
     long paddedW;
-
+    (void) pixmap_type;
     int components    = 3;
 
     buf = (char*) xmalloc(width*height*components);
@@ -1536,6 +1557,9 @@ void haru_pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     PDF_close_image(phandle, image);
 
     xfree(buf);*/
+
+    /* Putting pixmap is not implemented yet */
+    (void)vp;
 }
 
 

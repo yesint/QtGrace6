@@ -53,9 +53,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 extern double MACHEP;
 
-double jn( n, x )
-int n;
-double x;
+double jn(int n,double x )
 {
 double pkm2, pkm1, pk, xk, r, ans;
 int k, sign;

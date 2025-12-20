@@ -8,7 +8,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  *
  *                           All Rights Reserved
  *
@@ -41,6 +41,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdarg.h>
+
 #ifdef _MSC_VER
 #include <direct.h>
 #else
@@ -104,28 +106,34 @@
 #include "noxprotos.h"
 #include "MainWindow.h"
 #include "allWidgets.h"
+#include "windowWidgets.h"
 
 extern bool useQtFonts;
 extern MainWindow * mainWin;
 extern frmProgressWin * FormProgress;
 extern frmQuestionDialog * FormQuestion;
+extern bailoutQuestion * FormBailoutQuestion;
 extern frmConsole * FormConsole;
-extern int yesnowin(const char * msg,char * s1,char * s2,char * help_anchor);
+extern int yesnowin(const char * msg,const char * s1,const char * s2,const char * help_anchor);
 extern void CheckLaTeXLinesForAddress(char * o_adr,char * n_adr);
 extern void initNodes(void);
+extern void removeAllWindows(void);
 extern void write_settings(void);
 
-static void rereadConfig(void);
+//static void rereadConfig(void);
 /*static RETSIGTYPE actOnSignal(int signo);*/
 static void bugwarn(char *signame);
 extern void replaceSuffix(QString & fpath,QString n_suffix);
 extern QString getFileNameOnly(QString filepath);
 
+#ifdef DEBUG_OUT_LOG
+extern ofstream debug_out;
+#endif
+
 #ifndef WINDOWS_SYSTEM
 struct utsname u_info;
 time_t time_info;
 #endif
-static char ctime_string[256];
 extern char BI_VERSION[128];
 extern char BI_SYSTEM[256];
 
@@ -218,7 +226,7 @@ void iswap(int *x, int *y)
     *y = tmp;
 }
 
-int isoneof(int c, char *s)
+int isoneof(int c,const char *s)
 {
     while (*s) {
         if (c == *s) {
@@ -230,7 +238,7 @@ int isoneof(int c, char *s)
     return 0;
 }
 
-int argmatch(char *s1, char *s2, int atleast)
+int argmatch(char *s1,const char *s2, int atleast)
 {
     int l1 = strlen(s1);
     int l2 = strlen(s2);
@@ -306,7 +314,7 @@ double comp_area(int n, double *x, double *y)
 {
     int i;
     double sum = 0.0;
-
+if (x==NULL || y==NULL) return 0.0;//for safety!
     for (i = 0; i < n; i++) {
         sum = sum + x[i] * y[(i + 1) % n] - y[i] * x[(i + 1) % n];
     }
@@ -320,18 +328,46 @@ double comp_perimeter(int n, double *x, double *y)
 {
     int i;
     double sum = 0.0;
-
+if (x==NULL || y==NULL) return 0.0;//for safety!
     for (i = 0; i < n - 1; i++) {
         sum = sum + hypot(x[i] - x[(i + 1) % n], y[i] - y[(i + 1) % n]);
     }
     return sum;
 }
 
-char *dayofweekstrs[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-char *dayofweekstrl[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-char *monthl[] = {"January", "February", "March", "April", "May", "June",
-                  "July", "August", "September", "October", "November", "December"};
+const char *dayofweekstrs[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+const char *dayofweekstrl[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+const char *monthl[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+
+int which_day_of_week(const char * day)
+{
+int ret=-1,i;
+for (i=0;i<7;i++)
+{
+    if (strcmp(dayofweekstrs[i],day)==0 || strcmp(dayofweekstrl[i],day)==0)
+    {
+    ret=i-1;
+    if (ret<0) ret+=7;//because Monday is 0
+    break;
+    }
+}
+return ret;
+}
+
+int which_month_of_year(const char * month)
+{
+int ret=-1,i;
+for (i=0;i<12;i++)
+{
+    if (strcmp(months[i],month)==0 || strcmp(monthl[i],month)==0)
+    {
+    ret=i+1;
+    break;
+    }
+}
+return ret;
+}
 
 int dayofweek(double j)
 {
@@ -402,13 +438,20 @@ int bailout(void)
 {
 bool ret=false;
 int ret2;
-if (enableServerMode == TRUE || gracebat == TRUE || !is_dirtystate())//do not ask
+#ifdef DEBUG_OUT_LOG
+debug_out << "Bailout." << endl;
+#endif
+if (enableServerMode == TRUE || gracebat == TRUE || !is_dirtystate() || noask)//do not ask
 {
 ret=true;
 }
 else
 {
+///we have to ask here
 ret2=yesnosave(0);
+#ifdef DEBUG_OUT_LOG
+debug_out << "Closing question: return-value=" << ret2 << endl;
+#endif
 return ret2;
 }
     if (!is_dirtystate() || ret)
@@ -418,18 +461,26 @@ return ret2;
         grace_close(resfp);
         }
         //qApp->quit();
+#ifdef DEBUG_OUT_LOG
+debug_out << "Just closing QtGrace." << endl;
+#endif
         return 1;
     }
+#ifdef DEBUG_OUT_LOG
+debug_out << "Bailout halted." << endl;
+#endif
 return 0;
 }
 
 /*
  * Reread config (TODO)
  */
+#ifdef SIGHUP
 static void rereadConfig(void)
 {
-    /*    getparms("gracerc");*/
+//getparms("gracerc");
 }
+#endif
 
 static void please_report_the_bug(void)
 {
@@ -515,8 +566,12 @@ RETSIGTYPE actOnSignal(int signo)
 #endif
         if (bailout()!=0)
         {
+            removeAllWindows();
             write_settings();
             initNodes();//to clear all Contents of the undo-list
+            #ifdef DEBUG_OUT_LOG
+            debug_out.close();
+            #endif
             qApp->exit(0);
         }
         break;
@@ -587,11 +642,13 @@ void installSignal(void){
 /* create format string */
 char *create_fstring(int form, int prec, double loc, int type)
 {
-    char format[64], *eng_prefix,*comp_prefix;
-    static char s[MAX_STRING_LENGTH];
+static char format[64],c_frac_sec[32];
+    //char yformat[16];
+    const char * comp_prefix, *eng_prefix;
+static char s[MAX_STRING_LENGTH];
     double tmp;
-    int m, d, y, h, mm, sec;
-    double arcmin, arcsec;
+    int m, d, y, h, mm, sec, day_of_year,i_frac_sec;
+    double arcmin, arcsec, fracsec;
     int exponent;
     double mantissa;
     int yprec;
@@ -601,6 +658,8 @@ char *create_fstring(int form, int prec, double loc, int type)
     } else {
         yprec = 4;
     }
+    //sprintf(yformat,"%%0%dd",yprec);
+    //qDebug() << "YFORMAT=" << yformat;
 
     /* for locale decimal points */
     set_locale_num(TRUE);
@@ -786,7 +845,7 @@ char *create_fstring(int form, int prec, double loc, int type)
             if (type == LFORMAT_TYPE_EXTENDED) {
                 strcpy(format, "-10\\S%.*lf\\N");
             } else {
-                strcpy(format, "-10(%.*lf)\\N");
+                strcpy(format, "-10(%.*lf)");
             }
         } else if (loc == 0.0) {
             sprintf(format, "%.*f", prec, 0.0);
@@ -795,7 +854,7 @@ char *create_fstring(int form, int prec, double loc, int type)
             if (type == LFORMAT_TYPE_EXTENDED) {
                 strcpy(format, "10\\S%.*lf\\N");
             } else {
-                strcpy(format, "10(%.*lf)\\N");
+                strcpy(format, "10(%.*lf)");
             }
         }
         sprintf(s, format, prec, loc);
@@ -811,32 +870,62 @@ char *create_fstring(int form, int prec, double loc, int type)
         }
         break;
     case FORMAT_DDMMYY:
-        strcpy(format, "%02d-%02d-%0*d");
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%02d-%02d-%0*d");
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%02d.%02d.%0*d");
+            else
+            strcpy(format, "%02d/%02d/%0*d");
         jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
         sprintf(s, format, d, m, yprec, y);
         break;
     case FORMAT_MMDDYY:
-        strcpy(format, "%02d-%02d-%0*d");
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%02d-%02d-%0*d");
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%02d.%02d.%0*d");
+            else
+            strcpy(format, "%02d/%02d/%0*d");
         jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
         sprintf(s, format, m, d, yprec, y);
         break;
     case FORMAT_YYMMDD:
-        strcpy(format, "%0*d-%02d-%02d");
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%0*d-%02d-%02d");
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%0*d.%02d.%02d");
+            else
+            strcpy(format, "%0*d/%02d/%02d");
         jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
         sprintf(s, format, yprec, y, m, d);
         break;
     case FORMAT_MMYY:
-        strcpy(format, "%02d-%0*d");
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%02d-%0*d");
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%02d.%0*d");
+            else
+            strcpy(format, "%02d/%0*d");
         jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
         sprintf(s, format, m, yprec, y);
         break;
     case FORMAT_MMDD:
-        strcpy(format, "%02d-%02d");
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%02d-%02d");
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%02d.%02d");
+            else
+            strcpy(format, "%02d/%02d");
         jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
         sprintf(s, format, m, d);
         break;
     case FORMAT_MONTHDAY:
-        strcpy(format, "%s-%02d");
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%s-%02d");
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%s.%02d");
+            else
+            strcpy(format, "%s/%02d");
         jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
         if (m - 1 < 0 || m - 1 > 11) {
             sprintf(s, format, "???");
@@ -845,7 +934,12 @@ char *create_fstring(int form, int prec, double loc, int type)
         }
         break;
     case FORMAT_DAYMONTH:
-        strcpy(format, "%02d-%s");
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%02d-%s");
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%02d.%s");
+            else
+            strcpy(format, "%02d/%s");
         jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
         if (m - 1 < 0 || m - 1 > 11) {
             sprintf(s, format, "???");
@@ -863,7 +957,12 @@ char *create_fstring(int form, int prec, double loc, int type)
         }
         break;
     case FORMAT_MONTHSY:
-        strcpy(format, "%s-%0*d");
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%s-%0*d");
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%s.%0*d");
+            else
+            strcpy(format, "%s/%0*d");
         jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
         if (m - 1 < 0 || m - 1 > 11) {
             sprintf(s, format, "???");
@@ -898,25 +997,67 @@ char *create_fstring(int form, int prec, double loc, int type)
         sprintf(s, format,
                 1 + (int) (cal_to_jul(y, m, d) - cal_to_jul(y, 1, 1)));
         break;
+#define MSECS(x) (((int) floor(x * 1000.0)) % 1000) //msec
+#define SECS_FMT "%02d.%03d"
+#define HMS_FMT "%02d:%02d:" SECS_FMT
+#define HMS_FMT_S "%02d:%02d:%02d"
     case FORMAT_HMS:
+        //strcpy(format, HMS_FMT);
+        jul_to_cal_and_time_with_frac(loc, -prec, &y, &m, &d, &h, &mm, &sec, &fracsec);
+        if (prec==0)//no fractions of seconds
+        {
         strcpy(format, "%02d:%02d:%02d");
-        jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
         sprintf(s, format, h, mm, sec);
+        }
+        else//format includes fractions of seconds
+        {
+        i_frac_sec=(((int) floor(fracsec * pow(10.0,1.0*prec))) % ((int)pow(10.0,1.0*prec)));
+        sprintf(c_frac_sec,"%s.%%0%dd","%02d:%02d:%02d",prec);
+        strcpy(format, c_frac_sec);
+        sprintf(s, format, h, mm, sec, i_frac_sec);
+        }
         break;
     case FORMAT_MMDDHMS:
-        strcpy(format, "%02d-%02d %02d:%02d:%02d");
-        jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-        sprintf(s, format, m, d, h, mm, sec);
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%02d-%02d " HMS_FMT_S);
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%02d.%02d " HMS_FMT_S);
+            else
+            strcpy(format, "%02d/%02d " HMS_FMT_S);
+        jul_to_cal_and_time_with_frac(loc, NO_ROUND, &y, &m, &d, &h, &mm, &sec, &fracsec);
+        sprintf(s, format, m, d, h, mm, sec, MSECS(fracsec));
         break;
     case FORMAT_MMDDYYHMS:
-        strcpy(format, "%02d-%02d-%d %02d:%02d:%02d");
-        jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-        sprintf(s, format, m, d, y, h, mm, sec);
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%02d-%02d-%0*d " HMS_FMT_S);
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%02d.%02d.%0*d " HMS_FMT_S);
+            else
+            strcpy(format, "%02d/%02d/%0*d " HMS_FMT_S);
+        jul_to_cal_and_time_with_frac(loc, NO_ROUND, &y, &m, &d, &h, &mm, &sec, &fracsec);
+        sprintf(s, format, m, d, yprec, y, h, mm, sec, MSECS(fracsec));
         break;
     case FORMAT_YYMMDDHMS:
-        strcpy(format, "%0*d-%02d-%02d %02d:%02d:%02d");
-        jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-        sprintf(s, format, yprec, y, m, d, h, mm, sec);
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%0*d-%02d-%02d " HMS_FMT_S);
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%0*d.%02d.%02d " HMS_FMT_S);
+            else
+            strcpy(format, "%0*d/%02d/%02d " HMS_FMT_S);
+        jul_to_cal_and_time_with_frac(loc, NO_ROUND, &y, &m, &d, &h, &mm, &sec, &fracsec);
+        /*	secloc = loc / (24.0*3600.0);
+            msec = ((int)((secloc - floor(secloc))* 1000.0)) % 1000;*/
+        sprintf(s, format, yprec, y, m, d, h, mm, sec, MSECS(fracsec));
+        break;
+    case FORMAT_YYDYHMS:
+            if (current_date_separator==DATE_SEPARATOR_MINUS)
+            strcpy(format, "%0*d-%03d-" HMS_FMT);/*Warning: this will show seconds and milliseconds*/
+            else if (current_date_separator==DATE_SEPARATOR_DOT)
+            strcpy(format, "%0*d.%03d." HMS_FMT);/*Warning: this will show seconds and milliseconds*/
+            else
+            strcpy(format, "%0*d/%03d/" HMS_FMT);/*Warning: this will show seconds and milliseconds*/
+        jul_to_cal_and_time_with_yday(loc, NO_ROUND, &y, &m, &d, &h, &mm, &sec, &fracsec, &day_of_year);
+        sprintf(s, format, yprec, y, day_of_year, h, mm, sec, MSECS(fracsec));
         break;
     case FORMAT_DEGREESLON:
         if (loc < 0.0) {
@@ -1030,6 +1171,38 @@ char *create_fstring(int form, int prec, double loc, int type)
         sprintf(s, format, prec, loc);
         break;
     }
+
+    /*if (current_date_separator!=DATE_SEPARATOR_MINUS)
+    {
+    QString tmp_s(s);
+        switch(form)
+        {
+        default:
+        ;
+        break;
+        case FORMAT_DDMMYY:
+        case FORMAT_MMDDYY:
+        case FORMAT_YYMMDD:
+        case FORMAT_MMYY:
+        case FORMAT_MMDD:
+        case FORMAT_MONTHDAY:
+        case FORMAT_DAYMONTH:
+        case FORMAT_MONTHSY:
+        case FORMAT_MMDDHMS:
+        case FORMAT_MMDDYYHMS:
+        case FORMAT_YYMMDDHMS:
+            if (current_date_separator==DATE_SEPARATOR_DASH)
+            {
+            tmp_s=tmp_s.replace("-","/");
+            }
+            else//.
+            {
+            tmp_s=tmp_s.replace("-",".");
+            }
+        strcpy(s,tmp_s.toLocal8Bit().constData());
+        break;
+        }
+    }*/
 
     /* revert to POSIX */
     set_locale_num(FALSE);
@@ -1158,6 +1331,7 @@ char *get_grace_home(void)
 void set_grace_home(const char *dir)
 {
     strncpy(grace_home, dir, GR_MAXPATHLEN - 1);
+    grace_home[GR_MAXPATHLEN - 1]='\0';
 }
 
 /* print command */
@@ -1171,6 +1345,7 @@ char *get_print_cmd(void)
 void set_print_cmd(const char *cmd)
 {
     strncpy(print_cmd, cmd, GR_MAXPATHLEN - 1);
+    print_cmd[GR_MAXPATHLEN - 1]='\0';
 }
 
 /* editor */
@@ -1184,6 +1359,7 @@ char *get_editor(void)
 void set_editor(const char *cmd)
 {
     strncpy(grace_editor, cmd, GR_MAXPATHLEN - 1);
+    grace_editor[GR_MAXPATHLEN - 1]='\0';
 }
 
 static char help_viewer[GR_MAXPATHLEN] = GRACE_HELPVIEWER;	
@@ -1196,6 +1372,7 @@ char *get_help_viewer(void)
 void set_help_viewer(const char *dir)
 {
     strncpy(help_viewer, dir, GR_MAXPATHLEN - 1);
+    help_viewer[GR_MAXPATHLEN - 1]='\0';
 }
 
 /* project file name */
@@ -1223,7 +1400,6 @@ return buf;
 char *get_exportfilename(void)
 {
 static char buf[GR_MAXPATHLEN];
-char *bufp;
 strcpy(buf, mybasename(exportname));
 return buf;
 }
@@ -1232,6 +1408,7 @@ void set_exportname(const char *s)
 {
     if (s != NULL) {
         strncpy(exportname, s, GR_MAXPATHLEN - 1);
+        exportname[GR_MAXPATHLEN - 1]='\0';
     } else {
         strcpy(exportname, NONAME);
     }
@@ -1267,6 +1444,7 @@ void set_docname(const char *s)
 {
     if (s != NULL) {
         strncpy(docname, s, GR_MAXPATHLEN - 1);
+        docname[GR_MAXPATHLEN - 1]='\0';
     QString pf1(QString::fromLocal8Bit(s));
     Device_entry dev = get_device_props(hdevice);
     replaceSuffix(pf1,QString(dev.fext));
@@ -1281,10 +1459,15 @@ void set_docname(const char *s)
 
 void errmsg(const char *buf)
 {
-    if (!inwin)
-    {
+//qDebug() << "errmsg:" << buf;
+    /*if (!inwin)
+    {*/
     fprintf(stderr, "%s\n", buf);
-    }
+#ifdef DEBUG_OUT_LOG
+debug_out << "ERROR-MESSAGE: " << buf << endl;
+#endif
+    //}
+if (gracebat==TRUE || startupphase) return;//no graphical messages for gracebat or during startup
 #ifndef NONE_GUI
     if (disableConsole)
     {
@@ -1292,10 +1475,12 @@ void errmsg(const char *buf)
         {
             FormConsole=new frmConsole(mainWin);
         }
+//qDebug() << "A Console-Size" << FormConsole->size();
         FormConsole->show();
         FormConsole->raise();
         FormConsole->errwin(buf);
-        qApp->processEvents();
+        /// qApp->processEvents();
+//qDebug() << "B Console-Size" << FormConsole->size();
     }
     /*else {
         fprintf(stderr, "%s\n", buf);
@@ -1303,21 +1488,62 @@ void errmsg(const char *buf)
 #endif
 }
 
-int yesnoterm(char *msg)
+int yesnoterm(const char *msg)
 {
+    (void)msg;
     return 1;
 }
 
 int yesnosave(int version)//version=0 --> Exit / version=1 --> just load something else
 {
+bool save_on=false,saveas_on=false;
+save_no_ask=noask;
+if (is_dirtystate())//unsaved data
+{
+saveas_on=true;
+if (strcmp(get_docname(),NONAME)!=0) save_on=true;//the project already has a name, offer to save it under that name
+}
+int ret0=FormBailoutQuestion->askBailout((version==0?true:false),save_on,saveas_on);
+switch (ret0)
+{
+case 0://OK - Yes
+    noask=save_no_ask;
+    return ANSWER_YES;
+break;
+default:
+case 1://Cancel - No
+    noask=save_no_ask;
+    return ANSWER_NO;
+break;
+case 2://Save
+        if (version==0)//exit
+        mainWin->future_load_status=3;
+        else//load
+        mainWin->future_load_status=1;
+    mainWin->Save();
+    noask=save_no_ask;
+    return ANSWER_YES;
+break;
+case 3://SaveAs
+        if (version==0)//exit
+        mainWin->future_load_status=3;
+        else//load
+        mainWin->future_load_status=2;
+    mainWin->SaveAs();
+    noask=save_no_ask;
+    return ANSWER_NO;
+break;
+}
+///function ends here!
+/*
 //int ret=QMessageBox::question(0,QString("Error"),QString(msg),QMessageBox::Yes | QMessageBox::No | QMessageBox::Save,QMessageBox::No);
 int ret2;
 if (general_behavior==0)//like Grace
 {
     if (version==0)
-    ret2=QMessageBox::question(mainWin,QObject::tr("Exit QtGrace"),QObject::tr("Exit losing unsaved changes?"),QMessageBox::Yes|QMessageBox::No|QMessageBox::Save);
+    ret2=QMessageBox::question(mainWin,QObject::tr("Exit QtGrace"),QObject::tr("Exit losing unsaved changes?"),QMessageBox::Yes|QMessageBox::No|QMessageBox::Save,QMessageBox::No);
     else
-    ret2=QMessageBox::question(mainWin,QObject::tr("Close project"),QObject::tr("Abandon unsaved changes?"),QMessageBox::Yes|QMessageBox::No|QMessageBox::Save);
+    ret2=QMessageBox::question(mainWin,QObject::tr("Close project"),QObject::tr("Abandon unsaved changes?"),QMessageBox::Yes|QMessageBox::No|QMessageBox::Save,QMessageBox::No);
 
     if (ret2==QMessageBox::Save)
     {
@@ -1335,9 +1561,9 @@ if (general_behavior==0)//like Grace
 else//like QtGrace
 {
     if (version==0)
-    ret2=QMessageBox::question(mainWin,QObject::tr("Exit QtGrace"),QObject::tr("Content of current project changed!\nSave project?"),QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel);
+    ret2=QMessageBox::question(mainWin,QObject::tr("Exit QtGrace"),QObject::tr("Content of current project changed!\nSave project?"),QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel,QMessageBox::Cancel);
     else
-    ret2=QMessageBox::question(mainWin,QObject::tr("Close project"),QObject::tr("Content of current project changed!\nSave project?"),QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel);
+    ret2=QMessageBox::question(mainWin,QObject::tr("Close project"),QObject::tr("Content of current project changed!\nSave project?"),QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel,QMessageBox::Cancel);
 
     if (ret2==QMessageBox::Save)
     {
@@ -1375,7 +1601,7 @@ QString sav_file_name=QFileDialog::getSaveFileName(mainWin,QObject::tr("Save pro
 else
 {
 return ret2;
-}
+}*/
 
 /*if (ret==QMessageBox::Yes)
     return 1;
@@ -1400,7 +1626,7 @@ question+=QString("?");
 
 }
 
-int yesno(char *msg, char *s1, char *s2, char *help_anchor)
+int yesno(const char *msg,const char *s1,const char *s2,const char *help_anchor)
 {
     if (noask)
     {
@@ -1425,6 +1651,7 @@ void stufftext(const char *s)
     printf(s);
 #else*/
     //if (inwin) {
+if (gracebat==TRUE) return;
     if (FormConsole==NULL)
     {
         FormConsole=new frmConsole(mainWin);
@@ -1452,18 +1679,10 @@ QFileInfo fi(QString::fromLocal8Bit(s));
 strcpy(basename,fi.fileName().toLocal8Bit().data());
 return basename;
 //FUNCTION ENDS HERE
-
+/*
     int start, end;
     char seperator=QDir::separator().toLatin1();
-
-    /*
-//TEST: seperator='/'; on every system!, do not use seperator='\\';
-#ifdef WINDOWS_SYSTEM
-    seperator='\\';
-#endif
-*/
-
-    /*s = path_translate(s);*/
+    //s = path_translate(s);
     if (s == NULL) {
         errmsg("Could not translate basename:");
         return "???";
@@ -1471,17 +1690,17 @@ return basename;
     
     end = strlen(s) - 1;
     
-    /* root is a special case */
+    // root is a special case
     if (end == 0 && *s == seperator){
         basename[0] = seperator;
         return basename;
     }
 
-    /* strip trailing white space and slashes */
+    // strip trailing white space and slashes
     while (s[end] == seperator || s[end] == ' ' || s[end] == '\t') {
         end--;
     }
-    /* find start of basename */
+    // find start of basename
     start = end;
     do {
         start--;
@@ -1489,7 +1708,7 @@ return basename;
 
     strncpy(basename, s + (start + 1), end - start);
     basename[end - start] = '\0';
-    return basename;
+    return basename;*/
 }
 
 static char workingdir[GR_MAXPATHLEN];
@@ -1504,21 +1723,27 @@ int set_workingdir(const char *wd)
     char buf[GR_MAXPATHLEN];
     
     if (wd == NULL) {
-        getcwd(workingdir, GR_MAXPATHLEN - 1);
-        if (workingdir[strlen(workingdir)-1] != '/') {
-            strcat(workingdir, "/");
+        (void)getcwd(workingdir, GR_MAXPATHLEN - 1);
+        if (workingdir[strlen(workingdir)-1] != QDir::separator().toLatin1()) {
+            //strcat(workingdir, QDir::separator().toLatin1());
+            workingdir[strlen(workingdir)+1]='\0';
+            workingdir[strlen(workingdir)]=QDir::separator().toLatin1();
         }
         return RETURN_SUCCESS;
     }
     
-    strncpy(buf, wd, GR_MAXPATHLEN - 1);
+        strncpy(buf, wd, GR_MAXPATHLEN - 1);
+        buf[GR_MAXPATHLEN - 1]='\0';
     if (buf[0] == '~') {
         expand_tilde(buf);
     }
     if (chdir(buf) >= 0) {
         strncpy(workingdir, buf, GR_MAXPATHLEN - 1);
-        if (workingdir[strlen(workingdir)-1] != '/') {
-            strcat(workingdir, "/");
+        workingdir[GR_MAXPATHLEN - 1]='\0';
+        if (workingdir[strlen(workingdir)-1] != QDir::separator().toLatin1()) {
+            //strcat(workingdir, QDir::separator().toLatin1());
+            workingdir[strlen(workingdir)+1]='\0';
+            workingdir[strlen(workingdir)]=QDir::separator().toLatin1();
         }
         return RETURN_SUCCESS;
     } else {
@@ -1535,9 +1760,8 @@ static char *username = NULL;
 
 void init_username(void)
 {
-    char *s;
-
-    /*
+const char *s;
+/*
  *     We don't use it for any kind of authentication, so why not let
  *     user to customize her name? :)
  */
@@ -1553,6 +1777,7 @@ void init_username(void)
         }
     }
     username = copy_string(username, s);
+//qDebug() << "UserName=" << username;
 }
 
 char *get_username(void)
@@ -1564,10 +1789,35 @@ static char *userhome = NULL;
 
 void init_userhome(void)
 {
-    userhome = copy_string(NULL, getenv("HOME"));
-    if (userhome == NULL || userhome[strlen(userhome) - 1] != '/') {
-        userhome = concat_strings(userhome, "/");
+#if QT_VERSION >= 0x050000
+    QStringList list=QStandardPaths::standardLocations(QStandardPaths::HomeLocation);//,QString("*"),QStandardPaths::LocateDirectory);
+#else
+    QStringList list;
+    QString l_home=QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
+    list << l_home;
+#endif
+    QString f1;
+    if (list.length()>0)
+    {
+    //qDebug() << "A Init Home Dir=" << list.at(0);
+    f1=list.at(0)+QDir::separator();
+    f1=QDir::toNativeSeparators(f1);
+    userhome = copy_string(NULL,f1.toLocal8Bit());
+    //qDebug() << "B Init Home Dir=" << userhome;
     }
+    else
+    {
+    userhome = copy_string(NULL, getenv("HOME"));
+    }
+    f1=QString(userhome);
+    QChar last=f1.at(f1.length()-1);
+    //if (userhome == NULL || userhome[strlen(userhome) - 1] != '/')
+    if (userhome == NULL || last!=QDir::separator())
+    {
+        f1=QDir::separator();
+        userhome = concat_strings(userhome, f1.toLocal8Bit());//"/"
+    }
+    //qDebug() << "C Init Home Dir=" << userhome;
 }
 
 char *get_userhome(void)
@@ -1724,6 +1974,7 @@ void msleep_wrap(unsigned int msec)
     timeout.tv_usec = 1000 * (msec % 1000);
     select(0, NULL, NULL, NULL, &timeout);
 #else
+    (void) msec;
     cout << "NOT SUPPORTED ON WINDOWS" << endl;
 #endif
 }
@@ -1799,7 +2050,7 @@ char *bi_system(void)
     return BI_SYSTEM;
 }
 
-char *bi_date(void)
+const char *bi_date(void)
 {
     /*#ifndef WINDOWS_SYSTEM
 time_info = time(NULL);
@@ -1811,7 +2062,7 @@ return ctime_string;*/
     return BI_DATE;
 }
 
-char *bi_gui(void)
+const char *bi_gui(void)
 {
     return BI_GUI;
 }
@@ -1823,7 +2074,7 @@ char *bi_gui_xbae(void)
 }
 #endif*/
 
-char *bi_t1lib(void)
+const char *bi_t1lib(void)
 {
     return BI_T1LIB;
 }
@@ -1849,7 +2100,7 @@ char *bi_libpdf(void)
 }
 #endif
 
-char *bi_ccompiler(void)
+const char *bi_ccompiler(void)
 {
     return BI_CCOMPILER;
 }
@@ -1868,3 +2119,44 @@ int get_debuglevel(void)
 }
 #endif
 
+
+char * create_list_of_arguments(int n,...)
+{
+static char list1[1024];
+static char list2[32];
+    va_list valist;
+    int i;
+    va_start(valist, n);
+    list1[0]='{';
+    list1[1]='\0';
+    for (i = 0; i < n; i++)
+    {
+    sprintf(list2,"%d",va_arg(valist, int));
+    strcat(list1,list2);
+    if (i<n-1) strcat(list1,";");
+    }
+    strcat(list1,"}");
+    va_end(valist);
+return list1;
+}
+
+int process_list_of_arguments(char * list,int ** args)
+{
+int count=0;
+int len=strlen(list);
+if (len<=2) return 0;
+char * n_list=new char[len];
+strcpy(n_list,list+1);
+n_list[strlen(n_list)-1]='\0';
+QString n_list2(n_list);
+QStringList n_list3=n_list2.split(";");
+count=n_list3.length();
+if (*args!=NULL) delete[] *args;
+*args=new int[2+count];
+    for (int i=0;i<count;i++)
+    {
+    (*args)[i]=n_list3.at(i).toInt();
+    }
+delete[] n_list;
+return count;
+}

@@ -210,8 +210,7 @@ static unsigned short factbl[] = {
 
 extern double MAXNUM;
 
-double fac(i)
-int i;
+double fac(int i)
 {
 double x, f, n;
 int j;

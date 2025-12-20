@@ -20,8 +20,6 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#endif // SERVER_H
-
 #include <stdlib.h>
 #include <stdio.h>
 #include "globals.h"
@@ -41,7 +39,10 @@
 #include "graphutils.h"
 #include "files.h"
 #include "ssdata.h"
-#include <strstream>
+#include <QTime>
+
+//#include <strstream>
+#include <sstream>
 
 #define MAXERR 5
 /*
@@ -59,7 +60,6 @@
 #define CHUNKSIZE 2*PIPE_BUF
 #define  DEBUGDETAILS (QString("\nFile: ")+ __FILE__+ QString("\nFunction: ")+ __FUNCTION__ + QString("\nLine: ") + QString::number(__LINE__))
 
-
 enum dataCommands{
 
     //! Each communication with a client
@@ -68,7 +68,7 @@ enum dataCommands{
     PLOT_INFO,
     WRITE_DATAVEC,
     WRITE_DATAVEC_FINISHED,
-    READ_MODE,
+    SET_POLAR_PLOT,
     REDRAW,
     PS_FILENAME,
     SET_SCALING_MODE,
@@ -76,7 +76,10 @@ enum dataCommands{
     SET_LAYOUT_MODE,
     KILL_CHILD,
     TEST_CONNECTION,
-    END_COMM
+    END_COMM,
+    SET_QTGRACE_FOOTER,
+    START_AUTO_UPDATE,
+    STOP_AUTO_UPDATE
 };
 
 
@@ -111,6 +114,8 @@ enum ComMode {
 
 QT_BEGIN_NAMESPACE
 class QTcpServer;
+class KeyAndMousePressFilter;
+class QProgressDialog;
 QT_END_NAMESPACE
 
 class QtGraceTcpServer: public QObject
@@ -119,6 +124,10 @@ class QtGraceTcpServer: public QObject
 public:
     QtGraceTcpServer(QString readTcpPort, QString sendServerSocketName, QObject *parent);
     ~QtGraceTcpServer();
+
+    //! Length of data received from Client
+   static int           dataLength_m;
+   static int           dataLength_m1;
 
 private slots:
 
@@ -161,10 +170,13 @@ private:
     void    readXYData(char* xData, char* yData);
 
     //! Read data from socket (client) and process the data.
-    void    readFromClient(std::istrstream *dataFromClient);
+    void    readFromClient(std::istringstream *dataFromClient);
 
 private:
 
+    bool enableOutput_;
+    bool isPlotting_;
+    bool setPlottingStatus_;
     //! To enable debug
     bool isDebugFlagOn_m;
 
@@ -180,8 +192,8 @@ private:
     //! What to read command
     dataCommands        command_m;
 
-    //! Length of data received from Client
-    int                 dataLength_m;
+
+    int                 dataLengthToWrite_m;
 
     //! Graph number
     int                 graphNo_m;
@@ -271,13 +283,52 @@ private:
     QByteArray dataFromSocket_m;
 
     //! Send data from QtGrace to client as a stream
-    std::ostrstream *graphDataStreamToSendPtr_m;
+    std::ostringstream *graphDataStreamToSendPtr_m;
 
     //! Internal state to receive and send data from/to client
     ComMode comMode_m;
 
     //! Remaining data on socket
     int remainingDataSize_m;
+
+    //! Enable Footer text
+    bool enableFooterText_m;
+
+    //! Text revceived from
+    char *footerText_m;
+
+    //! Timer to automatic sending data to server
+    QTimer *timer_;
+
+    bool isAutoUpdate_;
+
+    bool isTCPErrorToStatusBar_;
+
+    KeyAndMousePressFilter *keyPressAndMousePressfilter_;
+
+    bool allowUpdate_;
+
+    //! function to read from footer text from server
+    void readFooterText();
+
+    QProgressDialog  *receiveDataProgressDialog_;
+
+    int progressCounter_;
+
+    void createProgressDialog();
+
+    QTime t;
+
+    bool allowExitQtGrace_;
+
+public slots:
+
+    #if QT_VERSION >= 0x050100
+    void applicationStateChanged(Qt::ApplicationState state);
+    #endif
+
+    bool getAllowExitQtGrace() const;
+    void startAutoUpdate();
 
 protected:
 
@@ -320,8 +371,9 @@ protected slots:
 
     //! Server to read has been disconnected to client socket
     void readSocketDisconnected();
+
 };
 
-
+#endif
 
 

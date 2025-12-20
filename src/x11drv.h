@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -49,7 +49,7 @@ void xlibdrawpolyline(VPoint *vps, int n, int mode);
 void xlibfillpolygon(VPoint *vps, int npoints);
 void xlibdrawarc(VPoint vp1, VPoint vp2, int angle1, int angle2);
 void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode);
-void xlibredraw(MainArea * ma, int x, int y, int widht, int height);
+//void xlibredraw(MainArea * ma, int x, int y, int widht, int height);
 void xlibputpixmap(VPoint vp, int width, int height,char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
 
 void xlibleavegraphics(void);
@@ -58,6 +58,8 @@ int xconvxlib(double x);
 int yconvxlib(double y);
 void xlibVPoint2dev(VPoint vp, int *x, int *y);
 VPoint xlibdev2VPoint(int x, int y);
+QPoint VPoint2XPoint(VPoint vp);
+QPointF VPoint2XPointF(VPoint vp);
 
 QColor get_Color(int i);
 void set_Pen_only(void);

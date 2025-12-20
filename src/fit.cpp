@@ -7,6 +7,8 @@
  * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
+ *
+ * Modified by Andreas Winter 2008-2022
  * 
  * 
  *                           All Rights Reserved
@@ -61,6 +63,7 @@
 #include "utils.h"
 #include "noxprotos.h"
 #include "as274c.h"
+#include <QtCore>
 
 static char buf[256];
 
@@ -153,7 +156,8 @@ int fitcurve(double *x, double *y, int n, int ideg, double *coeff)
     }
 	/* check coefficients */
 	for (i = 0; i <= ideg; i++) {
-        if (!finite(coeff[i])) {
+        //if (!finite(coeff[i])) {
+        if (!qIsFinite(coeff[i])) {
 	        errmsg("Linear_regression - all values of x or y are the same");
 			ifail = 3;
 			return ifail;
@@ -393,10 +397,10 @@ int linear_regression(int n, double *x, double *y, double *coeff)
     double SXX, SYY, SXY;	/* sums of squares */
     double RSS;			/* residual sum of squares */
     double rms;			/* residual mean square */
-    double sereg;		/* standard error of regression */
+    //double sereg;		/* standard error of regression */
     double seslope, seintercept;
     double slope, intercept;	/* */
-    double SSreg, F, R2;
+    double SSreg, F;//, R2;
     int i;
 
     if (n < 2) {
@@ -462,12 +466,12 @@ int linear_regression(int n, double *x, double *y, double *coeff)
     } 
     
     rms = RSS / (n - 2);
-    sereg = sqrt(rms);
+    //sereg = sqrt(rms);
     seintercept = sqrt(rms * (1.0 / n + xbar * xbar / SXX));
     seslope = sqrt(rms / SXX);
     SSreg = SYY - RSS;
     F = SSreg / rms;
-    R2 = SSreg / SYY;
+    //R2 = SSreg / SYY;
 
     sprintf(buf, "Standard error of coefficient\t\t = %.7g", seslope);
     SetDecimalSeparatorToUserValue(buf,false);

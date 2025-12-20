@@ -50,8 +50,10 @@ Include files needed:
 #include "curves.h"
 #include "lines.h"
 #include "arith.h"
- 
- 
+#include <stdio.h>
+
+extern int pathcounter(struct region *R);
+
 /*
 :h3.Functions Provided to Other Modules
  
@@ -89,8 +91,7 @@ struct bezierinfo {
    to subdivide.
 */
  
-int BezierTerminationTest(xa,ya,xb,yb,xc,yc,xd,yd)
-fractpel xa,ya,xb,yb,xc,yc,xd,yd;
+int BezierTerminationTest(fractpel xa,fractpel ya,fractpel xb,fractpel yb,fractpel xc,fractpel yc,fractpel xd,fractpel yd)
 {
   fractpel dmax;
   dmax =          TYPE1_ABS(xa - xb);
@@ -113,21 +114,31 @@ Bezier to define his curves as he did.  If the input region 'R' is NULL,
 the result is a path that is the 'flattened' curve; otherwise StepBezier
 returns nothing special.
 */
-static struct segment *StepBezierRecurse(I,xA,yA,xB,yB,xC,yC,xD,yD)
-       struct bezierinfo *I; /* Region under construction or NULL            */
-       fractpel xA,yA;       /* A control point                              */
-       fractpel xB,yB;       /* B control point                              */
-       fractpel xC,yC;       /* C control point                              */
-       fractpel xD,yD;       /* D control point                              */
+static struct segment * StepBezierRecurse(struct bezierinfo * I,fractpel xA,fractpel yA,fractpel xB,fractpel yB,fractpel xC,fractpel yC,fractpel xD,fractpel yD)
+       /*struct bezierinfo *I;  Region under construction or NULL
+       fractpel xA,yA;        A control point
+       fractpel xB,yB;        B control point
+       fractpel xC,yC;        C control point
+       fractpel xD,yD;        D control point                              */
  
 {
  if (BezierTerminationTest(xA,yA,xB,yB,xC,yC,xD,yD))
  {
   if (I->region == NULL)
+  {
+      /*printf("StepBezierRecursive 0a\n");
+      fflush(stdout);*/
    return(PathSegment(LINETYPE, xD - xA, yD - yA));
+  }
   else
+  {
+      /*printf("StepBezierRecursive 0b, length R=%d\n",pathcounter(I->region));
+      fflush(stdout);*/
    StepLine(I->region, I->origin.x + xA, I->origin.y + yA,
                        I->origin.x + xD, I->origin.y + yD);
+   /*printf("After StepLine: Length R=%d\n",pathcounter(I->region));
+   fflush(stdout);*/
+  }
  }
  else
  {
@@ -156,6 +167,8 @@ static struct segment *StepBezierRecurse(I,xA,yA,xB,yB,xC,yC,xD,yD)
  
   if (I->region == NULL)
   {
+      /*printf("StepBezierRecursive 1\n");
+      fflush(stdout);*/
    return( Join(
     StepBezierRecurse(I, xA, yA, xAB, yAB, xABC, yABC, xABCD, yABCD),
     StepBezierRecurse(I, xABCD, yABCD, xBCD, yBCD, xCD, yCD, xD, yD)
@@ -164,8 +177,14 @@ static struct segment *StepBezierRecurse(I,xA,yA,xB,yB,xC,yC,xD,yD)
   }
   else
   {
+      /*printf("StepBezierRecursive 2\n");
+      fflush(stdout);
+      printf("Length R=%d\n",pathcounter(I->region));*/
    StepBezierRecurse(I, xA, yA, xAB, yAB, xABC, yABC, xABCD, yABCD);
+      /*printf("Length R=%d\n",pathcounter(I->region));*/
    StepBezierRecurse(I, xABCD, yABCD, xBCD, yBCD, xCD, yCD, xD, yD);
+      /*printf("Length R=%d\n",pathcounter(I->region));
+      fflush(stdout);*/
   }
  }
  /*NOTREACHED*/
@@ -190,12 +209,12 @@ the starting values.  If this overflows, a 'long', we are in trouble:
 This is the entry point called from outside the module.
 */
  
-struct segment *StepBezier(R, xA, yA, xB, yB, xC, yC, xD, yD)
-       struct region *R;     /* Region under construction or NULL            */
-       fractpel xA,yA;       /* A control point                              */
-       fractpel xB,yB;       /* B control point                              */
-       fractpel xC,yC;       /* C control point                              */
-       fractpel xD,yD;       /* D control point                              */
+struct segment * StepBezier(struct region *R,fractpel xA,fractpel yA,fractpel xB,fractpel yB,fractpel xC,fractpel yC,fractpel xD,fractpel yD)
+       /*R;      Region under construction or NULL
+       fractpel xA,yA;        A control point
+       fractpel xB,yB;        B control point
+       fractpel xC,yC;        C control point
+       fractpel xD,yD;        D control point                              */
 {
        struct bezierinfo Info;
  
@@ -214,7 +233,6 @@ struct segment *StepBezier(R, xA, yA, xB, yB, xC, yC, xD, yD)
             || TOOBIG(xD) || TOOBIG(yD) )
                abort("Beziers this big not yet supported", 3);
  
-       return(StepBezierRecurse(&Info,
-                                (fractpel) 0, (fractpel) 0, xB, yB, xC, yC, xD, yD));
+       return(StepBezierRecurse(&Info, (fractpel) 0, (fractpel) 0, xB, yB, xC, yC, xD, yD));
 }
  

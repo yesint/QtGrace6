@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -66,7 +66,7 @@ int add_input_filter( int method, char *id, char *comm );
 int add_output_filter( int method, char *id, char *comm );
 static void hex2char( Filter *, char * );
 static int test_magic( int len, char *magic, FILE *in );
-static int test_pattern( char *ext, char *fn );
+static int test_pattern(const char *ext,const char *fn );
 
 int add_io_filter( int type, int method, char *id, char *comm )
 {
@@ -106,6 +106,7 @@ int add_input_filter( int method, char *id, char *comm )
 
 int add_output_filter( int method, char *id, char *comm )
 {
+    (void)method;
 	ofilt = (Filter*)xrealloc( ofilt, ++numOfilt*sizeof(Filter) );
 	ofilt[numOfilt-1].command = copy_string(NULL, comm);
 	strcpy( ofilt[numOfilt-1].command, comm );
@@ -144,7 +145,7 @@ void clear_io_filters( int f )
 /* 
  * filter input file and return pointer to a pipe
  */
-FILE *filter_read( char *fn )
+FILE *filter_read( const char *fn )
 {
 	char buf[1024];
 	int i;
@@ -175,7 +176,7 @@ FILE *filter_read( char *fn )
 /*
  * filter output file and return pointer to a pipe or file
  */
-FILE *filter_write(  char *fn )
+FILE *filter_write( const char *fn )
 {
 	char buf[1024];
 	int i;
@@ -217,7 +218,7 @@ static int test_magic( int len, char *magic, FILE *in )
 		return 0;
 
 	sprintf( rstr, "%%%dc", len );
-	fscanf( in, rstr, buf );
+    (void)fscanf( in, rstr, buf );
 	rewind( in );
 
 	return !memcmp( buf, magic, len );
@@ -227,11 +228,13 @@ static int test_magic( int len, char *magic, FILE *in )
  * test for a pattern match
  * if found return 1, else 0
  */
-static int test_pattern( char *ext, char *fn )
+static int test_pattern(const char *ext,const char *fn )
 {
 #if defined(HAVE_FNMATCH)
 	return !fnmatch( ext, fn, 0 );
 #else
+    (void)ext;
+    (void)fn;
 	/* you are out of luck */
 	return 0;
 #endif
@@ -244,12 +247,12 @@ static int test_pattern( char *ext, char *fn )
  */
 static void hex2char( Filter *f, char *hex )
 {
-	int i;
+unsigned int i;
 	char tmp[3], *ptr;
 
 	tmp[2] = '\0';
 	f->idlen = 0;
-	for( i=0; i<strlen(hex)/2; i++ ) {
+    for( i=0; i<strlen(hex)/2; i++ ) {
 		tmp[0] = hex[2*i];
 		tmp[1] = hex[2*i+1];
 		f->id[i] = strtol( tmp, &ptr, 16 );

@@ -63,7 +63,7 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 
 Adjusted for use with ACE/gr by Evgeny Stambulchik, October 1997
 
-Modified by Andreas Winter 2008-2014
+Modified by Andreas Winter 2008-2020
 */
 
 #define __GRACE_SOURCE_

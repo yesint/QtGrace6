@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2015 by Andreas Winter                             *
+ *   Copyright (C) 2008-2022 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,6 +21,7 @@
 #ifndef EXTERNAL_LIBS_H
 #define EXTERNAL_LIBS_H
 #include "fftw3.h"
+#include <QString>
 #ifdef WINDOWS_SYSTEM
 #include "include\hpdf.h"
 #else
@@ -38,12 +39,14 @@ typedef void (*Prototype_fftw_execute)(const fftw_plan p);
 typedef fftw_plan (*Prototype_fftw_plan_dft_1d)(int n, fftw_complex *in, fftw_complex *out, int sign, unsigned flags);
 
 bool init_fftw3_library(void);
+bool is_fftw3_lib_usable(QString lib);
 
 /* libHARU */
 typedef HPDF_STATUS (*Prototype_HPDF_Page_SetHeight)(HPDF_Page page, HPDF_REAL value);
 typedef HPDF_STATUS (*Prototype_HPDF_Page_SetWidth)(HPDF_Page page, HPDF_REAL value);
 typedef HPDF_Page (*Prototype_HPDF_AddPage)(HPDF_Doc pdf);
 typedef void (*Prototype_HPDF_Free)(HPDF_Doc pdf);
+typedef void (*Prototype_HPDF_ResetError)(HPDF_Doc pdf);
 typedef HPDF_STATUS (*Prototype_HPDF_SaveToFile)(HPDF_Doc pdf, const char *file_name);
 typedef HPDF_Doc (*Prototype_HPDF_New)(HPDF_Error_Handler user_error_fn, void *user_data);
 typedef HPDF_REAL (*Prototype_HPDF_Page_GetWidth)(HPDF_Page page);
@@ -86,6 +89,11 @@ typedef const char* (*Prototype_HPDF_LoadTTFontFromFile2)(HPDF_Doc pdf, const ch
 typedef HPDF_STATUS (*Prototype_HPDF_SetCurrentEncoder)(HPDF_Doc pdf, const char  *encoding_name);
 //typedef HPDF_Outline (*Prototype_HPDF_SetCurrentEncoder)(HPDF_Doc pdf, const char  *encoding_name);
 
+typedef HPDF_Image (*Prototype_HPDF_LoadPngImageFromFile)(HPDF_Doc pdf, const char *filename);
+typedef HPDF_Image (*Prototype_HPDF_LoadJpegImageFromFile)(HPDF_Doc pdf, const char *filename);
+typedef HPDF_STATUS (*Prototype_HPDF_Image_SetMaskImage)(HPDF_Image image, HPDF_Image mask_image);
+
 bool init_libHaru_library(void);
+bool is_Haru_lib_usable(QString lib);
 
 #endif // EXTERNAL_LIBS_H

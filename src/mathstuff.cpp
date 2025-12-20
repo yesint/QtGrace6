@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -38,6 +38,17 @@
 #include "cephes.h"
 
 #include "mathstuff.h"
+
+/* log2_wrap symbol defined in cmath.h */
+#ifdef __cplusplus
+extern "C" {
+#endif
+double log2_wrap(double x)
+{
+    static double ln2 = 1.0/log(2.0);
+    return (log(x) * ln2); /* change of base */
+}
+
 
   double ai_wrap(double x)
 {
@@ -254,3 +265,60 @@ double floor_wrap(double x)
 {
     return floor(x);
 }
+
+double low_tol_val(double a)
+{
+static int c;
+static double ret;
+c=0;
+ret=a;
+while (c<COMPARISON_TOLERANCE)
+{
+ret=nextafter(ret,-INFINITY);
+c++;
+}
+return ret;
+}
+
+double high_tol_val(double a)
+{
+static int c;
+static double ret;
+c=0;
+ret=a;
+while (c<COMPARISON_TOLERANCE)
+{
+ret=nextafter(ret,INFINITY);
+c++;
+}
+return ret;
+}
+
+int tolerant_lt(double a,double b) /*1 if a<next_lower_value_than(b)*/
+{
+return int(a<low_tol_val(b));
+}
+
+int tolerant_gt(double a,double b) /*1 if a>next_higher_value_than(b)*/
+{
+return int(a>high_tol_val(b));
+}
+
+int tolerant_leq(double a,double b) /*1 if a<next_higher_value_than(b)*/
+{
+return int(a<high_tol_val(b));
+}
+
+int tolerant_geq(double a,double b) /*1 if a>next_lower_value_than(b)*/
+{
+return int(a>low_tol_val(b));
+}
+
+int tolerant_eq(double a,double b) /*1 if a>next_lower_value_than(b) && a<next_higher_value_than(b)*/
+{
+return int(a>low_tol_val(b) && a<high_tol_val(b));
+}
+
+#ifdef __cplusplus
+}
+#endif

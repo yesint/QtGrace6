@@ -175,8 +175,7 @@ static unsigned short Q[] = {
 };
 #endif
 
-double ellpe(x)
-double x;
+double ellpe(double x)
 {
 
 if( (x <= 0.0) || (x > 1.0) )

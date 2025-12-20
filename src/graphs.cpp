@@ -8,7 +8,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  *
  *                           All Rights Reserved
  *
@@ -52,6 +52,8 @@
 #include "noxprotos.h"
 #include "globals.h"
 #include "cmath.h"
+#include <QObject>
+#include <QDebug>
 
 #include <iostream>
 
@@ -116,32 +118,35 @@ int get_cg(void)
     return cg;
 }
 
-char *graph_types(int it)
+const char *graph_types(int it)
 {
-    static char s[16];
+const char * s;
 
     switch (it)
     {
     case GRAPH_XY:
-        strcpy(s, "XY");
+        s="XY";
         break;
     case GRAPH_CHART:
-        strcpy(s, "Chart");
+        s="Chart";
         break;
     case GRAPH_POLAR:
-        strcpy(s, "Polar");
+        s="Polar";
         break;
     case GRAPH_SMITH:
-        strcpy(s, "Smith");
+        s="Smith";
         break;
     case GRAPH_FIXED:
-        strcpy(s, "Fixed");
+        s="Fixed";
         break;
     case GRAPH_PIE:
-        strcpy(s, "Pie");
+        s="Pie";
+        break;
+    case GRAPH_POLAR2:
+        s="PolarV2";
         break;
     default:
-        strcpy(s, "Unknown");
+        s="Unknown";
         break;
     }
     return s;
@@ -173,7 +178,16 @@ int kill_graph(int gno)
     int j;
     if (is_valid_gno(gno) == TRUE)
     {
+        kill_all_objects_linked_to_graph(gno);
         kill_all_sets(gno);
+            for (int i=0;i<MAXREGION;i++)
+            {
+                if (rg[i].active==TRUE && rg[i].linkto==gno)
+                {
+                rg[i].active=false;
+                rg[i].linkto=0;
+                }
+            }
         XCFREE(g[gno].labs.title.s_plotstring);
         XCFREE(g[gno].labs.stitle.s_plotstring);
         XCFREE(g[gno].labs.title.alt_plotstring);
@@ -320,6 +334,8 @@ int swap_graph(int from, int to)
     memcpy(&gtmp, &g[from], sizeof(graph));
     memcpy(&g[from], &g[to], sizeof(graph));
     memcpy(&g[to], &gtmp, sizeof(graph));
+
+    swap_object_association(from,to);
 
     set_dirtystate();
 
@@ -470,6 +486,96 @@ tickmarks *copy_graph_tickmarks(tickmarks *t)
         }
         return retval;
     }
+}
+
+//this copies just some of the settings from t_from to t_to
+//especially concerning the axis label (including appearance and placing) and tick marks (including special ticks)
+int copy_part_of_graph_tickmarks(tickmarks * t_to, tickmarks * t_from, int axis_label, int tick_marks)
+{
+if (t_to==NULL || t_from==NULL) return RETURN_FAILURE;
+//other stuff:
+//int active;                 /* active or not */
+//int zero;                   /* "zero" axis or plain */
+//double offsx, offsy;        /* offset of axes in viewport coords
+                              /*(attention: these
+                                are not x and y coordinates but
+                                perpendicular and parallel offsets */
+//int t_drawbar;              /* draw a bar connecting tick marks */
+//int t_drawbarcolor;         /* color of bar */
+//int t_drawbaralpha;         /* alpha-channel */
+//int t_drawbarlines;         /* linestyle of bar */
+//double t_drawbarlinew;      /* line width of bar */
+//double tmajor;              /* major tick divisions */
+//int nminor;                 /* number of minor ticks per one major division */
+
+//internal use:
+//VPoint al_vp;               /* the start-position of the axis-label */
+//view al_bb;                 /* bounding box for axis-label */
+//view tl_bb;                 /* bounding box for all tick-labels */
+
+if (axis_label==TRUE)
+{//label-stuff
+t_to->label=t_from->label;    /* graph axis label */
+t_to->label.s_plotstring=NULL;
+t_to->label.alt_plotstring=NULL;
+t_to->label.s_plotstring=copy_string(t_to->label.s_plotstring,t_from->label.s_plotstring);
+t_to->label.alt_plotstring=copy_string(t_to->label.alt_plotstring,t_from->label.alt_plotstring);
+t_to->label_layout=t_from->label_layout;           /* axis label orientation (h or v) */
+t_to->label_place=t_from->label_place;            /* axis label placement (specfied or auto) */
+t_to->label_op=t_from->label_op;     /* tick labels on opposite side or both */
+}
+
+if (tick_marks==TRUE)
+{//tickmark-stuff
+t_to->t_flag=t_from->t_flag;        /* toggle tickmark display */
+t_to->t_autonum=t_from->t_autonum;  /* approximate default number of major ticks */
+t_to->t_round=t_from->t_round;      /* place major ticks at rounded positions */
+t_to->t_spec=t_from->t_spec;        /* special (user-defined) tickmarks/ticklabels, */
+                                    /* can be none/marks/both marks and labels */
+t_to->nticks=t_from->nticks;        /* total number of ticks */
+for (int i=0;i<MAX_TICKS;i++)/* locations of ticks */
+{
+t_to->tloc[i]=t_from->tloc[i];
+t_to->tloc[i].label=NULL;
+t_to->tloc[i].label=copy_string(t_to->tloc[i].label,t_from->tloc[i].label);
+t_to->tloc[i].orig_label=NULL;
+t_to->tloc[i].orig_label=copy_string(t_to->tloc[i].orig_label,t_from->tloc[i].orig_label);
+}
+t_to->t_inout=t_from->t_inout;      /* ticks inward, outward or both */
+t_to->t_op=t_from->t_op;            /* ticks on opposite side */
+t_to->props=t_from->props;
+t_to->mprops=t_from->mprops;
+t_to->tl_flag=t_from->tl_flag;      /* toggle tickmark labels on or off */
+t_to->tl_angle=t_from->tl_angle;    /* angle to draw labels */
+t_to->tl_format=t_from->tl_format;  /* tickmark label format */
+t_to->tl_prec=t_from->tl_prec;      /* places to right of decimal point */
+if (t_from->tl_formula!=NULL)
+strcpy(t_to->tl_formula,t_from->tl_formula);/* transformation formula */
+t_to->tl_skip=t_from->tl_skip;                /* tick labels to skip */
+t_to->tl_staggered=t_from->tl_staggered;           /* tick labels staggered */
+t_to->tl_starttype=t_from->tl_starttype;           /* start at graphmin or use tl_start/stop */
+t_to->tl_stoptype=t_from->tl_stoptype;            /* start at graphmax or use tl_start/stop */
+t_to->tl_start=t_from->tl_start;            /* value of x to begin tick labels and major ticks */
+t_to->tl_stop=t_from->tl_stop;             /* value of x to end tick labels and major ticks */
+t_to->tl_op=t_from->tl_op;        /* tick labels on opposite side or both */
+t_to->tl_gaptype=t_from->tl_gaptype;             /* tick label placement auto or specified */
+t_to->tl_gap=t_from->tl_gap;             /* tick label to tickmark distance
+                                    (parallel and perpendicular to axis) */
+t_to->tl_font=t_from->tl_font;                /* font to use for tick labels */
+t_to->tl_color=t_from->tl_color;               /* color of tick labels */
+t_to->tl_alpha=t_from->tl_alpha;               /* alpha-channel of tick labels */
+t_to->tl_align=t_from->tl_align;               /* alignment for tick labels */
+t_to->tl_charsize=t_from->tl_charsize;         /* character size for tick labels */
+if (t_from->tl_appstr!=NULL)
+strcpy(t_to->tl_appstr,t_from->tl_appstr);/* append string to tick label */
+if (t_from->tl_prestr!=NULL)
+strcpy(t_to->tl_prestr,t_from->tl_prestr);/* prepend string to tick label */
+if (t_from->orig_tl_appstr!=NULL)
+strcpy(t_to->orig_tl_appstr,t_from->orig_tl_appstr);/* original append string to tick label */
+if (t_from->orig_tl_prestr!=NULL)
+strcpy(t_to->orig_tl_prestr,t_from->orig_tl_prestr);/* original prepend string to tick label */
+}
+return RETURN_SUCCESS;
 }
 
 void free_graph_tickmarks(tickmarks *t)
@@ -772,8 +878,9 @@ int set_graph_type(int gno, int gtype)
         case GRAPH_PIE:
             break;
         case GRAPH_POLAR:
+        case GRAPH_POLAR2:
             g[gno].w.xg1 = 0.0;
-            g[gno].w.xg2 = 2*M_PI;
+            g[gno].w.xg2 = 2.0*M_PI;
             g[gno].w.yg1 = 0.0;
             g[gno].w.yg2 = 1.0;
             break;
@@ -784,7 +891,7 @@ int set_graph_type(int gno, int gtype)
             g[gno].w.yg2 =  1.0;
             break;
         default:
-            errmsg("Internal error in set_graph_type()");
+            errmsg(QString(QString("Internal error in set_graph_type() GraphType ")+QString::number(gtype)+QString(" unknown.")).toLocal8Bit().constData());
             return RETURN_FAILURE;
         }
         g[gno].type = gtype;
@@ -1164,9 +1271,42 @@ int islogity(int gno)
     }
 }
 
+int isrecx(int gno)
+{
+    if (is_valid_gno(gno) == TRUE)
+    {
+        return (g[gno].xscale == SCALE_REC);
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+int isrecy(int gno)
+{
+    if (is_valid_gno(gno) == TRUE)
+    {
+        return (g[gno].yscale == SCALE_REC);
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
 /* 
  * Stack manipulation functions
  */
+
+void debug_out_worldstack(void)
+{
+qDebug() << "STACK-depth=" << g[cg].ws_top << " current_position=" << g[cg].curw;
+    for (int i=0;i<g[cg].ws_top;i++)
+    {
+        qDebug() << "Stack " << i << " = (" << g[cg].ws[i].w.xg1 << " | " << g[cg].ws[i].w.yg1 << ") - (" << g[cg].ws[i].w.xg2 << " | " << g[cg].ws[i].w.yg2 << ")";
+    }
+}
 
 void clear_world_stack(void)
 {
@@ -1180,6 +1320,36 @@ void clear_world_stack(void)
     g[cg].ws[0].w.xg2 = 0.0;
     g[cg].ws[0].w.yg1 = 0.0;
     g[cg].ws[0].w.yg2 = 0.0;
+    g[cg].ws[0].w_name=copy_string(g[cg].ws[0].w_name,NULL);
+}
+
+void rename_stack_world(int gr_no,int st,char * n_name)
+{
+    if (is_valid_gno(gr_no) != TRUE)
+    {
+        return;
+    }
+    if (g[gr_no].ws_top < 1)
+    {
+        errmsg(QObject::tr("World stack empty").toLocal8Bit().constData());
+        return;
+    }
+    else
+    {
+        if (st >= g[gr_no].ws_top)
+        {
+            errmsg(QObject::tr("Selected view greater than stack depth").toLocal8Bit().constData());
+        }
+        else if (st < 0)
+        {
+            errmsg(QObject::tr("Selected view less than zero").toLocal8Bit().constData());
+        }
+        else
+        {
+            g[gr_no].ws[st].w_name=copy_string(g[gr_no].ws[st].w_name,n_name);
+        }
+    }
+
 }
 
 static void update_world_stack()
@@ -1189,6 +1359,8 @@ static void update_world_stack()
         return;
     }
     g[cg].ws[g[cg].curw].w = g[cg].w;
+    if (g[cg].ws[g[cg].curw].w_name==NULL)
+    g[cg].ws[g[cg].curw].w_name=copy_string(g[cg].ws[g[cg].curw].w_name,"");
 }
 
 /* Add a world window to the stack
@@ -1216,11 +1388,12 @@ void add_world(int gno, double x1, double x2, double y1, double y2)
         g[gno].ws[g[gno].ws_top].w.xg2 = x2;
         g[gno].ws[g[gno].ws_top].w.yg1 = y1;
         g[gno].ws[g[gno].ws_top].w.yg2 = y2;
+        g[gno].ws[g[gno].ws_top].w_name=copy_string(g[gno].ws[g[gno].ws_top].w_name,"");
         g[gno].ws_top++;
     }
     else
     {
-        errmsg("World stack full");
+        errmsg(QObject::tr("World stack full").toLocal8Bit().constData());
     }
 }
 
@@ -1233,7 +1406,7 @@ void cycle_world_stack(void)
     }
     if (g[cg].ws_top < 1)
     {
-        errmsg("World stack empty");
+        errmsg(QObject::tr("World stack empty").toLocal8Bit().constData());
     }
     else
     {
@@ -1241,6 +1414,7 @@ void cycle_world_stack(void)
         neww = (g[cg].curw + 1) % g[cg].ws_top;
         show_world_stack(neww);
     }
+//debug_out_worldstack();
 }
 
 void show_world_stack(int n)
@@ -1251,17 +1425,17 @@ void show_world_stack(int n)
     }
     if (g[cg].ws_top < 1)
     {
-        errmsg("World stack empty");
+        errmsg(QObject::tr("World stack empty").toLocal8Bit().constData());
     }
     else
     {
         if (n >= g[cg].ws_top)
         {
-            errmsg("Selected view greater than stack depth");
+            errmsg(QObject::tr("Selected view greater than stack depth").toLocal8Bit().constData());
         }
         else if (n < 0)
         {
-            errmsg("Selected view less than zero");
+            errmsg(QObject::tr("Selected view less than zero").toLocal8Bit().constData());
         }
         else
         {
@@ -1274,23 +1448,30 @@ void show_world_stack(int n)
 void push_world(void)
 {
     int i;
+    char title_str[32];
     if (is_valid_gno(cg) != TRUE)
     {
         return;
     }
     if (g[cg].ws_top < MAX_ZOOM_STACK)
     {
-        update_world_stack();
+        //update_world_stack();
         for( i=g[cg].ws_top; i>g[cg].curw; i-- )
         {
-            g[cg].ws[i] = g[cg].ws[i-1];
+            g[cg].ws[i].w = g[cg].ws[i-1].w;
+            g[cg].ws[i].w_name=copy_string(g[cg].ws[i].w_name,g[cg].ws[i-1].w_name);
         }
+        g[cg].curw++;
+        update_world_stack();
+        sprintf(title_str,"SD %d",g[cg].curw);
+        g[cg].ws[g[cg].curw].w_name=copy_string(g[cg].ws[g[cg].curw].w_name,title_str);
         g[cg].ws_top++;
     }
     else
     {
-        errmsg("World stack full");
+        errmsg(QObject::tr("World stack full").toLocal8Bit().constData());
     }
+//debug_out_worldstack();
 }
 
 /* modified to actually pop the current world view off the stack */
@@ -1303,7 +1484,7 @@ void pop_world(void)
     }
     if (g[cg].ws_top <= 1)
     {
-        errmsg("World stack empty");
+        errmsg(QObject::tr("World stack empty").toLocal8Bit().constData());
     }
     else
     {
@@ -1311,7 +1492,8 @@ void pop_world(void)
         {
             for (i = g[cg].curw; i < g[cg].ws_top; i++)
             {
-                g[cg].ws[i] = g[cg].ws[i + 1];
+                g[cg].ws[i].w = g[cg].ws[i + 1].w;
+                g[cg].ws[i].w_name = copy_string(g[cg].ws[i].w_name,g[cg].ws[i + 1].w_name);
             }
             neww = g[cg].curw;
         }
@@ -1322,8 +1504,26 @@ void pop_world(void)
         g[cg].ws_top--;
         show_world_stack(neww);
     }
+//debug_out_worldstack();
 }
 
+void swap_viewport_stack(int gno,int a,int b)
+{
+    if (!is_valid_gno(gno)) return;
+    if (a<0 || b<0 || a>=g[gno].ws_top || b>=g[gno].ws_top) return;
+    //qDebug() << a << "<->" << b;
+    //qDebug() << "vorher:" << g[gno].ws[a].w_name << "<->" << g[gno].ws[b].w_name;
+world w;
+char * temp_p=NULL;
+temp_p=copy_string(temp_p,g[gno].ws[a].w_name);
+g[gno].ws[a].w_name=copy_string(g[gno].ws[a].w_name,g[gno].ws[b].w_name);
+g[gno].ws[b].w_name=copy_string(g[gno].ws[b].w_name,temp_p);
+temp_p=copy_string(temp_p,NULL);
+w=g[gno].ws[a].w;
+g[gno].ws[a].w=g[gno].ws[b].w;
+g[gno].ws[b].w=w;
+    //qDebug() << "nachher:" << g[gno].ws[a].w_name << "<->" << g[gno].ws[b].w_name;
+}
 
 void set_default_graph(int gno)
 {    
@@ -1339,7 +1539,11 @@ void set_default_graph(int gno)
     g[gno].xscale = SCALE_NORMAL;
     g[gno].yscale = SCALE_NORMAL;
     g[gno].ws_top = 1;
-    g[gno].ws[0].w.xg1=g[gno].ws[0].w.xg2=g[gno].ws[0].w.yg1=g[gno].ws[0].w.yg2=0;
+    for (int i=0;i<MAX_ZOOM_STACK;i++)
+    {
+    g[gno].ws[i].w.xg1=g[gno].ws[i].w.xg2=g[gno].ws[i].w.yg1=g[gno].ws[i].w.yg2=0;
+    g[gno].ws[i].w_name=NULL;
+    }
     g[gno].curw = 0;
     g[gno].locator.dsx = g[gno].locator.dsy = 0.0;      /* locator props */
     g[gno].locator.pointset = FALSE;
@@ -1348,6 +1552,7 @@ void set_default_graph(int gno)
     g[gno].locator.fy = FORMAT_GENERAL;
     g[gno].locator.px = 6;
     g[gno].locator.py = 6;
+    g[gno].locator.plot_in_file = FALSE;
     for (i = 0; i < MAXAXES; i++)
     {
         g[gno].t[i] = new_graph_tickmarks();
@@ -1369,10 +1574,14 @@ void set_default_graph(int gno)
     set_default_legend(gno, &g[gno].l);
     set_default_string(&g[gno].labs.title);
     g[gno].labs.title.charsize = 1.5;
+    g[gno].labs.shift_title.x=g[gno].labs.shift_title.y=0.0;
     set_default_string(&g[gno].labs.stitle);
     g[gno].labs.stitle.charsize = 1.0;
+    g[gno].labs.shift_subtitle.x=g[gno].labs.shift_subtitle.y=0.0;
     g[gno].maxplot = 0;
     g[gno].p = NULL;
+    g[gno].phi0 = 0.0;
+    g[gno].roffset = 0.0;
 }
 
 int is_valid_setno(int gno, int setno)
@@ -1525,7 +1734,7 @@ int set_set_colors(int gno, int setno, int color)
     {
         return RETURN_FAILURE;
     }
-    if (color >= number_of_colors() || color < 0)
+    if (color >= (int)number_of_colors() || color < 0)
     {
         return RETURN_FAILURE;
     }
@@ -1785,3 +1994,28 @@ void postprocess_project(int version)
     }
 }
 
+int set_parameters_polar_v2(int gno,double new_phi0,double new_roffset)
+{
+    if (!is_valid_gno(gno)) return RETURN_FAILURE;
+    if (new_roffset<0.0 || new_roffset>=1.0) return RETURN_FAILURE;
+    g[gno].phi0=fmod(new_phi0,M_PI*2.0);
+    g[gno].roffset=new_roffset;
+    return RETURN_SUCCESS;
+}
+
+void make_nice_polar_plot_v2(int gno)
+{
+    if (!is_valid_gno(gno)) return;
+    g[gno].f.lines=0;
+    g[gno].t[0]->tmajor=0.1*M_PI;
+    g[gno].t[0]->nminor=1;
+    g[gno].t[0]->props.gridflag=1;
+    g[gno].t[0]->mprops.gridflag=0;
+    g[gno].t[1]->props.gridflag=1;
+    g[gno].t[1]->mprops.gridflag=0;
+    strcpy(g[gno].t[0]->tl_appstr,"\\xp");
+    strcpy(g[gno].t[0]->orig_tl_appstr,"\\xp");
+    g[gno].t[0]->tl_formula = copy_string(NULL, "$t/PI");
+    g[gno].t[0]->tl_stop=2*M_PI-0.00001;
+    g[gno].t[0]->tl_stoptype=TYPE_SPEC;
+}

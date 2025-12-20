@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  *
  *                           All Rights Reserved
  * 
@@ -44,6 +44,7 @@
 #include "noxprotos.h"
 #include <iostream>
 #include <QObject>
+#include <QDebug>
 
 /* Needed only for `integer' and `doublereal' definitions */
 #include "f2c.h"
@@ -64,6 +65,7 @@ extern char last_formula[];
 static double *xp, *yp, *y_saved;
 static double *wts;
 static char *ra;
+extern bool silent_nonl_fit;
 
 int lmdif_drv(U_fp fcn, integer m, integer n, doublereal *x, 
 	doublereal *fvec, doublereal *tol, integer *iwa, 
@@ -83,10 +85,29 @@ void reset_nonl(void)
     	nonl_parms[i].max = 1.0;
     }
     
-    nonl_opts.title   = copy_string(nonl_opts.title, QObject::tr("A fit").toLocal8Bit().constData());
-    nonl_opts.formula = copy_string(nonl_opts.formula, "y = ");
-    nonl_opts.parnum = 0;
+    nonl_opts.title     = copy_string(nonl_opts.title, QObject::tr("A fit").toLocal8Bit().constData());
+    nonl_opts.formula   = copy_string(nonl_opts.formula, "y = ");
+    nonl_opts.parnum    = 0;
     nonl_opts.tolerance = 0.01;
+
+    return;
+}
+
+void copy_nonl(nonlparms * from_para,nonlparms * to_para,nonlopts * from_opts,nonlopts * to_opts)
+{
+    int i;
+
+    for (i = 0; i < MAXPARM; i++) {
+        to_para[i].value = from_para[i].value;
+        to_para[i].constr = from_para[i].constr;
+        to_para[i].min = from_para[i].min;
+        to_para[i].max = from_para[i].max;
+    }
+
+    to_opts->title     = copy_string(to_opts->title, from_opts->title);
+    to_opts->formula   = copy_string(to_opts->formula, from_opts->formula);
+    to_opts->parnum    = from_opts->parnum;
+    to_opts->tolerance = from_opts->tolerance;
 
     return;
 }
@@ -151,7 +172,7 @@ void fcn(int * m, int * n, double * x, double * fvec, int * iflag)
 {
     int errpos;
     int i;
-
+    (void)n;
     a_to_parms(x);
 
     errpos = scanner(nonl_opts.formula);
@@ -206,6 +227,40 @@ int correlation(double *x, double *y, int n, double *cor)
     return RETURN_SUCCESS;
 }
 
+void calculate_fit_accuracy(double * yp,double * y_saved,int n,double * cor,double * chisq,double * theil,bool * rms_ok,double * rms_pe)
+{
+int i;
+correlation(yp, y_saved, n, cor);
+(*chisq) = 0.0;
+(*theil) = 0.0;
+double ysq = 0.0;
+(*rms_ok) = TRUE;
+for (i = 0; i < n; ++i)
+{
+    (*chisq) += (yp[i] - y_saved[i])*(yp[i] - y_saved[i]);
+    ysq += (y_saved[i]*y_saved[i]);
+    (*theil) += (yp[i] - y_saved[i])*(yp[i] - y_saved[i]);
+    if (y_saved[i] == 0.0)
+    {
+    (*rms_ok) = FALSE;
+    }
+}
+(*theil) = sqrt((*theil)/ysq);
+
+(*rms_pe) = 0.0;
+if (rms_ok)
+{
+    for (i = 0; i < n; ++i)
+    {
+        *rms_pe += (yp[i] - y_saved[i])*(yp[i] - y_saved[i])/
+            (y_saved[i]*y_saved[i]);
+    }
+    /*rms_pe = sqrt(rms_pe/n);*/
+    (*rms_pe) = 100.0*sqrt((*rms_pe)/n);
+}
+
+}
+
 int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
 {
     int info = -1;
@@ -217,55 +272,64 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     int parnum = nonl_opts.parnum;
     char * buf=new char[1024];
     double cor, chisq, rms_pe, ysq, theil;
-    int rms_ok;
+    int rms_ok=TRUE;
+    theil=rms_pe=chisq=cor=0.0;
 
-    if (set_parser_setno(gno, setno) != RETURN_SUCCESS) {
+    if (set_parser_setno(gno, setno) != RETURN_SUCCESS)
+    {
 	return RETURN_FAILURE;
     }
     n = getsetlength(gno, setno);
     
     lwa = (integer) n * parnum + 5 * parnum + n;
-        
+
     fvec = (double*)xcalloc(n, sizeof(double));
-    if (fvec == NULL) {
+    if (fvec == NULL)
+    {
 	return RETURN_FAILURE;
     }
-      
+
     y_saved = (double*)xcalloc(n, sizeof(double));
-    if (y_saved == NULL) {
+    if (y_saved == NULL)
+    {
 	xfree(fvec);
 	return RETURN_FAILURE;
     }
 
     wa = (doublereal*)xcalloc(lwa, sizeof(doublereal));
-    if (wa == NULL) {
+    if (wa == NULL)
+    {
 	xfree(y_saved);
 	xfree(fvec);
 	return RETURN_FAILURE;
     }
 
+    if (silent_nonl_fit==false)
+    {
     stufftext("Fitting with formula: ");
     strcpy(buf,nonl_opts.formula);
-    strcpy(last_formula,nonl_opts.formula);
     SetDecimalSeparatorToUserValue(buf);
     stufftext(buf);
-    //stufftext("\n");
     stufftext("Initial guesses:");
-    for (i = 0; i < nonl_opts.parnum; i++) {
+        for (i = 0; i < nonl_opts.parnum; i++)
+        {
         sprintf(buf, "\ta%1d = %g", i, nonl_parms[i].value);
         SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
-    }
+        }
     sprintf(buf, "Tolerance = %g", nonl_opts.tolerance);
     SetDecimalSeparatorToUserValue(buf,false);
     stufftext(buf);
+    }
     
     xp = getx(gno, setno);
     yp = gety(gno, setno);
     
-    for (i = 0; i < n; ++i) {
+    memcpy(y_saved,yp,sizeof(double)*n);
+    /*for (i = 0; i < n; ++i)
+    {
     	y_saved[i] = yp[i];
-    }
+    }*/
    
     ra = rarray;
     wts = warray;
@@ -304,19 +368,23 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     theil = 0.0;
     ysq = 0.0;
     rms_ok = TRUE;
-    for (i = 0; i < n; ++i) {
+    for (i = 0; i < n; ++i)
+    {
     	chisq += (yp[i] - y_saved[i])*(yp[i] - y_saved[i]);
         ysq += (y_saved[i]*y_saved[i]);
     	theil += (yp[i] - y_saved[i])*(yp[i] - y_saved[i]);
-    	if (y_saved[i] == 0.0) {
+        if (y_saved[i] == 0.0)
+        {
             rms_ok = FALSE;
         }
     }
     theil = sqrt(theil/ysq);
 
     rms_pe = 0.0;
-    if (rms_ok) {
-        for (i = 0; i < n; ++i) {
+    if (rms_ok)
+    {
+        for (i = 0; i < n; ++i)
+        {
     	    rms_pe += (yp[i] - y_saved[i])*(yp[i] - y_saved[i])/
                 (y_saved[i]*y_saved[i]);
         }
@@ -324,19 +392,23 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         rms_pe = 100.0*sqrt(rms_pe/n);
     }
 
-    for (i = 0; i < n; ++i) {
-    	yp[i] = y_saved[i];
-    }
-
     start_cleanup_in_nonlinfit:
+
+    memcpy(yp,y_saved,sizeof(double)*n);
+    /*for (i = 0; i < n; ++i)
+    {
+    	yp[i] = y_saved[i];
+    }*/
 
     xfree(y_saved);
     xfree(fvec);
     xfree(wa);
 
-    if (info >= 0 && info <= 7) {
-        char *s;
-        switch (info) {
+    if (info >= 0 && info <= 7)
+    {
+        const char *s;
+        switch (info)
+        {
         case 0:
             s = "Improper input parameters.\n";
             break;
@@ -366,13 +438,14 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
             errmsg("Internal error in do_nonlfit()");
             break;
         }
-        if (info!=5)
+        if (info!=5 && silent_nonl_fit==false)
         stufftext(s);
     }
     
     if (fcn_error==0)
     {
-    if ((info > 0 && info < 4) || (info == 5) || (par_changed==true)) {
+    if ((info > 0 && info < 4) || (info == 5) || (par_changed==true))
+    {
         QString formula_used(nonl_opts.formula);
         formula_used=formula_used.toLower();
         QString tmp_val,tmp_var;
@@ -383,19 +456,25 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         tmp_val=QString("(")+QString(buf)+QString(")");
         formula_used.replace(tmp_var,tmp_val);
         }
-        stufftext("Computed values:");
-        for (i = 0; i < nonl_opts.parnum; i++)
+        if (silent_nonl_fit==false)
         {
+        stufftext("Computed values:");
+            for (i = 0; i < nonl_opts.parnum; i++)
+            {
             sprintf(buf, "\ta%1d = %g", i, nonl_parms[i].value);
             SetDecimalSeparatorToUserValue(buf,false);
             stufftext(buf);
-        }
+            }
         stufftext("");
+        }
         if (formula_used.toLatin1().length()>980)
         {
         delete[] buf;
         buf=new char[formula_used.toLatin1().length()*2+30];
         }
+        strcpy(last_formula,formula_used.toLatin1().constData());
+        if (silent_nonl_fit==false)
+        {
         sprintf(buf, "Resulting formula:\n%s\n", formula_used.toLatin1().constData());
         stufftext(buf);
         sprintf(buf, "Chi-square: %g", chisq);
@@ -404,15 +483,16 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         sprintf(buf, "Correlation coefficient: %f", cor);
         SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
-        if (rms_ok)
-        {
+            if (rms_ok)
+            {
             sprintf(buf, "RMS per cent error: %g", rms_pe);
             SetDecimalSeparatorToUserValue(buf,false);
             stufftext(buf);
-        }
+            }
         sprintf(buf, "Theil U coefficent: %g\n", theil);
         SetDecimalSeparatorToUserValue(buf,false);
         stufftext(buf);
+        }
     }
     delete[] buf;
     return RETURN_SUCCESS;
@@ -436,8 +516,8 @@ int lmdif_drv(U_fp fcn, integer m, integer n, doublereal *x,
 {
     /* Initialized data */
 
-    static doublereal factor = 100.;
-    static doublereal zero = 0.;
+    static doublereal factor = 100.0;
+    static doublereal zero = 0.0;
 
     static integer mp5n, mode, nfev;
     static doublereal ftol, gtol, xtol;

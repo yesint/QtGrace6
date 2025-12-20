@@ -7,7 +7,7 @@
  *
  * Maintained by Evgeny Stambulchik
  *
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  *
  *                           All Rights Reserved
  *
@@ -73,7 +73,8 @@ static Device_entry dev_svg = {
     TRUE,
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
     NULL,
-    1
+    1,
+    ""
 };
 
 typedef struct {
@@ -456,7 +457,7 @@ int register_svg_drv(void)
 
 void svg_updatecmap(void)
 {
-    int i;
+    unsigned int i;
     Svg_data *data;
     
     data = (Svg_data *) get_curdevice_data();
@@ -477,7 +478,7 @@ static void define_pattern(int i, int c, Svg_data *data)
     fRGB *frgb;
     double bg_red, bg_green, bg_blue;
 
-    if (data->pattern_defined[i] == TRUE && c < number_of_colors() && data->colorfilter_defined[c] == TRUE) {
+    if (data->pattern_defined[i] == TRUE && (unsigned int)c < number_of_colors() && data->colorfilter_defined[c] == TRUE) {
         return;
     }
 
@@ -527,7 +528,7 @@ static void define_pattern(int i, int c, Svg_data *data)
         /* color-patterns can be drawn with black patterns and then
            applying a colorfilter to change white to the background-color
            and black to the patterncolor. */
-        if (c < number_of_colors() && data->colorfilter_defined[c] != TRUE) {
+        if ((unsigned int)c < number_of_colors() && data->colorfilter_defined[c] != TRUE) {
             frgb = get_frgb(getbgcolor());
             bg_red=frgb->red;
             bg_green=frgb->green;
@@ -960,6 +961,13 @@ void svg_putpixmap(VPoint vp, int width, int height, char *databits,
                    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     /* not implemented yet */
+    (void)vp;
+    (void)width;
+    (void)height;
+    (void)databits;
+    (void)pixmap_bpp;
+    (void)bitmap_pad;
+    (void)pixmap_type;
 }
 
 void svg_puttext(VPoint vp, char *s, int len, int font,
@@ -968,7 +976,7 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
     char *fontalias, *fontfullname, *fontweight;
     char *dash, *family, *familyff;
     double fsize = scaleval(1);
-
+    (void)kerning;
     svg_group_props(FALSE, TRUE);
     
     fprintf(prstream, "   <text  ");

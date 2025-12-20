@@ -353,8 +353,7 @@ static unsigned short B[] = {
 
 /*							i1.c	*/
 
-double i1(x)
-double x;
+double i1(double x)
 { 
 double y, z;
 
@@ -375,8 +374,7 @@ return( z );
 
 /*							i1e()	*/
 
-double i1e( x )
-double x;
+double i1e(double x )
 { 
 double y, z;
 

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2015 by Andreas Winter                             *
+ *   Copyright (C) 2008-2022 by Andreas Winter                             *
  *   andreas.f.winter@web.de                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -85,6 +85,7 @@
 #define UNDO_TYPE_SET_REGRESSION 122
 #define UNDO_TYPE_SET_FILTER 123
 #define UNDO_TYPE_IMPORT_SET_FROM_AGR 124
+#define UNDO_TYPE_CHANGE_SET_ORDER 125
 //#define UNDO_TYPE_OBJECT_MOVED 14 //moved = modified
 //#define UNDO_GENERIC 14
 
@@ -180,7 +181,8 @@ void SetsImported(int len,int * gnos,int * snos,int files,char ** filename,int c
 void SetsImportedFromAgr(int len,int * snos,struct agr_file_info afi,int autoscale);
 void SetImportBlockData(int gno, int setno,char * filename,int source, int nc, int *coli, int scol,int load,int autoscale);
 void SetNewSetNo(int setno);
-void SetImportBinaryData(int gno,int setno,char * filename,struct importSettings * set);
+//void SetImportBinaryData(int gno,int setno,char * filename,struct importSettings * set);
+void SetsReorderd(int gno,QList<int> new_set_order);
 
 void SetRegression(int n_sets,int * gnos,int * snos,int n_n_sets,int * n_gnos, int * n_snos, int ideg, int iresid, int rno, int invr,double start,double stop,int points,int rx,char * formula);
 void SetFilter(int o_n_sets,int * o_gnos,int * s_nos,int n_n_sets,int * n_gnos, int * n_setnos,int type,int realization,double * limits,int * orders,char * x_formula,double ripple,int absolute,int debug,int point_extension,int oversampling,int rno,int invr);
@@ -188,16 +190,24 @@ void SetFilter(int o_n_sets,int * o_gnos,int * s_nos,int n_n_sets,int * n_gnos, 
 void GraphsDeleted(int len,int * gnos,int what);
 void GraphsCreated(int len,int * gnos,int what);
 
+void SaveSingleSetStatePrevious(int gno,int setno,int what);
 void SaveSetStatesPrevious(int len,int * gnos,int * snos,int what);//call this before the modification
+void SingleSetModified(int gno,int setno,int what);
 void SetsModified(int len,int * gnos,int * snos,int what);//call this after the modification
 
+void SaveSingleGraphState(int gno,int what);
 void SaveGraphStatesPrevious(int len,int * gnos,int what);//call this before the modification
+void SingleGraphModified(int gno,int what);
 void GraphsModified(int len,int * gnos,int what);//call this after the modification
 
+void SaveSingleGraphTickmarks(int gno);
 void SaveTickmarksStatesPrevious(int axis_start,int axis_stop,int nr_of_graphs,int * graph_nrs);
 void SaveTickmarksStatesPrevious(int axis_start,int axis_stop,int graph_start,int graph_stop);
+void SaveTickmarksStatesPrevious(int nr_of_axes,int * axes,int nr_of_graphs,int * graph_nrs);
+void SingleGraphTickmarksModified(int gno);
 void TickmarksModified(int axis_start,int axis_stop,int nr_of_graphs,int * graph_nrs);
 void TickmarksModified(int axis_start,int axis_stop,int graph_start,int graph_stop);
+void TickmarksModified(int nr_of_axes,int * axes,int nr_of_graphs,int * graph_nrs);
 
 void SaveDeviceState(int id,bool sync);
 void DeviceModified(int id,bool sync);
@@ -223,7 +233,7 @@ void deleteSavedGraph(graph * destination,int what);
 void reinstallGraph(int gno,graph * destination,int what);
 
 void updateUndoList(void);
-void addAditionalDescriptionToLastNode(int type,QString description,QString additional,int mult=-1);//usefull for adding a formula or changing the description
+void addAditionalDescriptionToLastNode(int type,QString description,QString additional,int mult=-1);//usefull for adding a formula or changing the description; setting something as -1 or empty means: let this entry be unchanged
 
 void UndoSwapGraphs(int g1,int g2);
 void UndoSwapSets(int g1,int s1,int g2,int s2);
@@ -258,8 +268,8 @@ void ChangeSetOrdering(int gno,int setno,int type);//type=PUSH_SET_TOFRONT / PUS
 
 int NodeContainsKilledSet(int startnode,bool forward,int gno,int setno);//looks into other nodes to find out whether a node contains the specified set
 
-void CopyBinaryImportSettings(struct importSettings * from,struct importSettings * to);
-void DeleteBinaryImportSettings(struct importSettings * set);
+/*void CopyBinaryImportSettings(struct importSettings * from,struct importSettings * to);
+void DeleteBinaryImportSettings(struct importSettings * set);*/
 void getHotlinkedSets(int * nr,int ** gnos,int ** snos);
 
 #endif // UNDO_MODULE_H

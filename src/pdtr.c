@@ -128,9 +128,7 @@ Copyright 1984, 1987, 1995 by Stephen L. Moshier
 #include "mconf.h"
 #include "cephes.h"
 
-double pdtrc( k, m )
-int k;
-double m;
+double pdtrc(int k,double m )
 {
 double v;
 
@@ -144,10 +142,7 @@ return( igam( v, m ) );
 }
 
 
-
-double pdtr( k, m )
-int k;
-double m;
+double pdtr(int k,double m)
 {
 double v;
 
@@ -161,9 +156,7 @@ return( igamc( v, m ) );
 }
 
 
-double pdtri( k, y )
-int k;
-double y;
+double pdtri(int k,double y)
 {
 double v;
 

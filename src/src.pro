@@ -11,11 +11,18 @@ unix:!macx:DEFINES += LINUX_SYSTEM
 TRANSLATIONS += qt_grace_ger.ts
 QT += network
 QT += svg
+QT -= opengl
+greaterThan(QT_MAJOR_VERSION,5): QT += core5compat
+DEFINES += QT_NO_OPENGL
 
 greaterThan(QT_MAJOR_VERSION, 4) {
 QT += widgets
 QT += printsupport
 }
+
+#greaterThan(QT_MAJOR_VERSION, 5) {
+#QT += qt5support
+#}
 
 ICON = GraceIcon.icns
 !unix:RC_FILE = qtgrace.rc
@@ -24,9 +31,11 @@ ICON = GraceIcon.icns
 #DEFINES += USE_STATIC_EXT_LIB_FFTW3
 #unix:LIBS += -lfftw3
 #win32:LIBS += "C:\path\to\libfftw3.a"
+
 #DEFINES += USE_STATIC_EXT_LIB_HARU
 #unix:LIBS += -lhpdf
-#win32:LIBS += "C:\path\to\libhpdfs.a"
+#win32:LIBS += "C:\path\to\libhpdf.a"
+#win32:LIBS += -lz
 
 win32 {
 !contains(QMAKE_CC, gcc) {
@@ -37,13 +46,27 @@ QMAKE_CXXFLAGS_RELEASE -= -Zc:strictStrings
 }
 }
 
-#CONFIG -= debug \
-#    debug_and_release
-#CONFIG += release
-#CONFIG -= x86_64
+CONFIG -= debug \
+    debug_and_release
+CONFIG += release
+
+
+#QMAKE_CFLAGS +=-Werror=format-security
+#QMAKE_CXXFLAGS +=-Werror=format-security
+#QMAKE_CXXFLAGS -= -O2
+#QMAKE_CFLAGS -= -O2
+#QMAKE_CXXFLAGS += -O3
+#QMAKE_CFLAGS += -O3
+#QMAKE_CXXFLAGS += -Wall
+#QMAKE_CFLAGS += -Wall
+#QMAKE_CXXFLAGS += -Wuninitialized
+#QMAKE_CFLAGS += -Wuninitialized
 
 HEADERS += MainWindow.h \
     allWidgets.h \
+    appearanceWidgets.h \
+    compressdecompress.h \
+    editWidgets.h \
     graphs.h \
     defines.h \
     noxprotos.h \
@@ -76,6 +99,7 @@ HEADERS += MainWindow.h \
     patterns.h \
     gd.h \
     t1lib.h \
+    windowWidgets.h \
     x11drv.h \
     xprotos.h \
     bitmaps.h \
@@ -140,8 +164,12 @@ HEADERS += MainWindow.h \
     undo_module.h \
     include/hpdf.h \
     fftw3.h \
-    external_libs.h
+    external_libs.h \
+    KeyAndMousePressFilter.h
 SOURCES += allWidgets.cpp \
+    appearanceWidgets.cpp \
+    compressdecompress.cpp \
+    editWidgets.cpp \
     qtgrace.cpp \
     MainWindow.cpp \
     graphs.cpp \
@@ -180,6 +208,7 @@ SOURCES += allWidgets.cpp \
     rstdrv.cpp \
     svgdrv.cpp \
     gd.cpp \
+    windowWidgets.cpp \
     xutil.cpp \
     x11drv.cpp \
     events.cpp \
@@ -241,7 +270,6 @@ SOURCES += allWidgets.cpp \
     igami.c \
     incbet.c \
     incbi.c \
-    isnan.c \
     iv.c \
     j0.c \
     j1.c \
@@ -250,7 +278,6 @@ SOURCES += allWidgets.cpp \
     k0.c \
     k1.c \
     kn.c \
-    log2.c \
     mtherr.c \
     ndtr.c \
     ndtri.c \
@@ -273,5 +300,6 @@ SOURCES += allWidgets.cpp \
     undo_module.cpp \
     Server.cpp \
     ListOfLatexCommands.cpp \
-    external_libs.cpp
+    external_libs.cpp \
+    KeyAndMousePressFilter.cpp
 TARGET = ../bin/qtgrace

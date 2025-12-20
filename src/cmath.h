@@ -8,7 +8,7 @@
  * 
  * Maintained by Evgeny Stambulchik
  * 
- * Modified by Andreas Winter 2008-2015
+ * Modified by Andreas Winter 2008-2022
  * 
  *                           All Rights Reserved
  * 
@@ -84,9 +84,11 @@ extern double MAXNUM;
 #  define M_SQRT1_3   0.57735026918962576451      /* 1/sqrt(3) */
 #endif
 
+/*
 #ifndef HAVE_HYPOT
 #  define hypot(x, y) sqrt((x)*(x) + (y)*(y))
 #endif
+*/
 
 extern double round ( double x );
 #ifndef HAVE_RINT
@@ -112,8 +114,8 @@ extern double log2 ( double x );
 
 #ifndef HAVE_LGAMMA
 extern int sgngam;
-#  define lgamma lgam
-#  define signgam sgngam
+/*#  define lgamma lgam
+#  define signgam sgngam*/
 extern double lgam ( double x );
 #else
 #  ifndef HAVE_LGAMMA_DECL
@@ -166,6 +168,7 @@ extern double jn ( int n, double x );
 #endif
 
 /* isfinite is a macro */
+/*
 #ifdef isfinite
 #  define HAVE_ISFINITE_MACRO
 #endif
@@ -180,8 +183,10 @@ extern int isfinite ( double x );
 extern int finite ( double x );
 #  endif
 #endif
+*/
 
 /* isnan is a macro */
+/*#if defined(MAC_SYSTEM)
 #ifdef isnan
 #  define HAVE_ISNAN_MACRO
 #endif
@@ -189,6 +194,7 @@ extern int finite ( double x );
 #if !defined(HAVE_ISNAN_DECL) && !defined(HAVE_ISNAN_MACRO)
 extern int isnan ( double x );
 #endif
+#endif*/
 
 #ifdef __cplusplus
 }

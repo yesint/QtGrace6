@@ -49,8 +49,7 @@ Copyright 1984, 1996 by Stephen L. Moshier
 
 extern double MACHEP, MAXNUM, MAXLOG, MINLOG;
 
-double incbi( aa, bb, yy0 )
-double aa, bb, yy0;
+double incbi(double aa,double bb,double yy0 )
 {
 double a, b, y0, d, y, x, x0, x1, lgm, yp, di, dithresh, yl, yh, xt;
 int i, rflg, dir, nflg;
