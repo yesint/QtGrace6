@@ -3165,8 +3165,7 @@ strcpy(qt_grace_example_dir,qt_grace_share_dir);
 strcat(qt_grace_example_dir,"/examples");
 strcpy(qt_grace_script_dir,qt_grace_share_dir);
 strcat(qt_grace_script_dir,"/scripts");
-strcpy(qt_grace_icons_dir,qt_grace_share_dir);
-strcat(qt_grace_icons_dir,"/fonts/icons");
+strcpy(qt_grace_icons_dir,":/icons");
 strcpy(qt_grace_templates_dir,qt_grace_share_dir);
 strcat(qt_grace_templates_dir,"/templates");
 

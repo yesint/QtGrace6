@@ -210,6 +210,42 @@ target_link_libraries(qtgrace PRIVATE
     grace
 )
 
+qt_add_resources(qtgrace "icons"
+    PREFIX "/icons"
+    BASE "fonts/icons"
+    FILES
+        fonts/icons/autoscale.png
+        fonts/icons/BoxProps.png
+        fonts/icons/ClearBoxes.png
+        fonts/icons/ClearEllipses.png
+        fonts/icons/ClearLines.png
+        fonts/icons/ClearText.png
+        fonts/icons/ClearText2.png
+        fonts/icons/CloseObjects.png
+        fonts/icons/CopyObject.png
+        fonts/icons/CreateText.png
+        fonts/icons/DeleteObject.png
+        fonts/icons/DrawBox.png
+        fonts/icons/DrawEllipse.png
+        fonts/icons/DrawLine.png
+        fonts/icons/EditObject.png
+        fonts/icons/EllipseProps.png
+        fonts/icons/goDown.png
+        fonts/icons/goLeft.png
+        fonts/icons/goRight.png
+        fonts/icons/goUp.png
+        fonts/icons/LineProps.png
+        fonts/icons/MoveObject.png
+        fonts/icons/Pan_Icon.png
+        fonts/icons/Pick_Move_Icon.png
+        fonts/icons/Redo_Icon.png
+        fonts/icons/TextProps.png
+        fonts/icons/Undo_Icon.png
+        fonts/icons/zoomIn.png
+        fonts/icons/zoomOut.png
+        fonts/icons/zoom.png
+)
+
 # Translations
 set(TS_FILES qt_grace_ger.ts)
 

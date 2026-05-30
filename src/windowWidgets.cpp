@@ -3786,7 +3786,7 @@ return QIcon(pm2);
 void frmDrawObjects::CreateIcons(void)
 {
     QString icondir=QString(qt_grace_icons_dir);//grace_path("fonts/icons");
-    icondir+=QDir::separator();
+    icondir+="/";
     QSize newIconSize(mainWin->default_IconW*toolBarSizeFactor,mainWin->default_IconH*toolBarSizeFactor);
 /*buttonIcons[0]=QIcon(icondir+"CreateText.png");
 buttonIcons[1]=QIcon(icondir+"TextProps.png");

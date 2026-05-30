@@ -1281,7 +1281,7 @@ void MainWindow::redisplayIcons(void)
 {
     QSize newIconSize(default_IconW*toolBarSizeFactor,default_IconH*toolBarSizeFactor);
     QString icondir=QString(qt_grace_icons_dir);//grace_path("fonts/icons");
-    icondir+=QDir::separator();
+    icondir+="/";
     QIcon HelpIcon;
     QIcon pan_icon=CreateIconFromPNG(icondir+"Pan_Icon.png",newIconSize);
 //cout << "redisplay: new=" << use_new_icons << endl;

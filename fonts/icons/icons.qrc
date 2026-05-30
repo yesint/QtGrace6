@@ -1,0 +1,34 @@
+<RCC>
+  <qresource prefix="/icons">
+    <file>autoscale.png</file>
+    <file>BoxProps.png</file>
+    <file>ClearBoxes.png</file>
+    <file>ClearEllipses.png</file>
+    <file>ClearLines.png</file>
+    <file>ClearText.png</file>
+    <file>ClearText2.png</file>
+    <file>CloseObjects.png</file>
+    <file>CopyObject.png</file>
+    <file>CreateText.png</file>
+    <file>DeleteObject.png</file>
+    <file>DrawBox.png</file>
+    <file>DrawEllipse.png</file>
+    <file>DrawLine.png</file>
+    <file>EditObject.png</file>
+    <file>EllipseProps.png</file>
+    <file>goDown.png</file>
+    <file>goLeft.png</file>
+    <file>goRight.png</file>
+    <file>goUp.png</file>
+    <file>LineProps.png</file>
+    <file>MoveObject.png</file>
+    <file>Pan_Icon.png</file>
+    <file>Pick_Move_Icon.png</file>
+    <file>Redo_Icon.png</file>
+    <file>TextProps.png</file>
+    <file>Undo_Icon.png</file>
+    <file>zoomIn.png</file>
+    <file>zoomOut.png</file>
+    <file>zoom.png</file>
+  </qresource>
+</RCC>
