@@ -18434,7 +18434,11 @@ bailoutQuestion::bailoutQuestion(QWidget * parent):QDialog(parent)
 {
 lblIcon=new QLabel(QString(""),this);
 
-QPixmap pixm=messageBoxStdIcon(QMessageBox::Question,6*qApp->font().pixelSize()).scaled(6*qApp->font().pixelSize(),6*qApp->font().pixelSize());
+int iconSize=qApp->font().pixelSize();
+if (iconSize<=0) iconSize=qApp->font().pointSize();
+if (iconSize<=0) iconSize=13;
+iconSize*=6;
+QPixmap pixm=messageBoxStdIcon(QMessageBox::Question,iconSize).scaled(iconSize,iconSize);
 lblIcon->setPixmap(pixm);
 
 lblText=new QLabel(QString(""),this);
