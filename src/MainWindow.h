@@ -164,7 +164,6 @@ public:
     QMenuBar * menuBar;
     QStatusBar * statusBar;
     QLabel * statusBarLabel;
-    QLabel * statLocBar;
     QLabel * coordLabel;   // hover coordinates in bottom status bar
     QWidget * tool_empty,*tool_empty2;
     QVBoxLayout * tool_layout;
