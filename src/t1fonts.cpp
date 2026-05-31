@@ -46,6 +46,7 @@
 #include "globals.h"
 #include "noxprotos.h"
 #include <QPainter>
+#include <QFontMetricsF>
 
 using namespace std;
 
@@ -58,6 +59,7 @@ extern bool useQtFonts;
 extern VPoint global_bb_ll;
 extern VPoint global_bb_ur;
 extern QList<QFont> stdFontList;
+extern QFont getFontFromDatabase(int i);
 extern GLYPH *GetQtGlyph(CompositeString *cs, double dpv, int fontaa);
 extern void errwin(const char *s);
 //extern void WriteQtString(VPoint vp,int rot,int just,char * s);
@@ -520,26 +522,30 @@ char **get_default_encoding(void)
 
 double get_textline_width(int font)
 {
-    return (double) T1_GetUnderlineThickness(font)/1000.0;
-    ///return 0;
+    QFont qf = getFontFromDatabase(font);
+    qf.setPixelSize(1000);
+    return QFontMetricsF(qf).lineWidth() / 1000.0;
 }
 
 double get_underline_pos(int font)
 {
-    return (double) T1_GetLinePosition(font, T1_UNDERLINE)/1000.0;
-    ///return 0;
+    QFont qf = getFontFromDatabase(font);
+    qf.setPixelSize(1000);
+    return -QFontMetricsF(qf).underlinePos() / 1000.0;
 }
 
 double get_overline_pos(int font)
 {
-    return (double) T1_GetLinePosition(font, T1_OVERLINE)/1000.0;
-    ///return 0;
+    QFont qf = getFontFromDatabase(font);
+    qf.setPixelSize(1000);
+    QFontMetricsF m(qf);
+    return (m.ascent() + m.lineWidth()) / 1000.0;
 }
 
 double get_italic_angle(int font)
 {
-    return (double) T1_GetItalicAngle(font);
-    ///return 0;
+    (void)font;
+    return 0.0;  // not needed with Qt fonts
 }
 
 double *get_kerning_vector(char *str, int len, int font)

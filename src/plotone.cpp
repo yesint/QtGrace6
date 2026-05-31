@@ -486,16 +486,7 @@ printing_in_file=true;
 #endif
     break;
     case DEVICE_SVG:
-        if (useQtFonts==true)
-        {
-        print_target=PRINT_TARGET_SVG_FILE;//generate an svg-file with the Qt-x11drv
-        target_device=DEVICE_X11;
-        return true;
-        }
-        else//no QtFonts-->use the std-SVG-driver
-        {
-        return false;
-        }
+        return false;  // always use svg_puttext directly (Qt fonts supported natively)
     break;
     case DEVICE_HD_PNG:/// changed to here -> use std-output-driver
     case DEVICE_JPEG://for these file-types we use Qt's export functions
@@ -1055,18 +1046,9 @@ cout << "Size= " << dev.pg.width << " x " << dev.pg.height << endl;
 cout << "---- END DEVICE SETTINGS ----" << endl;
 }
 
-int what_is_the_optimal_pdf_driver(void)//returns 0 if the Qt-pdf-driver should be used and return 1 if libharu should be better
+int what_is_the_optimal_pdf_driver(void)
 {
-int ret=0;
-    if (useQtFonts==false)
-    {
-    ret=1;
-    }
-    else//Use QtFonts-->this excludes the haru-pdf-library
-    {
-    ret=0;
-    }
-return ret;
+    return 0;  // always use Qt PDF driver (QPdfWriter via GeneralPainter)
 }
 
 /*

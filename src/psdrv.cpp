@@ -36,6 +36,8 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <QFont>
+#include <QFontMetricsF>
 /*#include <unistd.h>*/
 #include <stdlib.h>
 #include <string.h>
@@ -63,6 +65,16 @@
 using namespace std;
 
 extern FILE *prstream;
+extern QFont getFontFromDatabase(int i);
+
+// Hardcoded PostScript names for the 14 standard Grace fonts (font IDs 0-13).
+// These are the canonical PS/PDF built-in font names, independent of rendering backend.
+static const char *grace_ps_fontnames[] = {
+    "Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic",
+    "Helvetica", "Helvetica-Oblique", "Helvetica-Bold", "Helvetica-BoldOblique",
+    "Courier", "Courier-Oblique", "Courier-Bold", "Courier-BoldOblique",
+    "Symbol", "ZapfDingbats"
+};
 
 static void put_string(FILE *fp, char *s, int len);
 
@@ -817,17 +829,16 @@ void ps_putpixmap(VPoint vp, int width, int height,
 void ps_puttext(VPoint vp, char *s, int len, int font,
      TextMatrix *tm, int underline, int overline, int kerning)
 {
-    char *fontname;
-    char *encscheme;
-    double *kvector;
-    int i;
-    int linelen;
-    
+    (void)kerning;
+
     if (psfont_status[font] == FALSE) {
-        fontname = get_fontalias(font);
-        encscheme = get_encodingscheme(font);
+        const char *fontname = (font >= 0 && font < 14)
+            ? grace_ps_fontnames[font]
+            : get_fontalias(font);
+        // FontSpecific encoding (Symbol, ZapfDingbats) must not be re-encoded
+        bool fontSpecific = (font == 12 || font == 13);
         fprintf(prstream, "/%s findfont\n", fontname);
-        if (strcmp(encscheme, "FontSpecific") != 0) {
+        if (!fontSpecific) {
             fprintf(prstream, "dup length dict begin\n");
             fprintf(prstream, " {1 index /FID ne {def} {pop pop} ifelse} forall\n");
             fprintf(prstream, " /Encoding DefEncoding def\n");
@@ -840,60 +851,29 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     fprintf(prstream, "/Font%d FFSF\n", font);
 
     ps_setpen();
-    
+
     fprintf(prstream, "%.4f %.4f m\n", vp.x, vp.y);
     fprintf(prstream, "GS\n");
     fprintf(prstream, "[%.4f %.4f %.4f %.4f 0 0] CC\n",
-                        tm->cxx, tm->cyx, tm->cxy, tm->cyy);
-    
-    if (kerning) {
-        kvector = get_kerning_vector(s, len, font);
-    } else {
-        kvector = NULL;
-    }
-    
-    if (kvector) {
-        linelen = 0;
-        linelen += fprintf(prstream, "[");
-        for (i = 0; i < len - 1; i++) {
-            linelen += fprintf(prstream, "%.4f ", kvector[i]);
-            if (linelen >= MAX_PS_LINELEN) {
-                fprintf(prstream, "\n");
-                linelen = 0;
-            }
-        }
-        fprintf(prstream, "] KINIT\n");
-        fprintf(prstream, "{KPROC}\n");
-    }
-    
+                      tm->cxx, tm->cyx, tm->cxy, tm->cyy);
+
     put_string(prstream, s, len);
 
-    if (underline | overline) {
-        double w, pos, kcomp;
-        
-        if (kvector) {
-            kcomp = kvector[len - 1];
-        } else {
-            kcomp = 0.0;
-        }
-        w = get_textline_width(font);
-        if (underline) {
-            pos = get_underline_pos(font);
-            fprintf(prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
-        }
-        if (overline) {
-            pos = get_overline_pos(font);
-            fprintf(prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
-        }
+    if (underline || overline) {
+        // Compute underline/overline metrics from Qt font normalized to 1000-unit em
+        QFont qf = getFontFromDatabase(font);
+        qf.setPixelSize(1000);
+        QFontMetricsF m(qf);
+        double w   = m.lineWidth()    / 1000.0;
+        double upos = -m.underlinePos() / 1000.0;
+        double opos = (m.ascent() + m.lineWidth()) / 1000.0;
+        if (underline)
+            fprintf(prstream, " %.4f %.4f %.4f TL", upos, w, 0.0);
+        if (overline)
+            fprintf(prstream, " %.4f %.4f %.4f TL", opos, w, 0.0);
     }
-    
-    if (kvector) {
-        fprintf(prstream, " kshow\n");
-        xfree(kvector);
-    } else {
-        fprintf(prstream, " show\n");
-    }
-    
+
+    fprintf(prstream, " show\n");
     fprintf(prstream, "GR\n");
 }
 
