@@ -4,12 +4,12 @@
  <widget class="QWidget" name="MainWindow">
   <layout class="QGridLayout" name="mainGrid">
    <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+   <property name="topMargin"><number>2</number></property>
+   <property name="rightMargin"><number>2</number></property>
+   <property name="bottomMargin"><number>2</number></property>
    <property name="spacing"><number>0</number></property>
 
-   <!-- Row 0: menu bar (hidden on macOS in code) -->
+   <!-- Row 0: menu bar (removed from grid on macOS in code) -->
    <item row="0" column="0" colspan="2">
     <widget class="QMenuBar" name="menuBar"/>
    </item>
@@ -26,19 +26,20 @@
    <!-- Rows 2-3, col 0: scrollable toolbar column -->
    <item row="2" column="0" rowspan="2">
     <widget class="QScrollArea" name="scroll">
+     <property name="maximumSize"><size><width>70</width><height>16777215</height></size></property>
      <property name="horizontalScrollBarPolicy"><enum>Qt::ScrollBarAlwaysOff</enum></property>
      <property name="widgetResizable"><bool>false</bool></property>
      <widget class="QWidget" name="tool_empty">
       <layout class="QVBoxLayout" name="tool_layout">
        <property name="leftMargin"><number>0</number></property>
-          <property name="topMargin"><number>0</number></property>
-          <property name="rightMargin"><number>0</number></property>
-          <property name="bottomMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
        <property name="spacing"><number>0</number></property>
-
        <!-- ── toolBar1 ── -->
        <item>
         <widget class="QFrame" name="toolBar1">
+         <property name="minimumSize"><size><width>68</width><height>0</height></size></property>
          <property name="frameShape"><enum>QFrame::Box</enum></property>
          <property name="frameShadow"><enum>QFrame::Raised</enum></property>
          <layout class="QGridLayout" name="toolLayout1">
@@ -48,74 +49,115 @@
           <property name="bottomMargin"><number>2</number></property>
           <property name="spacing"><number>2</number></property>
 
-          <!-- Draw (full width) -->
           <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdDraw">
             <property name="text"><string>Draw</string></property>
+            <property name="toolTip"><string>Redraw project</string></property>
            </widget>
           </item>
 
-          <!-- Zoom + AutoScale -->
           <item row="1" column="0" colspan="2">
-           <layout class="QHBoxLayout">
-            <property name="spacing"><number>2</number></property>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdZoom"><property name="text"><string/></property></widget></item>
-            <item><widget class="QPushButton" name="cmdAutoScale"><property name="text"><string/></property></widget></item>
+            <item>
+             <widget class="QPushButton" name="cmdZoom">
+              <property name="text"><string/></property>
+              <property name="toolTip"><string>Zoom graph(s) in rectangle (Alt+Z)</string></property>
+              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/zoom.png</normaloff>:/icons/zoom.png</iconset></property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cmdAutoScale">
+              <property name="text"><string/></property>
+              <property name="toolTip"><string>Autoscale graph(s) on X and Y axis (Ctrl+A)</string></property>
+              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/autoscale.png</normaloff>:/icons/autoscale.png</iconset></property>
+             </widget>
+            </item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
-          <!-- Zoom out + Zoom in -->
           <item row="2" column="0" colspan="2">
-           <layout class="QHBoxLayout">
-            <property name="spacing"><number>2</number></property>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdZz"><property name="text"><string/></property></widget></item>
-            <item><widget class="QPushButton" name="cmdzz"><property name="text"><string/></property></widget></item>
+            <item>
+             <widget class="QPushButton" name="cmdZz">
+              <property name="text"><string/></property>
+              <property name="toolTip"><string>Zoom out (Ctrl -)</string></property>
+              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/zoomOut.png</normaloff>:/icons/zoomOut.png</iconset></property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cmdzz">
+              <property name="text"><string/></property>
+              <property name="toolTip"><string>Zoom in (Ctrl +)</string></property>
+              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/zoomIn.png</normaloff>:/icons/zoomIn.png</iconset></property>
+             </widget>
+            </item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
-          <!-- Left + Right -->
           <item row="3" column="0" colspan="2">
-           <layout class="QHBoxLayout">
-            <property name="spacing"><number>2</number></property>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdLeft"><property name="text"><string/></property></widget></item>
-            <item><widget class="QPushButton" name="cmdRight"><property name="text"><string/></property></widget></item>
+            <item>
+             <widget class="QPushButton" name="cmdLeft">
+              <property name="text"><string/></property>
+              <property name="toolTip"><string>Scroll graph(s) left (Ctrl+LeftArrow)</string></property>
+              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/goLeft.png</normaloff>:/icons/goLeft.png</iconset></property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cmdRight">
+              <property name="text"><string/></property>
+              <property name="toolTip"><string>Scroll graph(s) right (Ctrl+RightArrow)</string></property>
+              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/goRight.png</normaloff>:/icons/goRight.png</iconset></property>
+             </widget>
+            </item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
-          <!-- Up + Down -->
           <item row="4" column="0" colspan="2">
-           <layout class="QHBoxLayout">
-            <property name="spacing"><number>2</number></property>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdUp"><property name="text"><string/></property></widget></item>
-            <item><widget class="QPushButton" name="cmdDown"><property name="text"><string/></property></widget></item>
+            <item>
+             <widget class="QPushButton" name="cmdUp">
+              <property name="text"><string/></property>
+              <property name="toolTip"><string>Scroll graph(s) up (Ctrl+UpArrow)</string></property>
+              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/goUp.png</normaloff>:/icons/goUp.png</iconset></property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cmdDown">
+              <property name="text"><string/></property>
+              <property name="toolTip"><string>Scroll graph(s) down (Ctrl+DownArrow)</string></property>
+              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/goDown.png</normaloff>:/icons/goDown.png</iconset></property>
+             </widget>
+            </item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
-          <!-- Pan (full width) -->
           <item row="5" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdPan">
             <property name="text"><string>Pan</string></property>
+            <property name="toolTip"><string>Pan graph(s) (Alt+P)</string></property>
            </widget>
           </item>
 
-          <!-- Pick/Move (full width) -->
           <item row="6" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdPick">
             <property name="text"><string>Move</string></property>
+            <property name="toolTip"><string>Relocate any object, legend, title, label (Alt+M)</string></property>
            </widget>
           </item>
 
-          <!-- Graph list (full width) -->
           <item row="7" column="0" colspan="2">
-           <widget class="uniList" name="lstGraphs"/>
+           <widget class="uniList" name="lstGraphs">
+            <property name="toolTip"><string>Select graph(s) for zoom operations</string></property>
+           </widget>
           </item>
 
          </layout>
@@ -125,6 +167,7 @@
        <!-- ── toolBar2 ── -->
        <item>
         <widget class="QFrame" name="toolBar2">
+         <property name="minimumSize"><size><width>68</width><height>0</height></size></property>
          <property name="frameShape"><enum>QFrame::Box</enum></property>
          <property name="frameShadow"><enum>QFrame::Raised</enum></property>
          <layout class="QGridLayout" name="toolLayout2">
@@ -135,57 +178,59 @@
           <property name="spacing"><number>2</number></property>
 
           <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdAutoT"><property name="text"><string>AutoT</string></property></widget>
+           <widget class="QPushButton" name="cmdAutoT">
+            <property name="text"><string>AutoT</string></property>
+            <property name="toolTip"><string>Automatically set the tick spacing</string></property>
+           </widget>
           </item>
           <item row="1" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdAutoO"><property name="text"><string>AutoO</string></property></widget>
+           <widget class="QPushButton" name="cmdAutoO">
+            <property name="text"><string>AutoO</string></property>
+            <property name="toolTip"><string>Autoscale on nearest set</string></property>
+           </widget>
           </item>
 
-          <!-- ZX + ZY -->
           <item row="2" column="0" colspan="2">
            <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdZX"><property name="text"><string>ZX</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmdZY"><property name="text"><string>ZY</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdZX"><property name="text"><string>ZX</string></property><property name="toolTip"><string>Zoom X axis only</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdZY"><property name="text"><string>ZY</string></property><property name="toolTip"><string>Zoom Y axis only</string></property></widget></item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
-          <!-- AX + AY -->
           <item row="3" column="0" colspan="2">
            <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdAX"><property name="text"><string>AX</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmdAY"><property name="text"><string>AY</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdAX"><property name="text"><string>AX</string></property><property name="toolTip"><string>Autoscale X axis only</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdAY"><property name="text"><string>AY</string></property><property name="toolTip"><string>Autoscale Y axis only</string></property></widget></item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
-          <!-- PZ + Pu -->
           <item row="4" column="0" colspan="2">
            <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdPZ"><property name="text"><string>PZ</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmdPu"><property name="text"><string>Pu</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdPZ"><property name="text"><string>PZ</string></property><property name="toolTip"><string>Push viewport on stack and zoom</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdPu"><property name="text"><string>Pu</string></property><property name="toolTip"><string>Push viewport on stack</string></property></widget></item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
-          <!-- Po + Cy -->
           <item row="5" column="0" colspan="2">
            <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdPo"><property name="text"><string>Po</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmdCy"><property name="text"><string>Cy</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdPo"><property name="text"><string>Po</string></property><property name="toolTip"><string>Pop viewport stack</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdCy"><property name="text"><string>Cy</string></property><property name="toolTip"><string>Cycle viewport stack</string></property></widget></item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
           <item row="6" column="0" colspan="2">
-           <widget class="QLabel" name="lblSD"><property name="text"><string> SD:1</string></property></widget>
+           <widget class="QLabel" name="lblSD"><property name="text"><string> SD:1</string></property><property name="toolTip"><string>Viewport stack depth</string></property></widget>
           </item>
           <item row="7" column="0" colspan="2">
-           <widget class="QLabel" name="lblCW"><property name="text"><string> CW:0</string></property></widget>
+           <widget class="QLabel" name="lblCW"><property name="text"><string> CW:0</string></property><property name="toolTip"><string>Current stack position</string></property></widget>
           </item>
 
           <item row="8" column="0" colspan="2">
@@ -196,69 +241,71 @@ stack:</string></property>
            </widget>
           </item>
           <item row="9" column="0" colspan="2">
-           <widget class="QComboBox" name="cmbViewStack"/>
+           <widget class="QComboBox" name="cmbViewStack">
+            <property name="toolTip"><string>Select viewport from stack</string></property>
+           </widget>
           </item>
 
-          <!-- ViewUp + ViewDown -->
           <item row="10" column="0" colspan="2">
            <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdViewUp"><property name="text"><string/></property></widget></item>
-            <item><widget class="QPushButton" name="cmdViewDown"><property name="text"><string/></property></widget></item>
+            <item><widget class="QPushButton" name="cmdViewUp"><property name="text"><string/></property><property name="toolTip"><string>Use next viewport lower in stack</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdViewDown"><property name="text"><string/></property><property name="toolTip"><string>Use next viewport higher in stack</string></property></widget></item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
-          <!-- ViewAdd + ViewRemove -->
           <item row="11" column="0" colspan="2">
            <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdViewAdd"><property name="text"><string>+</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmdViewRemove"><property name="text"><string>-</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdViewAdd"><property name="text"><string>+</string></property><property name="toolTip"><string>Add current world to viewport stack</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdViewRemove"><property name="text"><string>-</string></property><property name="toolTip"><string>Remove current viewport from stack</string></property></widget></item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
           <item row="12" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdViewReplace"><property name="text"><string>Repl.</string></property></widget>
+           <widget class="QPushButton" name="cmdViewReplace"><property name="text"><string>Repl.</string></property><property name="toolTip"><string>Replace current stack-viewport with graph-viewport</string></property></widget>
           </item>
           <item row="13" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdViewRearrange"><property name="text"><string>Pos.</string></property></widget>
+           <widget class="QPushButton" name="cmdViewRearrange"><property name="text"><string>Pos.</string></property><property name="toolTip"><string>Reposition selected viewport in stack</string></property></widget>
           </item>
           <item row="14" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdViewRename"><property name="text"><string>Name</string></property></widget>
+           <widget class="QPushButton" name="cmdViewRename"><property name="text"><string>Name</string></property><property name="toolTip"><string>Rename currently selected viewport in stack</string></property></widget>
           </item>
 
-          <!-- Undo + Redo -->
           <item row="15" column="0" colspan="2">
            <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdUndo"><property name="text"><string>Undo</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmdRedo"><property name="text"><string>Redo</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdUndo"><property name="text"><string>Undo</string></property><property name="toolTip"><string>Undo last action</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdRedo"><property name="text"><string>Redo</string></property><property name="toolTip"><string>Redo next action (undo the last undo)</string></property></widget></item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
 
           <item row="16" column="0" colspan="2">
-           <widget class="stdSlider" name="sldPageZoom"/>
+           <widget class="stdSlider" name="sldPageZoom">
+            <property name="toolTip"><string>Page zoom</string></property>
+           </widget>
           </item>
           <item row="17" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdFitPage"><property name="text"><string>Fit</string></property></widget>
+           <widget class="QPushButton" name="cmdFitPage"><property name="text"><string>Fit</string></property><property name="toolTip"><string>Fit page size to window size</string></property></widget>
           </item>
           <item row="18" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdExport">
             <property name="text"><string>Export</string></property>
+            <property name="toolTip"><string>Export to file</string></property>
             <property name="visible"><bool>false</bool></property>
            </widget>
           </item>
           <item row="19" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdPrint">
             <property name="text"><string>Print</string></property>
+            <property name="toolTip"><string>Print on physical printer</string></property>
             <property name="visible"><bool>false</bool></property>
            </widget>
           </item>
 
-          <!-- vertical spacer before Exit -->
           <item row="20" column="0" colspan="2">
            <spacer>
             <property name="orientation"><enum>Qt::Vertical</enum></property>
@@ -268,7 +315,7 @@ stack:</string></property>
           </item>
 
           <item row="21" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdExit"><property name="text"><string>Exit</string></property></widget>
+           <widget class="QPushButton" name="cmdExit"><property name="text"><string>Exit</string></property><property name="toolTip"><string>Close QtGrace</string></property></widget>
           </item>
 
          </layout>
@@ -297,7 +344,6 @@ stack:</string></property>
   </layout>
  </widget>
 
- <!-- Promoted (custom) widget declarations -->
  <customwidgets>
   <customwidget>
    <class>MainArea</class>
@@ -316,6 +362,11 @@ stack:</string></property>
   </customwidget>
  </customwidgets>
 
- <resources/>
+ <resources>
+  <include location="../fonts/icons/icons.qrc"/>
+ </resources>
+
  <connections/>
+ <!-- Signals to MainWindow slots are connected in C++ (setupUi receiver is QWidget*,
+      which doesn't carry the derived class's slot types for pointer-based connection). -->
 </ui>

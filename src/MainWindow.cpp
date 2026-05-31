@@ -881,140 +881,82 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     //The status locator bar — created by setupUi()
     statusBar->showMessage( "-,-,Untitled" );
 
-    //Toolbars and scroll — created by setupUi()
-
-    cmdDraw->setToolTip(tr("Redraw project"));
-    connect(cmdDraw, SIGNAL(clicked()), this, SLOT(doDraw()));
-    convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
-    cmdZoom->setIcon(HelpPixmap); cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle (Alt+Z)"));
-    connect(cmdZoom, SIGNAL(clicked()), this, SLOT(doZoom()));
-    convertBitmapToPixmap(autoBitMap,&HelpPixmap);
-    cmdAutoScale->setIcon(HelpPixmap); cmdAutoScale->setToolTip(tr("Autoscale graph(s) on X and Y axis (Crtl+A)"));
-    connect(cmdAutoScale, SIGNAL(clicked()), this, SLOT(doAutoScale()));
-    convertBitmapToPixmap(expandBitMap,&HelpPixmap);
-    cmdZz->setIcon(HelpPixmap); cmdZz->setToolTip(tr("Zoom out (Crtl -)"));
-    connect(cmdZz, SIGNAL(clicked()), this, SLOT(doZz()));
-    convertBitmapToPixmap(shrinkBitMap,&HelpPixmap);
-    cmdzz->setIcon(HelpPixmap); cmdzz->setToolTip(tr("Zoom in (Crtl +)"));
-    connect(cmdzz, SIGNAL(clicked()), this, SLOT(dozz()));
-    convertBitmapToPixmap(leftBitMap,&HelpPixmap);
-    cmdLeft->setIcon(HelpPixmap); cmdLeft->setToolTip(tr("Scroll graph(s) left (Crtl+LeftArrow)"));
-    connect(cmdLeft, SIGNAL(clicked()), this, SLOT(doLeft()));
-    convertBitmapToPixmap(rightBitMap,&HelpPixmap);
-    cmdRight->setIcon(HelpPixmap); cmdRight->setToolTip(tr("Scroll graph(s) right (Crtl+RightArrow)"));
-    connect(cmdRight, SIGNAL(clicked()), this, SLOT(doRight()));
-    convertBitmapToPixmap(upBitMap,&HelpPixmap);
-    cmdUp->setIcon(HelpPixmap); cmdUp->setToolTip(tr("Scroll graph(s) up (Crtl+UpArrow)"));
-    connect(cmdUp, SIGNAL(clicked()), this, SLOT(doUp()));
-    convertBitmapToPixmap(downBitMap,&HelpPixmap);
-    cmdDown->setIcon(HelpPixmap); cmdDown->setToolTip(tr("Scroll graph(s) down (Crtl+DownArrow)"));
-    connect(cmdDown, SIGNAL(clicked()), this, SLOT(doDown()));
-    QCursor helpCursor(Qt::OpenHandCursor);
-    HelpPixmap=helpCursor.pixmap();
-    cmdPan->setIcon(HelpPixmap); cmdPan->setToolTip(tr("Pan graph(s) (Alt+P)"));
-    connect(cmdPan,SIGNAL(clicked(bool)),SLOT(doPan()));
-    cmdPick->setIcon(HelpPixmap); cmdPick->setToolTip(tr("Relocate any object, legend, title, label (Alt+M)"));
-    connect(cmdPick,SIGNAL(clicked(bool)),SLOT(doPick()));
-
-    //chkSyncZoom=new QCheckBox(tr("Sync."),toolBar1);
-    //chkSyncZoom->setGeometry(cmdDraw->x()+stdDistance2,cmdUp->y()+cmdUp->height()+stdDistance1,64,stdHeight1);
-
-    ///QFont helpFont1(qApp->font());
-    ///helpFont1.setPixelSize(12);
-    lstGraphs->setToolTip(tr("Select graph(s) for zoom operations"));
-    ///lstGraphs->setFont(helpFont1);
+    // Toolbars, tooltips, icons, and button signals — all in MainWindow.ui
+    // Pan/Pick need cursor-based icons (not a file resource, set here)
+    {
+        QCursor helpCursor(Qt::OpenHandCursor);
+        cmdPan->setIcon(helpCursor.pixmap());
+        cmdPick->setIcon(helpCursor.pixmap());
+    }
+    // lstGraphs behaviour (not expressible in .ui)
     lstGraphs->prevent_from_autoupdate=true;
     lstGraphs->minimum_display=true;
     lstGraphs->setBehavior(true,true,true);
     lstGraphs->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     lstGraphs->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    connect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
-    /*End: QtGrace-addition*/
 
-    // toolBar2 — created by setupUi()
-    toolBar2->setFrameStyle(QFrame::Box | QFrame::Raised);
-
-    cmdAutoT->setToolTip(tr("Automatically set the tick spacing"));
-    connect(cmdAutoT, SIGNAL(clicked()), this, SLOT(doAutoT()));
-    cmdAutoO->setToolTip(tr("Autoscale on nearest set"));
-    connect(cmdAutoO, SIGNAL(clicked()), this, SLOT(doAutoO()));
-    cmdZX->setToolTip(tr("Zoom X axis only"));
-    connect(cmdZX, SIGNAL(clicked()), this, SLOT(doZX()));
-    cmdZY->setToolTip(tr("Zoom Y axis only"));
-    connect(cmdZY, SIGNAL(clicked()), this, SLOT(doZY()));
-    cmdAX->setToolTip(tr("Autoscale X axis only"));
-    connect(cmdAX, SIGNAL(clicked()), this, SLOT(doAX()));
-    cmdAY->setToolTip(tr("Autoscale Y axis only"));
-    connect(cmdAY, SIGNAL(clicked()), this, SLOT(doAY()));
-    cmdPZ->setToolTip(tr("Push viewport on stack and zoom"));
-    connect(cmdPZ, SIGNAL(clicked()), this, SLOT(doPZ()));
-    cmdPu->setToolTip(tr("Push viewort on stack"));
-    connect(cmdPu, SIGNAL(clicked()), this, SLOT(doPu()));
-    cmdPo->setToolTip(tr("Pop viewport stack"));
-    connect(cmdPo, SIGNAL(clicked()), this, SLOT(doPo()));
-    cmdCy->setToolTip(tr("Cycle viewport stack"));
-    connect(cmdCy, SIGNAL(clicked()), this, SLOT(doCy()));
-    lblSD->setToolTip(tr("Viewport stack depth"));
-    lblCW->setToolTip(tr("Current stack position"));
-
-    cmbViewStack->setToolTip(tr("Select viewport from stack"));
+    // Viewport stack: icons from bitmaps (not file resources)
+    convertBitmapToPixmap(upBitMap,&HelpPixmap);   cmdViewUp->setIcon(HelpPixmap);
+    convertBitmapToPixmap(downBitMap,&HelpPixmap); cmdViewDown->setIcon(HelpPixmap);
+    // Initial combobox item (signal/slot connections are in .ui)
     cmbViewStack->addItem(tr("Default"));
-    convertBitmapToPixmap(upBitMap,&HelpPixmap);
-    cmdViewUp->setIcon(HelpPixmap);
-    convertBitmapToPixmap(downBitMap,&HelpPixmap);
-    cmdViewDown->setIcon(HelpPixmap);
-    cmdViewUp->setToolTip(tr("Use next viewport lower in stack"));
-    cmdViewDown->setToolTip(tr("Use next viewport higher in stack"));
-    cmdViewRename->setToolTip(tr("Rename currently selected viewport in stack"));
-    cmdViewAdd->setToolTip(tr("Add current world to viewport stack"));
-    cmdViewRemove->setToolTip(tr("Remove current viewport from stack"));
-    cmdViewReplace->setToolTip(tr("Replace current stack-viewport with graph-viewport"));
-    cmdViewRearrange->setToolTip(tr("Reposition selected viewport in stack"));
 
-    connect(cmdViewUp,SIGNAL(clicked()),SLOT(newViewportUp()));
-    connect(cmdViewDown,SIGNAL(clicked()),SLOT(newViewportDown()));
-    connect(cmdViewRename,SIGNAL(clicked()),SLOT(newViewportRename()));
-    connect(cmdViewAdd,SIGNAL(clicked()),SLOT(newViewportAdd()));
-    connect(cmdViewRemove,SIGNAL(clicked()),SLOT(newViewportRemove()));
-    connect(cmdViewReplace,SIGNAL(clicked()),SLOT(newViewportReplace()));
-    connect(cmdViewRearrange,SIGNAL(clicked()),SLOT(newViewportReposition()));
-    connect(cmbViewStack,SIGNAL(currentIndexChanged(int)),SLOT(newViewportSelected(int)));
+    // Signal connections (setupUi receiver is QWidget*, can't carry derived class slots)
+    connect(cmdDraw,      SIGNAL(clicked()),             this, SLOT(doDraw()));
+    connect(cmdZoom,      SIGNAL(clicked()),             this, SLOT(doZoom()));
+    connect(cmdAutoScale, SIGNAL(clicked()),             this, SLOT(doAutoScale()));
+    connect(cmdZz,        SIGNAL(clicked()),             this, SLOT(doZz()));
+    connect(cmdzz,        SIGNAL(clicked()),             this, SLOT(dozz()));
+    connect(cmdLeft,      SIGNAL(clicked()),             this, SLOT(doLeft()));
+    connect(cmdRight,     SIGNAL(clicked()),             this, SLOT(doRight()));
+    connect(cmdUp,        SIGNAL(clicked()),             this, SLOT(doUp()));
+    connect(cmdDown,      SIGNAL(clicked()),             this, SLOT(doDown()));
+    connect(cmdPan,       SIGNAL(clicked()),             this, SLOT(doPan()));
+    connect(cmdPick,      SIGNAL(clicked()),             this, SLOT(doPick()));
+    connect(lstGraphs,    SIGNAL(new_selection(int)),    this, SLOT(newgraphselection(int)));
+    connect(cmdAutoT,     SIGNAL(clicked()),             this, SLOT(doAutoT()));
+    connect(cmdAutoO,     SIGNAL(clicked()),             this, SLOT(doAutoO()));
+    connect(cmdZX,        SIGNAL(clicked()),             this, SLOT(doZX()));
+    connect(cmdZY,        SIGNAL(clicked()),             this, SLOT(doZY()));
+    connect(cmdAX,        SIGNAL(clicked()),             this, SLOT(doAX()));
+    connect(cmdAY,        SIGNAL(clicked()),             this, SLOT(doAY()));
+    connect(cmdPZ,        SIGNAL(clicked()),             this, SLOT(doPZ()));
+    connect(cmdPu,        SIGNAL(clicked()),             this, SLOT(doPu()));
+    connect(cmdPo,        SIGNAL(clicked()),             this, SLOT(doPo()));
+    connect(cmdCy,        SIGNAL(clicked()),             this, SLOT(doCy()));
+    connect(cmdViewUp,    SIGNAL(clicked()),             this, SLOT(newViewportUp()));
+    connect(cmdViewDown,  SIGNAL(clicked()),             this, SLOT(newViewportDown()));
+    connect(cmdViewRename,SIGNAL(clicked()),             this, SLOT(newViewportRename()));
+    connect(cmdViewAdd,   SIGNAL(clicked()),             this, SLOT(newViewportAdd()));
+    connect(cmdViewRemove,SIGNAL(clicked()),             this, SLOT(newViewportRemove()));
+    connect(cmdViewReplace,   SIGNAL(clicked()),         this, SLOT(newViewportReplace()));
+    connect(cmdViewRearrange, SIGNAL(clicked()),         this, SLOT(newViewportReposition()));
+    connect(cmbViewStack, SIGNAL(currentIndexChanged(int)), this, SLOT(newViewportSelected(int)));
+    connect(cmdUndo,      SIGNAL(clicked()),             this, SLOT(doUndo()));
+    connect(cmdRedo,      SIGNAL(clicked()),             this, SLOT(doRedo()));
+    connect(sldPageZoom,  SIGNAL(valueChanged(int)),     this, SLOT(doPageZoom(int)));
+    connect(cmdFitPage,   SIGNAL(clicked()),             this, SLOT(doFitPage()));
+    connect(cmdExport,    SIGNAL(clicked()),             this, SLOT(PrintToFile()));
+    connect(cmdPrint,     SIGNAL(clicked()),             this, SLOT(Print()));
+    connect(cmdExit,      SIGNAL(clicked()),             this, SLOT(doExit()));
 
-    /*QtGrace-addition*/
-    cmdUndo->setToolTip(tr("Undo last action"));
-    connect(cmdUndo,SIGNAL(clicked(bool)),SLOT(doUndo()));
-    cmdRedo->setToolTip(tr("Redo next action (undo the last undo)"));
-    connect(cmdRedo,SIGNAL(clicked(bool)),SLOT(doRedo()));
-    sldPageZoom->setToolTip(tr("Page zoom"));
-    connect(sldPageZoom,SIGNAL(valueChanged(int)),this,SLOT(doPageZoom(int)));
-    cmdFitPage->setToolTip(tr("Fit page size to window size"));
-    connect(cmdFitPage, SIGNAL(clicked()), this, SLOT(doFitPage()));
-    cmdExport->setToolTip(tr("Export to file"));
-    connect(cmdExport, SIGNAL(clicked()), this, SLOT(PrintToFile()));
-    cmdPrint->setToolTip(tr("Print on physical printer"));
-    connect(cmdPrint, SIGNAL(clicked()), this, SLOT(Print()));
-    cmdExit->setToolTip(tr("Close QtGrace"));
-    connect(cmdExit, SIGNAL(clicked()), this, SLOT(doExit()));
-
-    // setupUi() already built the grid — apply stretch/min settings not in .ui
-    mainGrid->setRowStretch(0,0);
-    mainGrid->setRowMinimumHeight(1,stdBarHeight);
-    mainGrid->setRowStretch(1,0);
+    // Layout settings not expressible as .ui properties
+    // (QGridLayout row/col stretch/min use per-method calls, not Q_PROPERTY)
     tool_layout->setStretch(0,0);
     tool_layout->setStretch(1,1);
-    toolBar1->setMinimumWidth(stdColWidth);
-    toolBar2->setMinimumWidth(stdColWidth);
-    scroll->setMaximumWidth(stdColWidth+2);
-    tool_empty->setGeometry(0,0,stdColWidth,600);
+    mainGrid->setRowStretch(0,0);
+    mainGrid->setRowStretch(1,0);
     mainGrid->setRowStretch(2,0);
     mainGrid->setRowStretch(3,1);
-    statusBar->insertPermanentWidget(0, statusBarLabel);
-    mainGrid->setRowMinimumHeight(4,stdBarHeight);
     mainGrid->setRowStretch(4,0);
-    mainGrid->setColumnMinimumWidth(0,stdColWidth);
     mainGrid->setColumnStretch(0,0);
     mainGrid->setColumnStretch(1,1);
+    mainGrid->setColumnMinimumWidth(0,stdColWidth);
     mainGrid->setRowMinimumHeight(2,stdRowHeight);
+    mainGrid->setRowMinimumHeight(1,stdBarHeight);   // stdBarHeight computed at runtime
+    mainGrid->setRowMinimumHeight(4,stdBarHeight);
+    statusBar->insertPermanentWidget(0, statusBarLabel);
+    tool_empty->setGeometry(0,0,stdColWidth,600);
 #ifdef MAC_SYSTEM
     mainGrid->removeWidget(menuBar);
     mainGrid->setRowMinimumHeight(0,0);
