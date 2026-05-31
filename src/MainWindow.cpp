@@ -905,20 +905,12 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     // Signals connected via on_<name>_<signal>() wrappers (auto-connect in setupUi)
 
     // Layout settings not expressible as .ui properties
-    // (QGridLayout row/col stretch/min use per-method calls, not Q_PROPERTY)
-    tool_layout->setStretch(0,0);
-    tool_layout->setStretch(1,1);
-    mainGrid->setRowStretch(0,0);
-    mainGrid->setRowStretch(1,0);
-    mainGrid->setRowStretch(2,0);
-    mainGrid->setRowStretch(3,1);
-    mainGrid->setRowStretch(4,0);
-    mainGrid->setColumnStretch(0,0);
-    mainGrid->setColumnStretch(1,1);
-    mainGrid->setColumnMinimumWidth(0,stdColWidth);
-    mainGrid->setRowMinimumHeight(2,stdRowHeight);
-    mainGrid->setRowMinimumHeight(1,stdBarHeight);   // stdBarHeight computed at runtime
-    mainGrid->setRowMinimumHeight(4,stdBarHeight);
+    tool_layout->setStretch(0,0);    // toolBar1 fixed height
+    tool_layout->setStretch(1,1);    // toolBar2 fills remaining space
+    mainGrid->setRowStretch(3,1);    // canvas row expands vertically
+    mainGrid->setColumnStretch(1,1); // canvas column expands horizontally
+    mainGrid->setRowMinimumHeight(1,stdBarHeight); // locbar — used by show/hide toggle
+    mainGrid->setRowMinimumHeight(4,stdBarHeight); // statusbar — used by show/hide toggle
     statusBar->insertPermanentWidget(0, statusBarLabel);
     tool_empty->setGeometry(0,0,stdColWidth,600);
 #ifdef MAC_SYSTEM

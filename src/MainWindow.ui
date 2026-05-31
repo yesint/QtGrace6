@@ -18,8 +18,8 @@
    <item row="1" column="0" colspan="2">
     <widget class="QLabel" name="statLocBar">
      <property name="text"><string>G0: X, Y = [-, -]</string></property>
-     <property name="frameShape"><enum>QFrame::Box</enum></property>
-     <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+     
+     
     </widget>
    </item>
 
@@ -40,8 +40,8 @@
        <item>
         <widget class="QFrame" name="toolBar1">
          <property name="minimumSize"><size><width>68</width><height>0</height></size></property>
-         <property name="frameShape"><enum>QFrame::Box</enum></property>
-         <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+         
+         
          <layout class="QGridLayout" name="toolLayout1">
           <property name="leftMargin"><number>2</number></property>
           <property name="topMargin"><number>2</number></property>
@@ -168,8 +168,8 @@
        <item>
         <widget class="QFrame" name="toolBar2">
          <property name="minimumSize"><size><width>68</width><height>0</height></size></property>
-         <property name="frameShape"><enum>QFrame::Box</enum></property>
-         <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+         
+         
          <layout class="QGridLayout" name="toolLayout2">
           <property name="leftMargin"><number>2</number></property>
           <property name="topMargin"><number>2</number></property>
