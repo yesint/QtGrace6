@@ -64,7 +64,7 @@
                   <string>Zoom graph(s) in rectangle (Alt+Z)</string>
                 </property>
                 <property name="icon">
-                  <iconset theme="zoom-select">:/icons/zoom.png<normaloff>:/icons/zoom.png</normaloff>
+                  <iconset theme="zoom-draw">:/icons/zoom.png<normaloff>:/icons/zoom.png</normaloff>
                   </iconset>
                 </property>
               </widget>
