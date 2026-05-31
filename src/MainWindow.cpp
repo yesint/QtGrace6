@@ -935,7 +935,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     connect(cmdFitPage,   SIGNAL(clicked()),             this, SLOT(doFitPage()));
     connect(cmdExport,    SIGNAL(clicked()),             this, SLOT(PrintToFile()));
     connect(cmdPrint,     SIGNAL(clicked()),             this, SLOT(Print()));
-    connect(cmdExit,      SIGNAL(clicked()),             this, SLOT(doExit()));
 
     // Layout settings not expressible as .ui properties
     tool_layout->setStretch(0,0);    // toolBar1 fixed height
@@ -1095,7 +1094,6 @@ cmdZY->setText(tr("ZY"));
 cmdAX->setText(tr("AX"));
 cmdAY->setText(tr("AY"));
 cmdAutoT->setText(tr("AutoT"));
-cmdExit->setText(tr("Exit"));
 cmdPan->setText(tr("Pan"));
 cmdPick->setText(tr("Move"));
 /*cmdUndo->setText(tr("Undo"));
@@ -1110,7 +1108,6 @@ cmdRedo->setIcon(QIcon());
     {
     cmdAutoT->setIcon(QIcon());
     cmdDraw->setIcon(QIcon());
-    cmdExit->setIcon(QIcon());
     cmdPan->setIcon(QIcon());
     cmdPick->setIcon(QIcon());
     }
@@ -1124,7 +1121,6 @@ cmdRedo->setIcon(QIcon());
     convertBitmapToScaledIcon(autoTickMap,&HelpIcon,newIconSize);
     cmdAutoT->setIcon(HelpIcon);
     convertBitmapToScaledIcon(exitMap,&HelpIcon,newIconSize);
-    cmdExit->setIcon(HelpIcon);
     }
 }
 else if (icon_preferences==2)//icons only
@@ -1136,7 +1132,6 @@ cmdZX->setText(tr(""));
 cmdZY->setText(tr(""));
 cmdAX->setText(tr(""));
 cmdAY->setText(tr(""));
-cmdExit->setText(tr(""));
 cmdAutoT->setText(tr(""));
 cmdPan->setIcon(pan_icon);
 pan_icon=CreateIconFromPNG(icondir+"Pick_Move_Icon.png",newIconSize);
@@ -1154,7 +1149,6 @@ cmdAY->setIcon(HelpIcon);
 convertBitmapToScaledIcon(autoTickMap,&HelpIcon,newIconSize);
 cmdAutoT->setIcon(HelpIcon);
 convertBitmapToScaledIcon(exitMap,&HelpIcon,newIconSize);
-cmdExit->setIcon(HelpIcon);
 }
 cmdUndo->setText(tr(""));
 cmdRedo->setText(tr(""));
@@ -2730,7 +2724,6 @@ QSize newIconSize(default_IconW*toolBarSizeFactor,default_IconH*toolBarSizeFacto
 if (icon_preferences==0 || icon_preferences==1)//we actually have icons
 {
 cmdDraw->setIconSize(newIconSize);
-cmdExit->setIconSize(newIconSize);
 cmdAutoT->setIconSize(newIconSize);
 cmdPan->setIconSize(newIconSize);
 cmdPick->setIconSize(newIconSize);
@@ -2799,7 +2792,6 @@ void MainWindow::ManageBars(void)
         cmdAutoT->setFixedSize(LargeButtonW,LargeButtonH);
         cmdAutoO->setFixedSize(LargeButtonW,LargeButtonH);
         cmdFitPage->setFixedSize(LargeButtonW,LargeButtonH);
-        cmdExit->setFixedSize(LargeButtonW,LargeButtonH);
         cmdExport->setFixedSize(LargeButtonW,LargeButtonH);
         cmdPrint->setFixedSize(LargeButtonW,LargeButtonH);
         cmdPan->setFixedSize(LargeButtonW,LargeButtonH);
@@ -3146,10 +3138,8 @@ xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
         }
 #ifndef AUTOLAYOUT_FOR_TOOLBAR
         ypos+=int(8.0/5.0*stdDistance1);
-        cmdExit->move(xpos,ypos);
         stdDistance2=sav_stddist2;
 #endif
-        cmdExit->show();
         //show the tool bar
         toolBar1->show();
         toolBar2->show();

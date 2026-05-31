@@ -214,7 +214,7 @@ public:
     QPushButton * cmdFitPage;
     QLabel * lblSD;
     QLabel * lblCW;
-    QPushButton * cmdExit;
+
 
     QAction * actNew,*actOpen,*actSave,*actSaveAs,*actRevert,*actPrint,*actPrintToFile,*actPrintSetup,*actExit;
     //SpinBoxAction * actPrintSpecial;
