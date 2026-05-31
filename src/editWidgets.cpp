@@ -5647,6 +5647,8 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     lblInfo[index++]=new QLabel(tr("      Copyright (c) 1991-1995 Paul J Turner"),grpLegal);
     lblInfo[index++]=new QLabel(tr("      Copyright (c) 1996-2008 Grace Development Team"),grpLegal);
     lblInfo[index++]=new QLabel(tr("      Maintained by Evgeny Stambulchik"),grpLegal);
+    lblInfo[index++]=new QLabel(tr("QtGrace6:"),grpLegal);
+    lblInfo[index++]=new QLabel(tr("      Copyright (c) 2023-2026 Semen Yesylevsky"),grpLegal);
     lblInfo[index++]=new QLabel(tr("QtGrace:"),grpLegal);
     lblInfo[index++]=new QLabel(tr("      Copyright (c) 2008-2022 Andreas Winter"),grpLegal);
     lblInfo[index++]=new QLabel(tr("      Additional code by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB"),grpLegal);
@@ -5735,7 +5737,7 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     cmdIAdr=new QPushButton(QString("http://plasma-gate.weizmann.ac.il/Grace/"),grpHomePage);
     cmdIAdr->setFlat(true);
     connect(cmdIAdr,SIGNAL(clicked()),SLOT(doShowHomepage()));
-    cmdIAdr2=new QPushButton(QString("http://sourceforge.net/projects/qtgrace"),grpHomePage);
+    cmdIAdr2=new QPushButton(QString("https://github.com/yesint/QtGrace6"),grpHomePage);
     cmdIAdr2->setFlat(true);
     connect(cmdIAdr2,SIGNAL(clicked()),SLOT(doShowHomepage2()));
     cmdIAdr3=new QPushButton(QString("http://www.qt.io/"),grpHomePage);
@@ -5774,7 +5776,7 @@ void frmAbout::doShowHomepage(void)
 
 void frmAbout::doShowHomepage2(void)
 {
-    HelpCB("http://sourceforge.net/projects/qtgrace");
+    HelpCB("https://github.com/yesint/QtGrace6");
 }
 
 void frmAbout::doShowHomepage3(void)
