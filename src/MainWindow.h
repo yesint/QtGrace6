@@ -220,7 +220,7 @@ public:
     QAction*actDataSetOperations,*actFeatureExtraction,*actExportAscii,*actImportNetCDF,*actImportAscii,*actEvaluateExpr,*actHistograms,*actFourier,*actFourier2,*actRunningAverages,*actDifferences,*actSeasonalDiff,*actIntegration,*actInterpolation,*actRegression,*actNonLinCurveFitting,*act2DFitting,*actReportFitParameters,*actCorrelation,*actDigitalFilter,*actLinConvolution,*actGeomTransform,*actGeomEval,*actSamplePoints,*actPruneData;
     QAction *actPlotAppearance,*actGraphAppearance,*actSetAppearance,*actAxisProperties,*actLoadParameters,*actSaveParameters;
     QAction *actCommands,*actPointExplorer,*actDrawingObjects,*actFontTool,*actConsole;
-    QAction *actHelpOnContext,*actHelpUsersGuide,*actHelpTutorial,*actHelpFAQ,*actHelpChanges,*actHelpQtGrace,*actHelpComments,*actHelpLicense,*actHelpReadme,*actHelpAbout;
+    QAction *actHelpOnContext,*actHelpUsersGuide,*actHelpTutorial,*actHelpQtGrace,*actHelpAbout;
     QAction *actShowLocBar,*actShowStatusBar,*actShowToolBar,*actPageSetup,*actRedraw,*actUpdateAll;
     QAction *actImportBinary,*actExportBinary,*actImportCSV,*actImportAgr;
     QAction *actUndo,*actRedo,*actUndoList,*actExplorer,*actColManager,*actRealTimeInput;
@@ -325,12 +325,7 @@ public slots:
     void HelpOnContext(void);
     void HelpUsersGuide(void);
     void HelpTutorial(void);
-    void HelpFAQ(void);
-    void HelpChanges(void);
     void HelpQtGrace(void);
-    void HelpComments(void);
-    void HelpLicense(void);
-    void HelpReadme(void);
     void HelpAbout(void);
     void HelpOpenExample(int i);
 

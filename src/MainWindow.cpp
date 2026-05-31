@@ -828,16 +828,10 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addAction(actHelpUsersGuide);
     mnuHelp->addAction(actHelpTutorial);
-    mnuHelp->addAction(actHelpFAQ);
-    mnuHelp->addAction(actHelpChanges);
     mnuHelp->addAction(actHelpQtGrace);
-    mnuHelp->addAction(actHelpReadme);
     mnuHelp->addSeparator();
     mnuHelp->addMenu(mnuExample);
     mnuHelp->addSeparator();
-    mnuHelp->addAction(actHelpComments);
-    mnuHelp->addSeparator();
-    mnuHelp->addAction(actHelpLicense);
     mnuHelp->addAction(actHelpAbout);
 
     menuBar->addMenu( mnuFile );
@@ -3195,18 +3189,6 @@ void MainWindow::HelpTutorial(void)
     HelpCB(helpfile.toLocal8Bit().constData());
 }
 
-void MainWindow::HelpFAQ(void)
-{
-    QString helpfile=QString(qt_grace_doc_dir)+QDir::separator()+QString("FAQ.html");
-    HelpCB(helpfile.toLocal8Bit().constData());
-}
-
-void MainWindow::HelpChanges(void)
-{
-    QString helpfile=QString(qt_grace_doc_dir)+QDir::separator()+QString("CHANGES.html");
-    HelpCB(helpfile.toLocal8Bit().constData());
-}
-
 void MainWindow::HelpQtGrace(void)
 {
     /*
@@ -3215,25 +3197,6 @@ void MainWindow::HelpQtGrace(void)
     HelpOpenExample(i);
     */
     QString helpfile=QString(qt_grace_doc_dir)+QDir::separator()+QString("QTGRACE_EXTENSIONS.html");
-    HelpCB(helpfile.toLocal8Bit().constData());
-}
-
-void MainWindow::HelpComments(void)
-{
-    char buf[256];
-    sprintf(buf,"http://plasma-gate.weizmann.ac.il/Grace/comments.phtml?version_id=%ld",bi_version_id());
-    HelpCB((const char*)buf);
-}
-
-void MainWindow::HelpLicense(void)
-{
-    QString helpfile=QString(qt_grace_doc_dir)+QDir::separator()+QString("GPL.html");
-    HelpCB(helpfile.toLocal8Bit().constData());
-}
-
-void MainWindow::HelpReadme(void)
-{
-    QString helpfile=QString(qt_grace_doc_dir)+QDir::separator()+QString("README_QTGRACE.txt");
     HelpCB(helpfile.toLocal8Bit().constData());
 }
 
@@ -3750,22 +3713,12 @@ void MainWindow::CreateActions(void)
     actHelpOnContext= new QAction(tr("On conte&xt" ), this);
     actHelpOnContext->setShortcut(tr("Shift+F1"));
     connect(actHelpOnContext, SIGNAL(triggered()), this, SLOT(HelpOnContext()));
-    actHelpUsersGuide= new QAction(tr("User's &Guide" ), this);
+    actHelpUsersGuide= new QAction(tr("Grace &User's Guide"), this);
     connect(actHelpUsersGuide, SIGNAL(triggered()), this, SLOT(HelpUsersGuide()));
-    actHelpTutorial= new QAction(tr("&Tutorial"), this);
+    actHelpTutorial= new QAction(tr("Grace &Tutorial"), this);
     connect(actHelpTutorial, SIGNAL(triggered()), this, SLOT(HelpTutorial()));
-    actHelpFAQ= new QAction(tr("FA&Q"), this);
-    connect(actHelpFAQ, SIGNAL(triggered()), this, SLOT(HelpFAQ()));
-    actHelpChanges= new QAction(tr("&Changes" ), this);
-    connect(actHelpChanges, SIGNAL(triggered()), this, SLOT(HelpChanges()));
-    actHelpQtGrace= new QAction(tr("QtGrace-&Extensions" ), this);
+    actHelpQtGrace= new QAction(tr("QtGrace-&Extensions"), this);
     connect(actHelpQtGrace, SIGNAL(triggered()), this, SLOT(HelpQtGrace()));
-    actHelpComments= new QAction(tr("Co&mments" ), this);
-    connect(actHelpComments, SIGNAL(triggered()), this, SLOT(HelpComments()));
-    actHelpLicense= new QAction(tr("License terms" ), this);
-    connect(actHelpLicense, SIGNAL(triggered()), this, SLOT(HelpLicense()));
-    actHelpReadme= new QAction(tr("&Readme" ), this);
-    connect(actHelpReadme, SIGNAL(triggered()), this, SLOT(HelpReadme()));
     actHelpAbout= new QAction(tr("&About..." ), this);
     connect(actHelpAbout, SIGNAL(triggered()), this, SLOT(HelpAbout()));
 
