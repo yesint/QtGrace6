@@ -157,20 +157,16 @@ frmDataSetProperties::frmDataSetProperties(QWidget * parent):QDialog(parent)
 
     menuBar=new QMenuBar(this);
     mnuFile=new QMenu("&File",this);
-    mnuFile->setTearOffEnabled(TRUE);
     mnuFile->addAction(actClose);
     mnuEditData=new QMenu("&Edit data",this);
-    mnuEditData->setTearOffEnabled(TRUE);
     mnuEditData->addAction(actEditInSpreadsheet);
     mnuEditData->addAction(actEditInTextEditor);
     mnuCreateNew=new QMenu("Create &new",this);
-    mnuCreateNew->setTearOffEnabled(TRUE);
     mnuCreateNew->addAction(actCreateNewByFormula);
     mnuCreateNew->addAction(actCreateNewInSpreadsheet);
     mnuCreateNew->addAction(actCreateNewInTextEditor);
     mnuCreateNew->addAction(actCreateNewFromBlockData);
     mnuEdit=new QMenu("&Edit",this);
-    mnuEdit->setTearOffEnabled(TRUE);
     mnuEdit->addAction(actDuplicate);
     mnuEdit->addAction(actKillData);
     mnuEdit->addSeparator();
@@ -180,7 +176,6 @@ frmDataSetProperties::frmDataSetProperties(QWidget * parent):QDialog(parent)
     mnuEdit->addAction(actSetAppearance);
     mnuEdit->addAction(actSetOperations);
     mnuHelp=new QMenu("&Help",this);
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addSeparator();
     mnuHelp->addAction(actHelpOnSetProp);

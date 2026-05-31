@@ -684,14 +684,12 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The File-Menu and its entries
     mnuFile	=new QMenu(tr("&File"), this );
-    mnuFile->setTearOffEnabled(TRUE);
     mnuFile->addAction(actNew);
     mnuFile->addAction(actOpen);
     mnuFile->addAction(actSave);
     mnuFile->addAction(actSaveAs);
     mnuFile->addAction(actRevert);
     mnuHistory=new QMenu(tr("Recently opened files"),this);
-    mnuHistory->setTearOffEnabled(TRUE);
         for (int i=0;i<MAX_HISTORY;i++)
         mnuHistory->addAction(actHistory[i]);
     mnuHistory->addSeparator();
@@ -709,7 +707,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The Edit-Menu and its entries
     mnuEdit=new QMenu(tr("&Edit"),  this );
-    mnuEdit->setTearOffEnabled(TRUE);
     mnuEdit->addAction(actUndo);
     mnuEdit->addAction(actRedo);
     mnuEdit->addAction(actUndoList);
@@ -724,7 +721,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     mnuEdit->addAction(actAutoscaleGraphs);
     mnuEdit->addSeparator();
     mnuRegions=new QMenu(tr("Reg&ions"),this);
-    mnuRegions->setTearOffEnabled(TRUE);
     mnuRegions->addAction(actRegionsStatus);
     mnuRegions->addAction(actRegionsDefine);
     mnuRegions->addAction(actRegionsClear);
@@ -743,10 +739,8 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The Data-Menu and its entries
     mnuData	=new QMenu(tr("&Data"), this );
-    mnuData->setTearOffEnabled(TRUE);
 
     mnuTransform=new QMenu(tr("&Transformations"), this );
-    mnuTransform->setTearOffEnabled(TRUE);
     mnuTransform->addAction(actEvaluateExpr);
     mnuTransform->addAction(actHistograms);
     mnuTransform->addAction(actFourier);
@@ -775,14 +769,12 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     mnuTransform->addAction(actReportFitParameters);
 
     mnuImport=new QMenu(tr("&Import"), this );
-    mnuImport->setTearOffEnabled(TRUE);
     mnuImport->addAction(actImportAscii);
     mnuImport->addAction(actImportCSV);
     mnuImport->addAction(actImportBinary);
     mnuImport->addAction(actImportNetCDF);
     mnuImport->addAction(actImportAgr);
     mnuExport=new QMenu(tr("&Export"), this );
-    mnuExport->setTearOffEnabled(TRUE);
     mnuExport->addAction(actExportAscii);
     mnuExport->addAction(actExportBinary);
 
@@ -795,7 +787,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The Plo-Menu and its entries
     mnuPlot	=new QMenu(tr("&Plot"), this );
-    mnuPlot->setTearOffEnabled(TRUE);
     mnuPlot->addAction(actPlotAppearance);
     mnuPlot->addAction(actGraphAppearance);
     mnuPlot->addAction(actSetAppearance);
@@ -806,7 +797,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The View-Menu and its entries
     mnuView	=new QMenu(tr("&View"), this );
-    mnuView->setTearOffEnabled(TRUE);
     mnuView->addAction(actShowStatusBar);
     mnuView->addAction(actShowToolBar);
     mnuView->addSeparator();
@@ -818,7 +808,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The Window-Menu and its entries
     mnuWindow=new QMenu(tr("&Window"),  this );
-    mnuWindow->setTearOffEnabled(TRUE);
     mnuWindow->addAction(actCommands);
     mnuWindow->addAction(actPointExplorer);
     mnuWindow->addAction(actDrawingObjects);
@@ -829,9 +818,7 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The Help-Menu and its entries
     mnuHelp	=new QMenu(tr("&Help"),  this );
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuExample=new QMenu(tr("&Examples"), this );
-    mnuExample->setTearOffEnabled(TRUE);
         for (int i=0;i<nr_of_Example_Menues;i++)
         mnuExample->addMenu(example_menues[i]);
 #if QT_VERSION >= 0x050000
@@ -3916,7 +3903,6 @@ void MainWindow::CreateActions(void)
     for (int i=0;i<nr_of_Example_Menues;i++)
     {
         example_menues[i]=new QMenu(ExampleMenuNames[i],this);
-        example_menues[i]->setTearOffEnabled(TRUE);
         for (int j=0;j<nr_of_Example_Menu_Entries[i];j++)
         {
             act_examples[i][j]=new QAction(ExampleMenuEntries[i][j], this);

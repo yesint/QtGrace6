@@ -6293,7 +6293,6 @@ GraphPopup::GraphPopup(uniList *parent):QMenu(parent)
 {
     par=parent;
     CreateActions();
-    setTearOffEnabled(FALSE);
 
     //Create Menu itself
     addAction(actLabel);
@@ -6645,7 +6644,6 @@ SetPopup::SetPopup(uniList *parent):QMenu(parent)
     selected_sets=new int[2];
 
     CreateActions();
-    setTearOffEnabled(FALSE);
 
     //Create Menu itself
     addAction(actLabel);
@@ -6670,11 +6668,9 @@ SetPopup::SetPopup(uniList *parent):QMenu(parent)
     addAction(actSwap);
     addSeparator();
     mnuEdit=new QMenu(tr("&Edit"),this);
-    mnuEdit->setTearOffEnabled(FALSE);
     mnuEdit->addAction(actEditInSpreadsheet);
     mnuEdit->addAction(actEditInTextEditor);
     mnuCreateNew=new QMenu(tr("Create new"),this);
-    mnuCreateNew->setTearOffEnabled(FALSE);
     mnuCreateNew->addAction(actCreateByFormula);
     mnuCreateNew->addAction(actCreateInSpreadsheet);
     mnuCreateNew->addAction(actCreateInTextEditor);
@@ -6690,10 +6686,8 @@ SetPopup::SetPopup(uniList *parent):QMenu(parent)
     addSeparator();
 
     mnuDisplay=new QMenu(tr("Display options"),this);
-    mnuDisplay->setTearOffEnabled(FALSE);
 
     mnuSelectorOperations=new QMenu(tr("Select &operations"),this);
-    mnuSelectorOperations->setTearOffEnabled(FALSE);
 
     actViewIcons->setCheckable(true);
     actViewIcons->setChecked(FALSE);
@@ -6731,11 +6725,8 @@ SetPopup::SetPopup(uniList *parent):QMenu(parent)
     mnuSelectorOperations->addAction(actUpdate);
 
     mnuColor=new QMenu(tr("Set line color"),this);
-    mnuColor->setTearOffEnabled(FALSE);
     mnuLineStyle=new QMenu(tr("Set linestyle"),this);
-    mnuLineStyle->setTearOffEnabled(FALSE);
     mnuSymbol=new QMenu(tr("Set set symbols"),this);
-    mnuSymbol->setTearOffEnabled(FALSE);
 
     actColors=NULL;
     actLineStyles=NULL;
@@ -6773,7 +6764,6 @@ SetPopup::SetPopup(uniList *parent):QMenu(parent)
     addMenu(mnuSelectorOperations);
 
     mnuSimpleOperations=new QMenu(tr("Set operations"),this);
-    mnuSimpleOperations->setTearOffEnabled(FALSE);
     mnuSimpleOperations->addAction(actSimpleSortXUp);
     mnuSimpleOperations->addAction(actSimpleSortXDown);
     mnuSimpleOperations->addAction(actSimpleReverse);
@@ -10867,7 +10857,6 @@ TreePopup::TreePopup(treeView *parent):QMenu(parent)
     par=parent;
     selected_type='0';
     gno=sno=-1;
-    setTearOffEnabled(FALSE);
     CreateActions();
     //Create Menu itself
     addAction(actShow);

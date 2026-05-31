@@ -4143,18 +4143,14 @@ frmConsole::frmConsole(QWidget * parent):QDialog(parent)
 
     menuBar=new QMenuBar(this);
     mnuFile=new QMenu("&File",this);
-    mnuFile->setTearOffEnabled(TRUE);
     mnuFile->addAction(actSave);
     mnuFile->addAction(actClose);
     mnuEdit=new QMenu("&Edit",this);
-    mnuEdit->setTearOffEnabled(TRUE);
     mnuEdit->addAction(actCopy);
     mnuEdit->addAction(actClear);
     mnuOptions=new QMenu("&Options",this);
-    mnuOptions->setTearOffEnabled(TRUE);
     mnuOptions->addAction(actPopOnError);
     mnuHelp=new QMenu("&Help",this);
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addSeparator();
     mnuHelp->addAction(actHelpOnConsole);

@@ -1016,13 +1016,11 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
     menuBar=new QMenuBar(this);
 
     mnuFile=new QMenu(tr("&File"),this);
-    mnuFile->setTearOffEnabled(TRUE);
     /*mnuFile->addAction(actOpenFontTool);
     mnuFile->addSeparator();*/
     mnuFile->addAction(actclose);
 
     mnuEdit=new QMenu(tr("&Edit"),this);
-    mnuEdit->setTearOffEnabled(TRUE);
     mnuEdit->addAction(actsetdiffcolors);
     mnuEdit->addAction(actsetdiffsymbols);
     mnuEdit->addAction(actsetdifflinestyles);
@@ -1033,13 +1031,11 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
     mnuEdit->addAction(actstriplegends);
 
     mnuOptions=new QMenu(tr("&Options"),this);
-    mnuOptions->setTearOffEnabled(TRUE);
     mnuOptions->addAction(actdupllegends);
     mnuOptions->addAction(actcolorsync);
     mnuOptions->addAction(actapplyall);
 
     mnuHelp=new QMenu(tr("&Help"),this);
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(acthelponcontext);
     mnuHelp->addAction(acthelponsetappearance);
 
@@ -3301,13 +3297,11 @@ frmGraph_App::frmGraph_App(QWidget * parent):QWidget(parent)
 
     menuBar=new QMenuBar(this);
     mnuFile=new QMenu(tr("&File"));
-    mnuFile->setTearOffEnabled(TRUE);
     mnuFile->addAction(actOpen);
     mnuFile->addAction(actSave);
     mnuFile->addSeparator();
     mnuFile->addAction(actClose);
     mnuEdit=new QMenu(tr("&Edit"));
-    mnuEdit->setTearOffEnabled(TRUE);
     mnuEdit->addAction(actFocusTo);
     mnuEdit->addSeparator();
     mnuEdit->addAction(actHide);
@@ -3317,7 +3311,6 @@ frmGraph_App::frmGraph_App(QWidget * parent):QWidget(parent)
     mnuEdit->addSeparator();
     mnuEdit->addAction(actCreateNew);
     mnuHelp=new QMenu(tr("&Help"));
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addSeparator();
     mnuHelp->addAction(actHelpGraphApp);

@@ -1986,10 +1986,8 @@ frmSpreadSheet::frmSpreadSheet(QWidget * parent,int g_no,int s_no):QDialog(paren
 
     menuBar=new QMenuBar(this);
     mnuFile=new QMenu(tr("&File"));
-    mnuFile->setTearOffEnabled(TRUE);
     mnuFile->addAction(actClose);
     mnuEdit=new QMenu(tr("&Edit"));
-    mnuEdit->setTearOffEnabled(TRUE);
     mnuEdit->addAction(actAddRow);
     mnuEdit->addAction(actDelSelRow);
     mnuEdit->addSeparator();
@@ -1999,7 +1997,6 @@ frmSpreadSheet::frmSpreadSheet(QWidget * parent,int g_no,int s_no):QDialog(paren
     mnuEdit->addAction(actSelectOdd);
     mnuEdit->addAction(actCopySelected);
     mnuHelp=new QMenu(tr("&Help"));
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addSeparator();
     mnuHelp->addAction(actHelpOnDataSetEditor);
@@ -2931,16 +2928,13 @@ frmSpreadSheet3::frmSpreadSheet3(QWidget * parent):QDialog(parent)
     QString entr[NUMBER_OF_SETTYPES+2];
     menuBar=new QMenuBar(this);
     mnuFile=new QMenu(tr("&File"));
-    mnuFile->setTearOffEnabled(TRUE);
     mnuFile->addAction(actClose);
     mnuEdit=new QMenu(tr("&Edit"));
-    mnuEdit->setTearOffEnabled(TRUE);
     mnuEdit->addAction(actAddRow);
     mnuEdit->addAction(actDelSelRow);
     mnuEdit->addSeparator();
     mnuEdit->addAction(actColumnFormat);
     mnuHelp=new QMenu(tr("&Help"));
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addSeparator();
     mnuHelp->addAction(actHelpOnDataSetEditor);
@@ -3803,10 +3797,8 @@ frmSetOp::frmSetOp(QWidget * parent):QDialog(parent)
 
     menuBar=new QMenuBar(this);
     mnuFile=new QMenu("&File",this);
-    mnuFile->setTearOffEnabled(true);
     mnuFile->addAction(actClose);
     mnuHelp=new QMenu("&Help",this);
-    mnuHelp->setTearOffEnabled(true);
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addSeparator();
     mnuHelp->addAction(actHelpOnSetOp);
@@ -4799,19 +4791,15 @@ frmDeviceSetup::frmDeviceSetup(QWidget * parent):QDialog(parent)
 
     menuBar=new QMenuBar(this);
     mnuFile=new QMenu("&File",this);
-    mnuFile->setTearOffEnabled(TRUE);
     mnuFile->addAction(actNativePrinterDialog);
     mnuFile->addAction(actPrintToFile);
     mnuFile->addSeparator();
     mnuFile->addAction(actClose);
     mnuOptions=new QMenu("&Options",this);
-    mnuOptions->setTearOffEnabled(TRUE);
     mnuOptions->addAction(dsync_item);
     mnuOptions->addAction(psync_item);
     mnuQuickSelect=new QMenu("&Quick Format Selection",this);
-    mnuQuickSelect->setTearOffEnabled(TRUE);
     mnuHelp=new QMenu("&Help",this);
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addSeparator();
     mnuHelp->addAction(actHelpOnDevSetup);
@@ -12304,23 +12292,19 @@ frmNonlinCurveFit::frmNonlinCurveFit(QWidget * parent):QDialog(parent)
 
     menuBar=new QMenuBar(this);
     mnuFile=new QMenu(tr("&File"));
-    mnuFile->setTearOffEnabled(TRUE);
     mnuFile->addAction(actOpen);
     mnuFile->addAction(actSave);
     mnuFile->addSeparator();
     mnuFile->addAction(actClose);
     mnuEdit=new QMenu(tr("&Edit"));
-    mnuEdit->setTearOffEnabled(TRUE);
     mnuEdit->addAction(actResetFit);
     mnuEdit->addSeparator();
     mnuEdit->addAction(actLoadFit);
     mnuView=new QMenu(tr("&View"));
-    mnuView->setTearOffEnabled(TRUE);
     mnuView->addAction(actAutoLoad);
     mnuView->addSeparator();
     mnuView->addAction(actUpdate);
     mnuHelp=new QMenu(tr("&Help"));
-    mnuHelp->setTearOffEnabled(TRUE);
     mnuHelp->addAction(actHelpOnContext);
     mnuHelp->addSeparator();
     mnuHelp->addAction(actHelpOnFit);
@@ -24156,7 +24140,6 @@ frmCSVImporter::frmCSVImporter(QWidget * parent):QDialog(parent)
     connect(actClose, SIGNAL(triggered()), this, SLOT(doClose()));
 
     DataMenu=new QMenu(tr("&File"), this );
-    DataMenu->setTearOffEnabled(TRUE);
     DataMenu->addAction(actOpenFormat);
     DataMenu->addAction(actSaveFormat);
     DataMenu->addSeparator();
