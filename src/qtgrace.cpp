@@ -2830,6 +2830,23 @@ cout << "                warn_on_encoding_change=" << warn_on_encoding_change <<
 #if QT_VERSION >= 0x050600 && QT_VERSION < 0x060000
 QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
+// Screenshot/compare mode — parse and strip early so Grace's arg parser doesn't see them
+QString screenshotSavePath;
+QString screenshotComparePath;
+{
+    int out = 1;
+    for (int i = 1; i < argc; i++) {
+        if (QString(argv[i]) == "--screenshot" && i+1 < argc) {
+            screenshotSavePath = QString(argv[++i]);
+        } else if (QString(argv[i]) == "--compare" && i+1 < argc) {
+            screenshotComparePath = QString(argv[++i]);
+        } else {
+            argv[out++] = argv[i];
+        }
+    }
+    argc = out;
+}
+
 QString arg_test_str;
 bool style_option_present=false;
 for (int i=0;i<argc;i++)
@@ -4650,6 +4667,47 @@ autofit_pending=0;
 qDebug() << "MainArea.scroll.size=" << mainWin->mainArea->scroll->size();
 qDebug() << "MainArea.lblBackgr.size=" << mainWin->mainArea->lblBackGr->size();
 */
+
+// Screenshot / compare mode: capture the window and exit without running the event loop
+if (!screenshotSavePath.isEmpty() || !screenshotComparePath.isEmpty()) {
+    // Let the window fully render
+    QApplication::processEvents(QEventLoop::AllEvents, 500);
+    QPixmap px = mainWin->grab();
+
+    if (!screenshotSavePath.isEmpty()) {
+        QDir().mkpath(QFileInfo(screenshotSavePath).absolutePath());
+        px.save(screenshotSavePath, "PNG");
+        qInfo("Screenshot saved: %s", qPrintable(screenshotSavePath));
+        delete a;
+        return 0;
+    }
+    // --compare: diff against baseline
+    QImage baseline(screenshotComparePath);
+    QImage current = px.toImage().convertToFormat(QImage::Format_ARGB32);
+    baseline = baseline.convertToFormat(QImage::Format_ARGB32);
+    if (baseline == current) {
+        qInfo("Screenshots match.");
+        delete a;
+        return 0;
+    }
+    // Count differing pixels and save a diff image
+    int diffPixels = 0;
+    QImage diff = current.copy();
+    for (int y = 0; y < qMin(current.height(), baseline.height()); ++y) {
+        for (int x = 0; x < qMin(current.width(), baseline.width()); ++x) {
+            if (current.pixel(x, y) != baseline.pixel(x, y)) {
+                diff.setPixel(x, y, qRgb(255, 0, 0));
+                ++diffPixels;
+            }
+        }
+    }
+    QString diffPath = screenshotComparePath + ".diff.png";
+    diff.save(diffPath);
+    qWarning("Screenshots differ: %d pixels changed. Diff saved to %s",
+             diffPixels, qPrintable(diffPath));
+    delete a;
+    return 1;
+}
 
 int execVal=a->exec();//actually do the main application loop
 delete a;
