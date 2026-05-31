@@ -4647,14 +4647,6 @@ mainWin->redisplayIcons();
 mainWin->ManageBars();
 mainWin->move(initial_x_pos,initial_y_pos);
 
-//the following workaround seems to be necessary on some linux-systems !?
-#ifdef LINUX_SYSTEM
-mainWin->scroll->hide();
-a->processEvents();
-mainWin->scroll->show();
-a->processEvents();
-#endif
-
 //qDebug() << "C autofit_pending=" << autofit_pending;
 
 if (autofit_pending==1)

@@ -584,7 +584,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     menuBar        = ui->menuBar;
     statusBar      = ui->statusBar;
     statusBarLabel = ui->statusBarLabel;
-    scroll         = ui->scroll;
     toolBar1       = ui->toolBar1;
     toolBar2       = ui->toolBar2;
     cmdDraw        = ui->cmdDraw;
@@ -628,7 +627,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     cmdPrint       = ui->cmdPrint;
     mainArea       = ui->mainArea;
     mainGrid       = ui->mainGrid;
-    tool_layout    = ui->tool_layout;
     toolLayout1    = ui->toolLayout1;
     toolLayout2    = ui->toolLayout2;
 
@@ -936,8 +934,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     connect(cmdPrint,     SIGNAL(clicked()),             this, SLOT(Print()));
 
     // Layout settings not expressible as .ui properties
-    tool_layout->setStretch(0,0);    // toolBar1 fixed height
-    tool_layout->setStretch(1,1);    // toolBar2 fills remaining space
 
     // Toolbar grids: only the last (spacer) row absorbs extra vertical space.
     // Without this every button row expands when the window is made taller.
@@ -946,10 +942,9 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     // Never show a scrollbar in the toolbar column; minimum window height
     // is enforced by the toolbar content itself.
-    mainGrid->setRowStretch(3,1);    // canvas row expands vertically
+    mainGrid->setRowStretch(2,1);    // toolBar2/canvas row expands vertically
     mainGrid->setColumnStretch(1,1); // canvas column expands horizontally
-    mainGrid->setRowMinimumHeight(1,0); // statLocBar removed
-    mainGrid->setRowMinimumHeight(4,stdBarHeight); // statusbar — used by show/hide toggle
+    mainGrid->setRowMinimumHeight(3,stdBarHeight); // statusbar — used by show/hide toggle
     coordLabel = new QLabel("G0: X, Y = [-, -]", statusBar);
     coordLabel->setMinimumWidth(220);
     statusBar->insertPermanentWidget(0, coordLabel);
@@ -2755,12 +2750,12 @@ void MainWindow::ManageBars(void)
     if (!show_StatusBar)//Status bar
     {
         statusBar->hide();
-        mainGrid->setRowMinimumHeight(4,0);
+        mainGrid->setRowMinimumHeight(3,0);
     }
     else
     {
         statusBar->show();
-        mainGrid->setRowMinimumHeight(4,stdBarHeight);
+        mainGrid->setRowMinimumHeight(3,stdBarHeight);
     }
     if (!show_ToolBar)//No tool bar
     {
@@ -4030,7 +4025,6 @@ QTimer::singleShot(200,this,SLOT(showWizard()));
 show_setup_wizard=FALSE;
 }
 
-scroll->repaint();
 //resizeEvent(new QResizeEvent(this->size(),this->size()));
 }
 
@@ -4091,10 +4085,6 @@ d_width=0;
 }
 
 #ifdef WINDOWS_SYSTEM
-    scroll->setMinimumWidth(ToolBarWidth+2+d_width);
-    scroll->setMaximumWidth(ToolBarWidth+2+d_width);
-    scroll->setMinimumWidth(ToolBarWidth+2+d_width);
-
     toolBar1->setMinimumWidth(ToolBarWidth);
     toolBar1->setMaximumWidth(ToolBarWidth);
     toolBar1->setMinimumWidth(ToolBarWidth);
@@ -4104,10 +4094,6 @@ d_width=0;
     toolBar2->setMinimumWidth(ToolBarWidth);
 
 #else
-
-    scroll->setMinimumWidth(ToolBarWidth+d_width);
-    scroll->setMaximumWidth(ToolBarWidth+d_width);
-    scroll->setMinimumWidth(ToolBarWidth+d_width);
 
     toolBar1->setMinimumWidth(ToolBarWidth);
     toolBar1->setMaximumWidth(ToolBarWidth);
@@ -4127,15 +4113,10 @@ d_width=0;
 
 /*
 #ifdef WINDOWS_SYSTEM
-    scroll->setMinimumWidth(stdColWidth+2+d_width+2*WIN_SIZE_CORR);
-    scroll->setMaximumWidth(stdColWidth+2+d_width+2*WIN_SIZE_CORR);
 #else
-    scroll->setMinimumWidth(stdColWidth+2+d_width);
-    scroll->setMaximumWidth(stdColWidth+2+d_width);
 #endif
 */
 
-scroll->repaint();
 
 /*
 cout << "ResizeEvent: w=" << windowWidth << " h=" << windowHeight << endl;
