@@ -14,9 +14,9 @@ So, I decided to port the port and created QtGrace6 - a pretty minor modificatio
 
 ## Prerequsites
 
-You need modern C++ compiler, cmake and Qt6 with optional `qt5compat` and `qtsvg` modules. On Fedora linux it is enough to install the following:
+You need a modern C++ compiler, cmake and Qt6 with the `qtsvg` module. On Fedora Linux it is enough to install the following:
 
-`sudo dnf install cmake qt6-qtbase-devel qt6-qtsvg-devel qt6-qt5compat-devel`
+`sudo dnf install cmake qt6-qtbase-devel qt6-qtsvg-devel`
 
 On other distributions and platforms you need to google how these packages are called.
 
@@ -30,7 +30,7 @@ cmake ..
 make
 ```
 
-Resulting executable should stay in the `build` directory because otherwise it doesn't see required font files, so the best way is to create an alias to it in your shell profile.
+The resulting executable can be run from anywhere — all required resources are compiled into the binary.
 
 ## Disclaimer
 
