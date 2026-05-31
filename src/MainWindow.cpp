@@ -4664,7 +4664,7 @@ void MainWindow::set_stack_message(void)
 void MainWindow::newgraphselection(int gr_nr)
 {
     if (gr_nr<0 || gr_nr>=lstGraphs->number_of_entries) return;//invalid number
-    disconnect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
+    QSignalBlocker _block(lstGraphs);
     int graph_number=lstGraphs->entries[gr_nr];
     int * selection=new int[2];
     int nr_selection=0;
@@ -4691,7 +4691,6 @@ void MainWindow::newgraphselection(int gr_nr)
         else
         lstGraphs->set_new_selection(nr_selection,selection);
     }
-    connect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
         if (selection!=NULL)
         delete[] selection;
 }
@@ -4968,7 +4967,7 @@ void MainWindow::UpdateViewportList(void)
 QString text;
     if (!is_valid_gno(get_cg())) return;
 //int sel_view=cmbViewStack->currentIndex();
-    disconnect(cmbViewStack,0,0,0);
+    QSignalBlocker _block(cmbViewStack);
 cmbViewStack->clear();
 if (g[get_cg()].ws_top==1 && g[get_cg()].ws[0].w_name==NULL)
 {
@@ -5011,7 +5010,6 @@ else
     cmdViewRearrange->setEnabled(true);
     }
 }
-    connect(cmbViewStack,SIGNAL(currentIndexChanged(int)),this,SLOT(newViewportSelected(int)));
 }
 
 void MainWindow::newViewportUp(void)
