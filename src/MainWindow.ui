@@ -64,8 +64,8 @@
                   <string>Zoom graph(s) in rectangle (Alt+Z)</string>
                 </property>
                 <property name="icon">
-                  <iconset theme="zoom-select">
-                    <normaloff>:/icons/zoom.png</normaloff>:/icons/zoom.png</iconset>
+                  <iconset theme="zoom-select">:/icons/zoom.png<normaloff>:/icons/zoom.png</normaloff>
+                  </iconset>
                 </property>
               </widget>
             </item>
@@ -78,8 +78,8 @@
                   <string>Autoscale graph(s) on X and Y axis (Ctrl+A)</string>
                 </property>
                 <property name="icon">
-                  <iconset theme="zoom-fit-best">
-                    <normaloff>:/icons/autoscale.png</normaloff>:/icons/autoscale.png</iconset>
+                  <iconset theme="zoom-fit-best">:/icons/autoscale.png<normaloff>:/icons/autoscale.png</normaloff>
+                  </iconset>
                 </property>
               </widget>
             </item>
@@ -162,11 +162,8 @@
                   <string>Scroll graph(s) down (Ctrl+DownArrow)</string>
                 </property>
                 <property name="icon">
-                  <iconset theme="go-down">
-                    <normaloff>:/icons/goDown.png</normaloff>:/icons/goDown.png</iconset>
-                </property>
-                <property name="icon">
-                  <iconset theme="view-refresh" />
+                  <iconset theme="go-down">:/icons/goDown.png<normaloff>:/icons/goDown.png</normaloff>
+                  </iconset>
                 </property>
               </widget>
             </item>
@@ -229,9 +226,6 @@
                 <property name="text">
                   <string>AutoT</string>
                 </property>
-                <property name="icon">
-                  <iconset theme="zoom-fit-best" />
-                </property>
                 <property name="toolTip">
                   <string>Automatically set the tick spacing</string>
                 </property>
@@ -241,9 +235,6 @@
               <widget class="QPushButton" name="cmdAutoO">
                 <property name="text">
                   <string>AutoO</string>
-                </property>
-                <property name="icon">
-                  <iconset theme="zoom-original" />
                 </property>
                 <property name="toolTip">
                   <string>Autoscale on nearest set</string>
@@ -476,11 +467,11 @@ stack:</string>
                 <property name="text">
                   <string>Fit</string>
                 </property>
-                <property name="icon">
-                  <iconset theme="zoom-fit-page" />
-                </property>
                 <property name="toolTip">
                   <string>Fit page size to window size</string>
+                </property>
+                <property name="icon">
+                  <iconset theme="zoom-fit-page" />
                 </property>
               </widget>
             </item>
