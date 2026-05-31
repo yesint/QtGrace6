@@ -2878,6 +2878,24 @@ QApplication * a=new QApplication( argc, argv );
 //if (style_option_present==false)
 //a->setStyle(QString("Fusion"));//necessary for upscaling on high-dpi-screens --> only activate this if the user does not set a different style
 
+// Ensure the system icon theme is used. Qt6 does not auto-load the KDE
+// platform theme unless QT_QPA_PLATFORMTHEME=kde is set in the environment.
+// Read from kdeglobals, then fall back to the GTK/GNOME setting.
+if (QIcon::themeName().isEmpty() || QIcon::themeName() == "hicolor") {
+    // Try KDE config first
+    QSettings kdeglobals(QDir::homePath()+"/.config/kdeglobals", QSettings::IniFormat);
+    QString theme = kdeglobals.value("Icons/Theme").toString();
+    // Fall back to GTK/GNOME setting via gsettings output already read
+    if (theme.isEmpty()) {
+        QProcess gs;
+        gs.start("gsettings", {"get","org.gnome.desktop.interface","icon-theme"});
+        if (gs.waitForFinished(500))
+            theme = QString(gs.readAllStandardOutput()).trimmed().remove('\'');
+    }
+    if (!theme.isEmpty())
+        QIcon::setThemeName(theme);
+}
+
 #if QT_VERSION >= 0x050000
 os_dbl_click_dt=(ulong)a->doubleClickInterval();
 #endif
