@@ -64,7 +64,8 @@
                   <string>Zoom graph(s) in rectangle (Alt+Z)</string>
                 </property>
                 <property name="icon">
-                  <iconset theme="zoom-draw">:/icons/zoom.png<normaloff>:/icons/zoom.png</normaloff>
+                  <iconset theme="zoom-in-map">
+                    <normaloff>:/icons/zoom.png</normaloff>:/icons/zoom.png
                   </iconset>
                 </property>
               </widget>
@@ -78,7 +79,8 @@
                   <string>Autoscale graph(s) on X and Y axis (Ctrl+A)</string>
                 </property>
                 <property name="icon">
-                  <iconset theme="zoom-fit-best">:/icons/autoscale.png<normaloff>:/icons/autoscale.png</normaloff>
+                  <iconset theme="view-fullscreen">
+                    <normaloff>:/icons/autoscale.png</normaloff>:/icons/autoscale.png
                   </iconset>
                 </property>
               </widget>
