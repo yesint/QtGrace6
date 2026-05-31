@@ -634,9 +634,9 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     future_load_status=0;
     future_load_file=QString("");
-    default_IconW=default_IconH=16;
-    defaultSmallButtonW=23;
-    defaultSmallButtonH=23;
+    default_IconW=default_IconH=22;
+    defaultSmallButtonW=30;
+    defaultSmallButtonH=30;
     defaultLargeButtonW=65;
     defaultLargeButtonH=25;
     defaultListW=65;//60//I changed this to fit the button-width
