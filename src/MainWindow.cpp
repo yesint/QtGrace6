@@ -4420,9 +4420,6 @@ scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 #endif
 */
 
-    if (get_pagelayout() != PAGE_FIXED)
-    mainArea->completeRedraw();
-
 scroll->repaint();
 
 /*
@@ -6410,6 +6407,13 @@ printing_in_file=sav_print_in_file;
 print_target=sav_print_target;
 stop_repaint=sav_stop_repaiont;
 simple_draw_setting=sav_simple;
+}
+
+void MainArea::resizeEvent(QResizeEvent *e)
+{
+    QWidget::resizeEvent(e);
+    if (get_pagelayout() != PAGE_FIXED)
+        completeRedraw();
 }
 
 void MainArea::completeRedraw(void)

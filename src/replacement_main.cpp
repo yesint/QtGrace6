@@ -1850,17 +1850,45 @@ void sync_canvas_size(unsigned int *w, unsigned int *h, int inv)
 {
     Page_geometry pg = get_page_geometry();
     if (inv) {
-        *w=mainWin->mainArea->width()-8;
-        *h=mainWin->mainArea->height()-8;
-        ///        GetDimensions(canvas, w, h);
-        set_page_dimensions(*w*72.0/pg.dpi, *h*72.0/pg.dpi, TRUE);//hier fehlen die Canvas-Dimensionen!!!!!!!
+        static unsigned int prev_w = 0, prev_h = 0;
+
+        unsigned int new_w = (unsigned int)(mainWin->mainArea->width() - 8);
+        unsigned int new_h = (unsigned int)(mainWin->mainArea->height() - 8);
+
+        // Use current page dims as baseline on first call; subsequent calls
+        // use the actual previous window size so delta rescaling is correct
+        // (drawgraph() restores device_table[DEVICE_SCREEN].pg to the original
+        // file page size after every draw, so we cannot read it as "old").
+        unsigned int old_w = (prev_w > 0) ? prev_w : pg.width;
+        unsigned int old_h = (prev_h > 0) ? prev_h : pg.height;
+
+        if (old_w != new_w || old_h != new_h) {
+            double old_ar = (double)old_w / (double)old_h;
+            double new_ar = (double)new_w / (double)new_h;
+            if (fabs(old_ar - new_ar) > 1e-9) {
+                double ext_x, ext_y;
+                if (old_ar >= 1.0 && new_ar >= 1.0) {
+                    ext_x = new_ar / old_ar; ext_y = 1.0;
+                } else if (old_ar <= 1.0 && new_ar <= 1.0) {
+                    ext_x = 1.0; ext_y = old_ar / new_ar;
+                } else if (old_ar >= 1.0 && new_ar <= 1.0) {
+                    ext_x = 1.0 / old_ar; ext_y = 1.0 / new_ar;
+                } else {
+                    ext_x = new_ar; ext_y = old_ar;
+                }
+                rescale_viewport(ext_x, ext_y);
+            }
+        }
+
+        prev_w = new_w;
+        prev_h = new_h;
+        *w = new_w;
+        *h = new_h;
+        set_page_dimensions(*w * 72.0 / pg.dpi, *h * 72.0 / pg.dpi, FALSE);
     } else {
         *w = pg.width;
         *h = pg.height;
-        ///        SetDimensions(canvas, *w, *h);
     }
-//Page_geometry pg1=get_page_geometry();
-//cout << inv << "(inv) sync_canvas_size=" << pg1.width << " x " << pg1.height << " dpi=" << pg1.dpi << endl;
 }
 
 static int page_layout = PAGE_FIXED;
@@ -1875,16 +1903,7 @@ extern "C" {
 #endif
 void set_pagelayout(int layout)
 {
-    if (page_layout == layout) {
-        return;
-    }
-    
-    if (inwin) {
-        errmsg(QObject::tr("Can not change layout after initialization of GUI").toLocal8Bit().constData());
-        return;
-    } else {
-        page_layout = layout;
-    }
+    page_layout = layout;
 }
 #ifdef __cplusplus
 }

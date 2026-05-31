@@ -108,6 +108,7 @@ public:
     //virtual void QDropEvent(const QPoint &pos, Qt::DropActions actions, const QMimeData *data, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers, QEvent::Type type);
     void processClickCommand(special_XEvent & event);
     void completeRedraw(void);
+    void resizeEvent(QResizeEvent *e);
     void paintEvent( QPaintEvent *e );
     void transf_window_coords(int x,int y,int & real_x,int & real_y);
     void setBGtoColor(QColor col);
