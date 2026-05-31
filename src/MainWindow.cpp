@@ -627,7 +627,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     cmdFitPage     = ui->cmdFitPage;
     cmdExport      = ui->cmdExport;
     cmdPrint       = ui->cmdPrint;
-    cmdExit        = ui->cmdExit;
     mainArea       = ui->mainArea;
     mainGrid       = ui->mainGrid;
     tool_layout    = ui->tool_layout;
@@ -4070,7 +4069,7 @@ void MainWindow::resizeEvent( QResizeEvent * e)
     windowWidth=e->size().width();
     windowHeight=e->size().height();
 
-int min_height=cmdExit->y()+cmdExit->height()+toolBar1->height();
+int min_height=toolBar1->height()+toolBar2->minimumSizeHint().height();
 int c_height=mainArea->height()-2;
 int d_width=scroll->verticalScrollBar()->width()+1;
 

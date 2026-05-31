@@ -262,21 +262,6 @@ stack:</string></property>
            </widget>
           </item>
 
-          <item row="20" column="0" colspan="2">
-           <spacer>
-            <property name="orientation"><enum>Qt::Vertical</enum></property>
-            <property name="sizeType"><enum>QSizePolicy::MinimumExpanding</enum></property>
-            <property name="sizeHint" stdset="0"><size><width>0</width><height>8</height></size></property>
-           </spacer>
-          </item>
-
-          <item row="21" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdExit"><property name="text"><string>Exit</string></property>
-            <property name="icon"><iconset theme="application-exit"/></property>
-            <property name="icon"><iconset theme="go-up"/></property>
-            <property name="icon"><iconset theme="go-down"/></property><property name="toolTip"><string>Close QtGrace</string></property></widget>
-          </item>
-
          </layout>
         </widget>
        </item>
