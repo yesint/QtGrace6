@@ -63,14 +63,14 @@
              <widget class="QPushButton" name="cmdZoom">
               <property name="text"><string/></property>
               <property name="toolTip"><string>Zoom graph(s) in rectangle (Alt+Z)</string></property>
-              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/zoom.png</normaloff>:/icons/zoom.png</iconset></property>
+              <property name="icon"><iconset theme="zoom-select"><normaloff>:/icons/zoom.png</normaloff>:/icons/zoom.png</iconset></property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="cmdAutoScale">
               <property name="text"><string/></property>
               <property name="toolTip"><string>Autoscale graph(s) on X and Y axis (Ctrl+A)</string></property>
-              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/autoscale.png</normaloff>:/icons/autoscale.png</iconset></property>
+              <property name="icon"><iconset theme="zoom-fit-best"><normaloff>:/icons/autoscale.png</normaloff>:/icons/autoscale.png</iconset></property>
              </widget>
             </item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
@@ -84,14 +84,14 @@
              <widget class="QPushButton" name="cmdZz">
               <property name="text"><string/></property>
               <property name="toolTip"><string>Zoom out (Ctrl -)</string></property>
-              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/zoomOut.png</normaloff>:/icons/zoomOut.png</iconset></property>
+              <property name="icon"><iconset theme="zoom-out"><normaloff>:/icons/zoomOut.png</normaloff>:/icons/zoomOut.png</iconset></property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="cmdzz">
               <property name="text"><string/></property>
               <property name="toolTip"><string>Zoom in (Ctrl +)</string></property>
-              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/zoomIn.png</normaloff>:/icons/zoomIn.png</iconset></property>
+              <property name="icon"><iconset theme="zoom-in"><normaloff>:/icons/zoomIn.png</normaloff>:/icons/zoomIn.png</iconset></property>
              </widget>
             </item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
@@ -105,14 +105,14 @@
              <widget class="QPushButton" name="cmdLeft">
               <property name="text"><string/></property>
               <property name="toolTip"><string>Scroll graph(s) left (Ctrl+LeftArrow)</string></property>
-              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/goLeft.png</normaloff>:/icons/goLeft.png</iconset></property>
+              <property name="icon"><iconset theme="go-previous"><normaloff>:/icons/goLeft.png</normaloff>:/icons/goLeft.png</iconset></property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="cmdRight">
               <property name="text"><string/></property>
               <property name="toolTip"><string>Scroll graph(s) right (Ctrl+RightArrow)</string></property>
-              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/goRight.png</normaloff>:/icons/goRight.png</iconset></property>
+              <property name="icon"><iconset theme="go-next"><normaloff>:/icons/goRight.png</normaloff>:/icons/goRight.png</iconset></property>
              </widget>
             </item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
@@ -126,15 +126,15 @@
              <widget class="QPushButton" name="cmdUp">
               <property name="text"><string/></property>
               <property name="toolTip"><string>Scroll graph(s) up (Ctrl+UpArrow)</string></property>
-              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/goUp.png</normaloff>:/icons/goUp.png</iconset></property>
+              <property name="icon"><iconset theme="go-up"><normaloff>:/icons/goUp.png</normaloff>:/icons/goUp.png</iconset></property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="cmdDown">
               <property name="text"><string/></property>
               <property name="toolTip"><string>Scroll graph(s) down (Ctrl+DownArrow)</string></property>
-              <property name="icon"><iconset resource="../fonts/icons/icons.qrc"><normaloff>:/icons/goDown.png</normaloff>:/icons/goDown.png</iconset></property>
-             </widget>
+              <property name="icon"><iconset theme="go-down"><normaloff>:/icons/goDown.png</normaloff>:/icons/goDown.png</iconset></property>
+            <property name="icon"><iconset theme="view-refresh"/></property></widget>
             </item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
@@ -180,13 +180,13 @@
           <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdAutoT">
             <property name="text"><string>AutoT</string></property>
-            <property name="toolTip"><string>Automatically set the tick spacing</string></property>
+            <property name="icon"><iconset theme="zoom-fit-best"/></property><property name="toolTip"><string>Automatically set the tick spacing</string></property>
            </widget>
           </item>
           <item row="1" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdAutoO">
             <property name="text"><string>AutoO</string></property>
-            <property name="toolTip"><string>Autoscale on nearest set</string></property>
+            <property name="icon"><iconset theme="zoom-original"/></property><property name="toolTip"><string>Autoscale on nearest set</string></property>
            </widget>
           </item>
 
@@ -277,8 +277,10 @@ stack:</string></property>
           <item row="15" column="0" colspan="2">
            <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-            <item><widget class="QPushButton" name="cmdUndo"><property name="text"><string>Undo</string></property><property name="toolTip"><string>Undo last action</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmdRedo"><property name="text"><string>Redo</string></property><property name="toolTip"><string>Redo next action (undo the last undo)</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdUndo"><property name="text"><string>Undo</string></property>
+            <property name="icon"><iconset theme="edit-undo"/></property><property name="toolTip"><string>Undo last action</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdRedo"><property name="text"><string>Redo</string></property>
+            <property name="icon"><iconset theme="edit-redo"/></property><property name="toolTip"><string>Redo next action (undo the last undo)</string></property></widget></item>
             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
            </layout>
           </item>
@@ -289,7 +291,8 @@ stack:</string></property>
            </widget>
           </item>
           <item row="17" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdFitPage"><property name="text"><string>Fit</string></property><property name="toolTip"><string>Fit page size to window size</string></property></widget>
+           <widget class="QPushButton" name="cmdFitPage"><property name="text"><string>Fit</string></property>
+            <property name="icon"><iconset theme="zoom-fit-page"/></property><property name="toolTip"><string>Fit page size to window size</string></property></widget>
           </item>
           <item row="18" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdExport">
@@ -315,7 +318,10 @@ stack:</string></property>
           </item>
 
           <item row="21" column="0" colspan="2" alignment="Qt::AlignHCenter">
-           <widget class="QPushButton" name="cmdExit"><property name="text"><string>Exit</string></property><property name="toolTip"><string>Close QtGrace</string></property></widget>
+           <widget class="QPushButton" name="cmdExit"><property name="text"><string>Exit</string></property>
+            <property name="icon"><iconset theme="application-exit"/></property>
+            <property name="icon"><iconset theme="go-up"/></property>
+            <property name="icon"><iconset theme="go-down"/></property><property name="toolTip"><string>Close QtGrace</string></property></widget>
           </item>
 
          </layout>
