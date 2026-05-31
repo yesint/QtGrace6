@@ -19,6 +19,10 @@
  ***************************************************************************/
 
 #include "editWidgets.h"
+#include <QTextBrowser>
+#include <QDialogButtonBox>
+#include <QDesktopServices>
+#include <QUrl>
 
 #ifdef _MSC_VER
 #include "windows.h"
@@ -5616,177 +5620,92 @@ void frmRegions::doClose(void)
 }
 
 
-frmAbout::frmAbout(QWidget * parent):QDialog(parent)
+frmAbout::frmAbout(QWidget *parent) : QDialog(parent)
 {
-//setFont(*stdFont);
-    setWindowTitle(tr("QtGrace: About"));
+    setWindowTitle(tr("About QtGrace6"));
     setWindowIcon(QIcon(*GraceIcon));
 
-    char buf[1024];
-    int index=0,s_index,e_index;
+    browser = new QTextBrowser(this);
+    browser->setOpenExternalLinks(true);
+    browser->setReadOnly(true);
+    connect(browser, &QTextBrowser::anchorClicked, [](const QUrl &url) {
+        QDesktopServices::openUrl(url);
+    });
 
-    grpGrace=new QGroupBox(QString(""),this);
-    layout0=new QVBoxLayout();
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout0->setSpacing(STD_SPACING);
-    lblInfo[index]=new QLabel(QString(bi_version_string())+QString(" / QtGrace ") + QString(QTGRACE_VERSION_STRING),grpGrace);
-    layout0->addWidget(lblInfo[index++]);
-#ifdef DEBUG
-    lblInfo[index]=new QLabel(tr("Debugging is enabled"),grpGrace);
-    layout0->addWidget(lblInfo[index++]);
-#endif
-    grpGrace->setLayout(layout0);
-    s_index=index;
-    grpLegal=new QGroupBox(tr("Legal stuff"),this);
-    layout1=new QVBoxLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout1->setSpacing(STD_SPACING);
-    lblInfo[index++]=new QLabel(QString(bi_version_string())+QString(":"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("      Copyright (c) 1991-1995 Paul J Turner"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("      Copyright (c) 1996-2008 Grace Development Team"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("      Maintained by Evgeny Stambulchik"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("QtGrace6:"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("      Copyright (c) 2023-2026 Semen Yesylevsky"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("QtGrace:"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("      Copyright (c) 2008-2022 Andreas Winter"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("      Additional code by Vadim Engelson and Nimalendiran Kailasanathan, Wolfram MathCore AB"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("All rights reserved"),grpLegal);
-    lblInfo[index++]=new QLabel(tr("The program is distributed under the terms of the GNU General Public License"),grpLegal);
-    e_index=index;
-    for (int i=s_index;i<e_index;i++)
-        layout1->addWidget(lblInfo[i]);
+    const QString graceVer  = QString(bi_version_string());
+    const QString qtgVer    = QString(QTGRACE_VERSION_STRING);
+    const QString host      = QString(bi_system());
+    const QString buildTime = QString(bi_date()) + " " + QString(__TIME__);
 
-    grpLegal->setLayout(layout1);
-    s_index=index;
-    grpThirdParty=new QGroupBox(tr("Third party copyright"),this);
-    layout2=new QVBoxLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout2->setSpacing(STD_SPACING);
-    /*lblInfo[index++]=new QLabel(QString("Tab widget, Copyright (c) 1997 Pralay Dakua"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("Xbae widget,"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("      Copyright (c) 1995-1999 Andrew Lister"),grpThirdParty);*/
-    lblInfo[index++]=new QLabel(QString("FFTW3 Library,"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("      Copyright (c) 2003, 2007-14 Matteo Frigo"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("      Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("Haru Free PDF Library,"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("      Copyright (c) 1999-2006 Takeshi Kanno"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("      Copyright (c) 2007-2009 Antony Dovgal"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("Raster driver based on the GD-1.3 library,"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("      Portions copyright (c) 1994-1998 Cold Spring Harbor Laboratory"),grpThirdParty);
-    lblInfo[index++]=new QLabel(QString("      Portions copyright (c) 1996-1998 Boutell.Com, Inc"),grpThirdParty);
+    browser->setHtml(
+        "<html><body style='font-family: sans-serif; font-size: 10pt; margin: 16px;'>"
 
-    e_index=index;
-    for (int i=s_index;i<e_index;i++)
-        layout2->addWidget(lblInfo[i]);
+        // ── Title ──────────────────────────────────────────────────────────
+        "<h2 style='color:#2a82da; margin-bottom:2px;'>QtGrace6</h2>"
+        "<p style='color:#555; margin-top:0;'>version " + qtgVer +
+        " &nbsp;&bull;&nbsp; based on " + graceVer + "</p>"
 
-#ifdef HAVE_LIBPDF
-    lblInfo[index]=new QLabel(QString("PDFlib library, Copyright (c) 1997-2002 Thomas Merz");
-    layout2->addWidget(lblInfo[index++]);
-#endif
+        // ── Authors ────────────────────────────────────────────────────────
+        "<h3>Authors</h3>"
+        "<table cellspacing='0' cellpadding='3'>"
+        "<tr><td style='padding-right:12px;'><b>QtGrace6</b></td>"
+        "    <td>Semen Yesylevskyy &copy; 2023&ndash;2026<br>"
+        "    <a href='https://github.com/yesint/QtGrace6'>github.com/yesint/QtGrace6</a></td></tr>"
+        "<tr><td></td><td>&nbsp;</td></tr>"
+        "<tr><td><b>QtGrace</b></td>"
+        "    <td>Andreas Winter &copy; 2008&ndash;2022<br>"
+        "    Additional code by Vadim Engelson and Nimalendiran Kailasanathan (Wolfram MathCore AB)</td></tr>"
+        "<tr><td></td><td>&nbsp;</td></tr>"
+        "<tr><td><b>Grace</b></td>"
+        "    <td>Evgeny Stambulchik and Grace Development Team &copy; 1996&ndash;2008<br>"
+        "    Paul J Turner &copy; 1991&ndash;1995<br>"
+        "    <a href='http://plasma-gate.weizmann.ac.il/Grace/'>plasma-gate.weizmann.ac.il/Grace/</a></td></tr>"
+        "</table>"
 
-    grpThirdParty->setLayout(layout2);
-    s_index=index;
-    grpBuildInfo=new QGroupBox(tr("Build info"),this);
-    layout3=new QVBoxLayout;
-    //layout3->setMargin(STD_MARGIN);
-    layout3->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout3->setSpacing(STD_SPACING);
-    sprintf(buf, "Host: %s", bi_system());
-    lblInfo[index++]=new QLabel(QString(buf),grpBuildInfo);
-    sprintf(buf, "Time: %s %s", bi_date(), __TIME__);
-    lblInfo[index++]=new QLabel(QString(buf),grpBuildInfo);
-    sprintf(buf, "GUI toolkit: %s ", bi_gui());
-    lblInfo[index++]=new QLabel(QString(buf),grpBuildInfo);
-    /*
-    sprintf(buf, "Xbae version: %s ", bi_gui_xbae());
-    lblInfo[19]=new QLabel(QString(buf),grpBuildInfo);
-    */
-    sprintf(buf, "Qt version: %s ", QT_VERSION_STR);
-    lblInfo[index++]=new QLabel(QString(buf),grpBuildInfo);
-    e_index=index;
-    for (int i=s_index;i<e_index;i++)
-        layout3->addWidget(lblInfo[i]);
+        // ── License ────────────────────────────────────────────────────────
+        "<h3>License</h3>"
+        "<p>Distributed under the terms of the "
+        "<b>GNU General Public License v2</b> (or later). All rights reserved.</p>"
 
-#ifdef HAVE_LIBPNG
-    sprintf(buf, "libpng: %s ", bi_pnglib());
-    lblInfo[index]=new QLabel(QString(buf),grpBuildInfo);
-    layout3->addWidget(lblInfo[index++]);
-#endif
-#ifdef HAVE_LIBJPEG
-    sprintf(buf, "libjpeg: %s ", bi_libjpeg());
-    lblInfo[index]=new QLabel(QString(buf),grpBuildInfo);
-    layout3->addWidget(lblInfo[index++]);
-#endif
-#ifdef HAVE_LIBPDF
-    sprintf(buf, "PDFlib: %s ", bi_libpdf());
-    lblInfo[index]=new QLabel(QString(buf),grpBuildInfo);
-    layout3->addWidget(lblInfo[index++]);
-#endif
+        // ── Third-party ────────────────────────────────────────────────────
+        "<h3>Third-party libraries</h3>"
+        "<table cellspacing='0' cellpadding='3'>"
+        "<tr><td style='padding-right:12px;'><b>FFTW3</b></td>"
+        "    <td>&copy; 2003, 2007&ndash;2014 Matteo Frigo &amp; MIT</td></tr>"
+        "<tr><td><b>Haru PDF</b></td>"
+        "    <td>&copy; 1999&ndash;2006 Takeshi Kanno; 2007&ndash;2009 Antony Dovgal</td></tr>"
+        "<tr><td><b>GD raster</b></td>"
+        "    <td>&copy; 1994&ndash;1998 Cold Spring Harbor Laboratory; 1996&ndash;1998 Boutell.Com, Inc.</td></tr>"
+        "<tr><td><b>Qt</b></td>"
+        "    <td>version " QT_VERSION_STR " &mdash; "
+        "    <a href='https://www.qt.io/'>www.qt.io</a></td></tr>"
+        "</table>"
 
-    grpBuildInfo->setLayout(layout3);
+        // ── Build info ─────────────────────────────────────────────────────
+        "<h3>Build information</h3>"
+        "<table cellspacing='0' cellpadding='3'>"
+        "<tr><td style='padding-right:12px;'>Host</td><td>" + host      + "</td></tr>"
+        "<tr><td>Date</td><td>"                              + buildTime + "</td></tr>"
+        "</table>"
 
-    grpHomePage=new QGroupBox(tr("Home pages"),this);
-    layout4=new QVBoxLayout;
-    //layout4->setMargin(0);
-    layout4->setContentsMargins(0,0,0,0);
-    layout4->setSpacing(0);
-    cmdIAdr=new QPushButton(QString("http://plasma-gate.weizmann.ac.il/Grace/"),grpHomePage);
-    cmdIAdr->setFlat(true);
-    connect(cmdIAdr,SIGNAL(clicked()),SLOT(doShowHomepage()));
-    cmdIAdr2=new QPushButton(QString("https://github.com/yesint/QtGrace6"),grpHomePage);
-    cmdIAdr2->setFlat(true);
-    connect(cmdIAdr2,SIGNAL(clicked()),SLOT(doShowHomepage2()));
-    cmdIAdr3=new QPushButton(QString("http://www.qt.io/"),grpHomePage);
-    cmdIAdr3->setFlat(true);
-    connect(cmdIAdr3,SIGNAL(clicked()),SLOT(doShowHomepage3()));
-    layout4->addWidget(cmdIAdr);
-    layout4->addWidget(cmdIAdr2);
-    layout4->addWidget(cmdIAdr3);
-    grpHomePage->setLayout(layout4);
+        "</body></html>"
+    );
 
-    cmdClose=new QPushButton(tr("Close"),this);
-    connect(cmdClose,SIGNAL(clicked()),SLOT(doClose()));
+    buttons = new QDialogButtonBox(QDialogButtonBox::Close, this);
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::hide);
 
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(grpGrace);
-    layout->addWidget(grpLegal);
-    layout->addWidget(grpThirdParty);
-    layout->addWidget(grpBuildInfo);
-    layout->addWidget(grpHomePage);
-    layout->addWidget(cmdClose);
+    auto *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(STD_MARGIN, STD_MARGIN, STD_MARGIN, STD_MARGIN);
+    layout->setSpacing(STD_SPACING);
+    layout->addWidget(browser);
+    layout->addWidget(buttons);
     setLayout(layout);
     resize(LastSize_FormAbout);
 }
 
 frmAbout::~frmAbout()
 {
-    LastSize_FormAbout=this->size();
-}
-
-void frmAbout::doShowHomepage(void)
-{
-    HelpCB("http://plasma-gate.weizmann.ac.il/Grace/");
-}
-
-void frmAbout::doShowHomepage2(void)
-{
-    HelpCB("https://github.com/yesint/QtGrace6");
-}
-
-void frmAbout::doShowHomepage3(void)
-{
-    HelpCB("http://www.qt.io/");
-}
-
-void frmAbout::doClose(void)
-{
-    hide();
+    LastSize_FormAbout = this->size();
 }
 
 

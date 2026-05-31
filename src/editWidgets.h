@@ -1078,35 +1078,18 @@ public slots:
     virtual void resizeEvent(QResizeEvent * event);
 };
 
-class frmAbout:public QDialog
+class QTextBrowser;
+class QDialogButtonBox;
+
+class frmAbout : public QDialog
 {
     Q_OBJECT
 public:
-    frmAbout(QWidget * parent=0);
+    frmAbout(QWidget *parent = nullptr);
     ~frmAbout();
-    QGroupBox * grpGrace;
-    QGroupBox * grpLegal;
-    QGroupBox * grpThirdParty;
-    QGroupBox * grpBuildInfo;
-    QGroupBox * grpHomePage;
-
-    QLabel * lblInfo[40];
-    QPushButton * cmdIAdr;
-    QPushButton * cmdIAdr2;
-    QPushButton * cmdIAdr3;
-    QPushButton * cmdClose;
-
-    QVBoxLayout * layout0;
-    QVBoxLayout * layout1;
-    QVBoxLayout * layout2;
-    QVBoxLayout * layout3;
-    QVBoxLayout * layout4;
-    QVBoxLayout * layout;
-public slots:
-    void doShowHomepage(void);
-    void doShowHomepage2(void);
-    void doShowHomepage3(void);
-    void doClose(void);
+private:
+    QTextBrowser *browser;
+    QDialogButtonBox *buttons;
 };
 
 #endif // EDITWIDGETS_H
