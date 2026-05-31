@@ -5711,8 +5711,6 @@ frmAbout::frmAbout(QWidget * parent):QDialog(parent)
     */
     sprintf(buf, "Qt version: %s ", QT_VERSION_STR);
     lblInfo[index++]=new QLabel(QString(buf),grpBuildInfo);
-    sprintf(buf, "T1lib: %s ", T1_GetLibIdent());
-    lblInfo[index++]=new QLabel(QString(buf),grpBuildInfo);
     e_index=index;
     for (int i=s_index;i<e_index;i++)
         layout3->addWidget(lblInfo[i]);

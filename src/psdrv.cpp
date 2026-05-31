@@ -173,8 +173,6 @@ static int ps_initgraphics(int format)
     Page_geometry pg;
     fRGB *frgb;
     int width_pp, height_pp, page_offset_x, page_offset_y;
-    char **enc;
-    
     time_t time_value;
     
     curformat = format;
@@ -401,13 +399,8 @@ static int ps_initgraphics(int format)
     fprintf(prstream, " /kid 1 kid add def\n");
     fprintf(prstream, "} def\n");
 
-    /* Default encoding */
-    enc = get_default_encoding();
-    fprintf(prstream, "/DefEncoding [\n");
-    for (i = 0; i < 256; i++) {
-        fprintf(prstream, " /%s\n", enc[i]);
-    }
-    fprintf(prstream, "] def\n");
+    /* Use standard ISOLatin1 encoding for non-Symbol fonts */
+    fprintf(prstream, "/DefEncoding ISOLatin1Encoding def\n");
 
     fprintf(prstream, "%%%%EndProlog\n");
 

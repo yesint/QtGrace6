@@ -410,7 +410,6 @@ public slots:
     void setMarked(bool mark);
     void setCurrentPixmap(int font_nr,int char_nr);
     void mousePressEvent(QMouseEvent *event);
-    static QPixmap DrawCB(unsigned char c,int FontID,bool & val_char);
 signals:
     void panelClicked(int i);
 };

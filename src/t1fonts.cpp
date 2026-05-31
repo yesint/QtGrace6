@@ -145,100 +145,34 @@ VPoint debug_bounding_box[2];
 (*devdrawpolyline)(debug_bounding_box,2,POLYLINE_OPEN);
 }
 
+// Standard Grace font aliases (PostScript names) — hardcoded for the 14 built-in fonts.
+// Used for AGR file save/load and PostScript output; independent of rendering backend.
+static const char *grace_font_aliases[] = {
+    "Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic",
+    "Helvetica", "Helvetica-Oblique", "Helvetica-Bold", "Helvetica-BoldOblique",
+    "Courier", "Courier-Oblique", "Courier-Bold", "Courier-BoldOblique",
+    "Symbol", "ZapfDingbats"
+};
+
 int init_t1(void)
 {
-    int i;
-    const char * bufp;
-    char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN];
-    FILE *fd;
-    
-    /* Set search paths: */
-    bufp = grace_path("fonts/type1");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFileSearchPath(T1_PFAB_PATH, bufp);
-    T1_SetFileSearchPath(T1_AFM_PATH, bufp);
-    bufp = grace_path("fonts/enc");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFileSearchPath(T1_ENC_PATH, bufp);
-    
-    /* Set font database: */
-    bufp = grace_path("fonts/FontDataBase");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFontDataBase(bufp);
-
-    /* Set log-level: */
-    T1_SetLogLevel(T1LOG_DEBUG);
-    
-    /* Initialize t1-library */
-    ///
-    if (T1_InitLib(T1LOGFILE|IGNORE_CONFIGFILE) == NULL) {
-        return (RETURN_FAILURE);
-    }
-    
-    nfonts = T1_GetNoFonts();
-    if (nfonts < 1) {
-        return (RETURN_FAILURE);
-    }
-    
-    fd = grace_openr("fonts/FontDataBase", SOURCE_DISK);
-    if (fd == NULL) {
-        return (RETURN_FAILURE);
-    }
-    
-    FontDBtable = (FontDB*)xmalloc(nfonts*sizeof(FontDB));
-    
-    /* skip the first line */
-    grace_fgets(buf, GR_MAXPATHLEN - 1, fd);
-    for (i = 0; i < nfonts; i++) {
-        grace_fgets(buf, GR_MAXPATHLEN - 1, fd);
-        if (sscanf(buf, "%s %s %*s", abuf, fbuf) != 2) {
-            fclose(fd);
-            return (RETURN_FAILURE);
-        }
+    nfonts = 14;  // the 14 standard Grace fonts, now backed by Qt
+    FontDBtable = (FontDB*)xmalloc(nfonts * sizeof(FontDB));
+    for (int i = 0; i < nfonts; i++) {
         FontDBtable[i].mapped_id = i;
-        FontDBtable[i].alias     = copy_string(NULL, abuf);
-        FontDBtable[i].fallback  = copy_string(NULL, fbuf);
+        FontDBtable[i].alias    = copy_string(NULL, grace_font_aliases[i]);
+        FontDBtable[i].fallback = copy_string(NULL, grace_font_aliases[i]);
     }
-    fclose(fd);
-    
-    T1_SetDeviceResolutions(72.0, 72.0);
-    
-    DefEncoding = T1_LoadEncoding(T1_DEFAULT_ENCODING_FILE);
-    if (DefEncoding == NULL) {
-        DefEncoding = T1_LoadEncoding(T1_FALLBACK_ENCODING_FILE);
-    }
-    if (DefEncoding != NULL) {
-        T1_SetDefaultEncoding(DefEncoding);
-    } else {
-        return (RETURN_FAILURE);
-    }
-    
-    T1_AASetBitsPerPixel(GRACE_BPP);
-    
-    T1_SetBitmapPad(T1_DEFAULT_BITMAP_PAD);
-    
+    useQtFonts = true;
     return (RETURN_SUCCESS);
 }
 
 void map_fonts(int map)
 {
-    bool save_use_qtfonts;
     int i;
-    save_use_qtfonts=useQtFonts;
-    useQtFonts=false;//this font mapping is only useful for the original Grace-fonts (the QtFonts are adjusted to fit the Grace fonts)
-    //cout << "Project Version=" << get_project_version() << endl;
     if (map == FONT_MAP_ACEGR)
     {
-        for (i = 0; i < nfonts; i++)
-        {
-            FontDBtable[i].mapped_id = BAD_FONT_ID;
-        }
+        for (i = 0; i < nfonts; i++) FontDBtable[i].mapped_id = BAD_FONT_ID;
         map_font_by_name("Times-Roman", 0);
         map_font_by_name("Times-Bold", 1);
         map_font_by_name("Times-Italic", 2);
@@ -249,17 +183,11 @@ void map_fonts(int map)
         map_font_by_name("Helvetica-BoldOblique", 7);
         map_font_by_name("Symbol", 8);
         map_font_by_name("ZapfDingbats", 9);
-        //cout << "remapping fonts in OLD order" << endl;
     }
     else
     {
-        for (i = 0; i < nfonts; i++)
-        {
-            FontDBtable[i].mapped_id = i;
-        }
-        //cout << "remapping fonts to STANDARD order" << endl;
+        for (i = 0; i < nfonts; i++) FontDBtable[i].mapped_id = i;
     }
-    useQtFonts=save_use_qtfonts;
 }
 
 int font_map_equals_font_ids(void)
@@ -403,121 +331,65 @@ else
 
 char *get_fontfilename(int font, int abspath)
 {
-    if (useQtFonts)
-    {//no paths for this font
-        return NULL;//stdFontList.at(font).toString().toLocal8Bit().data();
-    }
-    if (abspath) {
-        return (T1_GetFontFilePath(font));
-        ///	return 0;
-    } else {
-        return (T1_GetFontFileName(font));
-        ///	return 0;
-    }
+    (void)font; (void)abspath;
+    return NULL;
 }
 
 char *get_afmfilename(int font, int abspath)
 {
-    char *s;
-
-    if (abspath) {
-        s = T1_GetAfmFilePath(font);
-    } else {
-        s = T1_GetAfmFileName(font);
-    }
-    
-    if (s == NULL) {
-        char *s1;
-        static char buf[256];
-        int len;
-        
-        s = get_fontfilename(font, abspath);
-        len = strlen(s);
-        s1 = s + (len - 1);
-        while(s1 && *s1 != '.') {
-            len--;
-            s1--;
-        }
-        strncpy(buf, s, len);
-        buf[len] = '\0';
-        strcat(buf, "afm");
-        return buf;
-    } else {
-        return s;
-    }
+    (void)font; (void)abspath;
+    return NULL;
 }
 
 char *get_fontname(int font)
 {
-    if (useQtFonts)
-        return getNameOfStdQtFont(font);//stdFontList.at(font).toString().toLocal8Bit().data();
-    else
-        return (T1_GetFontName(font));
-    ///return 0;
+    return getNameOfStdQtFont(font);
 }
 
 char *get_fontfullname(int font)
 {
-    if (useQtFonts)
-        return getNameOfStdQtFont(font);//stdFontList.at(font).toString().toLocal8Bit().data();
-    else
-        return (T1_GetFullName(font));
-    ///return 0;
+    return getNameOfStdQtFont(font);
 }
 
 char *get_fontfamilyname(int font)
 {
-    if (useQtFonts)
-        return getFamilyNameOfStdQtFont(font);//stdFontList.at(font).family().toLocal8Bit().data();
-    else
-        return (T1_GetFamilyName(font));
-    ///return 0;
+    return getFamilyNameOfStdQtFont(font);
 }
 
 char *get_fontweight(int font)
 {
-    return (T1_GetWeight(font));
-    ///return 0;
+    static char buf[32];
+    QFont qf = getFontFromDatabase(font);
+    int w = qf.weight();
+    if (w >= QFont::Black)     strcpy(buf, "Black");
+    else if (w >= QFont::ExtraBold) strcpy(buf, "ExtraBold");
+    else if (w >= QFont::Bold)      strcpy(buf, "Bold");
+    else if (w >= QFont::DemiBold)  strcpy(buf, "DemiBold");
+    else if (w >= QFont::Medium)    strcpy(buf, "Medium");
+    else                            strcpy(buf, "Roman");
+    return buf;
 }
 
 char *get_fontalias(int font)
 {
     static char aliasname[512];
-    char * fpointer;
-    if (useQtFonts==true)
-    {
-        fpointer=getNameOfStdQtFont(font);
-        if (fpointer==NULL)
-            aliasname[0]='\0';
-        else
-            strcpy(aliasname,fpointer);
-
-        /*if (stdFontList.length()<=font || font<0)
-        strcpy(aliasname,stdFontList.at(0).toString().toLocal8Bit().constData());
-        else
-        strcpy(aliasname,stdFontList.at(font).toString().toLocal8Bit().constData());*/
-    }
+    char *fpointer = getNameOfStdQtFont(font);
+    if (fpointer == NULL)
+        aliasname[0] = '\0';
     else
-        strcpy(aliasname,FontDBtable[font].alias);
+        strcpy(aliasname, fpointer);
     return aliasname;
 }
 
 char *get_fontfallback(int font)
 {
-    return (FontDBtable[font].fallback);
-    ///return 0;
+    return get_fontalias(font);
 }
 
 char *get_encodingscheme(int font)
 {
-    return (T1_GetEncodingScheme(font));
-    ///return 0;
-}
-
-char **get_default_encoding(void)
-{
-    return (DefEncoding);
-    ///return 0;
+    // FontSpecific for Symbol and ZapfDingbats, WinAnsiEncoding for all others
+    return (char*)((font == 12 || font == 13) ? "FontSpecific" : "WinAnsiEncoding");
 }
 
 double get_textline_width(int font)
@@ -548,29 +420,6 @@ double get_italic_angle(int font)
     return 0.0;  // not needed with Qt fonts
 }
 
-double *get_kerning_vector(char *str, int len, int font)
-{
-    if (len < 2 /*|| T1_GetNoKernPairs(font) <= 0*/) {
-        return NULL;
-    } else {
-        int i, k, ktot;
-        double *kvector;
-        
-        kvector = (double*)xmalloc(len*sizeof(double));
-        for (i = 0, ktot = 0; i < len - 1; i++) {
-            k = T1_GetKerning(font, str[i], str[i + 1]);
-            ktot += k;
-            kvector[i] = (double) k/1000;
-        }
-        if (ktot) {
-            kvector[len - 1] = (double) ktot/1000;
-        } else {
-            XCFREE(kvector);
-        }
-        
-        return kvector;
-    }
-}
 
 static int tm_scale(TextMatrix *tm, double s)
 {
@@ -633,137 +482,12 @@ static void tm_slant(TextMatrix *tm, double slant)
     }
 }
 
-GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
-{
-    int i;
-    
-    int len = cs->len;
-    int FontID = cs->font;
-    float Size;
-    
-    long Space = 0;
-    
-    GLYPH *glyph;
-    
-    static int aacolors[T1_AALEVELS];
-    unsigned int fg, bg;
-    static unsigned long last_bg = 0, last_fg = 0;
-
-    int modflag;
-    T1_TMATRIX matrix, *matrixP;
-
-    RGB fg_rgb, bg_rgb, delta_rgb, *prgb;
-    CMap_entry cmap;
-    cmap.cname=NULL;
-/// qDebug() << "GetGlyphString A";
-    if (cs->len == 0) {
-        return NULL;
-    }
-/// qDebug() << "GetGlyphString B";
-    /* T1lib doesn't like negative sizes */
-    Size = (float) fabs(tm_size(&cs->tm));
-    if (Size == 0.0) {
-        return NULL;
-    }
-/// qDebug() << "GetGlyphString C";
-    /* NB: T1lib uses counter-intuitive names for off-diagonal terms */
-    matrix.cxx = (float) cs->tm.cxx/Size;
-    matrix.cxy = (float) cs->tm.cyx/Size;
-    matrix.cyx = (float) cs->tm.cxy/Size;
-    matrix.cyy = (float) cs->tm.cyy/Size;
-
-    Size *= dpv;
-
-    modflag = T1_UNDERLINE * cs->underline |
-            T1_OVERLINE  * cs->overline  |
-            T1_KERNING   * cs->kerning;
-
-    if (fabs(matrix.cxx - 1) < 0.01 && fabs(matrix.cyy - 1) < 0.01 &&
-            fabs(matrix.cxy) < 0.01 && fabs(matrix.cyx) < 0.01) {
-        matrixP = NULL;
-    } else {
-        matrixP = &matrix;
-    }
-    if (fontaa == TRUE) {
-        fg = cs->color;
-        bg = getbgcolor();
-
-        aacolors[0] = bg;
-        aacolors[T1_AALEVELS - 1] = fg;
-        if (!AAGrayLevelsOK || (fg != last_fg) || (bg != last_bg)) {
-            /* Get RGB values for fore- and background */
-            prgb = get_rgb(fg);
-
-            if (prgb == NULL) {
-                return NULL;
-            }
-            fg_rgb = *prgb;
-
-            prgb = get_rgb(bg);
-            if (prgb == NULL) {
-                return NULL;
-            }
-            bg_rgb = *prgb;
-
-            delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)   / (T1_AALEVELS - 1);
-            delta_rgb.green = (fg_rgb.green - bg_rgb.green) / (T1_AALEVELS - 1);
-            delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue)  / (T1_AALEVELS - 1);
-            for (i = 1; i < T1_AALEVELS - 1; i++) {
-                cmap.rgb.red   = bg_rgb.red + i*delta_rgb.red;
-                cmap.rgb.green = bg_rgb.green + i*delta_rgb.green;
-                cmap.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
-                //qDebug() << "vor  copy_string";
-                cmap.cname = NULL;
-                //cmap.cname = copy_string(cmap.cname,"nc");//we generate new colors here --> the name is always new!
-                //qDebug() << "nach copy_string";
-                cmap.ctype = COLOR_AUX;
-                aacolors[i] = add_color(cmap);
-                //qDebug() << "nach add_color " << i << " / " << T1_AALEVELS - 2 << " index=" << aacolors[i];
-            }
-            last_fg = fg;
-            last_bg = bg;
-            AAGrayLevelsOK = TRUE;
-        }
-/// qDebug() << "GetGlyphString D";
-        /* Set the colors for Anti-Aliasing */
-        T1_AASetGrayValues(aacolors[0],
-                           aacolors[1],
-                           aacolors[2],
-                           aacolors[3],
-                           aacolors[4]);
-/// qDebug() << "GetGlyphString E";
-/*printf("GetGlyphString WITH AntiAliasing: Font=%d String=%s Len=%d Space=%ld mod=%d size=%f\n",FontID,cs->s,len,Space,modflag,Size);
-fflush(stdout);
-if (matrixP!=NULL)
-printf("matrixP = %f %f %f %f\n",matrixP->cxx,matrixP->cxy,matrixP->cyx,matrixP->cyy);
-else
-printf("matrixP = NULL\n");
-fflush(stdout);*/
-        glyph = T1_AASetString(FontID, cs->s, len, Space, modflag, Size, matrixP);
-/// qDebug() << "GetGlyphString F";
-    } else {
-        fg = cs->color;
-        bg = getbgcolor();
-/*printf("GetGlyphString withOUT AntiAliasing\n");
-fflush(stdout);*/
-        glyph = T1_SetString(FontID, cs->s, len, Space, modflag, Size, matrixP);
-/// qDebug() << "GetGlyphString G";
-//cout << glyph->metrics.leftSideBearing << " right=" << glyph->metrics.rightSideBearing << endl;
-    }
-/*printf("End get Glyh String\n\n");
-fflush(stdout);*/
-    return glyph;
-}
-
 static void FreeCompositeString(CompositeString *cs, int nss)
 {
-    int i = 0;
-    
+    int i;
     for (i = 0; i < nss; i++) {
         xfree(cs[i].s);
-        if (cs[i].glyph != NULL) {
-            T1_FreeGlyph(cs[i].glyph);
-        }
+        // cs[i].glyph is either a static from GetQtGlyph or NULL — never heap-allocated
     }
     xfree(cs);
 }
@@ -1226,44 +950,6 @@ static void reverse_string(char *s, int len)
     }
 }
 
-static void process_ligatures(CompositeString *cs)
-{
-    int j, k, l, m, none_found;
-    char *ligtheString;
-    char *succs, *ligs;
-    char buf_char;
-
-    ligtheString = (char*)xmalloc((cs->len + 1)*sizeof(char));
-    /* Loop through the characters */
-    for (j = 0, m = 0; j < cs->len; j++, m++) {
-        if ((k = T1_QueryLigs(cs->font, cs->s[j], &succs, &ligs)) > 0) {
-            buf_char = cs->s[j];
-            while (k > 0){
-                none_found = 1;
-                for (l = 0; l < k; l++) { /* Loop through the ligatures */
-                    if (succs[l] == cs->s[j + 1]) {
-                        buf_char = ligs[l];
-                        j++;
-                        none_found = 0;
-                        break;
-                    }
-                }
-                if (none_found) {
-                    break;
-                }
-                k = T1_QueryLigs(cs->font, buf_char, &succs, &ligs);
-            }
-            ligtheString[m] = buf_char;
-        } else { /* There are no ligatures */
-            ligtheString[m] = cs->s[j];
-        }
-    }
-    ligtheString[m] = 0;
-    
-    xfree(cs->s);
-    cs->s = ligtheString;
-    cs->len = m;
-}
 
 static VPoint bbox_ll, bbox_ur, bbox_ll_local, bbox_ur_local;
 
@@ -1455,10 +1141,7 @@ nr_index=0;
 
     dev = get_curdevice_props();
 
-    if (curdevice==DEVICE_SCREEN && useQtFonts==true)/// && dev.devfonts==TRUE)//deactivated use of device fonts if qtfonts are used
-        useQtFunctions=true;
-    else
-        useQtFunctions=false;
+    useQtFunctions = true;  // all devices now use Qt font rendering
 
     /* inches per 1 unit of viewport */
     page_ipv = MIN2(page_width_in, page_height_in);
@@ -1548,9 +1231,7 @@ fflush(stdout);*/
             cs->alpha = def_alpha;
         }
 //qDebug() << "Write String alpha=" << def_alpha << " String=" << theString;
-        if (cs->ligatures == TRUE) {
-            process_ligatures(cs);
-        }
+        // ligature processing removed with Type1
         if (cs->direction == STRING_DIRECTION_RL) {
             reverse_string(cs->s, cs->len);
         }
@@ -1571,19 +1252,7 @@ fflush(stdout);*/
         cout << (int)((unsigned char)(cs->s[i])) << " ";
         cout << endl;*/
 
-        if (useQtFunctions==true)
-        {
-            glyph = GetQtGlyph(cs, page_dpv, dev.fontaa);
-        }
-        else
-        {
-/*printf("cs.s=%s cs=%s cs.len=%d Page_dpv=%f dev.fontaa=%d\n",QString::fromUtf8(cs->s).toLocal8Bit().constData(),cs->s,cs->len,page_dpv,dev.fontaa);
-fflush(stdout);*/
-            /// qDebug() << "DrawMode=" << get_draw_mode();
-            glyph = GetGlyphString(cs, page_dpv, dev.fontaa);
-/*printf("noQt, dev.fontaa=%d\n",dev.fontaa);
-fflush(stdout);*/
-        }
+        glyph = GetQtGlyph(cs, page_dpv, dev.fontaa);
         if (glyph != NULL) {
             if (text_advancing == TEXT_ADVANCING_RL) {
                 glyph->metrics.ascent  -= glyph->metrics.advanceY;
@@ -1596,19 +1265,7 @@ fflush(stdout);*/
         cs->tm=sav_text_matrix;
         tm_rotate(&cs->tm, Angle);
         tm_scale(&cs->tm, charsize);
-        if (useQtFunctions==true)
-        {
-            glyph = GetQtGlyph(cs, page_dpv, dev.fontaa);
-        }
-        else
-        {
-/*printf("cs.s=%s cs=%s cs.len=%d Page_dpv=%f dev.fontaa=%d\n",QString::fromUtf8(cs->s).toLocal8Bit().constData(),cs->s,cs->len,page_dpv,dev.fontaa);
-fflush(stdout);*/
-            /// qDebug() << "DrawMode=" << get_draw_mode();
-            glyph = GetGlyphString(cs, page_dpv, dev.fontaa);
-/*printf("noQt, dev.fontaa=%d\n",dev.fontaa);
-fflush(stdout);*/
-        }
+        glyph = GetQtGlyph(cs, page_dpv, dev.fontaa);
 
         //cout << "s=#" << cs->s << "# asc=" << glyph->metrics.ascent << " dsc=" << glyph->metrics.descent << " lb=" << glyph->metrics.leftSideBearing << " rb=" <<  glyph->metrics.rightSideBearing << " ax=" << glyph->metrics.advanceX << " ay=" << glyph->metrics.advanceY << endl;
         //cout << "hs=" << cs->hshift << " vs=" << cs->vshift << " rot=" << rot << endl;
@@ -1694,7 +1351,7 @@ fflush(stdout);
 
         //draw_simple_point(cs->stop,4,0.007);
 
-            cs->glyph = T1_CopyGlyph(glyph);
+            cs->glyph = glyph;  // GetQtGlyph returns a static — no copy needed
         } else {
             cs->glyph = NULL;
         }
@@ -2003,41 +1660,12 @@ qDebug() << "This Text contains" << nr_of_returns << "return-characters. CurLine
             //cout << "dev.devfonts=" << dev.devfonts << endl;
             //cout << "useQtFunctions=" << useQtFunctions << endl;
             //if (dev.devfonts == TRUE || useQtFunctions == true)/// I added 'useQtFunctions' to remove the necessity for devfonts
-            if (dev.devfonts == TRUE || curdevice==DEVICE_SVG || curdevice==DEVICE_PNG  || curdevice==DEVICE_PDF || (dev.devfonts == FALSE && useQtFunctions == true))
+            if (devputtext != NULL)
             {
-                if (cs->advancing == TEXT_ADVANCING_RL) {
-                    vptmp = cs->stop;
-                } else {
-                    vptmp = cs->start;
-                }
-                if (devputtext == NULL || (curdevice==DEVICE_SCREEN && useQtFonts==false)) {
-                    errmsg(QObject::tr("Device has no built-in fonts").toLocal8Bit().constData());
-                    //cout << "Device has no built-in fonts: curdev=" << curdevice << " useQtFont=" << useQtFonts << endl;
-                } else {
-                    /*if (cs->qtCharShift==1)
-                    {
-                        qtCharShift=945-97;//difference between alpha and a = difference between greek characters and latin characters
-                        //cout << "Shift1" << endl;
-                    }
-                    else if (cs->qtCharShift==2)
-                    {
-                        qtCharShift=128;//difference to 'upper' char set in ascii-table (50073-89)
-                        //cout << "Shift2" << endl;
-                    }
-                    else
-                    {
-                        cout << "No Shift" << endl;
-                    }*/
-                    qtCharShift=cs->qtCharShift;
-                    (*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);
-                    qtCharShift=0;
-                }
-            } else {//don't use device fonts --> use pixmaps instead
-                /* upper left corner of bitmap */
-                vptmp = cs->start;
-                vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
-                vptmp.y += (double) glyph->metrics.ascent/page_dpv;
-                (*devputpixmap) (vptmp, pwidth, pheight, glyph->bits, glyph->bpp, T1_DEFAULT_BITMAP_PAD, PIXMAP_TRANSPARENT);
+                vptmp = (cs->advancing == TEXT_ADVANCING_RL) ? cs->stop : cs->start;
+                qtCharShift = cs->qtCharShift;
+                (*devputtext)(vptmp, cs->s, cs->len, cs->font, &cs->tm, cs->underline, cs->overline, cs->kerning);
+                qtCharShift = 0;
             }
         }
     }

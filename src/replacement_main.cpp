@@ -723,11 +723,8 @@ int replacement_main(int argc, char **argv)
     srand(time(NULL));
 #endif
 
-    /* initialize T1lib */
-    if (init_t1() != RETURN_SUCCESS) {
-        errmsg(QObject::tr("Unable to initialize T1lib --> Broken or incomplete installation - read the FAQ!").toLocal8Bit().constData());
-        exit(1);
-    }
+    /* initialize font database (Qt-backed) */
+    init_t1();
 
     /* initialize colormap data */
     initialize_cmap();

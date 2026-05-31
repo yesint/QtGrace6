@@ -42,18 +42,6 @@ find_package(Qt6 REQUIRED COMPONENTS
 
 add_library(grace STATIC
 	src/pars.c
-	src/t1set.c
-	src/t1aaset.c
-	src/parseAFM.c
-	src/t1load.c
-	src/t1base.c
-	src/t1finfo.c
-	src/t1outline.c
-	src/t1afmtool.c
-	src/t1enc.c
-	src/t1env.c
-	src/t1delete.c
-	src/t1trans.c
 	src/acosh.c
 	src/airy.c
 	src/asinh.c
@@ -111,28 +99,6 @@ add_library(grace STATIC
 	src/zetac.c
 )
 target_include_directories(grace PRIVATE ./src)
-target_link_libraries(grace PRIVATE type1)
-
-add_library(type1 STATIC
-	type1/arith.c
-	type1/bstring.c
-	type1/curves.c
-	type1/fontfcn.c
-	type1/hints.c
-	type1/lines.c
-	type1/objects.c
-	type1/paths.c
-	type1/regions.c
-	type1/scanfont.c
-	type1/spaces.c
-	type1/t1io.c
-	type1/t1snap.c
-	type1/t1stub.c
-	type1/token.c
-	type1/type1.c
-	type1/util.c
-)
-target_include_directories(type1 PRIVATE ./type1)
 
 # Define the main executable
 qt_standard_project_setup()
