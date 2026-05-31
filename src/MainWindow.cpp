@@ -941,17 +941,19 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     /*End: QtGrace-addition*/
 
 #ifdef AUTOLAYOUT_FOR_TOOLBAR
-    toolLayout1->addWidget(cmdDraw,toolIndex++,0,1,2);
-    toolLayout1->addWidget(cmdZoom,toolIndex,0,1,1);
-    toolLayout1->addWidget(cmdAutoScale,toolIndex++,1,1,1);
-    toolLayout1->addWidget(cmdZz,toolIndex,0,1,1);
-    toolLayout1->addWidget(cmdzz,toolIndex++,1,1,1);
-    toolLayout1->addWidget(cmdLeft,toolIndex,0,1,1);
-    toolLayout1->addWidget(cmdRight,toolIndex++,1,1,1);
-    toolLayout1->addWidget(cmdUp,toolIndex,0,1,1);
-    toolLayout1->addWidget(cmdDown,toolIndex++,1,1,1);
-    toolLayout1->addWidget(cmdPan,toolIndex++,0,1,2);
-    toolLayout1->addWidget(cmdPick,toolIndex++,0,1,2);
+    toolLayout1->setColumnStretch(0,1);
+    toolLayout1->setColumnStretch(1,1);
+    toolLayout1->addWidget(cmdDraw,toolIndex++,0,1,2,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdZoom,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdAutoScale,toolIndex++,1,1,1,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdZz,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdzz,toolIndex++,1,1,1,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdLeft,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdRight,toolIndex++,1,1,1,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdUp,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdDown,toolIndex++,1,1,1,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdPan,toolIndex++,0,1,2,Qt::AlignHCenter);
+    toolLayout1->addWidget(cmdPick,toolIndex++,0,1,2,Qt::AlignHCenter);
     toolLayout1->addWidget(lstGraphs,toolIndex++,0,1,2);
 #else
     #ifdef WINDOWS_SYSTEM
@@ -1112,41 +1114,43 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
 #ifdef AUTOLAYOUT_FOR_TOOLBAR
     toolBar2->setLayout(toolLayout2);
+    toolLayout2->setColumnStretch(0,1);
+    toolLayout2->setColumnStretch(1,1);
     toolIndex=0;
-    toolLayout2->addWidget(cmdAutoT,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdAutoO,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdZX,toolIndex,0,1,1);
-    toolLayout2->addWidget(cmdZY,toolIndex++,1,1,1);
-    toolLayout2->addWidget(cmdAX,toolIndex,0,1,1);
-    toolLayout2->addWidget(cmdAY,toolIndex++,1,1,1);
+    toolLayout2->addWidget(cmdAutoT,toolIndex++,0,1,2,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdAutoO,toolIndex++,0,1,2,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdZX,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdZY,toolIndex++,1,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdAX,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdAY,toolIndex++,1,1,1,Qt::AlignHCenter);
     //classic viewport-stack
-    toolLayout2->addWidget(cmdPZ,toolIndex,0,1,1);
-    toolLayout2->addWidget(cmdPu,toolIndex++,1,1,1);
-    toolLayout2->addWidget(cmdPo,toolIndex,0,1,1);
-    toolLayout2->addWidget(cmdCy,toolIndex++,1,1,1);
+    toolLayout2->addWidget(cmdPZ,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdPu,toolIndex++,1,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdPo,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdCy,toolIndex++,1,1,1,Qt::AlignHCenter);
     toolLayout2->addWidget(lblSD,toolIndex++,0,1,2);
     toolLayout2->addWidget(lblCW ,toolIndex++,0,1,2);
     //new viewport-stack
     toolLayout2->addWidget(lblNewViewStack,toolIndex++,0,1,2);
     toolLayout2->addWidget(cmbViewStack,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdViewUp,toolIndex,0,1,1);
-    toolLayout2->addWidget(cmdViewDown,toolIndex++,1,1,1);
-    toolLayout2->addWidget(cmdViewAdd,toolIndex,0,1,1);
-    toolLayout2->addWidget(cmdViewRemove,toolIndex++,1,1,1);
-    toolLayout2->addWidget(cmdViewReplace,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdViewRearrange,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdViewRename,toolIndex++,0,1,2);
+    toolLayout2->addWidget(cmdViewUp,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdViewDown,toolIndex++,1,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdViewAdd,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdViewRemove,toolIndex++,1,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdViewReplace,toolIndex++,0,1,2,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdViewRearrange,toolIndex++,0,1,2,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdViewRename,toolIndex++,0,1,2,Qt::AlignHCenter);
     //the rest
-    toolLayout2->addWidget(cmdUndo,toolIndex,0,1,1);
-    toolLayout2->addWidget(cmdRedo,toolIndex++,1,1,1);
+    toolLayout2->addWidget(cmdUndo,toolIndex,0,1,1,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdRedo,toolIndex++,1,1,1,Qt::AlignHCenter);
     toolLayout2->addWidget(sldPageZoom ,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdFitPage,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdExport,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdPrint,toolIndex++,0,1,2);
+    toolLayout2->addWidget(cmdFitPage,toolIndex++,0,1,2,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdExport,toolIndex++,0,1,2,Qt::AlignHCenter);
+    toolLayout2->addWidget(cmdPrint,toolIndex++,0,1,2,Qt::AlignHCenter);
     tool_empty2=new QWidget(toolBar2);
     tool_empty2->setMinimumHeight(8);
     toolLayout2->addWidget(tool_empty2,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdExit,toolIndex++,0,1,2);
+    toolLayout2->addWidget(cmdExit,toolIndex++,0,1,2,Qt::AlignHCenter);
 #else
     #ifdef WINDOWS_SYSTEM
         cmdAutoT->setGeometry(2+WIN_SIZE_CORR*toolBarSizeFactor,2+2*WIN_SIZE_CORR*toolBarSizeFactor,64+WIN_SIZE_CORR*toolBarSizeFactor,stdHeight1);
@@ -3084,81 +3088,49 @@ void MainWindow::ManageBars(void)
         //QSize newIconSize(default_IconW*toolBarSizeFactor,default_IconH*toolBarSizeFactor);
         ///Resizing buttons
         ///Large Buttons
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-    #ifdef WINDOWS_SYSTEM
-        LargeButtonW+=WIN_SIZE_CORR*toolBarSizeFactor*2;
-        cmdDraw->setGeometry(2+WIN_SIZE_CORR*toolBarSizeFactor,4,LargeButtonW,LargeButtonH);
-    #else
-        cmdDraw->setGeometry(2,4,LargeButtonW,LargeButtonH);
-    #endif
-
-        //cmdDraw->resize(LargeButtonW,LargeButtonH);
-        /*qDebug() << "Draw: Iconsize=" << cmdDraw->iconSize();
-        QIcon tmpIcon=cmdDraw->icon();
-        QIcon newIcon(tmpIcon.pixmap(newIconSize));
-        cmdDraw->setIconSize(newIconSize);
-        cmdDraw->setIcon(newIcon);*/
-        cmdAutoT->resize(LargeButtonW,LargeButtonH);
-        cmdAutoO->resize(LargeButtonW,LargeButtonH);
-        cmdFitPage->resize(LargeButtonW,LargeButtonH);
-        cmdExit->resize(LargeButtonW,LargeButtonH);
-        cmdExport->resize(LargeButtonW,LargeButtonH);
-        cmdPrint->resize(LargeButtonW,LargeButtonH);
-        cmdPan->resize(LargeButtonW,LargeButtonH);
-        cmdPick->resize(LargeButtonW,LargeButtonH);
-
-        ///Small Buttons
-        cmdZoom->resize(SmallButtonW,SmallButtonH);
-/*
-        qDebug() << "Zoom: Iconsize=" << cmdZoom->iconSize() << "NewIconSize=" << newIconSize;
-        tmpIcon=cmdZoom->icon();
-        QPixmap pm1=tmpIcon.pixmap(newIconSize);
-        QPixmap pm2=pm1.scaled(newIconSize);
-        //newIcon=QIcon(tmpIcon.pixmap(newIconSize));
-        newIcon=QIcon(pm2);
-        qDebug() << "IconSize=" << newIcon.actualSize(newIconSize);
-        cmdZoom->setIconSize(newIconSize);
-        cmdZoom->setIcon(newIcon);
-*/
-
-        cmdAutoScale->resize(SmallButtonW,SmallButtonH);
-        cmdZz->resize(SmallButtonW,SmallButtonH);
-        cmdzz->resize(SmallButtonW,SmallButtonH);
-        cmdLeft->resize(SmallButtonW,SmallButtonH);
-        cmdRight->resize(SmallButtonW,SmallButtonH);
-        cmdUp->resize(SmallButtonW,SmallButtonH);
-        cmdDown->resize(SmallButtonW,SmallButtonH);
-        cmdZX->resize(SmallButtonW,SmallButtonH);
-        cmdZY->resize(SmallButtonW,SmallButtonH);
-        cmdAX->resize(SmallButtonW,SmallButtonH);
-        cmdAY->resize(SmallButtonW,SmallButtonH);
-        cmdPZ->resize(SmallButtonW,SmallButtonH);
-        cmdPu->resize(SmallButtonW,SmallButtonH);
-        cmdPo->resize(SmallButtonW,SmallButtonH);
-        cmdCy->resize(SmallButtonW,SmallButtonH);
-        lblSD->resize(LargeButtonW,LargeButtonH);
-        lblCW->resize(LargeButtonW,LargeButtonH);
-        cmdUndo->resize(SmallButtonW,SmallButtonH);
-        cmdRedo->resize(SmallButtonW,SmallButtonH);
-
-        //cmdZoom->setIconSize(QSize(SmallButtonW,SmallButtonH));
-        //cmdAutoScale->setIconSize(QSize(SmallButtonW,SmallButtonH));
-
-        lblNewViewStack->resize(LargeButtonW,LargeButtonH*1.3);
-        cmbViewStack->resize(LargeButtonW,LargeButtonH);
-        cmdViewUp->resize(SmallButtonW,SmallButtonH);
-        cmdViewDown->resize(SmallButtonW,SmallButtonH);
-        cmdViewRename->resize(LargeButtonW,LargeButtonH);
-        cmdViewAdd->resize(SmallButtonW,SmallButtonH);
-        cmdViewRemove->resize(SmallButtonW,SmallButtonH);
-        cmdViewReplace->resize(LargeButtonW,LargeButtonH);
-        cmdViewRearrange->resize(LargeButtonW,LargeButtonH);
-
-        lstGraphs->resize(ListW,ListH);
-#endif
+        // Size all toolbar buttons — setFixedSize so the layout respects them
+        cmdDraw->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdAutoT->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdAutoO->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdFitPage->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdExit->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdExport->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdPrint->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdPan->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdPick->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdZoom->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdAutoScale->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdZz->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdzz->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdLeft->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdRight->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdUp->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdDown->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdZX->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdZY->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdAX->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdAY->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdPZ->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdPu->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdPo->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdCy->setFixedSize(SmallButtonW,SmallButtonH);
+        lblSD->setFixedSize(LargeButtonW,LargeButtonH);
+        lblCW->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdUndo->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdRedo->setFixedSize(SmallButtonW,SmallButtonH);
+        lblNewViewStack->setFixedSize(LargeButtonW,int(LargeButtonH*1.3));
+        cmbViewStack->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdViewUp->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdViewDown->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdViewRename->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdViewAdd->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdViewRemove->setFixedSize(SmallButtonW,SmallButtonH);
+        cmdViewReplace->setFixedSize(LargeButtonW,LargeButtonH);
+        cmdViewRearrange->setFixedSize(LargeButtonW,LargeButtonH);
+        lstGraphs->setFixedSize(ListW,ListH);
         //qDebug() << "Vor Slider Resize: w=" << SliderW << " h=" << SliderH;
-        sldPageZoom->resize(SliderW,SliderH);
-        sldPageZoom->resizeEvent(new QResizeEvent(QSize(SliderW,SliderH),sldPageZoom->size()));
+        sldPageZoom->setFixedSize(SliderW,SliderH);
+        sldPageZoom->resizeEvent(new QResizeEvent(QSize(SliderW,SliderH),QSize(SliderW,SliderH)));
         //qDebug() << "Nach Slider Resize: w=" << SliderW << " h=" << SliderH;
         /*toolBar1->setMinimumWidth(ToolBarWidth);
         toolBar2->setMinimumWidth(ToolBarWidth);*/
