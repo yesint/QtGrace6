@@ -863,12 +863,7 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     statusBar->showMessage( "-,-,Untitled" );
 
     // Toolbars, tooltips, icons, and button signals — all in MainWindow.ui
-    // Pan/Pick need cursor-based icons (not a file resource, set here)
-    {
-        QCursor helpCursor(Qt::OpenHandCursor);
-        cmdPan->setIcon(helpCursor.pixmap());
-        cmdPick->setIcon(helpCursor.pixmap());
-    }
+    // Pan/Pick theme icons (transform-move, edit-select) are set by setupUi()
     // lstGraphs behaviour (not expressible in .ui)
     lstGraphs->prevent_from_autoupdate=true;
     lstGraphs->minimum_display=true;
@@ -1062,16 +1057,18 @@ cmdViewDown->setIcon(HelpIcon);
 }
 else
 {
-cmdZoom->setIcon(CreateScaledIconFromPNG(icondir+"zoom.png",newIconSize));
-cmdAutoScale->setIcon(CreateScaledIconFromPNG(icondir+"autoscale.png",newIconSize));
-cmdZz->setIcon(CreateScaledIconFromPNG(icondir+"zoomOut.png",newIconSize));
-cmdzz->setIcon(CreateScaledIconFromPNG(icondir+"zoomIn.png",newIconSize));
-cmdLeft->setIcon(CreateScaledIconFromPNG(icondir+"goLeft.png",newIconSize));
-cmdRight->setIcon(CreateScaledIconFromPNG(icondir+"goRight.png",newIconSize));
-cmdUp->setIcon(CreateScaledIconFromPNG(icondir+"goUp.png",newIconSize));
-cmdViewUp->setIcon(CreateScaledIconFromPNG(icondir+"goUp.png",newIconSize));
-cmdDown->setIcon(CreateScaledIconFromPNG(icondir+"goDown.png",newIconSize));
-cmdViewDown->setIcon(CreateScaledIconFromPNG(icondir+"goDown.png",newIconSize));
+// Theme icons (set by setupUi from MainWindow.ui) scale automatically —
+// just update the icon size; don't override with PNG copies.
+cmdZoom->setIconSize(newIconSize);
+cmdAutoScale->setIconSize(newIconSize);
+cmdZz->setIconSize(newIconSize);
+cmdzz->setIconSize(newIconSize);
+cmdLeft->setIconSize(newIconSize);
+cmdRight->setIconSize(newIconSize);
+cmdUp->setIconSize(newIconSize);
+cmdViewUp->setIconSize(newIconSize);
+cmdDown->setIconSize(newIconSize);
+cmdViewDown->setIconSize(newIconSize);
 }
 
 if (icon_preferences==0 || icon_preferences==1)//text only or text+icons
