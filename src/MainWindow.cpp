@@ -945,7 +945,7 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     mainGrid->setRowStretch(3,1);    // canvas row expands vertically
     mainGrid->setColumnStretch(1,1); // canvas column expands horizontally
     mainGrid->setRowMinimumHeight(4,stdBarHeight); // statusbar — used by show/hide toggle
-    coordLabel = new QLabel("G0: X, Y = [-, -]", this);
+    coordLabel = new QLabel("G0: X, Y = [-, -]", statusBar);
     coordLabel->setMinimumWidth(220);
     statusBar->insertPermanentWidget(0, coordLabel);      // coordinates — left
     statusBar->insertPermanentWidget(1, statusBarLabel);  // dirty indicator — right
@@ -4648,7 +4648,7 @@ void MainWindow::set_stack_message(void)
 void MainWindow::newgraphselection(int gr_nr)
 {
     if (gr_nr<0 || gr_nr>=lstGraphs->number_of_entries) return;//invalid number
-    QSignalBlocker _block(lstGraphs);
+    disconnect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
     int graph_number=lstGraphs->entries[gr_nr];
     int * selection=new int[2];
     int nr_selection=0;
@@ -4675,6 +4675,7 @@ void MainWindow::newgraphselection(int gr_nr)
         else
         lstGraphs->set_new_selection(nr_selection,selection);
     }
+    connect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
         if (selection!=NULL)
         delete[] selection;
 }
@@ -4951,7 +4952,7 @@ void MainWindow::UpdateViewportList(void)
 QString text;
     if (!is_valid_gno(get_cg())) return;
 //int sel_view=cmbViewStack->currentIndex();
-    QSignalBlocker _block(cmbViewStack);
+    disconnect(cmbViewStack,0,0,0);
 cmbViewStack->clear();
 if (g[get_cg()].ws_top==1 && g[get_cg()].ws[0].w_name==NULL)
 {
@@ -4994,6 +4995,7 @@ else
     cmdViewRearrange->setEnabled(true);
     }
 }
+    connect(cmbViewStack,SIGNAL(currentIndexChanged(int)),this,SLOT(newViewportSelected(int)));
 }
 
 void MainWindow::newViewportUp(void)
