@@ -627,6 +627,7 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //Main menu bar
     menuBar=new QMenuBar(this);
+    menuBar->setObjectName("menuBar");
     /// menuBar->setGeometry(0,0,windowWidth,menuBar->height());
 
     //The File-Menu and its entries
@@ -822,28 +823,34 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The status locator bar
     statLocBar=new QLabel(" ",this);
+    statLocBar->setObjectName("statLocBar");
     //statLocBar->setGeometry(0,stdBarHeight,windowWidth,stdBarHeight-8);
     statLocBar->setText(QString("G0: X, Y = [-, -]"));
     statLocBar->setFrameStyle(QFrame::Box | QFrame::Raised);
 
     //The status bar
     statusBar=new QStatusBar(this);
+    statusBar->setObjectName("statusBar");
     //statusBar->setGeometry(0,windowHeight-stdBarHeight,windowWidth,stdBarHeight);
     statusBar->showMessage( "-,-,Untitled" );
     statusBarLabel=new QLabel(" ",this);
+    statusBarLabel->setObjectName("statusBarLabel");
 
     //The tool bar(s)
     toolBar1=new QFrame(this);
+    toolBar1->setObjectName("toolBar1");
     //toolBar1->setGeometry(0,stdBarHeight+statLocBar->height(),70,130);
     toolBar1->setFrameStyle(QFrame::Box | QFrame::Raised);
     //toolBar1->setMinimumHeight(137);
 
     tool_empty=new QWidget();
+    tool_empty->setObjectName("tool_empty");
     tool_layout=new QVBoxLayout();
     //tool_layout->setMargin(0);
     tool_layout->setContentsMargins(0,0,0,0);
     tool_layout->setSpacing(0);
     scroll=new QScrollArea(this);
+    scroll->setObjectName("scroll");
     scroll->setWidget(tool_empty);
     tool_empty->setLayout(tool_layout);
 
@@ -861,47 +868,58 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 #endif
 
     cmdDraw=new QPushButton(tr("Draw"),toolBar1);
+    cmdDraw->setObjectName("cmdDraw");
     cmdDraw->setToolTip(tr("Redraw project"));
     connect(cmdDraw, SIGNAL(clicked()), this, SLOT(doDraw()));
     convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
     cmdZoom=new QPushButton(HelpPixmap,"",toolBar1);
+    cmdZoom->setObjectName("cmdZoom");
     cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle (Alt+Z)"));
     connect(cmdZoom, SIGNAL(clicked()), this, SLOT(doZoom()));
     convertBitmapToPixmap(autoBitMap,&HelpPixmap);
     cmdAutoScale=new QPushButton(HelpPixmap,"",toolBar1);
+    cmdAutoScale->setObjectName("cmdAutoScale");
     cmdAutoScale->setToolTip(tr("Autoscale graph(s) on X and Y axis (Crtl+A)"));
     connect(cmdAutoScale, SIGNAL(clicked()), this, SLOT(doAutoScale()));
     convertBitmapToPixmap(expandBitMap,&HelpPixmap);
     cmdZz=new QPushButton(HelpPixmap,"",toolBar1);
+    cmdZz->setObjectName("cmdZz");
     cmdZz->setToolTip(tr("Zoom out (Crtl -)"));
     connect(cmdZz, SIGNAL(clicked()), this, SLOT(doZz()));
     convertBitmapToPixmap(shrinkBitMap,&HelpPixmap);
     cmdzz=new QPushButton(HelpPixmap,"",toolBar1);
+    cmdzz->setObjectName("cmdzz");
     cmdzz->setToolTip(tr("Zoom in (Crtl +)"));
     connect(cmdzz, SIGNAL(clicked()), this, SLOT(dozz()));
     convertBitmapToPixmap(leftBitMap,&HelpPixmap);
     cmdLeft=new QPushButton(HelpPixmap,"",toolBar1);
+    cmdLeft->setObjectName("cmdLeft");
     cmdLeft->setToolTip(tr("Scroll graph(s) left (Crtl+LeftArrow)"));
     connect(cmdLeft, SIGNAL(clicked()), this, SLOT(doLeft()));
     convertBitmapToPixmap(rightBitMap,&HelpPixmap);
     cmdRight=new QPushButton(HelpPixmap,"",toolBar1);
+    cmdRight->setObjectName("cmdRight");
     cmdRight->setToolTip(tr("Scroll graph(s) right (Crtl+RightArrow)"));
     connect(cmdRight, SIGNAL(clicked()), this, SLOT(doRight()));
     convertBitmapToPixmap(upBitMap,&HelpPixmap);
     cmdUp=new QPushButton(HelpPixmap,"",toolBar1);
+    cmdUp->setObjectName("cmdUp");
     cmdUp->setToolTip(tr("Scroll graph(s) up (Crtl+UpArrow)"));
     connect(cmdUp, SIGNAL(clicked()), this, SLOT(doUp()));
     convertBitmapToPixmap(downBitMap,&HelpPixmap);
     cmdDown=new QPushButton(HelpPixmap,"",toolBar1);
+    cmdDown->setObjectName("cmdDown");
     cmdDown->setToolTip(tr("Scroll graph(s) down (Crtl+DownArrow)"));
     connect(cmdDown, SIGNAL(clicked()), this, SLOT(doDown()));
     /*QtGrace-addition*/
     QCursor helpCursor(Qt::OpenHandCursor);
     HelpPixmap=helpCursor.pixmap();
     cmdPan=new QPushButton(HelpPixmap,"Pan",toolBar1);
+    cmdPan->setObjectName("cmdPan");
     cmdPan->setToolTip(tr("Pan graph(s) (Alt+P)"));
     connect(cmdPan,SIGNAL(clicked(bool)),SLOT(doPan()));
     cmdPick=new QPushButton(HelpPixmap,"Move",toolBar1);
+    cmdPick->setObjectName("cmdPick");
     cmdPick->setToolTip(tr("Relocate any object, legend, title, label (Alt+M)"));
     connect(cmdPick,SIGNAL(clicked(bool)),SLOT(doPick()));
 
@@ -911,6 +929,7 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     ///QFont helpFont1(qApp->font());
     ///helpFont1.setPixelSize(12);
     lstGraphs=new uniList(GRAPHLIST,toolBar1);
+    lstGraphs->setObjectName("lstGraphs");
     lstGraphs->setToolTip(tr("Select graph(s) for zoom operations"));
     ///lstGraphs->setFont(helpFont1);
     lstGraphs->prevent_from_autoupdate=true;
@@ -962,66 +981,88 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     toolBar1->setLayout(tool1Grid);*/
 
     toolBar2=new QFrame(this);
+    toolBar2->setObjectName("toolBar2");
     //toolBar2->setGeometry(0,toolBar1->y()+toolBar1->height(),toolBar1->width(),windowHeight-stdBarHeight*2-statLocBar->height()-toolBar1->height());
     toolBar2->setFrameStyle(QFrame::Box | QFrame::Raised);
 
     cmdAutoT=new QPushButton("AutoT",toolBar2);
+    cmdAutoT->setObjectName("cmdAutoT");
     cmdAutoT->setToolTip(tr("Automatically set the tick spacing"));
     connect(cmdAutoT, SIGNAL(clicked()), this, SLOT(doAutoT()));
     cmdAutoO=new QPushButton("AutoO",toolBar2);
+    cmdAutoO->setObjectName("cmdAutoO");
     cmdAutoO->setToolTip(tr("Autoscale on nearest set"));
     connect(cmdAutoO, SIGNAL(clicked()), this, SLOT(doAutoO()));
     cmdZX=new QPushButton("ZX",toolBar2);
+    cmdZX->setObjectName("cmdZX");
     cmdZX->setToolTip(tr("Zoom X axis only"));
     connect(cmdZX, SIGNAL(clicked()), this, SLOT(doZX()));
     cmdZY=new QPushButton("ZY",toolBar2);
+    cmdZY->setObjectName("cmdZY");
     cmdZY->setToolTip(tr("Zoom Y axis only"));
     connect(cmdZY, SIGNAL(clicked()), this, SLOT(doZY()));
     cmdAX=new QPushButton("AX",toolBar2);
+    cmdAX->setObjectName("cmdAX");
     cmdAX->setToolTip(tr("Autoscale X axis only"));
     connect(cmdAX, SIGNAL(clicked()), this, SLOT(doAX()));
     cmdAY=new QPushButton("AY",toolBar2);
+    cmdAY->setObjectName("cmdAY");
     cmdAY->setToolTip(tr("Autoscale Y axis only"));
     connect(cmdAY, SIGNAL(clicked()), this, SLOT(doAY()));
     cmdPZ=new QPushButton("PZ",toolBar2);
+    cmdPZ->setObjectName("cmdPZ");
     cmdPZ->setToolTip(tr("Push viewport on stack and zoom"));
     connect(cmdPZ, SIGNAL(clicked()), this, SLOT(doPZ()));
     cmdPu=new QPushButton("Pu",toolBar2);
+    cmdPu->setObjectName("cmdPu");
     cmdPu->setToolTip(tr("Push viewort on stack"));
     connect(cmdPu, SIGNAL(clicked()), this, SLOT(doPu()));
     cmdPo=new QPushButton("Po",toolBar2);
+    cmdPo->setObjectName("cmdPo");
     cmdPo->setToolTip(tr("Pop viewport stack"));
     connect(cmdPo, SIGNAL(clicked()), this, SLOT(doPo()));
     cmdCy=new QPushButton("Cy",toolBar2);
+    cmdCy->setObjectName("cmdCy");
     cmdCy->setToolTip(tr("Cycle viewport stack"));
     connect(cmdCy, SIGNAL(clicked()), this, SLOT(doCy()));
     lblSD=new QLabel(" SD:1",toolBar2);
+    lblSD->setObjectName("lblSD");
     lblSD->setToolTip(tr("Viewport stack depth"));
     lblCW=new QLabel(" CW:0",toolBar2);
+    lblCW->setObjectName("lblCW");
     lblCW->setToolTip(tr("Current stack position"));
 
     /*alternative Viewport stack*/
     lblNewViewStack=new QLabel(tr("Viewport\nstack:"),toolBar2);
+    lblNewViewStack->setObjectName("lblNewViewStack");
     lblNewViewStack->setAlignment(Qt::AlignCenter);
     QString entr[2];
     entr[0]=entr[1]=tr("Default");
     cmbViewStack=new QComboBox(toolBar2);
+    cmbViewStack->setObjectName("cmbViewStack");
     cmbViewStack->setToolTip(tr("Select viewport from stack"));
     cmbViewStack->addItem(entr[0]);
     convertBitmapToPixmap(upBitMap,&HelpPixmap);
     cmdViewUp=new QPushButton(HelpPixmap,"",toolBar2);
+    cmdViewUp->setObjectName("cmdViewUp");
     convertBitmapToPixmap(downBitMap,&HelpPixmap);
     cmdViewDown=new QPushButton(HelpPixmap,"",toolBar2);
+    cmdViewDown->setObjectName("cmdViewDown");
     cmdViewUp->setToolTip(tr("Use next viewport lower in stack"));
     cmdViewDown->setToolTip(tr("Use next viewport higher in stack"));
     cmdViewRename=new QPushButton(tr("Name"),toolBar2);
+    cmdViewRename->setObjectName("cmdViewRename");
     cmdViewAdd=new QPushButton(tr("+"),toolBar2);
+    cmdViewAdd->setObjectName("cmdViewAdd");
     cmdViewRemove=new QPushButton(tr("-"),toolBar2);
+    cmdViewRemove->setObjectName("cmdViewRemove");
     cmdViewRename->setToolTip(tr("Rename currently selected viewport in stack"));
     cmdViewAdd->setToolTip(tr("Add current world to viewport stack"));
     cmdViewRemove->setToolTip(tr("Remove current viewport from stack"));
     cmdViewReplace=new QPushButton(tr("Repl."),toolBar2);
+    cmdViewReplace->setObjectName("cmdViewReplace");
     cmdViewRearrange=new QPushButton(tr("Pos."),toolBar2);
+    cmdViewRearrange->setObjectName("cmdViewRearrange");
     cmdViewReplace->setToolTip(tr("Replace current stack-viewport with graph-viewport"));
     cmdViewRearrange->setToolTip(tr("Reposition selected viewport in stack"));
 
@@ -1036,27 +1077,34 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     /*QtGrace-addition*/
     cmdUndo=new QPushButton(tr("Undo"),toolBar2);
+    cmdUndo->setObjectName("cmdUndo");
     cmdUndo->setToolTip(tr("Undo last action"));
     connect(cmdUndo,SIGNAL(clicked(bool)),SLOT(doUndo()));
     cmdRedo=new QPushButton(tr("Redo"),toolBar2);
+    cmdRedo->setObjectName("cmdRedo");
     cmdRedo->setToolTip(tr("Redo next action (undo the last undo)"));
     connect(cmdRedo,SIGNAL(clicked(bool)),SLOT(doRedo()));
     sldPageZoom=new stdSlider(toolBar2,QString(""),-100,100,0.01,SLIDE_LOGARITHMIC);
+    sldPageZoom->setObjectName("sldPageZoom");
     sldPageZoom->setToolTip(tr("Page zoom"));
     connect(sldPageZoom,SIGNAL(valueChanged(int)),this,SLOT(doPageZoom(int)));
     cmdFitPage=new QPushButton(tr("Fit"),toolBar2);
+    cmdFitPage->setObjectName("cmdFitPage");
     cmdFitPage->setToolTip(tr("Fit page size to window size"));
     connect(cmdFitPage, SIGNAL(clicked()), this, SLOT(doFitPage()));
     cmdExport=new QPushButton(tr("Export"),toolBar2);
+    cmdExport->setObjectName("cmdExport");
     cmdExport->setToolTip(tr("Export to file"));
     connect(cmdExport, SIGNAL(clicked()), this, SLOT(PrintToFile()));
     cmdPrint=new QPushButton(tr("Print"),toolBar2);
+    cmdPrint->setObjectName("cmdPrint");
     cmdPrint->setToolTip(tr("Print on physical printer"));
     connect(cmdPrint, SIGNAL(clicked()), this, SLOT(Print()));
     cmdExport->hide();
     cmdPrint->hide();
     /*End: QtGrace-addition*/
     cmdExit=new QPushButton(tr("Exit"),toolBar2);
+    cmdExit->setObjectName("cmdExit");
     cmdExit->setToolTip(tr("Close QtGrace"));
     //cmdExit->setGeometry(cmdAutoO->x(),lblCW->y()+lblCW->height()+2,cmdAutoO->width(),cmdAutoO->height());
     //cmdExit->setGeometry(cmdAutoO->x(),sldPageZoom->y()+cmdAutoO->height()+5,cmdAutoO->width(),cmdAutoO->height());
@@ -1126,6 +1174,7 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     //The main drawing area
     mainArea=new MainArea(this);
+    mainArea->setObjectName("mainArea");
     mainArea->setGeometry(toolBar1->width(),stdBarHeight+statLocBar->height(),windowWidth-toolBar1->width(),windowHeight-statusBar->height()-stdBarHeight-statLocBar->height());
     mainArea->show();
 
