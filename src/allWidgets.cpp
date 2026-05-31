@@ -118,7 +118,6 @@ extern char default_grace_file[];
 QStringList ListOfChanges;
 QStringList ListOfOldStates;
 
-extern bool use_new_icons;
 extern int dirtystate;
 extern bool exchange_point_comma;
 extern bool display_help_externally;
@@ -29334,7 +29333,6 @@ entries[0]=tr("Hide button");
 entries[1]=tr("Show button");
 entries[2]=tr("Always on");
 
-QCheckBox * chkNewIcons=new QCheckBox(tr("Use new icons"),this);
 QCheckBox * chkShowNavi=new QCheckBox(tr("Show navigation buttons"),this);
 QCheckBox * chkShowGraph=new QCheckBox(tr("Show graph list"),this);
 QCheckBox * chkShowSpecZoom=new QCheckBox(tr("Show special zoom buttons"),this);
@@ -29352,8 +29350,7 @@ QCheckBox * chkShowPickB=new QCheckBox(tr("Show move button"),this);*/
 QCheckBox * chkShowUndoRedo=new QCheckBox(tr("Show Undo/Redo buttons"),this);
 
 layout->addWidget(label,0,0,1,2);
-layout->addWidget(chkNewIcons,1,0,1,1);
-layout->addWidget(chkShowNavi,1,1,1,1);
+layout->addWidget(chkShowNavi,1,0,1,1);
 layout->addWidget(chkShowGraph,2,0,1,1);
 layout->addWidget(chkShowSpecZoom,2,1,1,1);
 //layout->addWidget(chkShowViewp,3,0,1,1);
@@ -29366,7 +29363,6 @@ layout->addWidget(selPanB,5,0,1,1);
 layout->addWidget(selMoveB,5,1,1,1);
 layout->addWidget(chkShowUndoRedo,3,0,1,1);//was 6,0,1,1
 layout->addWidget(explanation,6,0,1,2);
-chkNewIcons->setChecked(use_new_icons);
 chkShowNavi->setChecked(show_Navi_B);
 chkShowGraph->setChecked(show_Graph_List);
 chkShowSpecZoom->setChecked(show_special_Zoom);
@@ -29380,7 +29376,6 @@ selMoveB->setCurrentIndex(show_PickButton);
 chkShowPickB->setChecked(show_PickButton);*/
 chkShowUndoRedo->setChecked(show_UndoRedo_B);
 
-registerField("ToolsNewIcons",chkNewIcons);
 registerField("ToolsNavi",chkShowNavi);
 registerField("ToolsGraph",chkShowGraph);
 registerField("ToolsSpecZoom",chkShowSpecZoom);
@@ -29724,7 +29719,6 @@ allow_wheel_changes=field("MouseWheelSize").toInt();
 
 icon_preferences=field("IconPreferences").toInt();
 
-use_new_icons=field("ToolsNewIcons").toInt();
 show_Navi_B=field("ToolsNavi").toInt();
 show_Graph_List=field("ToolsGraph").toInt();
 show_special_Zoom=field("ToolsSpecZoom").toInt();

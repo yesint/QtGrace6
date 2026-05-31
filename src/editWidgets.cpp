@@ -48,7 +48,6 @@ extern QFile path_to_fftw3_lib,path_to_libharu;
 extern int AAGrayLevelsOK;
 extern QMap<unsigned char,ushort> key_for_greek;
 extern bool showhideworkaround;
-extern bool use_new_icons;
 extern QFont * GuiFont,*stdGuiFont;
 extern int max_history;
 extern int current_history;
@@ -7155,8 +7154,6 @@ layoutBackgroundColor->setSpacing(STD_SPACING);
 layoutBackgroundColor->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
 grpBackgroundColor->setLayout(layoutBackgroundColor);
 
-chkNewIcons=new QCheckBox(tr("Use new icons"),this);
-chkNewIcons->setToolTip(tr("Use new PNG-icons for navigaion buttons"));
 chkShowNavi=new QCheckBox(tr("Show navigation buttons"),this);
 chkShowGraph=new QCheckBox(tr("Show graph list"),this);
 chkShowSpecZoom=new QCheckBox(tr("Show special zoom buttons"),this);
@@ -7222,8 +7219,7 @@ frmTest=new TestDialog(0);
 frmTest->hide();
 
 index=0;
-layoutToolBar->addWidget(chkNewIcons,0,0);
-layoutToolBar->addWidget(chkShowNavi,1,0);
+layoutToolBar->addWidget(chkShowNavi,0,0);
 layoutToolBar->addWidget(chkShowGraph,2,0);
 layoutToolBar->addWidget(chkShowSpecZoom,0,1);
 //layoutToolBar->addWidget(chkShowViewp,1,1);
@@ -7922,7 +7918,6 @@ int app_desktop_wi,app_desktop_hi;
     app_desktop_hi=QApplication::desktop()->height();
 #endif
 
-    chkNewIcons->setChecked(use_new_icons);
     QString font_descr=qApp->font().toString();
     lblGuiFont->setText(font_descr);
 
@@ -8173,7 +8168,6 @@ lock_dirtystate(FALSE);
 
 void frm_Preferences::read_GUI(void)
 {
-    use_new_icons=chkNewIcons->isChecked();
     default_Print_Device=selDefaultPrintDevice->currentValue();
 
     //Display the customization-Settings

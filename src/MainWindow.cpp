@@ -47,7 +47,6 @@ QDateTime pipe_change_time;
 extern graph *g;
 extern bool useQPrinter;
 extern bool use_print_command;//to tell the programm whether to use the native dialog (false) or a print command (like lpr -> true)
-extern bool use_new_icons;
 extern bool Pick_and_Move_active;
 extern double GeneralPageZoomFactor;//only used for the screen-display
 extern int current_axis_restriction;
@@ -1028,95 +1027,57 @@ N_DELETE(Qt_m_vh_rl_tb_bits);
 
 void MainWindow::redisplayIcons(void)
 {
-    QSize newIconSize(default_IconW*toolBarSizeFactor,default_IconH*toolBarSizeFactor);
-    QString icondir=QString(qt_grace_icons_dir);//grace_path("fonts/icons");
-    icondir+="/";
-    QIcon HelpIcon;
-    QIcon pan_icon=CreateIconFromPNG(icondir+"Pan_Icon.png",newIconSize);
-//cout << "redisplay: new=" << use_new_icons << endl;
-// Navigation buttons use system theme icons set by setupUi().
-// Always just resize — never override with bitmaps regardless of use_new_icons.
-cmdZoom->setIconSize(newIconSize);
-cmdAutoScale->setIconSize(newIconSize);
-cmdZz->setIconSize(newIconSize);
-cmdzz->setIconSize(newIconSize);
-cmdLeft->setIconSize(newIconSize);
-cmdRight->setIconSize(newIconSize);
-cmdUp->setIconSize(newIconSize);
-cmdViewUp->setIconSize(newIconSize);
-cmdDown->setIconSize(newIconSize);
-cmdViewDown->setIconSize(newIconSize);
+    QSize newIconSize(default_IconW*toolBarSizeFactor, default_IconH*toolBarSizeFactor);
+    QString icondir = QString(qt_grace_icons_dir) + "/";
+    QIcon icon;
 
-if (icon_preferences==0 || icon_preferences==1)//text only or text+icons
-{
-cmdDraw->setText(tr("Draw"));
-cmdZX->setText(tr("ZX"));
-cmdZY->setText(tr("ZY"));
-cmdAX->setText(tr("AX"));
-cmdAY->setText(tr("AY"));
-cmdAutoT->setText(tr("AutoT"));
-cmdPan->setText(tr("Pan"));
-cmdPick->setText(tr("Move"));
-/*cmdUndo->setText(tr("Undo"));
-cmdRedo->setText(tr("Redo"));*/
-cmdZX->setIcon(QIcon());
-cmdZY->setIcon(QIcon());
-cmdAX->setIcon(QIcon());
-cmdAY->setIcon(QIcon());
-cmdUndo->setIcon(QIcon());
-cmdRedo->setIcon(QIcon());
-    if(icon_preferences==0)//text only
-    {
-    cmdAutoT->setIcon(QIcon());
-    cmdDraw->setIcon(QIcon());
-    cmdPan->setIcon(QIcon());
-    cmdPick->setIcon(QIcon());
+    // Buttons with theme icons set by setupUi() — only resize, never override.
+    for (auto *btn : {cmdZoom, cmdAutoScale, cmdZz, cmdzz, cmdLeft, cmdRight,
+                      cmdUp, cmdViewUp, cmdDown, cmdViewDown, cmdUndo, cmdRedo})
+        btn->setIconSize(newIconSize);
+
+    // Buttons without theme icons: icon depends on icon_preferences.
+    if (icon_preferences == 0) {  // text only
+        cmdDraw->setText(tr("Draw"));   cmdDraw->setIcon(QIcon());
+        cmdZX->setText(tr("ZX"));       cmdZX->setIcon(QIcon());
+        cmdZY->setText(tr("ZY"));       cmdZY->setIcon(QIcon());
+        cmdAX->setText(tr("AX"));       cmdAX->setIcon(QIcon());
+        cmdAY->setText(tr("AY"));       cmdAY->setIcon(QIcon());
+        cmdAutoT->setText(tr("AutoT")); cmdAutoT->setIcon(QIcon());
+        cmdPan->setText(tr("Pan"));     cmdPan->setIcon(QIcon());
+        cmdPick->setText(tr("Move"));   cmdPick->setIcon(QIcon());
+    } else if (icon_preferences == 1) {  // text + icons
+        cmdDraw->setText(tr("Draw"));
+        cmdZX->setText(tr("ZX"));       cmdZX->setIcon(QIcon());
+        cmdZY->setText(tr("ZY"));       cmdZY->setIcon(QIcon());
+        cmdAX->setText(tr("AX"));       cmdAX->setIcon(QIcon());
+        cmdAY->setText(tr("AY"));       cmdAY->setIcon(QIcon());
+        cmdAutoT->setText(tr("AutoT"));
+        cmdPan->setText(tr("Pan"));
+        cmdPick->setText(tr("Move"));
+        icon = CreateIconFromPNG(icondir + "Pan_Icon.png", newIconSize);
+        cmdPan->setIcon(icon);
+        icon = CreateIconFromPNG(icondir + "Pick_Move_Icon.png", newIconSize);
+        cmdPick->setIcon(icon);
+        convertBitmapToScaledIcon(redrawMap, &icon, newIconSize);
+        cmdDraw->setIcon(icon);
+        convertBitmapToScaledIcon(autoTickMap, &icon, newIconSize);
+        cmdAutoT->setIcon(icon);
+    } else {  // icons only
+        cmdDraw->setText("");  cmdPan->setText("");   cmdPick->setText("");
+        cmdZX->setText("");    cmdZY->setText("");    cmdAX->setText("");
+        cmdAY->setText("");    cmdAutoT->setText("");
+        icon = CreateIconFromPNG(icondir + "Pan_Icon.png", newIconSize);
+        cmdPan->setIcon(icon);
+        icon = CreateIconFromPNG(icondir + "Pick_Move_Icon.png", newIconSize);
+        cmdPick->setIcon(icon);
+        convertBitmapToScaledIcon(redrawMap,  &icon, newIconSize); cmdDraw->setIcon(icon);
+        convertBitmapToScaledIcon(zoomXMap,   &icon, newIconSize); cmdZX->setIcon(icon);
+        convertBitmapToScaledIcon(zoomYMap,   &icon, newIconSize); cmdZY->setIcon(icon);
+        convertBitmapToScaledIcon(autoXMap,   &icon, newIconSize); cmdAX->setIcon(icon);
+        convertBitmapToScaledIcon(autoYMap,   &icon, newIconSize); cmdAY->setIcon(icon);
+        convertBitmapToScaledIcon(autoTickMap, &icon, newIconSize); cmdAutoT->setIcon(icon);
     }
-    else//text+icons
-    {
-    cmdPan->setIcon(pan_icon);
-    pan_icon=CreateIconFromPNG(icondir+"Pick_Move_Icon.png",newIconSize);
-    cmdPick->setIcon(pan_icon);
-    convertBitmapToScaledIcon(redrawMap,&HelpIcon,newIconSize);
-    cmdDraw->setIcon(HelpIcon);
-    convertBitmapToScaledIcon(autoTickMap,&HelpIcon,newIconSize);
-    cmdAutoT->setIcon(HelpIcon);
-    convertBitmapToScaledIcon(exitMap,&HelpIcon,newIconSize);
-    }
-}
-else if (icon_preferences==2)//icons only
-{
-cmdDraw->setText(tr(""));
-cmdPan->setText(tr(""));
-cmdPick->setText(tr(""));
-cmdZX->setText(tr(""));
-cmdZY->setText(tr(""));
-cmdAX->setText(tr(""));
-cmdAY->setText(tr(""));
-cmdAutoT->setText(tr(""));
-cmdPan->setIcon(pan_icon);
-pan_icon=CreateIconFromPNG(icondir+"Pick_Move_Icon.png",newIconSize);
-cmdPick->setIcon(pan_icon);
-convertBitmapToScaledIcon(redrawMap,&HelpIcon,newIconSize);
-cmdDraw->setIcon(HelpIcon);
-convertBitmapToScaledIcon(zoomXMap,&HelpIcon,newIconSize);
-cmdZX->setIcon(HelpIcon);
-convertBitmapToScaledIcon(zoomYMap,&HelpIcon,newIconSize);
-cmdZY->setIcon(HelpIcon);
-convertBitmapToScaledIcon(autoXMap,&HelpIcon,newIconSize);
-cmdAX->setIcon(HelpIcon);
-convertBitmapToScaledIcon(autoYMap,&HelpIcon,newIconSize);
-cmdAY->setIcon(HelpIcon);
-convertBitmapToScaledIcon(autoTickMap,&HelpIcon,newIconSize);
-cmdAutoT->setIcon(HelpIcon);
-convertBitmapToScaledIcon(exitMap,&HelpIcon,newIconSize);
-}
-cmdUndo->setText(tr(""));
-cmdRedo->setText(tr(""));
-pan_icon=CreateIconFromPNG(icondir+"Undo_Icon.png",newIconSize);
-cmdUndo->setIcon(pan_icon);
-pan_icon=CreateIconFromPNG(icondir+"Redo_Icon.png",newIconSize);
-cmdRedo->setIcon(pan_icon);
 }
 
 void MainWindow::CreateIcons(void)

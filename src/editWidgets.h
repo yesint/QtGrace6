@@ -934,7 +934,6 @@ public:
     TestDialog * frmTest;
 
     //QLabel * lblAppearance;
-    QCheckBox * chkNewIcons;
     //gui-font and background
     QLabel * lblGuiFont;
     QPushButton * cmdSelGuiFont;

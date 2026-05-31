@@ -333,7 +333,6 @@ QSettings * allPrefs;
 //bool use_new_print_dialog=false;
 bool display_help_externally=false;
 bool showhideworkaround=false;
-bool use_new_icons=false;
 bool use_print_command=false;
 //char desired_hardcopy_filename[GR_MAXPATHLEN];
 
@@ -3238,7 +3237,6 @@ setup_wizard_manual=FALSE;
     comment_server_client=allPrefs->value(QString("CommentServerClient"),QVariant(FALSE)).toInt();
     allPrefs->endGroup();
     allPrefs->beginGroup(QString("Appearance"));
-    use_new_icons=allPrefs->value(QString("UseNewIcons"),QVariant(false)).toBool();
 #if QT_VERSION >= 0x060000
     start_dpi=allPrefs->value(QString("StartDPI"),QVariant(qApp->primaryScreen()->physicalDotsPerInchX())).toInt();
 #else
@@ -5781,7 +5779,6 @@ int nr_of_l_styles;
 
     allPrefs->beginGroup(QString("Appearance"));
 
-    use_new_icons=allPrefs->value(QString("UseNewIcons"),QVariant(false)).toBool();
 #if QT_VERSION >= 0x060000
     QColor col=QApplication::palette().color(QPalette::Window);
 #else
@@ -6208,7 +6205,6 @@ for (int i=0;i<number_of_opened_spreadsheets;i++)
     allPrefs->endGroup();
 
     allPrefs->beginGroup(QString("Appearance"));
-    allPrefs->setValue(QString("UseNewIcons"),QVariant(use_new_icons));
     QColor col=mainWin->mainArea->scroll->palette().color(QPalette::Window);//Background
     sprintf(dummy,"%d;%d;%d",col.red(),col.green(),col.blue());
     allPrefs->setValue(QString("DrawAreaBackground"),QVariant(QString(dummy)));
