@@ -2844,9 +2844,14 @@ void MainWindow::ManageBars(void)
 
         mainGrid->setColumnMinimumWidth(0,ToolBarWidth*0.7);
 
-        // Enforce minimum window height = full toolbar content (no scrollbars)
-        int tbMinH = toolBar1->sizeHint().height() + toolBar2->sizeHint().height();
-        setMinimumHeight(tbMinH + stdBarHeight + menuBar->height());
+        // Enforce minimum window height = full toolbar content (no scrollbars).
+        // Include the VBoxLayout gap between toolbars and the mainGrid margins.
+        int tbMinH = toolBar1->sizeHint().height()
+                   + toolBar2->sizeHint().height()
+                   + tool_layout->spacing();
+        QMargins m = mainGrid->contentsMargins();
+        setMinimumHeight(tbMinH + stdBarHeight + menuBar->height()
+                         + m.top() + m.bottom());
 
         //rearrange/reposition the buttons
     int xpos,ypos,sav_stddist2;
