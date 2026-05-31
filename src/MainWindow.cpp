@@ -582,6 +582,7 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     // Bridge generated members to the existing named member pointers so the
     // rest of the codebase needs no changes.
     menuBar        = ui->menuBar;
+    statLocBar     = ui->statLocBar;
     statusBar      = ui->statusBar;
     statusBarLabel = ui->statusBarLabel;
     scroll         = ui->scroll;
@@ -944,11 +945,12 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     tool_layout->setStretch(1,1);    // toolBar2 fills remaining space
     mainGrid->setRowStretch(3,1);    // canvas row expands vertically
     mainGrid->setColumnStretch(1,1); // canvas column expands horizontally
+    mainGrid->setRowMinimumHeight(1,stdBarHeight); // locbar — used by show/hide toggle
     mainGrid->setRowMinimumHeight(4,stdBarHeight); // statusbar — used by show/hide toggle
     coordLabel = new QLabel("G0: X, Y = [-, -]", statusBar);
     coordLabel->setMinimumWidth(220);
-    statusBar->insertPermanentWidget(0, coordLabel);      // coordinates — left
-    statusBar->insertPermanentWidget(1, statusBarLabel);  // dirty indicator — right
+    statusBar->insertPermanentWidget(0, coordLabel);
+    statusBar->insertPermanentWidget(1, statusBarLabel);
     tool_empty->setGeometry(0,0,stdColWidth,600);
 #ifdef MAC_SYSTEM
     mainGrid->removeWidget(menuBar);
@@ -2752,7 +2754,16 @@ cmdRight->setIconSize(newIconSize);
 void MainWindow::ManageBars(void)
 {
 //show or hide the bars
-    // statLocBar removed — coordinates shown in statusBar->showMessage()
+    if (!show_LocatorBar)//Locator bar
+    {
+        statLocBar->hide();
+        mainGrid->setRowMinimumHeight(1,0);
+    }
+    else
+    {
+        statLocBar->show();
+        mainGrid->setRowMinimumHeight(1,stdBarHeight);
+    }
     if (!show_StatusBar)//Status bar
     {
         statusBar->hide();
@@ -4648,7 +4659,7 @@ void MainWindow::set_stack_message(void)
 void MainWindow::newgraphselection(int gr_nr)
 {
     if (gr_nr<0 || gr_nr>=lstGraphs->number_of_entries) return;//invalid number
-    disconnect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
+    QSignalBlocker _block(lstGraphs);
     int graph_number=lstGraphs->entries[gr_nr];
     int * selection=new int[2];
     int nr_selection=0;
@@ -4675,7 +4686,6 @@ void MainWindow::newgraphselection(int gr_nr)
         else
         lstGraphs->set_new_selection(nr_selection,selection);
     }
-    connect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
         if (selection!=NULL)
         delete[] selection;
 }
@@ -4952,7 +4962,7 @@ void MainWindow::UpdateViewportList(void)
 QString text;
     if (!is_valid_gno(get_cg())) return;
 //int sel_view=cmbViewStack->currentIndex();
-    disconnect(cmbViewStack,0,0,0);
+    QSignalBlocker _block(cmbViewStack);
 cmbViewStack->clear();
 if (g[get_cg()].ws_top==1 && g[get_cg()].ws[0].w_name==NULL)
 {
@@ -4995,7 +5005,6 @@ else
     cmdViewRearrange->setEnabled(true);
     }
 }
-    connect(cmbViewStack,SIGNAL(currentIndexChanged(int)),this,SLOT(newViewportSelected(int)));
 }
 
 void MainWindow::newViewportUp(void)

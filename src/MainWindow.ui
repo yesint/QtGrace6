@@ -14,6 +14,15 @@
     <widget class="QMenuBar" name="menuBar"/>
    </item>
 
+   <!-- Row 1: location/coordinate bar -->
+   <item row="1" column="0" colspan="2">
+    <widget class="QLabel" name="statLocBar">
+     <property name="text"><string>G0: X, Y = [-, -]</string></property>
+     
+     
+    </widget>
+   </item>
+
    <!-- Rows 2-3, col 0: scrollable toolbar column -->
    <item row="2" column="0" rowspan="2">
     <widget class="QScrollArea" name="scroll">

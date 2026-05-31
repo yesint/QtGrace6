@@ -2779,7 +2779,8 @@ void getpoints(VPoint *vpp)
     view2world(vp.x, vp.y, &wx, &wy);
         if (get_graph_locator(cg, &locator) != RETURN_SUCCESS)
         {
-        mainWin->coordLabel->setText(QObject::tr("[No graphs]"));
+        mainWin->statLocBar->setText(QObject::tr("[No graphs]"));
+    mainWin->coordLabel->setText(QObject::tr("[No graphs]"));
         return;
         }
     
@@ -2882,6 +2883,7 @@ void getpoints(VPoint *vpp)
         else
         sprintf(buf, "G%1d: %s = [%s, %s]", cg, typestr[locator.pt_type], bufx, bufy);
     }
+    mainWin->statLocBar->setText(QString(buf));
     mainWin->coordLabel->setText(QString(buf));
 }
 
