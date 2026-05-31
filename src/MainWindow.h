@@ -165,9 +165,9 @@ public:
     QStatusBar * statusBar;
     QLabel * statusBarLabel;
     QLabel * coordLabel;   // hover coordinates in bottom status bar
-    QWidget * tool_empty,*tool_empty2;
+    QWidget * tool_empty2;
     QVBoxLayout * tool_layout;
-    QScrollArea * scroll;
+    QWidget * scroll;   // toolbar column widget (was QScrollArea)
     QFrame * toolBar1,*toolBar2;
 
     QGridLayout * mainGrid;

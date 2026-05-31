@@ -16,12 +16,9 @@
 
    <!-- Rows 2-3, col 0: scrollable toolbar column -->
    <item row="2" column="0" rowspan="2">
-    <widget class="QScrollArea" name="scroll">
+    <widget class="QWidget" name="scroll">
      <property name="maximumSize"><size><width>70</width><height>16777215</height></size></property>
-     <property name="horizontalScrollBarPolicy"><enum>Qt::ScrollBarAlwaysOff</enum></property>
-     <property name="widgetResizable"><bool>false</bool></property>
-     <widget class="QWidget" name="tool_empty">
-      <layout class="QVBoxLayout" name="tool_layout">
+     <layout class="QVBoxLayout" name="tool_layout">
        <property name="leftMargin"><number>0</number></property>
        <property name="topMargin"><number>0</number></property>
        <property name="rightMargin"><number>0</number></property>
@@ -267,7 +264,6 @@ stack:</string></property>
        </item>
 
       </layout>
-     </widget>
     </widget>
    </item>
 

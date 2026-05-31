@@ -585,7 +585,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     statusBar      = ui->statusBar;
     statusBarLabel = ui->statusBarLabel;
     scroll         = ui->scroll;
-    tool_empty     = ui->tool_empty;
     toolBar1       = ui->toolBar1;
     toolBar2       = ui->toolBar2;
     cmdDraw        = ui->cmdDraw;
@@ -947,7 +946,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     // Never show a scrollbar in the toolbar column; minimum window height
     // is enforced by the toolbar content itself.
-    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainGrid->setRowStretch(3,1);    // canvas row expands vertically
     mainGrid->setColumnStretch(1,1); // canvas column expands horizontally
     mainGrid->setRowMinimumHeight(1,0); // statLocBar removed
@@ -956,7 +954,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     coordLabel->setMinimumWidth(220);
     statusBar->insertPermanentWidget(0, coordLabel);
     statusBar->insertPermanentWidget(1, statusBarLabel);
-    tool_empty->setGeometry(0,0,stdColWidth,600);
 #ifdef MAC_SYSTEM
     mainGrid->removeWidget(menuBar);
     mainGrid->setRowMinimumHeight(0,0);
@@ -2844,14 +2841,6 @@ void MainWindow::ManageBars(void)
 
         mainGrid->setColumnMinimumWidth(0,ToolBarWidth*0.7);
 
-        // Enforce minimum window height = full toolbar content (no scrollbars).
-        // Include the VBoxLayout gap between toolbars and the mainGrid margins.
-        int tbMinH = toolBar1->sizeHint().height()
-                   + toolBar2->sizeHint().height()
-                   + tool_layout->spacing();
-        QMargins m = mainGrid->contentsMargins();
-        setMinimumHeight(tbMinH + stdBarHeight + menuBar->height()
-                         + m.top() + m.bottom());
 
         //rearrange/reposition the buttons
     int xpos,ypos,sav_stddist2;
@@ -4077,7 +4066,7 @@ void MainWindow::resizeEvent( QResizeEvent * e)
 
 int min_height=toolBar1->height()+toolBar2->minimumSizeHint().height();
 int c_height=mainArea->height()-2;
-int d_width=scroll->verticalScrollBar()->width()+1;
+int d_width=0; // no scrollbar (toolbar is a plain QWidget now)
 
 int LargeButtonW=defaultLargeButtonW*toolBarSizeFactor;
 int BorderGap=defaultBorderGap*toolBarSizeFactor;
@@ -4090,22 +4079,18 @@ if (small_screen_adjustments & 1)
     if (c_height<min_height)
     {
     c_height=min_height;
-    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     }
     else
     {
     d_width=0;
-    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     }
 }
 else
 {
 d_width=0;
-scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 #ifdef WINDOWS_SYSTEM
-    tool_empty->setGeometry(0,0,ToolBarWidth,c_height);
     scroll->setMinimumWidth(ToolBarWidth+2+d_width);
     scroll->setMaximumWidth(ToolBarWidth+2+d_width);
     scroll->setMinimumWidth(ToolBarWidth+2+d_width);
@@ -4119,7 +4104,6 @@ scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     toolBar2->setMinimumWidth(ToolBarWidth);
 
 #else
-    tool_empty->setGeometry(0,0,ToolBarWidth,c_height);
 
     scroll->setMinimumWidth(ToolBarWidth+d_width);
     scroll->setMaximumWidth(ToolBarWidth+d_width);
@@ -4143,11 +4127,9 @@ scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 /*
 #ifdef WINDOWS_SYSTEM
-    tool_empty->setGeometry(0,0,stdColWidth+2*WIN_SIZE_CORR,c_height);
     scroll->setMinimumWidth(stdColWidth+2+d_width+2*WIN_SIZE_CORR);
     scroll->setMaximumWidth(stdColWidth+2+d_width+2*WIN_SIZE_CORR);
 #else
-    tool_empty->setGeometry(0,0,stdColWidth,c_height);
     scroll->setMinimumWidth(stdColWidth+2+d_width);
     scroll->setMaximumWidth(stdColWidth+2+d_width);
 #endif
@@ -5506,8 +5488,6 @@ MainArea::MainArea(QWidget *parent):QWidget( parent )
     scroll->setWidget(lblBackGr);
 
     /*hier*/
-    //scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    //scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     /*ende*/
 
     //rubber=new QRubberBand(QRubberBand::Rectangle, lblBackGr);
