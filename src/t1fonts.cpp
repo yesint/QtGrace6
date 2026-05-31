@@ -258,31 +258,25 @@ unsigned int number_of_fonts(void)
 
 int get_font_by_name(const char * fname)
 {
-    int i,font_nr=-1;
+    int i, font_nr = -1;
 
-    if (fname == NULL)
-    {
-        return(BAD_FONT_ID);
+    if (fname == NULL) return BAD_FONT_ID;
+
+    // Check FontDBtable aliases first (PostScript names like "Times-Roman").
+    // This handles @map font entries in AGR files.
+    for (i = 0; i < nfonts; i++) {
+        if ((FontDBtable[i].alias    && strcmp(FontDBtable[i].alias,    fname) == 0) ||
+            (FontDBtable[i].fallback && strcmp(FontDBtable[i].fallback, fname) == 0)) {
+            return i;
+        }
     }
-    
+
     if (useQtFonts==true)
     {
-        font_nr=get_QtFontID_from_Grace_Name(fname,1);//we search in the current qt-std-font-list for a font with the Grace-name stated
-        if (font_nr==-1)//we have found nothing - it may be a Qt-font-name
-        {
+        font_nr=get_QtFontID_from_Grace_Name(fname,1);
+        if (font_nr==-1)
             font_nr=find_QtFont_in_List(QString(fname),1);
-        }
-        if (font_nr!=-1)//we found something
-        {
-            return font_nr;
-        }
-        else//we found nothing --> font not present!
-        {
-            char dummytext[128];
-            sprintf(dummytext,"Font %s not found!",fname);
-            errwin(dummytext);
-            return BAD_FONT_ID;
-        }
+        return font_nr;  // BAD_FONT_ID if not found
     }//end useQtFonts
 
     /*if (useQtFonts)
