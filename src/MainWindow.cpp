@@ -1034,31 +1034,8 @@ void MainWindow::redisplayIcons(void)
     QIcon HelpIcon;
     QIcon pan_icon=CreateIconFromPNG(icondir+"Pan_Icon.png",newIconSize);
 //cout << "redisplay: new=" << use_new_icons << endl;
-if (use_new_icons==false)
-{
-convertBitmapToScaledIcon(zoomBitMap,&HelpIcon,newIconSize);
-cmdZoom->setIcon(HelpIcon);
-convertBitmapToScaledIcon(autoBitMap,&HelpIcon,newIconSize);
-cmdAutoScale->setIcon(HelpIcon);
-convertBitmapToScaledIcon(expandBitMap,&HelpIcon,newIconSize);
-cmdZz->setIcon(HelpIcon);
-convertBitmapToScaledIcon(shrinkBitMap,&HelpIcon,newIconSize);
-cmdzz->setIcon(HelpIcon);
-convertBitmapToScaledIcon(leftBitMap,&HelpIcon,newIconSize);
-cmdLeft->setIcon(HelpIcon);
-convertBitmapToScaledIcon(rightBitMap,&HelpIcon,newIconSize);
-cmdRight->setIcon(HelpIcon);
-convertBitmapToScaledIcon(upBitMap,&HelpIcon,newIconSize);
-cmdUp->setIcon(HelpIcon);
-cmdViewUp->setIcon(HelpIcon);
-convertBitmapToScaledIcon(downBitMap,&HelpIcon,newIconSize);
-cmdDown->setIcon(HelpIcon);
-cmdViewDown->setIcon(HelpIcon);
-}
-else
-{
-// Theme icons (set by setupUi from MainWindow.ui) scale automatically —
-// just update the icon size; don't override with PNG copies.
+// Navigation buttons use system theme icons set by setupUi().
+// Always just resize — never override with bitmaps regardless of use_new_icons.
 cmdZoom->setIconSize(newIconSize);
 cmdAutoScale->setIconSize(newIconSize);
 cmdZz->setIconSize(newIconSize);
@@ -1069,7 +1046,6 @@ cmdUp->setIconSize(newIconSize);
 cmdViewUp->setIconSize(newIconSize);
 cmdDown->setIconSize(newIconSize);
 cmdViewDown->setIconSize(newIconSize);
-}
 
 if (icon_preferences==0 || icon_preferences==1)//text only or text+icons
 {
