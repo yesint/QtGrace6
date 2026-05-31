@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QWidget" name="MainWindow">
+  <layout class="QGridLayout" name="mainGrid">
+   <property name="contentsMargins"><rect><x>2</x><y>2</y><width>2</width><height>2</height></rect></property>
+   <property name="spacing"><number>0</number></property>
+
+   <!-- Row 0: menu bar (hidden on macOS in code) -->
+   <item row="0" column="0" colspan="2">
+    <widget class="QMenuBar" name="menuBar"/>
+   </item>
+
+   <!-- Row 1: location/coordinate bar -->
+   <item row="1" column="0" colspan="2">
+    <widget class="QLabel" name="statLocBar">
+     <property name="text"><string>G0: X, Y = [-, -]</string></property>
+     <property name="frameShape"><enum>QFrame::Box</enum></property>
+     <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+    </widget>
+   </item>
+
+   <!-- Rows 2-3, col 0: scrollable toolbar column -->
+   <item row="2" column="0" rowspan="2">
+    <widget class="QScrollArea" name="scroll">
+     <property name="horizontalScrollBarPolicy"><enum>Qt::ScrollBarAlwaysOff</enum></property>
+     <property name="widgetResizable"><bool>false</bool></property>
+     <widget class="QWidget" name="tool_empty">
+      <layout class="QVBoxLayout" name="tool_layout">
+       <property name="contentsMargins"><rect><x>0</x><y>0</y><width>0</width><height>0</height></rect></property>
+       <property name="spacing"><number>0</number></property>
+
+       <!-- ── toolBar1 ── -->
+       <item>
+        <widget class="QFrame" name="toolBar1">
+         <property name="frameShape"><enum>QFrame::Box</enum></property>
+         <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+         <layout class="QGridLayout" name="toolLayout1">
+          <property name="contentsMargins"><rect><x>2</x><y>2</y><width>2</width><height>2</height></rect></property>
+          <property name="spacing"><number>2</number></property>
+
+          <!-- Draw (full width) -->
+          <item row="0" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdDraw">
+            <property name="text"><string>Draw</string></property>
+           </widget>
+          </item>
+
+          <!-- Zoom + AutoScale -->
+          <item row="1" column="0" colspan="2">
+           <layout class="QHBoxLayout">
+            <property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdZoom"><property name="text"><string/></property></widget></item>
+            <item><widget class="QPushButton" name="cmdAutoScale"><property name="text"><string/></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <!-- Zoom out + Zoom in -->
+          <item row="2" column="0" colspan="2">
+           <layout class="QHBoxLayout">
+            <property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdZz"><property name="text"><string/></property></widget></item>
+            <item><widget class="QPushButton" name="cmdzz"><property name="text"><string/></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <!-- Left + Right -->
+          <item row="3" column="0" colspan="2">
+           <layout class="QHBoxLayout">
+            <property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdLeft"><property name="text"><string/></property></widget></item>
+            <item><widget class="QPushButton" name="cmdRight"><property name="text"><string/></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <!-- Up + Down -->
+          <item row="4" column="0" colspan="2">
+           <layout class="QHBoxLayout">
+            <property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdUp"><property name="text"><string/></property></widget></item>
+            <item><widget class="QPushButton" name="cmdDown"><property name="text"><string/></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <!-- Pan (full width) -->
+          <item row="5" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdPan">
+            <property name="text"><string>Pan</string></property>
+           </widget>
+          </item>
+
+          <!-- Pick/Move (full width) -->
+          <item row="6" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdPick">
+            <property name="text"><string>Move</string></property>
+           </widget>
+          </item>
+
+          <!-- Graph list (full width) -->
+          <item row="7" column="0" colspan="2">
+           <widget class="uniList" name="lstGraphs"/>
+          </item>
+
+         </layout>
+        </widget>
+       </item>
+
+       <!-- ── toolBar2 ── -->
+       <item>
+        <widget class="QFrame" name="toolBar2">
+         <property name="frameShape"><enum>QFrame::Box</enum></property>
+         <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+         <layout class="QGridLayout" name="toolLayout2">
+          <property name="contentsMargins"><rect><x>2</x><y>2</y><width>2</width><height>2</height></rect></property>
+          <property name="spacing"><number>2</number></property>
+
+          <item row="0" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdAutoT"><property name="text"><string>AutoT</string></property></widget>
+          </item>
+          <item row="1" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdAutoO"><property name="text"><string>AutoO</string></property></widget>
+          </item>
+
+          <!-- ZX + ZY -->
+          <item row="2" column="0" colspan="2">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdZX"><property name="text"><string>ZX</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdZY"><property name="text"><string>ZY</string></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <!-- AX + AY -->
+          <item row="3" column="0" colspan="2">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdAX"><property name="text"><string>AX</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdAY"><property name="text"><string>AY</string></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <!-- PZ + Pu -->
+          <item row="4" column="0" colspan="2">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdPZ"><property name="text"><string>PZ</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdPu"><property name="text"><string>Pu</string></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <!-- Po + Cy -->
+          <item row="5" column="0" colspan="2">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdPo"><property name="text"><string>Po</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdCy"><property name="text"><string>Cy</string></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <item row="6" column="0" colspan="2">
+           <widget class="QLabel" name="lblSD"><property name="text"><string> SD:1</string></property></widget>
+          </item>
+          <item row="7" column="0" colspan="2">
+           <widget class="QLabel" name="lblCW"><property name="text"><string> CW:0</string></property></widget>
+          </item>
+
+          <item row="8" column="0" colspan="2">
+           <widget class="QLabel" name="lblNewViewStack">
+            <property name="text"><string>Viewport
+stack:</string></property>
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+           </widget>
+          </item>
+          <item row="9" column="0" colspan="2">
+           <widget class="QComboBox" name="cmbViewStack"/>
+          </item>
+
+          <!-- ViewUp + ViewDown -->
+          <item row="10" column="0" colspan="2">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdViewUp"><property name="text"><string/></property></widget></item>
+            <item><widget class="QPushButton" name="cmdViewDown"><property name="text"><string/></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <!-- ViewAdd + ViewRemove -->
+          <item row="11" column="0" colspan="2">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdViewAdd"><property name="text"><string>+</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdViewRemove"><property name="text"><string>-</string></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <item row="12" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdViewReplace"><property name="text"><string>Repl.</string></property></widget>
+          </item>
+          <item row="13" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdViewRearrange"><property name="text"><string>Pos.</string></property></widget>
+          </item>
+          <item row="14" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdViewRename"><property name="text"><string>Name</string></property></widget>
+          </item>
+
+          <!-- Undo + Redo -->
+          <item row="15" column="0" colspan="2">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+            <item><widget class="QPushButton" name="cmdUndo"><property name="text"><string>Undo</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmdRedo"><property name="text"><string>Redo</string></property></widget></item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+           </layout>
+          </item>
+
+          <item row="16" column="0" colspan="2">
+           <widget class="stdSlider" name="sldPageZoom"/>
+          </item>
+          <item row="17" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdFitPage"><property name="text"><string>Fit</string></property></widget>
+          </item>
+          <item row="18" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdExport">
+            <property name="text"><string>Export</string></property>
+            <property name="visible"><bool>false</bool></property>
+           </widget>
+          </item>
+          <item row="19" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdPrint">
+            <property name="text"><string>Print</string></property>
+            <property name="visible"><bool>false</bool></property>
+           </widget>
+          </item>
+
+          <!-- vertical spacer before Exit -->
+          <item row="20" column="0" colspan="2">
+           <spacer>
+            <property name="orientation"><enum>Qt::Vertical</enum></property>
+            <property name="sizeType"><enum>QSizePolicy::MinimumExpanding</enum></property>
+            <property name="sizeHint" stdset="0"><size><width>0</width><height>8</height></size></property>
+           </spacer>
+          </item>
+
+          <item row="21" column="0" colspan="2" alignment="AlignHCenter">
+           <widget class="QPushButton" name="cmdExit"><property name="text"><string>Exit</string></property></widget>
+          </item>
+
+         </layout>
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+    </widget>
+   </item>
+
+   <!-- Rows 2-3, col 1: main drawing canvas -->
+   <item row="2" column="1" rowspan="2">
+    <widget class="MainArea" name="mainArea"/>
+   </item>
+
+   <!-- Row 4: status bar -->
+   <item row="4" column="0" colspan="2">
+    <widget class="QStatusBar" name="statusBar">
+     <widget class="QLabel" name="statusBarLabel">
+      <property name="text"><string/></property>
+     </widget>
+    </widget>
+   </item>
+
+  </layout>
+ </widget>
+
+ <!-- Promoted (custom) widget declarations -->
+ <customwidgets>
+  <customwidget>
+   <class>MainArea</class>
+   <extends>QWidget</extends>
+   <header>MainWindow.h</header>
+  </customwidget>
+  <customwidget>
+   <class>uniList</class>
+   <extends>QListWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>stdSlider</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+ </customwidgets>
+
+ <resources/>
+ <connections/>
+</ui>
