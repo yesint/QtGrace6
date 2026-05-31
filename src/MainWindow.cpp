@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "MainWindow.h"
+#include "ui_MainWindow.h"
 #include "bitmaps.h"
 #include "jbitmaps.h"
 #include "mbitmaps.h"
@@ -575,6 +576,65 @@ highlight_width=(int)rint(sd_width)+1;
 
 MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 {
+    // Build the static widget hierarchy from the .ui file first
+    ui = new Ui::MainWindow();
+    ui->setupUi(this);
+    // Bridge generated members to the existing named member pointers so the
+    // rest of the codebase needs no changes.
+    menuBar        = ui->menuBar;
+    statLocBar     = ui->statLocBar;
+    statusBar      = ui->statusBar;
+    statusBarLabel = ui->statusBarLabel;
+    scroll         = ui->scroll;
+    tool_empty     = ui->tool_empty;
+    toolBar1       = ui->toolBar1;
+    toolBar2       = ui->toolBar2;
+    cmdDraw        = ui->cmdDraw;
+    cmdZoom        = ui->cmdZoom;
+    cmdAutoScale   = ui->cmdAutoScale;
+    cmdZz          = ui->cmdZz;
+    cmdzz          = ui->cmdzz;
+    cmdLeft        = ui->cmdLeft;
+    cmdRight       = ui->cmdRight;
+    cmdUp          = ui->cmdUp;
+    cmdDown        = ui->cmdDown;
+    cmdPan         = ui->cmdPan;
+    cmdPick        = ui->cmdPick;
+    lstGraphs      = ui->lstGraphs;
+    cmdAutoT       = ui->cmdAutoT;
+    cmdAutoO       = ui->cmdAutoO;
+    cmdZX          = ui->cmdZX;
+    cmdZY          = ui->cmdZY;
+    cmdAX          = ui->cmdAX;
+    cmdAY          = ui->cmdAY;
+    cmdPZ          = ui->cmdPZ;
+    cmdPu          = ui->cmdPu;
+    cmdPo          = ui->cmdPo;
+    cmdCy          = ui->cmdCy;
+    lblSD          = ui->lblSD;
+    lblCW          = ui->lblCW;
+    lblNewViewStack= ui->lblNewViewStack;
+    cmbViewStack   = ui->cmbViewStack;
+    cmdViewUp      = ui->cmdViewUp;
+    cmdViewDown    = ui->cmdViewDown;
+    cmdViewRename  = ui->cmdViewRename;
+    cmdViewAdd     = ui->cmdViewAdd;
+    cmdViewRemove  = ui->cmdViewRemove;
+    cmdViewReplace = ui->cmdViewReplace;
+    cmdViewRearrange=ui->cmdViewRearrange;
+    cmdUndo        = ui->cmdUndo;
+    cmdRedo        = ui->cmdRedo;
+    sldPageZoom    = ui->sldPageZoom;
+    cmdFitPage     = ui->cmdFitPage;
+    cmdExport      = ui->cmdExport;
+    cmdPrint       = ui->cmdPrint;
+    cmdExit        = ui->cmdExit;
+    mainArea       = ui->mainArea;
+    mainGrid       = ui->mainGrid;
+    tool_layout    = ui->tool_layout;
+    toolLayout1    = ui->toolLayout1;
+    toolLayout2    = ui->toolLayout2;
+
     setVisible(false);
     QPixmap HelpPixmap;
 
@@ -625,10 +685,7 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     //setMinimumSize(windowWidth,windowHeight);
     //setMaximumSize(windowWidth,windowHeight);
 
-    //Main menu bar
-    menuBar=new QMenuBar(this);
-    menuBar->setObjectName("menuBar");
-    /// menuBar->setGeometry(0,0,windowWidth,menuBar->height());
+    //Main menu bar — created by setupUi(), just populate it
 
     //The File-Menu and its entries
     mnuFile	=new QMenu(tr("&File"), this );
@@ -821,106 +878,42 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     stdHeight2=23;
     stdWidth2=23;
 
-    //The status locator bar
-    statLocBar=new QLabel(" ",this);
-    statLocBar->setObjectName("statLocBar");
-    //statLocBar->setGeometry(0,stdBarHeight,windowWidth,stdBarHeight-8);
-    statLocBar->setText(QString("G0: X, Y = [-, -]"));
-    statLocBar->setFrameStyle(QFrame::Box | QFrame::Raised);
-
-    //The status bar
-    statusBar=new QStatusBar(this);
-    statusBar->setObjectName("statusBar");
-    //statusBar->setGeometry(0,windowHeight-stdBarHeight,windowWidth,stdBarHeight);
+    //The status locator bar — created by setupUi()
     statusBar->showMessage( "-,-,Untitled" );
-    statusBarLabel=new QLabel(" ",this);
-    statusBarLabel->setObjectName("statusBarLabel");
 
-    //The tool bar(s)
-    toolBar1=new QFrame(this);
-    toolBar1->setObjectName("toolBar1");
-    //toolBar1->setGeometry(0,stdBarHeight+statLocBar->height(),70,130);
-    toolBar1->setFrameStyle(QFrame::Box | QFrame::Raised);
-    //toolBar1->setMinimumHeight(137);
+    //Toolbars and scroll — created by setupUi()
 
-    tool_empty=new QWidget();
-    tool_empty->setObjectName("tool_empty");
-    tool_layout=new QVBoxLayout();
-    //tool_layout->setMargin(0);
-    tool_layout->setContentsMargins(0,0,0,0);
-    tool_layout->setSpacing(0);
-    scroll=new QScrollArea(this);
-    scroll->setObjectName("scroll");
-    scroll->setWidget(tool_empty);
-    tool_empty->setLayout(tool_layout);
-
-#ifdef AUTOLAYOUT_FOR_TOOLBAR
-    toolLayout1=new QGridLayout();
-    //toolLayout1->setMargin(STD_MARGIN);
-    toolLayout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    toolLayout1->setSpacing(STD_SPACING);
-    toolLayout2=new QGridLayout();
-    //toolLayout2->setMargin(STD_MARGIN);
-    toolLayout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    toolLayout2->setSpacing(STD_SPACING);
-    toolBar1->setLayout(toolLayout1);
-    int toolIndex=0;
-#endif
-
-    cmdDraw=new QPushButton(tr("Draw"),toolBar1);
-    cmdDraw->setObjectName("cmdDraw");
     cmdDraw->setToolTip(tr("Redraw project"));
     connect(cmdDraw, SIGNAL(clicked()), this, SLOT(doDraw()));
     convertBitmapToPixmap(zoomBitMap,&HelpPixmap);
-    cmdZoom=new QPushButton(HelpPixmap,"",toolBar1);
-    cmdZoom->setObjectName("cmdZoom");
-    cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle (Alt+Z)"));
+    cmdZoom->setIcon(HelpPixmap); cmdZoom->setToolTip(tr("Zoom graph(s) in rectangle (Alt+Z)"));
     connect(cmdZoom, SIGNAL(clicked()), this, SLOT(doZoom()));
     convertBitmapToPixmap(autoBitMap,&HelpPixmap);
-    cmdAutoScale=new QPushButton(HelpPixmap,"",toolBar1);
-    cmdAutoScale->setObjectName("cmdAutoScale");
-    cmdAutoScale->setToolTip(tr("Autoscale graph(s) on X and Y axis (Crtl+A)"));
+    cmdAutoScale->setIcon(HelpPixmap); cmdAutoScale->setToolTip(tr("Autoscale graph(s) on X and Y axis (Crtl+A)"));
     connect(cmdAutoScale, SIGNAL(clicked()), this, SLOT(doAutoScale()));
     convertBitmapToPixmap(expandBitMap,&HelpPixmap);
-    cmdZz=new QPushButton(HelpPixmap,"",toolBar1);
-    cmdZz->setObjectName("cmdZz");
-    cmdZz->setToolTip(tr("Zoom out (Crtl -)"));
+    cmdZz->setIcon(HelpPixmap); cmdZz->setToolTip(tr("Zoom out (Crtl -)"));
     connect(cmdZz, SIGNAL(clicked()), this, SLOT(doZz()));
     convertBitmapToPixmap(shrinkBitMap,&HelpPixmap);
-    cmdzz=new QPushButton(HelpPixmap,"",toolBar1);
-    cmdzz->setObjectName("cmdzz");
-    cmdzz->setToolTip(tr("Zoom in (Crtl +)"));
+    cmdzz->setIcon(HelpPixmap); cmdzz->setToolTip(tr("Zoom in (Crtl +)"));
     connect(cmdzz, SIGNAL(clicked()), this, SLOT(dozz()));
     convertBitmapToPixmap(leftBitMap,&HelpPixmap);
-    cmdLeft=new QPushButton(HelpPixmap,"",toolBar1);
-    cmdLeft->setObjectName("cmdLeft");
-    cmdLeft->setToolTip(tr("Scroll graph(s) left (Crtl+LeftArrow)"));
+    cmdLeft->setIcon(HelpPixmap); cmdLeft->setToolTip(tr("Scroll graph(s) left (Crtl+LeftArrow)"));
     connect(cmdLeft, SIGNAL(clicked()), this, SLOT(doLeft()));
     convertBitmapToPixmap(rightBitMap,&HelpPixmap);
-    cmdRight=new QPushButton(HelpPixmap,"",toolBar1);
-    cmdRight->setObjectName("cmdRight");
-    cmdRight->setToolTip(tr("Scroll graph(s) right (Crtl+RightArrow)"));
+    cmdRight->setIcon(HelpPixmap); cmdRight->setToolTip(tr("Scroll graph(s) right (Crtl+RightArrow)"));
     connect(cmdRight, SIGNAL(clicked()), this, SLOT(doRight()));
     convertBitmapToPixmap(upBitMap,&HelpPixmap);
-    cmdUp=new QPushButton(HelpPixmap,"",toolBar1);
-    cmdUp->setObjectName("cmdUp");
-    cmdUp->setToolTip(tr("Scroll graph(s) up (Crtl+UpArrow)"));
+    cmdUp->setIcon(HelpPixmap); cmdUp->setToolTip(tr("Scroll graph(s) up (Crtl+UpArrow)"));
     connect(cmdUp, SIGNAL(clicked()), this, SLOT(doUp()));
     convertBitmapToPixmap(downBitMap,&HelpPixmap);
-    cmdDown=new QPushButton(HelpPixmap,"",toolBar1);
-    cmdDown->setObjectName("cmdDown");
-    cmdDown->setToolTip(tr("Scroll graph(s) down (Crtl+DownArrow)"));
+    cmdDown->setIcon(HelpPixmap); cmdDown->setToolTip(tr("Scroll graph(s) down (Crtl+DownArrow)"));
     connect(cmdDown, SIGNAL(clicked()), this, SLOT(doDown()));
-    /*QtGrace-addition*/
     QCursor helpCursor(Qt::OpenHandCursor);
     HelpPixmap=helpCursor.pixmap();
-    cmdPan=new QPushButton(HelpPixmap,"Pan",toolBar1);
-    cmdPan->setObjectName("cmdPan");
-    cmdPan->setToolTip(tr("Pan graph(s) (Alt+P)"));
+    cmdPan->setIcon(HelpPixmap); cmdPan->setToolTip(tr("Pan graph(s) (Alt+P)"));
     connect(cmdPan,SIGNAL(clicked(bool)),SLOT(doPan()));
-    cmdPick=new QPushButton(HelpPixmap,"Move",toolBar1);
-    cmdPick->setObjectName("cmdPick");
-    cmdPick->setToolTip(tr("Relocate any object, legend, title, label (Alt+M)"));
+    cmdPick->setIcon(HelpPixmap); cmdPick->setToolTip(tr("Relocate any object, legend, title, label (Alt+M)"));
     connect(cmdPick,SIGNAL(clicked(bool)),SLOT(doPick()));
 
     //chkSyncZoom=new QCheckBox(tr("Sync."),toolBar1);
@@ -928,8 +921,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
     ///QFont helpFont1(qApp->font());
     ///helpFont1.setPixelSize(12);
-    lstGraphs=new uniList(GRAPHLIST,toolBar1);
-    lstGraphs->setObjectName("lstGraphs");
     lstGraphs->setToolTip(tr("Select graph(s) for zoom operations"));
     ///lstGraphs->setFont(helpFont1);
     lstGraphs->prevent_from_autoupdate=true;
@@ -940,134 +931,43 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     connect(lstGraphs,SIGNAL(new_selection(int)),this,SLOT(newgraphselection(int)));
     /*End: QtGrace-addition*/
 
-#ifdef AUTOLAYOUT_FOR_TOOLBAR
-    // Helper: add a horizontally-centered pair of buttons as one row
-    auto addPair = [&](QGridLayout *gl, QWidget *a, QWidget *b) {
-        QHBoxLayout *h = new QHBoxLayout();
-        h->setContentsMargins(0,0,0,0);
-        h->setSpacing(STD_SPACING);
-        h->addStretch(1); h->addWidget(a); h->addWidget(b); h->addStretch(1);
-        gl->addLayout(h, toolIndex++, 0, 1, 2);
-    };
-
-    toolLayout1->addWidget(cmdDraw,toolIndex++,0,1,2,Qt::AlignHCenter);
-    addPair(toolLayout1, cmdZoom, cmdAutoScale);
-    addPair(toolLayout1, cmdZz, cmdzz);
-    addPair(toolLayout1, cmdLeft, cmdRight);
-    addPair(toolLayout1, cmdUp, cmdDown);
-    toolLayout1->addWidget(cmdPan,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdPick,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout1->addWidget(lstGraphs,toolIndex++,0,1,2);
-#else
-    #ifdef WINDOWS_SYSTEM
-        cmdDraw->setGeometry(2+WIN_SIZE_CORR*toolBarSizeFactor,4,64+WIN_SIZE_CORR*toolBarSizeFactor,stdHeight1);
-    #else
-        cmdDraw->setGeometry(2,4,64,stdHeight1);
-    #endif
-    cmdZoom->setGeometry(cmdDraw->x()+stdDistance2,cmdDraw->y()+cmdDraw->height()+6,stdWidth2,stdHeight2);
-    cmdAutoScale->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdZoom->y(),stdWidth2,stdHeight2);
-    cmdZz->setGeometry(cmdDraw->x()+stdDistance2,cmdZoom->y()+cmdZoom->height()+stdDistance1,stdWidth2,stdHeight2);
-    cmdzz->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdZz->y(),stdWidth2,stdHeight2);
-    cmdLeft->setGeometry(cmdDraw->x()+stdDistance2,cmdZz->y()+cmdZz->height()+stdDistance1,stdWidth2,stdHeight2);
-    cmdRight->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdLeft->y(),stdWidth2,stdHeight2);
-    cmdUp->setGeometry(cmdDraw->x()+stdDistance2,cmdLeft->y()+cmdLeft->height()+stdDistance1,stdWidth2,stdHeight2);
-    cmdDown->setGeometry(cmdDraw->x()+cmdZoom->width()+2*stdDistance2,cmdUp->y(),stdWidth2,stdHeight2);
-    cmdPan->setGeometry(cmdDraw->x(),cmdUp->y()+cmdUp->height()+stdDistance1,cmdDraw->width(),cmdDraw->height());
-    cmdPick->setGeometry(cmdPan->x(),cmdPan->y()+cmdPan->height()+stdDistance1,cmdPan->width(),cmdPan->height());
-    lstGraphs->setGeometry(cmdDraw->x()+stdDistance2-4,cmdUp->y()+cmdUp->height()+stdDistance1,60,68);//60x68 or 62x68
-#endif
-
-
-    /*tool1Grid=new QGridLayout();
-    //tool1Grid->setMargin(2);
-    tool1Grid->setContentsMargins(2,2,2,2);
-    tool1Grid->setSpacing(2);
-
-    toolBar1->setLayout(tool1Grid);*/
-
-    toolBar2=new QFrame(this);
-    toolBar2->setObjectName("toolBar2");
-    //toolBar2->setGeometry(0,toolBar1->y()+toolBar1->height(),toolBar1->width(),windowHeight-stdBarHeight*2-statLocBar->height()-toolBar1->height());
+    // toolBar2 — created by setupUi()
     toolBar2->setFrameStyle(QFrame::Box | QFrame::Raised);
 
-    cmdAutoT=new QPushButton("AutoT",toolBar2);
-    cmdAutoT->setObjectName("cmdAutoT");
     cmdAutoT->setToolTip(tr("Automatically set the tick spacing"));
     connect(cmdAutoT, SIGNAL(clicked()), this, SLOT(doAutoT()));
-    cmdAutoO=new QPushButton("AutoO",toolBar2);
-    cmdAutoO->setObjectName("cmdAutoO");
     cmdAutoO->setToolTip(tr("Autoscale on nearest set"));
     connect(cmdAutoO, SIGNAL(clicked()), this, SLOT(doAutoO()));
-    cmdZX=new QPushButton("ZX",toolBar2);
-    cmdZX->setObjectName("cmdZX");
     cmdZX->setToolTip(tr("Zoom X axis only"));
     connect(cmdZX, SIGNAL(clicked()), this, SLOT(doZX()));
-    cmdZY=new QPushButton("ZY",toolBar2);
-    cmdZY->setObjectName("cmdZY");
     cmdZY->setToolTip(tr("Zoom Y axis only"));
     connect(cmdZY, SIGNAL(clicked()), this, SLOT(doZY()));
-    cmdAX=new QPushButton("AX",toolBar2);
-    cmdAX->setObjectName("cmdAX");
     cmdAX->setToolTip(tr("Autoscale X axis only"));
     connect(cmdAX, SIGNAL(clicked()), this, SLOT(doAX()));
-    cmdAY=new QPushButton("AY",toolBar2);
-    cmdAY->setObjectName("cmdAY");
     cmdAY->setToolTip(tr("Autoscale Y axis only"));
     connect(cmdAY, SIGNAL(clicked()), this, SLOT(doAY()));
-    cmdPZ=new QPushButton("PZ",toolBar2);
-    cmdPZ->setObjectName("cmdPZ");
     cmdPZ->setToolTip(tr("Push viewport on stack and zoom"));
     connect(cmdPZ, SIGNAL(clicked()), this, SLOT(doPZ()));
-    cmdPu=new QPushButton("Pu",toolBar2);
-    cmdPu->setObjectName("cmdPu");
     cmdPu->setToolTip(tr("Push viewort on stack"));
     connect(cmdPu, SIGNAL(clicked()), this, SLOT(doPu()));
-    cmdPo=new QPushButton("Po",toolBar2);
-    cmdPo->setObjectName("cmdPo");
     cmdPo->setToolTip(tr("Pop viewport stack"));
     connect(cmdPo, SIGNAL(clicked()), this, SLOT(doPo()));
-    cmdCy=new QPushButton("Cy",toolBar2);
-    cmdCy->setObjectName("cmdCy");
     cmdCy->setToolTip(tr("Cycle viewport stack"));
     connect(cmdCy, SIGNAL(clicked()), this, SLOT(doCy()));
-    lblSD=new QLabel(" SD:1",toolBar2);
-    lblSD->setObjectName("lblSD");
     lblSD->setToolTip(tr("Viewport stack depth"));
-    lblCW=new QLabel(" CW:0",toolBar2);
-    lblCW->setObjectName("lblCW");
     lblCW->setToolTip(tr("Current stack position"));
 
-    /*alternative Viewport stack*/
-    lblNewViewStack=new QLabel(tr("Viewport\nstack:"),toolBar2);
-    lblNewViewStack->setObjectName("lblNewViewStack");
-    lblNewViewStack->setAlignment(Qt::AlignCenter);
-    QString entr[2];
-    entr[0]=entr[1]=tr("Default");
-    cmbViewStack=new QComboBox(toolBar2);
-    cmbViewStack->setObjectName("cmbViewStack");
     cmbViewStack->setToolTip(tr("Select viewport from stack"));
-    cmbViewStack->addItem(entr[0]);
+    cmbViewStack->addItem(tr("Default"));
     convertBitmapToPixmap(upBitMap,&HelpPixmap);
-    cmdViewUp=new QPushButton(HelpPixmap,"",toolBar2);
-    cmdViewUp->setObjectName("cmdViewUp");
+    cmdViewUp->setIcon(HelpPixmap);
     convertBitmapToPixmap(downBitMap,&HelpPixmap);
-    cmdViewDown=new QPushButton(HelpPixmap,"",toolBar2);
-    cmdViewDown->setObjectName("cmdViewDown");
+    cmdViewDown->setIcon(HelpPixmap);
     cmdViewUp->setToolTip(tr("Use next viewport lower in stack"));
     cmdViewDown->setToolTip(tr("Use next viewport higher in stack"));
-    cmdViewRename=new QPushButton(tr("Name"),toolBar2);
-    cmdViewRename->setObjectName("cmdViewRename");
-    cmdViewAdd=new QPushButton(tr("+"),toolBar2);
-    cmdViewAdd->setObjectName("cmdViewAdd");
-    cmdViewRemove=new QPushButton(tr("-"),toolBar2);
-    cmdViewRemove->setObjectName("cmdViewRemove");
     cmdViewRename->setToolTip(tr("Rename currently selected viewport in stack"));
     cmdViewAdd->setToolTip(tr("Add current world to viewport stack"));
     cmdViewRemove->setToolTip(tr("Remove current viewport from stack"));
-    cmdViewReplace=new QPushButton(tr("Repl."),toolBar2);
-    cmdViewReplace->setObjectName("cmdViewReplace");
-    cmdViewRearrange=new QPushButton(tr("Pos."),toolBar2);
-    cmdViewRearrange->setObjectName("cmdViewRearrange");
     cmdViewReplace->setToolTip(tr("Replace current stack-viewport with graph-viewport"));
     cmdViewRearrange->setToolTip(tr("Reposition selected viewport in stack"));
 
@@ -1081,137 +981,33 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     connect(cmbViewStack,SIGNAL(currentIndexChanged(int)),SLOT(newViewportSelected(int)));
 
     /*QtGrace-addition*/
-    cmdUndo=new QPushButton(tr("Undo"),toolBar2);
-    cmdUndo->setObjectName("cmdUndo");
     cmdUndo->setToolTip(tr("Undo last action"));
     connect(cmdUndo,SIGNAL(clicked(bool)),SLOT(doUndo()));
-    cmdRedo=new QPushButton(tr("Redo"),toolBar2);
-    cmdRedo->setObjectName("cmdRedo");
     cmdRedo->setToolTip(tr("Redo next action (undo the last undo)"));
     connect(cmdRedo,SIGNAL(clicked(bool)),SLOT(doRedo()));
-    sldPageZoom=new stdSlider(toolBar2,QString(""),-100,100,0.01,SLIDE_LOGARITHMIC);
-    sldPageZoom->setObjectName("sldPageZoom");
     sldPageZoom->setToolTip(tr("Page zoom"));
     connect(sldPageZoom,SIGNAL(valueChanged(int)),this,SLOT(doPageZoom(int)));
-    cmdFitPage=new QPushButton(tr("Fit"),toolBar2);
-    cmdFitPage->setObjectName("cmdFitPage");
     cmdFitPage->setToolTip(tr("Fit page size to window size"));
     connect(cmdFitPage, SIGNAL(clicked()), this, SLOT(doFitPage()));
-    cmdExport=new QPushButton(tr("Export"),toolBar2);
-    cmdExport->setObjectName("cmdExport");
     cmdExport->setToolTip(tr("Export to file"));
     connect(cmdExport, SIGNAL(clicked()), this, SLOT(PrintToFile()));
-    cmdPrint=new QPushButton(tr("Print"),toolBar2);
-    cmdPrint->setObjectName("cmdPrint");
     cmdPrint->setToolTip(tr("Print on physical printer"));
     connect(cmdPrint, SIGNAL(clicked()), this, SLOT(Print()));
-    cmdExport->hide();
-    cmdPrint->hide();
-    /*End: QtGrace-addition*/
-    cmdExit=new QPushButton(tr("Exit"),toolBar2);
-    cmdExit->setObjectName("cmdExit");
     cmdExit->setToolTip(tr("Close QtGrace"));
-    //cmdExit->setGeometry(cmdAutoO->x(),lblCW->y()+lblCW->height()+2,cmdAutoO->width(),cmdAutoO->height());
-    //cmdExit->setGeometry(cmdAutoO->x(),sldPageZoom->y()+cmdAutoO->height()+5,cmdAutoO->width(),cmdAutoO->height());
     connect(cmdExit, SIGNAL(clicked()), this, SLOT(doExit()));
 
-#ifdef AUTOLAYOUT_FOR_TOOLBAR
-    toolBar2->setLayout(toolLayout2);
-    toolIndex=0;
-    toolLayout2->addWidget(cmdAutoT,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdAutoO,toolIndex++,0,1,2,Qt::AlignHCenter);
-    addPair(toolLayout2, cmdZX, cmdZY);
-    addPair(toolLayout2, cmdAX, cmdAY);
-    addPair(toolLayout2, cmdPZ, cmdPu);
-    addPair(toolLayout2, cmdPo, cmdCy);
-    toolLayout2->addWidget(lblSD,toolIndex++,0,1,2);
-    toolLayout2->addWidget(lblCW,toolIndex++,0,1,2);
-    toolLayout2->addWidget(lblNewViewStack,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmbViewStack,toolIndex++,0,1,2);
-    addPair(toolLayout2, cmdViewUp, cmdViewDown);
-    addPair(toolLayout2, cmdViewAdd, cmdViewRemove);
-    toolLayout2->addWidget(cmdViewReplace,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdViewRearrange,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdViewRename,toolIndex++,0,1,2,Qt::AlignHCenter);
-    addPair(toolLayout2, cmdUndo, cmdRedo);
-    toolLayout2->addWidget(sldPageZoom,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdFitPage,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdExport,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdPrint,toolIndex++,0,1,2,Qt::AlignHCenter);
-    tool_empty2=new QWidget(toolBar2);
-    tool_empty2->setMinimumHeight(8);
-    toolLayout2->addWidget(tool_empty2,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdExit,toolIndex++,0,1,2,Qt::AlignHCenter);
-#else
-    #ifdef WINDOWS_SYSTEM
-        cmdAutoT->setGeometry(2+WIN_SIZE_CORR*toolBarSizeFactor,2+2*WIN_SIZE_CORR*toolBarSizeFactor,64+WIN_SIZE_CORR*toolBarSizeFactor,stdHeight1);
-    #else
-        cmdAutoT->setGeometry(2,2,64,stdHeight1);
-    #endif
-    cmdAutoO->setGeometry(cmdAutoT->x(),cmdAutoT->y()+cmdAutoT->height()+2,cmdAutoT->width(),cmdAutoT->height());
-    cmdZX->setGeometry(cmdAutoO->x()+stdDistance2,cmdAutoO->y()+cmdAutoO->height()+4,stdWidth2,stdHeight2);
-    cmdZY->setGeometry(cmdZX->x()+cmdZX->width()+stdDistance2,cmdZX->y(),stdWidth2,stdHeight2);
-    cmdAX->setGeometry(cmdZX->x(),cmdZX->y()+cmdZX->height()+stdDistance1,cmdZX->width(),cmdZX->height());
-    cmdAY->setGeometry(cmdZY->x(),cmdAX->y(),cmdZX->width(),cmdZX->height());
-    cmdPZ->setGeometry(cmdZX->x(),cmdAX->y()+cmdAX->height()+stdDistance1,cmdZX->width(),cmdZX->height());
-    cmdPu->setGeometry(cmdZY->x(),cmdPZ->y(),cmdZX->width(),cmdZX->height());
-    cmdPo->setGeometry(cmdZX->x(),cmdPZ->y()+cmdPZ->height()+stdDistance1,cmdZX->width(),cmdZX->height());
-    cmdCy->setGeometry(cmdZY->x(),cmdPo->y(),cmdZX->width(),cmdZX->height());
-    lblSD->setGeometry(cmdDraw->x(),cmdCy->y()+cmdCy->height()+stdDistance1,cmdDraw->width(),cmdDraw->height()-6);
-    lblCW->setGeometry(lblSD->x(),lblSD->y()+lblSD->height(),lblSD->width(),lblSD->height());
-    //sldPageZoom->setGeometry(cmdAutoO->x(),lblCW->y()+lblCW->height()+12,cmdAutoO->width(),cmdAutoO->height()+5);
-    sldPageZoom->setGeometry(cmdAutoO->x(),lblCW->y()+lblCW->height()+12,defaultSliderW,defaultSliderH);
-    cmdFitPage->setGeometry(cmdAutoO->x(),sldPageZoom->y()+sldPageZoom->height()+5,cmdAutoO->width(),cmdAutoO->height());
-    cmdExport->setGeometry(0,0,cmdAutoT->width(),cmdAutoT->height());
-    cmdPrint->setGeometry(0,0,cmdAutoT->width(),cmdAutoT->height());
-    cmdExit->setGeometry(cmdAutoO->x(),cmdFitPage->y()+cmdAutoO->height()+14,cmdAutoO->width(),cmdAutoO->height()+5);
-#endif
-
-    //The main drawing area
-    mainArea=new MainArea(this);
-    mainArea->setObjectName("mainArea");
-    mainArea->setGeometry(toolBar1->width(),stdBarHeight+statLocBar->height(),windowWidth-toolBar1->width(),windowHeight-statusBar->height()-stdBarHeight-statLocBar->height());
-    mainArea->show();
-
-    mainGrid=new QGridLayout();
-    //mainGrid->setMargin(2);
-    mainGrid->setContentsMargins(2,2,2,2);
-    mainGrid->setSpacing(0);
-#ifndef MAC_SYSTEM
-    mainGrid->addWidget(menuBar,0,0,1,2);
-#endif
-    /// mainGrid->setRowMinimumHeight(0,stdBarHeight);
+    // setupUi() already built the grid — apply stretch/min settings not in .ui
     mainGrid->setRowStretch(0,0);
-    mainGrid->addWidget(statLocBar,1,0,1,2);
     mainGrid->setRowMinimumHeight(1,stdBarHeight);
     mainGrid->setRowStretch(1,0);
-
-    /*mainGrid->addWidget(toolBar1,2,0,1,1);
-    mainGrid->addWidget(toolBar2,3,0,1,1);
-    scroll->setVisible(false);*/
-
-    tool_layout->addWidget(toolBar1);
-    tool_layout->addWidget(toolBar2);
     tool_layout->setStretch(0,0);
     tool_layout->setStretch(1,1);
-
     toolBar1->setMinimumWidth(stdColWidth);
-//qDebug() << "stdColWidth=" << stdColWidth;
-    ///toolBar1->setMaximumWidth(stdColWidth);//deactivated for v0.2.6
     toolBar2->setMinimumWidth(stdColWidth);
-    /*toolBar1->setMinimumHeight(stdRowHeight);
-    toolBar1->setMaximumHeight(stdRowHeight);*/
-
-    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //scroll->setGeometry(0,0,stdColWidth,600);
     scroll->setMaximumWidth(stdColWidth+2);
     tool_empty->setGeometry(0,0,stdColWidth,600);
-    mainGrid->addWidget(scroll,2,0,2,1);
-
-    mainGrid->addWidget(mainArea,2,1,2,1);
     mainGrid->setRowStretch(2,0);
     mainGrid->setRowStretch(3,1);
-    mainGrid->addWidget(statusBar,4,0,1,2);
     statusBar->insertPermanentWidget(0, statusBarLabel);
     mainGrid->setRowMinimumHeight(4,stdBarHeight);
     mainGrid->setRowStretch(4,0);
@@ -1219,17 +1015,10 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     mainGrid->setColumnStretch(0,0);
     mainGrid->setColumnStretch(1,1);
     mainGrid->setRowMinimumHeight(2,stdRowHeight);
-
-    mainGrid->setRowStretch(0,0);
-    mainGrid->setRowStretch(1,0);
-    mainGrid->setRowStretch(2,0);
-    mainGrid->setRowStretch(3,1);
-    mainGrid->setRowStretch(4,0);
 #ifdef MAC_SYSTEM
     mainGrid->removeWidget(menuBar);
     mainGrid->setRowMinimumHeight(0,0);
 #endif
-    setLayout(mainGrid);
     //if (use_new_icons==true) redisplayIcons();
     redisplayIcons();
     hide();

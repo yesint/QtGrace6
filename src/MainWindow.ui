@@ -3,7 +3,10 @@
  <class>MainWindow</class>
  <widget class="QWidget" name="MainWindow">
   <layout class="QGridLayout" name="mainGrid">
-   <property name="contentsMargins"><rect><x>2</x><y>2</y><width>2</width><height>2</height></rect></property>
+   <property name="leftMargin"><number>2</number></property>
+          <property name="topMargin"><number>2</number></property>
+          <property name="rightMargin"><number>2</number></property>
+          <property name="bottomMargin"><number>2</number></property>
    <property name="spacing"><number>0</number></property>
 
    <!-- Row 0: menu bar (hidden on macOS in code) -->
@@ -27,7 +30,10 @@
      <property name="widgetResizable"><bool>false</bool></property>
      <widget class="QWidget" name="tool_empty">
       <layout class="QVBoxLayout" name="tool_layout">
-       <property name="contentsMargins"><rect><x>0</x><y>0</y><width>0</width><height>0</height></rect></property>
+       <property name="leftMargin"><number>0</number></property>
+          <property name="topMargin"><number>0</number></property>
+          <property name="rightMargin"><number>0</number></property>
+          <property name="bottomMargin"><number>0</number></property>
        <property name="spacing"><number>0</number></property>
 
        <!-- ── toolBar1 ── -->
@@ -36,11 +42,14 @@
          <property name="frameShape"><enum>QFrame::Box</enum></property>
          <property name="frameShadow"><enum>QFrame::Raised</enum></property>
          <layout class="QGridLayout" name="toolLayout1">
-          <property name="contentsMargins"><rect><x>2</x><y>2</y><width>2</width><height>2</height></rect></property>
+          <property name="leftMargin"><number>2</number></property>
+          <property name="topMargin"><number>2</number></property>
+          <property name="rightMargin"><number>2</number></property>
+          <property name="bottomMargin"><number>2</number></property>
           <property name="spacing"><number>2</number></property>
 
           <!-- Draw (full width) -->
-          <item row="0" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdDraw">
             <property name="text"><string>Draw</string></property>
            </widget>
@@ -91,14 +100,14 @@
           </item>
 
           <!-- Pan (full width) -->
-          <item row="5" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="5" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdPan">
             <property name="text"><string>Pan</string></property>
            </widget>
           </item>
 
           <!-- Pick/Move (full width) -->
-          <item row="6" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="6" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdPick">
             <property name="text"><string>Move</string></property>
            </widget>
@@ -119,13 +128,16 @@
          <property name="frameShape"><enum>QFrame::Box</enum></property>
          <property name="frameShadow"><enum>QFrame::Raised</enum></property>
          <layout class="QGridLayout" name="toolLayout2">
-          <property name="contentsMargins"><rect><x>2</x><y>2</y><width>2</width><height>2</height></rect></property>
+          <property name="leftMargin"><number>2</number></property>
+          <property name="topMargin"><number>2</number></property>
+          <property name="rightMargin"><number>2</number></property>
+          <property name="bottomMargin"><number>2</number></property>
           <property name="spacing"><number>2</number></property>
 
-          <item row="0" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdAutoT"><property name="text"><string>AutoT</string></property></widget>
           </item>
-          <item row="1" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="1" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdAutoO"><property name="text"><string>AutoO</string></property></widget>
           </item>
 
@@ -207,13 +219,13 @@ stack:</string></property>
            </layout>
           </item>
 
-          <item row="12" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="12" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdViewReplace"><property name="text"><string>Repl.</string></property></widget>
           </item>
-          <item row="13" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="13" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdViewRearrange"><property name="text"><string>Pos.</string></property></widget>
           </item>
-          <item row="14" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="14" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdViewRename"><property name="text"><string>Name</string></property></widget>
           </item>
 
@@ -230,16 +242,16 @@ stack:</string></property>
           <item row="16" column="0" colspan="2">
            <widget class="stdSlider" name="sldPageZoom"/>
           </item>
-          <item row="17" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="17" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdFitPage"><property name="text"><string>Fit</string></property></widget>
           </item>
-          <item row="18" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="18" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdExport">
             <property name="text"><string>Export</string></property>
             <property name="visible"><bool>false</bool></property>
            </widget>
           </item>
-          <item row="19" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="19" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdPrint">
             <property name="text"><string>Print</string></property>
             <property name="visible"><bool>false</bool></property>
@@ -255,7 +267,7 @@ stack:</string></property>
            </spacer>
           </item>
 
-          <item row="21" column="0" colspan="2" alignment="AlignHCenter">
+          <item row="21" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QPushButton" name="cmdExit"><property name="text"><string>Exit</string></property></widget>
           </item>
 

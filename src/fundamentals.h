@@ -415,6 +415,7 @@ GraphPopup * popupMenu2;
 
 QAction *actCopyClipBoard,*actPasteClipBoard;
 
+uniList(QWidget *parent=nullptr) : uniList(GRAPHLIST, parent) {}
 uniList(int type,QWidget *parent=0);
 ~uniList();
 
@@ -753,6 +754,8 @@ class stdSlider:public QWidget
 {
 Q_OBJECT
 public:
+stdSlider(QWidget *parent=nullptr)
+    : stdSlider(parent, QString(""), -100, 100, 0.01, SLIDE_LOGARITHMIC) {}
 stdSlider(QWidget * parent,QString label,int min,int max,double factor=1.0,int type=SLIDE_LINEAR);
 //QLabel * Indicator;
 QLineEdit * Indicator;

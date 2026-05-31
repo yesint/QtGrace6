@@ -21,6 +21,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+namespace Ui { class MainWindow; }
+
 #include <iostream>
 #include <cstring>
 #include <fstream>
@@ -121,6 +123,7 @@ protected:
 class MainWindow : public QWidget
 {
     Q_OBJECT
+    Ui::MainWindow *ui;
 public:
     QString future_load_file;
     int future_load_status;//this is needed to be able to break the bailout-procedure
