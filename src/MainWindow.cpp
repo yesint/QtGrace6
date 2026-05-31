@@ -939,6 +939,15 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     // Layout settings not expressible as .ui properties
     tool_layout->setStretch(0,0);    // toolBar1 fixed height
     tool_layout->setStretch(1,1);    // toolBar2 fills remaining space
+
+    // Toolbar grids: only the last (spacer) row absorbs extra vertical space.
+    // Without this every button row expands when the window is made taller.
+    toolLayout1->setRowStretch(7, 1);   // row 7 = lstGraphs — last item, absorbs space
+    toolLayout2->setRowStretch(20, 1);  // row 20 = vertical spacer between buttons and bottom
+
+    // Never show a scrollbar in the toolbar column; minimum window height
+    // is enforced by the toolbar content itself.
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainGrid->setRowStretch(3,1);    // canvas row expands vertically
     mainGrid->setColumnStretch(1,1); // canvas column expands horizontally
     mainGrid->setRowMinimumHeight(1,0); // statLocBar removed
@@ -2834,8 +2843,10 @@ void MainWindow::ManageBars(void)
         toolBar2->setMinimumWidth(ToolBarWidth);*/
 
         mainGrid->setColumnMinimumWidth(0,ToolBarWidth*0.7);
-        ///mainGrid->setColumnMinimumWidth(0,toolBarWidth*0.7*toolBarSizeFactor);
-        ///toolBar1->resize(toolBarWidth*toolBarSizeFactor,278*toolBarSizeFactor);
+
+        // Enforce minimum window height = full toolbar content (no scrollbars)
+        int tbMinH = toolBar1->sizeHint().height() + toolBar2->sizeHint().height();
+        setMinimumHeight(tbMinH + stdBarHeight + menuBar->height());
 
         //rearrange/reposition the buttons
     int xpos,ypos,sav_stddist2;

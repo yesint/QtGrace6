@@ -485,7 +485,7 @@ static void rereadConfig(void)
 static void please_report_the_bug(void)
 {
     fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
-    fprintf(stderr, "Please report Bugs in QtGrace to andreas.f.winter@web.de\n");
+    fprintf(stderr, "Please report bugs at https://github.com/yesint/QtGrace6/issues\n");
 #ifdef HAVE_LESSTIF
     fprintf(stderr, "NB. This version of Grace was compiled with LessTif.\n");
     fprintf(stderr, "    Make sure to read the FAQ carefully prior to\n");
