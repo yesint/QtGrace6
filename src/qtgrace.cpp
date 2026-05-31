@@ -2879,21 +2879,26 @@ QApplication * a=new QApplication( argc, argv );
 //a->setStyle(QString("Fusion"));//necessary for upscaling on high-dpi-screens --> only activate this if the user does not set a different style
 
 // Ensure the system icon theme is used. Qt6 does not auto-load the KDE
-// platform theme unless QT_QPA_PLATFORMTHEME=kde is set in the environment.
-// Read from kdeglobals, then fall back to the GTK/GNOME setting.
-if (QIcon::themeName().isEmpty() || QIcon::themeName() == "hicolor") {
-    // Try KDE config first
-    QSettings kdeglobals(QDir::homePath()+"/.config/kdeglobals", QSettings::IniFormat);
-    QString theme = kdeglobals.value("Icons/Theme").toString();
-    // Fall back to GTK/GNOME setting via gsettings output already read
-    if (theme.isEmpty()) {
-        QProcess gs;
-        gs.start("gsettings", {"get","org.gnome.desktop.interface","icon-theme"});
-        if (gs.waitForFinished(500))
-            theme = QString(gs.readAllStandardOutput()).trimmed().remove('\'');
+// platform theme unless QT_QPA_PLATFORMTHEME is set in the environment.
+{
+    QString theme = QIcon::themeName();
+    if (theme.isEmpty() || theme == "hicolor") {
+        // Try both kdeglobals files
+        for (auto cfg : {QDir::homePath()+"/.config/kdeglobals",
+                         QDir::homePath()+"/.config/kdedefaults/kdeglobals"}) {
+            theme = QSettings(cfg, QSettings::IniFormat).value("Icons/Theme").toString();
+            if (!theme.isEmpty()) break;
+        }
+        // Fall back to gsettings (GNOME/GTK)
+        if (theme.isEmpty()) {
+            QProcess gs;
+            gs.start("gsettings", {"get","org.gnome.desktop.interface","icon-theme"});
+            if (gs.waitForFinished(500))
+                theme = QString(gs.readAllStandardOutput()).trimmed().remove('\'');
+        }
+        if (!theme.isEmpty())
+            QIcon::setThemeName(theme);
     }
-    if (!theme.isEmpty())
-        QIcon::setThemeName(theme);
 }
 
 #if QT_VERSION >= 0x050000
