@@ -898,47 +898,11 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     // Viewport stack: icons from bitmaps (not file resources)
     convertBitmapToPixmap(upBitMap,&HelpPixmap);   cmdViewUp->setIcon(HelpPixmap);
     convertBitmapToPixmap(downBitMap,&HelpPixmap); cmdViewDown->setIcon(HelpPixmap);
-    // Initial combobox item (signal/slot connections are in .ui)
-    cmbViewStack->addItem(tr("Default"));
+    // Initial combobox item — block signals: graphs are already initialised so
+    // currentIndexChanged would fire newViewportSelected() prematurely otherwise.
+    { QSignalBlocker _b(cmbViewStack); cmbViewStack->addItem(tr("Default")); }
 
-    // Signal connections (setupUi receiver is QWidget*, can't carry derived class slots)
-    connect(cmdDraw,      SIGNAL(clicked()),             this, SLOT(doDraw()));
-    connect(cmdZoom,      SIGNAL(clicked()),             this, SLOT(doZoom()));
-    connect(cmdAutoScale, SIGNAL(clicked()),             this, SLOT(doAutoScale()));
-    connect(cmdZz,        SIGNAL(clicked()),             this, SLOT(doZz()));
-    connect(cmdzz,        SIGNAL(clicked()),             this, SLOT(dozz()));
-    connect(cmdLeft,      SIGNAL(clicked()),             this, SLOT(doLeft()));
-    connect(cmdRight,     SIGNAL(clicked()),             this, SLOT(doRight()));
-    connect(cmdUp,        SIGNAL(clicked()),             this, SLOT(doUp()));
-    connect(cmdDown,      SIGNAL(clicked()),             this, SLOT(doDown()));
-    connect(cmdPan,       SIGNAL(clicked()),             this, SLOT(doPan()));
-    connect(cmdPick,      SIGNAL(clicked()),             this, SLOT(doPick()));
-    connect(lstGraphs,    SIGNAL(new_selection(int)),    this, SLOT(newgraphselection(int)));
-    connect(cmdAutoT,     SIGNAL(clicked()),             this, SLOT(doAutoT()));
-    connect(cmdAutoO,     SIGNAL(clicked()),             this, SLOT(doAutoO()));
-    connect(cmdZX,        SIGNAL(clicked()),             this, SLOT(doZX()));
-    connect(cmdZY,        SIGNAL(clicked()),             this, SLOT(doZY()));
-    connect(cmdAX,        SIGNAL(clicked()),             this, SLOT(doAX()));
-    connect(cmdAY,        SIGNAL(clicked()),             this, SLOT(doAY()));
-    connect(cmdPZ,        SIGNAL(clicked()),             this, SLOT(doPZ()));
-    connect(cmdPu,        SIGNAL(clicked()),             this, SLOT(doPu()));
-    connect(cmdPo,        SIGNAL(clicked()),             this, SLOT(doPo()));
-    connect(cmdCy,        SIGNAL(clicked()),             this, SLOT(doCy()));
-    connect(cmdViewUp,    SIGNAL(clicked()),             this, SLOT(newViewportUp()));
-    connect(cmdViewDown,  SIGNAL(clicked()),             this, SLOT(newViewportDown()));
-    connect(cmdViewRename,SIGNAL(clicked()),             this, SLOT(newViewportRename()));
-    connect(cmdViewAdd,   SIGNAL(clicked()),             this, SLOT(newViewportAdd()));
-    connect(cmdViewRemove,SIGNAL(clicked()),             this, SLOT(newViewportRemove()));
-    connect(cmdViewReplace,   SIGNAL(clicked()),         this, SLOT(newViewportReplace()));
-    connect(cmdViewRearrange, SIGNAL(clicked()),         this, SLOT(newViewportReposition()));
-    connect(cmbViewStack, SIGNAL(currentIndexChanged(int)), this, SLOT(newViewportSelected(int)));
-    connect(cmdUndo,      SIGNAL(clicked()),             this, SLOT(doUndo()));
-    connect(cmdRedo,      SIGNAL(clicked()),             this, SLOT(doRedo()));
-    connect(sldPageZoom,  SIGNAL(valueChanged(int)),     this, SLOT(doPageZoom(int)));
-    connect(cmdFitPage,   SIGNAL(clicked()),             this, SLOT(doFitPage()));
-    connect(cmdExport,    SIGNAL(clicked()),             this, SLOT(PrintToFile()));
-    connect(cmdPrint,     SIGNAL(clicked()),             this, SLOT(Print()));
-    connect(cmdExit,      SIGNAL(clicked()),             this, SLOT(doExit()));
+    // Signals connected via on_<name>_<signal>() wrappers (auto-connect in setupUi)
 
     // Layout settings not expressible as .ui properties
     // (QGridLayout row/col stretch/min use per-method calls, not Q_PROPERTY)

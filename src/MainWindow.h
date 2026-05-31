@@ -373,6 +373,46 @@ public slots:
     void doFitPage(void);
     void doExit(void);
 
+    // Auto-connect wrappers: setupUi() calls connectSlotsByName() which wires
+    // on_<objectName>_<signal>() slots automatically.
+    void on_cmdDraw_clicked()           { doDraw(); }
+    void on_cmdZoom_clicked()           { doZoom(); }
+    void on_cmdAutoScale_clicked()      { doAutoScale(); }
+    void on_cmdZz_clicked()             { doZz(); }
+    void on_cmdzz_clicked()             { dozz(); }
+    void on_cmdLeft_clicked()           { doLeft(); }
+    void on_cmdRight_clicked()          { doRight(); }
+    void on_cmdUp_clicked()             { doUp(); }
+    void on_cmdDown_clicked()           { doDown(); }
+    void on_cmdPan_clicked()            { doPan(); }
+    void on_cmdPick_clicked()           { doPick(); }
+    void on_cmdAutoT_clicked()          { doAutoT(); }
+    void on_cmdAutoO_clicked()          { doAutoO(); }
+    void on_cmdZX_clicked()             { doZX(); }
+    void on_cmdZY_clicked()             { doZY(); }
+    void on_cmdAX_clicked()             { doAX(); }
+    void on_cmdAY_clicked()             { doAY(); }
+    void on_cmdPZ_clicked()             { doPZ(); }
+    void on_cmdPu_clicked()             { doPu(); }
+    void on_cmdPo_clicked()             { doPo(); }
+    void on_cmdCy_clicked()             { doCy(); }
+    void on_cmdViewUp_clicked()         { newViewportUp(); }
+    void on_cmdViewDown_clicked()       { newViewportDown(); }
+    void on_cmdViewRename_clicked()     { newViewportRename(); }
+    void on_cmdViewAdd_clicked()        { newViewportAdd(); }
+    void on_cmdViewRemove_clicked()     { newViewportRemove(); }
+    void on_cmdViewReplace_clicked()    { newViewportReplace(); }
+    void on_cmdViewRearrange_clicked()  { newViewportReposition(); }
+    void on_cmdUndo_clicked()           { doUndo(); }
+    void on_cmdRedo_clicked()           { doRedo(); }
+    void on_cmdFitPage_clicked()        { doFitPage(); }
+    void on_cmdExport_clicked()         { PrintToFile(); }
+    void on_cmdPrint_clicked()          { Print(); }
+    void on_cmdExit_clicked()           { doExit(); }
+    void on_sldPageZoom_valueChanged(int i)            { doPageZoom(i); }
+    void on_cmbViewStack_currentIndexChanged(int i)    { newViewportSelected(i); }
+    void on_lstGraphs_new_selection(int g)             { newgraphselection(g); }
+
     //Initializations
     void CreateActions(void);
     void CreateIcons(void);
