@@ -941,17 +941,20 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     /*End: QtGrace-addition*/
 
 #ifdef AUTOLAYOUT_FOR_TOOLBAR
-    toolLayout1->setColumnStretch(0,1);
-    toolLayout1->setColumnStretch(1,1);
+    // Helper: add a horizontally-centered pair of buttons as one row
+    auto addPair = [&](QGridLayout *gl, QWidget *a, QWidget *b) {
+        QHBoxLayout *h = new QHBoxLayout();
+        h->setContentsMargins(0,0,0,0);
+        h->setSpacing(STD_SPACING);
+        h->addStretch(1); h->addWidget(a); h->addWidget(b); h->addStretch(1);
+        gl->addLayout(h, toolIndex++, 0, 1, 2);
+    };
+
     toolLayout1->addWidget(cmdDraw,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdZoom,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdAutoScale,toolIndex++,1,1,1,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdZz,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdzz,toolIndex++,1,1,1,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdLeft,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdRight,toolIndex++,1,1,1,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdUp,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout1->addWidget(cmdDown,toolIndex++,1,1,1,Qt::AlignHCenter);
+    addPair(toolLayout1, cmdZoom, cmdAutoScale);
+    addPair(toolLayout1, cmdZz, cmdzz);
+    addPair(toolLayout1, cmdLeft, cmdRight);
+    addPair(toolLayout1, cmdUp, cmdDown);
     toolLayout1->addWidget(cmdPan,toolIndex++,0,1,2,Qt::AlignHCenter);
     toolLayout1->addWidget(cmdPick,toolIndex++,0,1,2,Qt::AlignHCenter);
     toolLayout1->addWidget(lstGraphs,toolIndex++,0,1,2);
@@ -1114,36 +1117,24 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
 
 #ifdef AUTOLAYOUT_FOR_TOOLBAR
     toolBar2->setLayout(toolLayout2);
-    toolLayout2->setColumnStretch(0,1);
-    toolLayout2->setColumnStretch(1,1);
     toolIndex=0;
     toolLayout2->addWidget(cmdAutoT,toolIndex++,0,1,2,Qt::AlignHCenter);
     toolLayout2->addWidget(cmdAutoO,toolIndex++,0,1,2,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdZX,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdZY,toolIndex++,1,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdAX,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdAY,toolIndex++,1,1,1,Qt::AlignHCenter);
-    //classic viewport-stack
-    toolLayout2->addWidget(cmdPZ,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdPu,toolIndex++,1,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdPo,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdCy,toolIndex++,1,1,1,Qt::AlignHCenter);
+    addPair(toolLayout2, cmdZX, cmdZY);
+    addPair(toolLayout2, cmdAX, cmdAY);
+    addPair(toolLayout2, cmdPZ, cmdPu);
+    addPair(toolLayout2, cmdPo, cmdCy);
     toolLayout2->addWidget(lblSD,toolIndex++,0,1,2);
-    toolLayout2->addWidget(lblCW ,toolIndex++,0,1,2);
-    //new viewport-stack
+    toolLayout2->addWidget(lblCW,toolIndex++,0,1,2);
     toolLayout2->addWidget(lblNewViewStack,toolIndex++,0,1,2);
     toolLayout2->addWidget(cmbViewStack,toolIndex++,0,1,2);
-    toolLayout2->addWidget(cmdViewUp,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdViewDown,toolIndex++,1,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdViewAdd,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdViewRemove,toolIndex++,1,1,1,Qt::AlignHCenter);
+    addPair(toolLayout2, cmdViewUp, cmdViewDown);
+    addPair(toolLayout2, cmdViewAdd, cmdViewRemove);
     toolLayout2->addWidget(cmdViewReplace,toolIndex++,0,1,2,Qt::AlignHCenter);
     toolLayout2->addWidget(cmdViewRearrange,toolIndex++,0,1,2,Qt::AlignHCenter);
     toolLayout2->addWidget(cmdViewRename,toolIndex++,0,1,2,Qt::AlignHCenter);
-    //the rest
-    toolLayout2->addWidget(cmdUndo,toolIndex,0,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(cmdRedo,toolIndex++,1,1,1,Qt::AlignHCenter);
-    toolLayout2->addWidget(sldPageZoom ,toolIndex++,0,1,2);
+    addPair(toolLayout2, cmdUndo, cmdRedo);
+    toolLayout2->addWidget(sldPageZoom,toolIndex++,0,1,2);
     toolLayout2->addWidget(cmdFitPage,toolIndex++,0,1,2,Qt::AlignHCenter);
     toolLayout2->addWidget(cmdExport,toolIndex++,0,1,2,Qt::AlignHCenter);
     toolLayout2->addWidget(cmdPrint,toolIndex++,0,1,2,Qt::AlignHCenter);
