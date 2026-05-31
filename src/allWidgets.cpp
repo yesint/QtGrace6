@@ -173,8 +173,6 @@ extern frmEditBlockData * FormEditBlockData;
 extern int max_history;
 extern int current_history;
 extern QString history[MAX_HISTORY];
-extern QList<QByteArray> avcod;
-//extern QTextCodec * FileCodec;
 
 extern int nr_of_current_linestyles;
 extern int * lenghts_of_linestyle_patterns;

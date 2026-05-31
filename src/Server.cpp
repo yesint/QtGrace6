@@ -37,12 +37,9 @@
 #include "KeyAndMousePressFilter.h"
 #include <QTimer>
 #include <QProgressDialog>
-#include <QTextCodec>
 
 extern void convert_all_strings_from_encoding_to_UTF8(void);
 extern void convert_all_strings_from_UTF8_to_encoding(void);
-//extern QTextCodec * FileCodec;
-extern QList<QByteArray> avcod;
 
 #ifdef __cplusplus
 extern "C" {

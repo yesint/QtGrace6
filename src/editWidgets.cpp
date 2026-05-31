@@ -50,8 +50,6 @@ extern QMap<unsigned char,ushort> key_for_greek;
 extern bool showhideworkaround;
 extern bool use_new_icons;
 extern QFont * GuiFont,*stdGuiFont;
-extern QList<QByteArray> avcod;
-//extern QTextCodec * FileCodec;
 extern int max_history;
 extern int current_history;
 extern QString history[MAX_HISTORY];
@@ -7473,21 +7471,11 @@ selGeneral=new StdSelector(this,tr("General Behavior like"),2,entr2);
 selGeneral->setToolTip(tr("Affects behavior settings used in Grace that are unusual. (Like the question asked on closing or loading of project fils if unsaved changes are present.)"));
 delete[] entr2;
 
-#if READ_UTF8_ONLY < 0
-QString * entr3=new QString[avcod.length()];
-for (int i=0;i<avcod.length();i++)
-{
-    entr3[i]=QString(avcod.at(i));
-}
-selCodec=new StdSelector(this,tr("File encoding:"),avcod.length(),entr3);
-selCodec->setToolTip(tr("Change this setting if you want to enter non-Latin-characters directely via the keyboard.\n(When inappropriate encodings are used the characters are not saved/loaded correctely.)"));
-#else
 QString * entr3=new QString[4];
 entr3[0]=QString("UTF-8");
 selCodec=new StdSelector(this,tr("File encoding:"),1,entr3);
 selCodec->setToolTip(tr("Previously used for different encodings of non-Latin-characters. QtGrace now uses UTF-8 exclusively."));
 selCodec->setEnabled(false);
-#endif
 delete[] entr3;
 entr3=new QString[4];
 entr3[0]=tr("None");

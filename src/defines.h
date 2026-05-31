@@ -45,7 +45,6 @@
 
 /// #define DEBUG_OUT_LOG 1
 
-#define READ_UTF8_ONLY 0
 
 #define MAX_HISTORY 20
 #define MAX_BIN_IMPORT_CHANNELS 32

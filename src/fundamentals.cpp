@@ -125,9 +125,6 @@ QColor * stdTextColor=NULL;
 extern char SystemsDecimalPoint;//the default decimal-separator
 extern char OldDecimalPoint;
 extern char DecimalPointToUse;//what the user wants to use as decimal separator
-#ifndef READ_UTF8_ONLY
-extern QTextCodec * FileCodec;
-#endif
 extern int maxboxes;
 extern int maxlines;
 extern int maxstr;
@@ -4231,12 +4228,7 @@ void stdLineEdit::ContentChanged(void)
 
 QString stdLineEdit::text(void)
 {
-#ifndef READ_UTF8_ONLY
-    if (useQtFonts)
-        return FileCodec->fromUnicode(lenText->text());
-    else
-#endif
-        return lenText->text();
+    return lenText->text();
     /*///Deactivated LaTeX-to-Grace-conversion
 static int pos,pos2,ret;
 static QString str,str2;
@@ -4270,21 +4262,7 @@ void stdLineEdit::setText(QString text)
 {
     displayStd=true;
     c1=c2=NULL;
-#ifndef READ_UTF8_ONLY
-    if (useQtFonts)
-    {
-        if (FileCodec==NULL) FileCodec=QTextCodec::codecForLocale();
-        lenText->setText(FileCodec->toUnicode(text.toLatin1().constData()));
-    }
-    else
-    {
-        //lenText->setText(text);
-        if (FileCodec==NULL) FileCodec=QTextCodec::codecForLocale();
-        lenText->setText(FileCodec->toUnicode(text.toLatin1().constData()));
-    }
-#else
     lenText->setText(text);
-#endif
 }
 
 void stdLineEdit::setPlainText(QString text)

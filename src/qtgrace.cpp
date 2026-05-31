@@ -20,6 +20,7 @@
 
 #include "MainWindow.h"
 #include <QtGui>
+#include <QRegularExpression>
 #include <QTranslator>
 #include <QSvgGenerator>
 #include <QSvgRenderer>
@@ -131,12 +132,6 @@ extern void ParseFit2D(char * com,int & type,int & gno,int & sno,int & t_set,dou
 QLocale * cur_loc;//the Locale-settings as set in the operating system
 
 char new_encoding_name[128];
-#if READ_UTF8_ONLY == 0
-QTextCodec * FileCodec;//standard codec of the operating system (depends on user settings in the operating system)
-QTextCodec * FileCodecSave;//to save the old codec in case it is changes during file-loading-operation
-QTextCodec * IsoLatin1Codec;//codec for Iso-Latin-1-encoding which is identical to the T1-codec Grace uses internally (iso latin 1 is always available in Qt)
-QList<QByteArray> avcod;//all available file encodings
-#endif
 
 QLocale * comma_locale;//a setting where ',' is the decimal separator (we use the setting for Germany here)
 QLocale * dot_locale;//a setting where '.' is the decimal separator (we use the setting for the USA here)
@@ -1721,52 +1716,52 @@ int FindFirstNewSetCommand(QString command,int offset,QString & found,int & inde
 {
 int type=-1;
 //Type 1
-const QRegExp rex1("G\\d+.S\\d+N");//G0.S1N
+const QRegularExpression rex1("G\\d+.S\\d+N");//G0.S1N
 //Type 2
-const QRegExp rex2("S\\d+N");//only S1N (without graph-ID)
+const QRegularExpression rex2("S\\d+N");//only S1N (without graph-ID)
 //Type 3
-const QRegExp rex3("G\\d+N");//G13N (without set-ID)
+const QRegularExpression rex3("G\\d+N");//G13N (without set-ID)
 //Type 4
-const QRegExp rex4("G\\d+N.S\\d+");//G2N.S3
+const QRegularExpression rex4("G\\d+N.S\\d+");//G2N.S3
 //Type 5
-const QRegExp rex5("G\\d+N.S\\d+N");//G2N.S5N
-index=rex1.indexIn(command,offset);
+const QRegularExpression rex5("G\\d+N.S\\d+N");//G2N.S5N
+auto m1=rex1.match(command,offset); index=m1.hasMatch()?m1.capturedStart(0):-1;
 if (index>=0)//Type 1 found
 {
 type=1;
-found=rex1.capturedTexts().at(0);
+found=m1.captured(0);
 }
 else//Type 1 not found
 {
-    index=rex5.indexIn(command,offset);
+    auto m5=rex5.match(command,offset); index=m5.hasMatch()?m5.capturedStart(0):-1;
     if (index>=0)//Type 5 found
     {
     type=5;
-    found=rex5.capturedTexts().at(0);
+    found=m5.captured(0);
     }
     else//Type 5 not found
     {
-        index=rex4.indexIn(command,offset);
+        auto m4=rex4.match(command,offset); index=m4.hasMatch()?m4.capturedStart(0):-1;
         if (index>=0)//Type 4 found
         {
         type=4;
-        found=rex4.capturedTexts().at(0);
+        found=m4.captured(0);
         }
         else//Type 4 not found
         {
-            index=rex3.indexIn(command,offset);
+            auto m3=rex3.match(command,offset); index=m3.hasMatch()?m3.capturedStart(0):-1;
             if (index>=0)//Type 3 found
             {
             type=3;
-            found=rex3.capturedTexts().at(0);
+            found=m3.captured(0);
             }
             else//Type 3 not found
             {
-                index=rex2.indexIn(command,offset);
+                auto m2=rex2.match(command,offset); index=m2.hasMatch()?m2.capturedStart(0):-1;
                 if (index>=0)//Type 2 found
                 {
                 type=2;
-                found=rex2.capturedTexts().at(0);
+                found=m2.captured(0);
                 }
                 else//Type 2 not found
                 {
@@ -2735,23 +2730,6 @@ void init_gui(void)
 
 //qDebug() << "codName=" << codName;
         int index=0;
-#if READ_UTF8_ONLY == 0
-        for (int i=0;i<avcod.length();i++)
-        {
-            if (QString(avcod.at(i)).compare(codName)==0)
-            {
-                index=i;
-                break;
-            }
-        }
-        FileCodec=QTextCodec::codecForName(codName.toLocal8Bit().constData());
-//qDebug() << "CodName=" << codName.toLocal8Bit().constData() << " Adress=" << FileCodec;
-        if (FileCodec==NULL)
-        {
-            qDebug() << "Warning, invalid FileCodec! " << codName.toLocal8Bit().constData();
-            FileCodec=QTextCodec::codecForLocale();//fallback is the systems usual codec
-        }
-#endif
         Form_Preferences->selCodec->setCurrentIndex(index);
         //Form_Preferences->tab_extra->init();
         Form_Preferences->tab_prefs->doApply();
@@ -3081,35 +3059,6 @@ setlocale(LC_NUMERIC,"");
 lc = localeconv();
 cout << lc->decimal_point << endl;
 */
-#if READ_UTF8_ONLY == 0
-    FileCodec=QTextCodec::codecForLocale();//get the codec most suitable for this system
-    IsoLatin1Codec=QTextCodec::codecForName("ISO-8859-1");//get standard iso-latin-1 codec
-    avcod=QTextCodec::availableCodecs();
-
-//qDebug() << "nr of codecs-before:" << avcod.length();
-/*now we clear the aliases*/
-    QList<QByteArray> list_aliases;
-    QTextCodec * one_codec_name;
-    for (int i=0;i<avcod.length();i++)
-    {
-    one_codec_name=QTextCodec::codecForName(avcod.at(i));
-    list_aliases=one_codec_name->aliases();
-        for (int j=i+1;j<avcod.length();j++)
-        {
-            if (list_aliases.contains(avcod.at(j)) || QString(avcod.at(i)).compare(avcod.at(j))==0)
-            {
-            avcod.removeAt(j);
-            j--;
-            }
-        }
-    }
-    QStringList st_avcod;
-    st_avcod.clear();
-    for (int i=0;i<avcod.length();i++) st_avcod << QString(avcod.at(i));
-    st_avcod.sort();
-    avcod.clear();
-    for (int i=0;i<st_avcod.length();i++) avcod << st_avcod.at(i).toLocal8Bit();
-#endif
 
 /*finished cleaning up*/
 //qDebug() << "nr of codecs-after:" << avcod.length();
@@ -3723,62 +3672,48 @@ testStrings[6]=QString("G0");
 testStrings[7]=QString("G0N");
 
 qDebug() << endl << "testText=" << testtext;
-QRegExp RegularSetID("G\\d+\\.{1}S\\d+\\.?[XY]?");//A complete regular set-ID
-QRegExp NewGraphStdSetID("G\\d+[N\\#\\$]{1}\\.{1}S\\d+\\.?[XY]?");//New GraphID, regular set-ID
-QRegExp StdGraphNewSetID("G\\d+\\.{1}S\\d+[N\\#\\$]{1}\\.?[XY]?");//Regular GraphID, new set-ID
-QRegExp NewGraphNewSetID("G\\d+[N\\#\\$]{1}\\.{1}S\\d+[N\\#\\$]{1}\\.?[XY]?");//New GraphID, new set-ID
-QRegExp SetIDOnly("S\\d+\\.?[XY]?");//set-ID only
-QRegExp NewSetIDOnly("S\\d+[N\\#\\$]{1}\\.?[XY]?");//New set-ID only
-QRegExp GraphIDOnly("G\\d+(?!(\\.|N|\\#|\\$))");//Graph-ID only (not followed by anything else (especially no '.') )
-QRegExp NewGraphIDOnly("G\\d+[N\\#\\$]{1}(?!(\\.|N|\\#|\\$))");//New set-ID only (not followed by anything else (especially no '.') )
+QRegularExpression RegularSetID("G\\d+\\.{1}S\\d+\\.?[XY]?");//A complete regular set-ID
+QRegularExpression NewGraphStdSetID("G\\d+[N\\#\\$]{1}\\.{1}S\\d+\\.?[XY]?");//New GraphID, regular set-ID
+QRegularExpression StdGraphNewSetID("G\\d+\\.{1}S\\d+[N\\#\\$]{1}\\.?[XY]?");//Regular GraphID, new set-ID
+QRegularExpression NewGraphNewSetID("G\\d+[N\\#\\$]{1}\\.{1}S\\d+[N\\#\\$]{1}\\.?[XY]?");//New GraphID, new set-ID
+QRegularExpression SetIDOnly("S\\d+\\.?[XY]?");//set-ID only
+QRegularExpression NewSetIDOnly("S\\d+[N\\#\\$]{1}\\.?[XY]?");//New set-ID only
+QRegularExpression GraphIDOnly("G\\d+(?!(\\.|N|\\#|\\$))");//Graph-ID only
+QRegularExpression NewGraphIDOnly("G\\d+[N\\#\\$]{1}(?!(\\.|N|\\#|\\$))");//New set-ID only
 
-int pos=RegularSetID.indexIn(testtext);
+QStringList list123;
+int pos;
+{auto m=RegularSetID.match(testtext); pos=m.hasMatch()?m.capturedStart(0):-1; list123=m.capturedTexts();}
 qDebug() << "Regular pos=" << pos;
-QStringList list123=RegularSetID.capturedTexts();
-    for (int i=0;i<list123.count();i++)
-    qDebug() << "Catched=" << list123.at(i);
+    for (int i=0;i<list123.count();i++) qDebug() << "Catched=" << list123.at(i);
 
-pos=NewGraphStdSetID.indexIn(testtext);
+{auto m=NewGraphStdSetID.match(testtext); pos=m.hasMatch()?m.capturedStart(0):-1; list123=m.capturedTexts();}
 qDebug() << "New Graph Old Set pos=" << pos;
-list123=NewGraphStdSetID.capturedTexts();
-    for (int i=0;i<list123.count();i++)
-    qDebug() << "Catched=" << list123.at(i);
+    for (int i=0;i<list123.count();i++) qDebug() << "Catched=" << list123.at(i);
 
-pos=StdGraphNewSetID.indexIn(testtext);
+{auto m=StdGraphNewSetID.match(testtext); pos=m.hasMatch()?m.capturedStart(0):-1; list123=m.capturedTexts();}
 qDebug() << "Old Graph New Set pos=" << pos;
-list123=StdGraphNewSetID.capturedTexts();
-    for (int i=0;i<list123.count();i++)
-    qDebug() << "Catched=" << list123.at(i);
+    for (int i=0;i<list123.count();i++) qDebug() << "Catched=" << list123.at(i);
 
-pos=NewGraphNewSetID.indexIn(testtext);
+{auto m=NewGraphNewSetID.match(testtext); pos=m.hasMatch()?m.capturedStart(0):-1; list123=m.capturedTexts();}
 qDebug() << "New Graph New Set pos=" << pos;
-list123=NewGraphNewSetID.capturedTexts();
-    for (int i=0;i<list123.count();i++)
-    qDebug() << "Catched=" << list123.at(i);
+    for (int i=0;i<list123.count();i++) qDebug() << "Catched=" << list123.at(i);
 
-pos=SetIDOnly.indexIn(testtext);
+{auto m=SetIDOnly.match(testtext); pos=m.hasMatch()?m.capturedStart(0):-1; list123=m.capturedTexts();}
 qDebug() << "Set ID Only pos=" << pos;
-list123=SetIDOnly.capturedTexts();
-    for (int i=0;i<list123.count();i++)
-    qDebug() << "Catched=" << list123.at(i);
+    for (int i=0;i<list123.count();i++) qDebug() << "Catched=" << list123.at(i);
 
-pos=NewSetIDOnly.indexIn(testtext);
+{auto m=NewSetIDOnly.match(testtext); pos=m.hasMatch()?m.capturedStart(0):-1; list123=m.capturedTexts();}
 qDebug() << "New Set ID Only pos=" << pos;
-list123=NewSetIDOnly.capturedTexts();
-    for (int i=0;i<list123.count();i++)
-    qDebug() << "Catched=" << list123.at(i);
+    for (int i=0;i<list123.count();i++) qDebug() << "Catched=" << list123.at(i);
 
-pos=GraphIDOnly.indexIn(testtext);
+{auto m=GraphIDOnly.match(testtext); pos=m.hasMatch()?m.capturedStart(0):-1; list123=m.capturedTexts();}
 qDebug() << "Graph ID Only pos=" << pos;
-list123=GraphIDOnly.capturedTexts();
-    for (int i=0;i<list123.count();i++)
-    qDebug() << "Catched=" << list123.at(i);
+    for (int i=0;i<list123.count();i++) qDebug() << "Catched=" << list123.at(i);
 
-pos=NewGraphIDOnly.indexIn(testtext);
+{auto m=NewGraphIDOnly.match(testtext); pos=m.hasMatch()?m.capturedStart(0):-1; list123=m.capturedTexts();}
 qDebug() << "New Graph ID Only pos=" << pos;
-list123=NewGraphIDOnly.capturedTexts();
-    for (int i=0;i<list123.count();i++)
-    qDebug() << "Catched=" << list123.at(i);
+    for (int i=0;i<list123.count();i++) qDebug() << "Catched=" << list123.at(i);
 
 int f_ret,f_pos,g_no,s_no,st_len;
 char control1,control2,col;
@@ -7882,26 +7817,12 @@ void copy_LaTeX_to_Grace(void)//copy the original LaTeX-texts into the Grace-var
 
 void convert_single_string_from_encoding_to_UTF8(char ** text)
 {
-#if READ_UTF8_ONLY == 1
     (void) text;
-    ///starting with v0.2.7 QtGrace will always convert to UTF8 and no other encoding, i.e. UTF8=encoding
-#else
-    static QString temp;
-    temp=FileCodec->toUnicode(*text);//convert text from encoding to unicode
-    *text = copy_string(*text,temp.toUtf8().constData());//convert QString in UTF-8 to C-String in UTF-8
-#endif
 }
 
 void convert_single_string_from_encoding_to_UTF8_static(char * text)
 {
-#if READ_UTF8_ONLY == 1
     (void) text;
-    ///starting with v0.2.7 QtGrace will always convert to UTF8 and no other encoding, i.e. UTF8=encoding
-#else
-    static QString temp;
-    temp=FileCodec->toUnicode(text);//convert text from encoding to unicode
-    strcpy(text,temp.toUtf8().constData());//convert QString in UTF-8 to C-String in UTF-8
-#endif
 }
 
 void convert_single_string_from_UTF8_to_encoding(char ** text)
@@ -8805,39 +8726,11 @@ void prepare_strings_for_saving(void)
 {
     ///strcpy(new_encoding_name,FileCodec->name().constData());//starting with v0.2.7 only UTF-8 is used
     copy_LaTeX_to_Grace();
-    ///convert_all_strings_from_UTF8_to_encoding();//UTF-8 is already the final encoding (no further encoding needed)
-    /// Save old FileCodec just in case it is overwritten
-#if READ_UTF8_ONLY == 0
-    FileCodecSave=FileCodec;
-#endif
 }
 
 void resume_strings_after_load_or_save(void)
 {
-    QString error_text;
-#if READ_UTF8_ONLY == 0
-    if (FileCodec==NULL)//Codec unavailaable
-    {
-        error_text=QObject::tr("Text-Codec UNAVAILABLE: ")+QString(new_encoding_name);
-        errwin(error_text.toLatin1().constData());
-        //cout << "codec in file UNAVAILABLE" << endl;
-        FileCodec=FileCodecSave;
-        error_text=FileCodec->name()+QObject::tr(" used as Text-Codec");
-        errwin(error_text.toLatin1().constData());
-    }
-    else if (FileCodec!=FileCodecSave && warn_on_encoding_change==true)
-    {
-        error_text=QObject::tr("[Information] Changing Text-Codec: ") + FileCodecSave->name().constData() + QString(" --> ") + FileCodec->name();
-        stufftext(error_text.toLatin1().constData());
-        //cout << "codec in file=" << FileCodec->name().constData() << endl;
-        //cout << "set codec    =" << FileCodecSave->name().constData() << endl;
-    }
-#endif
     convert_all_strings_from_encoding_to_UTF8();
-    /// Restore the codec originally set
-#if READ_UTF8_ONLY == 0
-    FileCodec=FileCodecSave;
-#endif
     copy_Grace_to_LaTeX();
 }
 

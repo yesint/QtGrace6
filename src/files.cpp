@@ -87,6 +87,7 @@
 #include <iostream>
 #include <QtCore>
 #include <QFileInfo>
+#include <QStringDecoder>
 #include "MainWindow.h"
 #include "allWidgets.h"
 #include "windowWidgets.h"
@@ -220,10 +221,6 @@ extern imageinfo bg_ellipse_fill_image;//default for ellipses
 extern ofstream debug_out;
 #endif
 
-#if READ_UTF8_ONLY == 0
-extern QTextCodec * FileCodec;
-extern QTextCodec * FileCodecSave;
-#endif
 extern void update_timestamp(void);
 #ifdef __cplusplus
 extern "C" {
@@ -781,41 +778,7 @@ void parse_qtGrace_Additions(char * s)
             {
             read_data=sscanf(s,"#QTGRACE_ADDITIONAL_PARAMETER: ENCODING \"%s\"",sdata);
                 data[0]=help_read_in_quotation(s,sdata2);
-#if READ_UTF8_ONLY == 1
-                if (data[0]!=RETURN_SUCCESS)
-                {
-                    if (sdata[strlen(sdata)-1]=='"') sdata[strlen(sdata)-1]='\0';
-                    if (strcmp(sdata,"UTF-8")!=0)
-                    {
-                    errortext=QObject::tr("Encoding ") + QString(sdata) + QObject::tr(" not supported! Only UTF-8 allowed.");
-                    errmsg(errortext.toLocal8Bit().constData());
-                    }
-                }
-                else
-                {
-                    if (strcmp(sdata2,"UTF-8")!=0)
-                    {
-                    errortext=QObject::tr("Encoding ") + QString(sdata2) + QObject::tr(" not supported! Only UTF-8 allowed.");
-                    errmsg(errortext.toLocal8Bit().constData());
-                    }
-                }
                 strcpy(new_encoding_name,"UTF-8");
-
-#else
-                if (data[0]!=RETURN_SUCCESS)
-                {
-                    if (sdata[strlen(sdata)-1]=='"') sdata[strlen(sdata)-1]='\0';
-                    strcpy(new_encoding_name,sdata);
-                    /// Todo: sdata verarbeiten ...
-                    FileCodec=QTextCodec::codecForName(sdata);
-                }
-                else
-                {
-                    strcpy(new_encoding_name,sdata2);
-                    /// Todo: sdata verarbeiten ...
-                    FileCodec=QTextCodec::codecForName(sdata2);
-                }
-#endif
             }
             break;
         case 'G':
@@ -2784,15 +2747,8 @@ strcpy(sformat,file_sformat);
     }
 
 //qDebug() << "Vor Prepare=" << g[0].labs.title.s_plotstring;
-#if READ_UTF8_ONLY == 1
     strcpy(new_encoding_name,"UTF-8");
-#else
-    strcpy(new_encoding_name,FileCodec->name().constData());
-#endif
     copy_LaTeX_to_Grace();
-#if READ_UTF8_ONLY == 0
-    FileCodecSave=FileCodec;
-#endif
     /// prepare_strings_for_saving();
 //qDebug() << "Vor Prepare=" << g[0].labs.title.s_plotstring;
 
@@ -3645,17 +3601,13 @@ index=sscanf(dummy_line,"#QTGRACE_ADDITIONAL_PARAMETER: ENCODING \"%s",new_linet
 //qDebug() << "Read Header Encoding: #" << afi.encoding << "#";
 if (afi.encoding.isEmpty()) afi.encoding=QString("UTF-8");//set a default
 
-QTextCodec * TempFileCodec=QTextCodec::codecForName(afi.encoding.toLatin1().constData());
+QStringDecoder TempFileDecoder(afi.encoding.toLatin1().constData());
 
-if (TempFileCodec==NULL)
+if (!TempFileDecoder.isValid())
 {
 afi.encoding=QString("UTF-8");
-TempFileCodec=QTextCodec::codecForName(afi.encoding.toLatin1().constData());
+TempFileDecoder = QStringDecoder("UTF-8");
 qDebug() << "Encoding not available; Trying UTF-8";
-    if (TempFileCodec==NULL)
-    {
-    qDebug() << "UTF-8 unavailable!?";
-    }
 }
 
 ifi.clear();
@@ -3706,7 +3658,7 @@ tmp_str=QString::fromLocal8Bit(dummy_line);//::fromLocal8bit
 tmp_str2=get_text_in_quotations(tmp_str);
 qDebug() << "A tmp_str=" << tmp_str << "tmp_str2=" << tmp_str2;
 */
-tmp_str=TempFileCodec->toUnicode(dummy_line);
+tmp_str=TempFileDecoder(QByteArray(dummy_line));
 tmp_str2=get_text_in_quotations(tmp_str);
 /*qDebug() << "B tmp_str=" << tmp_str << "tmp_str2=" << tmp_str2;
 if (tmp_str2.length()>0)

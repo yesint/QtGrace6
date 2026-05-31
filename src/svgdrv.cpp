@@ -47,7 +47,6 @@
 
 #include <QTextStream>
 #include <QFile>
-#include <QTextCodec>
 #include <QMultiMap>
 #include <iostream>
 

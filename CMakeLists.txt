@@ -38,7 +38,6 @@ find_package(Qt6 REQUIRED COMPONENTS
     Core
     Widgets
     PrintSupport
-    Core5Compat
 )
 
 add_library(grace STATIC
@@ -206,7 +205,6 @@ target_link_libraries(qtgrace PRIVATE
     Qt6::Svg
     Qt6::Widgets
     Qt6::PrintSupport
-    Qt6::Core5Compat
     grace
 )
 

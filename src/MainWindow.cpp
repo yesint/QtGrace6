@@ -5405,7 +5405,7 @@ bool myScrollArea::gestureEvent(QGestureEvent *event)
 
 void myScrollArea::grabGestures(const QList<Qt::GestureType> &gestures)
 {
-    foreach (Qt::GestureType gesture, gestures)
+    for (Qt::GestureType gesture : gestures)
         grabGesture(gesture);
 }
 

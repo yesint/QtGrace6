@@ -87,9 +87,6 @@
     #endif
 #endif
 
-#if READ_UTF8_ONLY == 0
-#include <QTextCodec>
-#endif
 
 #include "noxprotos.h"
 #include "t1fonts.h"
