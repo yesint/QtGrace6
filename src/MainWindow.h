@@ -164,7 +164,7 @@ public:
     QMenuBar * menuBar;
     QStatusBar * statusBar;
     QLabel * statusBarLabel;
-    QLabel * statLocBar;
+    QLabel * coordLabel;   // hover-coordinate display (permanent, left side of statusBar)
     QWidget * tool_empty,*tool_empty2;
     QVBoxLayout * tool_layout;
     QScrollArea * scroll;

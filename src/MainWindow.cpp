@@ -582,7 +582,6 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     // Bridge generated members to the existing named member pointers so the
     // rest of the codebase needs no changes.
     menuBar        = ui->menuBar;
-    statLocBar     = ui->statLocBar;
     statusBar      = ui->statusBar;
     statusBarLabel = ui->statusBarLabel;
     scroll         = ui->scroll;
@@ -945,9 +944,11 @@ MainWindow::MainWindow( QWidget *parent ):QWidget( parent )
     tool_layout->setStretch(1,1);    // toolBar2 fills remaining space
     mainGrid->setRowStretch(3,1);    // canvas row expands vertically
     mainGrid->setColumnStretch(1,1); // canvas column expands horizontally
-    mainGrid->setRowMinimumHeight(1,stdBarHeight); // locbar — used by show/hide toggle
     mainGrid->setRowMinimumHeight(4,stdBarHeight); // statusbar — used by show/hide toggle
-    statusBar->insertPermanentWidget(0, statusBarLabel);
+    coordLabel = new QLabel("G0: X, Y = [-, -]", this);
+    coordLabel->setMinimumWidth(220);
+    statusBar->insertPermanentWidget(0, coordLabel);      // coordinates — left
+    statusBar->insertPermanentWidget(1, statusBarLabel);  // dirty indicator — right
     tool_empty->setGeometry(0,0,stdColWidth,600);
 #ifdef MAC_SYSTEM
     mainGrid->removeWidget(menuBar);
@@ -2751,16 +2752,7 @@ cmdRight->setIconSize(newIconSize);
 void MainWindow::ManageBars(void)
 {
 //show or hide the bars
-    if (!show_LocatorBar)//Locator bar
-    {
-        statLocBar->hide();
-        mainGrid->setRowMinimumHeight(1,0);
-    }
-    else
-    {
-        statLocBar->show();
-        mainGrid->setRowMinimumHeight(1,stdBarHeight);
-    }
+    // statLocBar removed — coordinates shown in statusBar->showMessage()
     if (!show_StatusBar)//Status bar
     {
         statusBar->hide();
