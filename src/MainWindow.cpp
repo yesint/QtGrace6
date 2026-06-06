@@ -201,10 +201,6 @@ extern QPixmap * Qt_justifications[12];
 extern QPixmap * Qt_sub_justifications[3];
 extern QPixmap * Qt_matrixOrder[8];
 
-extern int allocated_colors;
-extern QIcon ** ColorIcons;
-extern QPixmap ** ColorPixmaps;
-extern QString ** ColorNames;
 /*extern QIcon * LineIcons[MAXLINESTYLES];
 extern QPixmap * LinePixmaps[MAXLINESTYLES];
 extern QVector<qreal> * PenDashPattern[MAXLINESTYLES];*/
@@ -968,13 +964,6 @@ MainWindow::~MainWindow()
         delete LineIcons[i];
         delete LinePixmaps[i];
     }
-    for (int i=0;i<allocated_colors;i++)
-    {
-        delete ColorIcons[i];
-        delete ColorPixmaps[i];
-        delete ColorNames[i];
-    }
-
     delete wait_cursor;
     delete line_cursor;
     delete find_cursor;

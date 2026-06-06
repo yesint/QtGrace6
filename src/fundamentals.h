@@ -72,6 +72,10 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QFontDialog>
 #include <QtWidgets/QProgressBar>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QFrame>
+#include <QGuiApplication>
+#include <QScreen>
 #include <QtWidgets/QGraphicsProxyWidget>
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
@@ -93,6 +97,7 @@
 #include "parser.h"
 #include "graphs.h"
 #include "mathstuff.h"
+#include "draw.h"
 
 #define STD_MARGIN 2
 #define STD_SPACING 2
@@ -862,6 +867,17 @@ int currentValue(void);
 void setCurrentValue(int i);
 };
 
+class ColorComboBox : public QComboBox
+{
+Q_OBJECT
+public:
+explicit ColorComboBox(QWidget *parent = nullptr);
+void showPopup() override;
+void hidePopup() override;
+private:
+QFrame *m_popup = nullptr;
+};
+
 class ColorSelector:public QWidget
 {
 Q_OBJECT
@@ -869,22 +885,24 @@ public:
 ColorSelector(QWidget * parent=0);
 
 QLabel * lblText;
-newCombo * cmbColorSelect;
-alphaFrame * alphaSelector;
+ColorComboBox * cmbColorSelect;
+QLabel * rectFinalColor;
+QSpinBox * spnAlpha;
 QHBoxLayout * layout;
 bool prevent_from_update;
 
 public slots:
-void update_color_panels(void);//delete all color panels and create new ones according to current color palette
+void update_color_panels(void);
 int currentIndex(void);
 int alpha(void);
 void setCurrentIndex(int i);
 void setAlpha(int i);
-void updateColorIcons(int nr_of_cols,QPixmap ** ColorPixmaps,QString ** ColorNames);
-//private slots:
-void panelIndexChanged(int i);
-void alphaValueChanged(int i);
-void alphaValueChanged2(int i);
+void setAlphaVisible(bool v);
+void updateColorIcons(int nr_of_cols, CMap_entry * entries);
+private slots:
+void onColorChanged(int idx);
+void onAlphaChanged(int val);
+void refreshFinalColor(void);
 signals:
 void currentIndexChanged(int i);
 void alphaChanged(int i);
@@ -974,11 +992,10 @@ Q_OBJECT
 public:
 LineStyleSelector(QWidget * parent=0);
 
-QString ** LineNames;
 QLabel * lblText;
-//QComboBox * cmbStyleSelect;
-newCombo * cmbStyleSelect;
+QComboBox * cmbStyleSelect;
 QHBoxLayout * layout;
+void repopulateIcons(int len, QPixmap ** pix);
 signals:
 void currentIndexChanged(int i);
 public slots:
@@ -987,17 +1004,28 @@ int currentIndex(void);
 void setCurrentIndex(int i);
 };
 
+class PatternComboBox : public QComboBox
+{
+Q_OBJECT
+public:
+explicit PatternComboBox(int columns, QWidget *parent = nullptr);
+void showPopup() override;
+void hidePopup() override;
+private:
+int m_columns;
+QFrame *m_popup = nullptr;
+};
+
 class FillPatternSelector:public QWidget
 {
 Q_OBJECT
 public:
 FillPatternSelector(QWidget * parent=0);
 
-QString ** PatternNames;
 QLabel * lblText;
-//QComboBox * cmbFillPattern;
-newCombo * cmbFillPattern;
+PatternComboBox * cmbFillPattern;
 QHBoxLayout * layout;
+void repopulateIcons(void);
 signals:
 void currentIndexChanged(int i);
 public slots:

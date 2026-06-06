@@ -41,9 +41,6 @@ extern autoLabeler * FormAutoLabeler;
 extern QPixmap * GraceIcon;
 extern QPixmap * ActiveIcon;
 extern QPixmap * HiddenIcon;
-extern QIcon ** ColorIcons;
-extern QPixmap ** ColorPixmaps;
-extern QString ** ColorNames;
 /*extern QIcon * LineIcons[MAXLINESTYLES];
 extern QPixmap * LinePixmaps[MAXLINESTYLES];*/
 extern int nr_of_current_linestyles;
@@ -64,7 +61,6 @@ extern QFontMetrics * stdFontMetrics;
 extern QStringList ListOfChanges;
 extern QStringList ListOfOldStates;
 extern CMap_entry *cmap_table;
-extern int allocated_colors;
 
 extern graph * g;
 extern int maxgraph;
@@ -2716,24 +2712,22 @@ FontSelector::FontSelector(QWidget * parent):QWidget(parent)
 
 void FontSelector::updateAppearance(bool QtIsNew)
 {
-    if (QtIsNew==true)//Qt-font-selector-button
+    lblText->setVisible(true);
+    if (QtIsNew==true)
     {
-        lblText->setVisible(false);
         cmdSelFont->setVisible(true);
+        cmbFontSelect->setVisible(false);
     }
-    else//we switch back to Grace-standard
+    else
     {
         cmdSelFont->setVisible(false);
-        lblText->setVisible(true);
+        cmbFontSelect->setVisible(true);
     }
 }
 
 void FontSelector::setLabelText(QString s)
 {
-    if (useQtFonts==false)
-        lblText->setText(s);
-    else
-        cmdSelFont->setText(s);
+    lblText->setText(s);
 }
 
 void FontSelector::updateFonts(bool preserve)
@@ -2799,8 +2793,7 @@ void FontSelector::displayFont(void)
         else
             dFont.setPixelSize(qApp->font().pixelSize());
         cmdSelFont->setFont(dFont);
-        cmdSelFont->setText(cmdSelFont->text());
-        //cmdSelFont->setText(font.family());
+        cmdSelFont->setText(font.family());
         //cout << "font=#" << font.toString().toLatin1().constData() << "#" << endl;
     }
 }
@@ -2822,6 +2815,8 @@ int FontSelector::currentIndex(void)
 
 void FontSelector::setCurrentIndex(int i)
 {
+    if (i < 0 || i >= cmbFontSelect->count())
+        i = (cmbFontSelect->count() > 0) ? 0 : -1;
     font=getFontFromDatabase(i);
     displayFont();
     cmbFontSelect->setCurrentIndex(i);
@@ -3043,81 +3038,160 @@ stdButtonGroup::stdButtonGroup(QWidget * parent,bool appl,bool acc,bool help):QW
     setLayout(layout);
 }
 
+ColorComboBox::ColorComboBox(QWidget *parent) : QComboBox(parent) {}
+
+void ColorComboBox::showPopup()
+{
+    if (count() == 0) return;
+
+    m_popup = new QFrame(nullptr, Qt::Popup);
+    m_popup->setAttribute(Qt::WA_DeleteOnClose);
+    m_popup->setFrameShape(QFrame::StyledPanel);
+    m_popup->setFrameShadow(QFrame::Raised);
+
+    const int cols = 8;
+    int swatchSz = qMax(18, int(18.0 * toolBarSizeFactor));
+    QGridLayout *grid = new QGridLayout(m_popup);
+    grid->setSpacing(2);
+    grid->setContentsMargins(4, 4, 4, 4);
+
+    for (int i = 0; i < count(); ++i) {
+        QToolButton *btn = new QToolButton(m_popup);
+        btn->setAutoRaise(true);
+        QColor col = itemData(i).value<QColor>();
+        QPixmap pm(swatchSz, swatchSz);
+        pm.fill(col);
+        btn->setIcon(QIcon(pm));
+        btn->setIconSize(QSize(swatchSz, swatchSz));
+        btn->setFixedSize(swatchSz + 6, swatchSz + 6);
+        if (i == currentIndex())
+            btn->setStyleSheet("QToolButton { border: 2px solid palette(highlight); }");
+        connect(btn, &QToolButton::clicked, this, [this, i]() {
+            setCurrentIndex(i);
+            if (m_popup) m_popup->close();
+        });
+        grid->addWidget(btn, i / cols, i % cols);
+    }
+
+    m_popup->adjustSize();
+    QPoint pos = mapToGlobal(QPoint(0, height()));
+    QRect screen = QGuiApplication::primaryScreen()->availableGeometry();
+    if (pos.x() + m_popup->width() > screen.right())
+        pos.setX(screen.right() - m_popup->width());
+    m_popup->move(pos);
+    m_popup->show();
+    connect(m_popup, &QObject::destroyed, this, [this]() { m_popup = nullptr; });
+}
+
+void ColorComboBox::hidePopup()
+{
+    if (m_popup) { m_popup->close(); m_popup = nullptr; }
+}
+
 ColorSelector::ColorSelector(QWidget * parent):QWidget(parent)
 {
-    lblText=new QLabel(tr("Color:"));
-    prevent_from_update=false;
-/*
-cmbColorSelect=new QComboBox();
-for (int i=0;i<16;i++)
-cmbColorSelect->addItem(*ColorIcons[i],"");
-cmbColorSelect->setIconSize(QSize(82,16));
-*/
-    int * real_colors=new int[4];
-    int aux_cols;
-    int map_entries=get_main_color_indices(&real_colors,&aux_cols);
-    int rows=int(sqrt(map_entries*1.0));
-    int cols=rows;
-    int last_col=rows;
-    if (rows*cols<map_entries)
+    lblText = new QLabel(tr("Color:"));
+    prevent_from_update = false;
+
+    int swatchSz = qMax(14, int(14.0 * toolBarSizeFactor));
+
+    // spnAlpha must exist before updateColorIcons (which calls refreshFinalColor)
+    spnAlpha = new QSpinBox(this);
+    spnAlpha->setRange(0, 255);
+    spnAlpha->setValue(255);
+    spnAlpha->setFixedWidth(55);
+    spnAlpha->setToolTip(tr("Opacity (0 = transparent, 255 = opaque)"));
+    connect(spnAlpha, SIGNAL(valueChanged(int)), this, SLOT(onAlphaChanged(int)));
+
+    rectFinalColor = new QLabel(this);
+    rectFinalColor->setFixedSize(swatchSz + 4, swatchSz + 4);
+    rectFinalColor->setScaledContents(false);
+    rectFinalColor->setToolTip(tr("Final color with opacity applied"));
+
+    cmbColorSelect = new ColorComboBox(this);
     {
-        last_col=map_entries-rows*cols;
-        cols+=1;
-        while (last_col>rows)
-        {
-            cols+=1;
-            last_col-=rows;
-        }
+        int * real_colors = new int[4];
+        int aux_cols;
+        int n = get_main_color_indices(&real_colors, &aux_cols);
+        CMap_entry * tbl = new CMap_entry[n];
+        for (int i = 0; i < n; ++i) tbl[i] = cmap_table[real_colors[i]];
+        delete[] real_colors;
+        updateColorIcons(n, tbl);
+        delete[] tbl;
     }
-    cmbColorSelect=new newCombo(rows,cols,last_col,ColorPixmaps,ColorNames,true,this,true);
-    cmbColorSelect->comboType=COMBOTYPE_COLOR;
-    connect(cmbColorSelect,SIGNAL(current_Index_Changed(int)),this,SLOT(panelIndexChanged(int)));
-    connect(cmbColorSelect->panels,SIGNAL(newAlpha(int)),this,SLOT(alphaValueChanged2(int)));
-    connect(cmbColorSelect->panels->alphaSlider,SIGNAL(alphaChanged(int)),this,SLOT(alphaValueChanged2(int)));
-    delete[] real_colors;
-    alphaSelector=new alphaFrame(this,true);
-    connect(alphaSelector,SIGNAL(valueChanged(int)),this,SLOT(alphaValueChanged(int)));
-    connect(cmbColorSelect->panels->alphaSlider,SIGNAL(alphaChanged(int)),alphaSelector,SLOT(setAlpha(int)));
-    layout=new QHBoxLayout;
+    connect(cmbColorSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onColorChanged(int)));
+
+    layout = new QHBoxLayout;
     layout->setAlignment(Qt::AlignVCenter);
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
+    layout->setContentsMargins(STD_MARGIN, STD_MARGIN, STD_MARGIN, STD_MARGIN);
     layout->setSpacing(STD_SPACING);
     layout->addWidget(lblText);
     layout->addWidget(cmbColorSelect);
-    layout->addWidget(alphaSelector);
+    layout->addWidget(rectFinalColor);
+    layout->addWidget(spnAlpha);
     setLayout(layout);
 
     add_ColorSelector(this);
 
-bool vis_extern=(show_transparency_selector==1?true:false);
-bool vis_intern=(show_transparency_selector==2?true:false);
-alphaSelector->setVisible(vis_extern);
-cmbColorSelect->panels->alphaSlider->setVisible(vis_intern);
+    spnAlpha->setVisible(show_transparency_selector > 0);
+}
+
+void ColorSelector::onColorChanged(int idx)
+{
+    refreshFinalColor();
+    emit currentIndexChanged(idx);
+}
+
+void ColorSelector::onAlphaChanged(int val)
+{
+    refreshFinalColor();
+    emit alphaChanged(val);
+}
+
+void ColorSelector::refreshFinalColor(void)
+{
+    int idx = cmbColorSelect->currentIndex();
+    int a = spnAlpha->value();
+    QColor col = (idx >= 0 && idx < cmbColorSelect->count())
+        ? cmbColorSelect->itemData(idx).value<QColor>()
+        : QColor(0, 0, 0);
+    // blend over white to show alpha effect
+    int r = 255 + (col.red()   - 255) * a / 255;
+    int g = 255 + (col.green() - 255) * a / 255;
+    int b = 255 + (col.blue()  - 255) * a / 255;
+
+    int w = rectFinalColor->width();
+    int h = rectFinalColor->height();
+    QPixmap composite(w, h);
+    composite.fill(QColor(r, g, b));
+
+    QIcon opacIcon = QIcon::fromTheme("edit-opacity");
+    if (!opacIcon.isNull()) {
+        int iconSz = h * 3 / 4;
+        QPixmap iconPm = opacIcon.pixmap(iconSz, iconSz);
+        // invert icon on dark backgrounds so it stays visible
+        int luma = (77 * r + 150 * g + 29 * b) >> 8;
+        if (luma < 128) {
+            QImage img = iconPm.toImage().convertToFormat(QImage::Format_ARGB32);
+            img.invertPixels(QImage::InvertRgb);
+            iconPm = QPixmap::fromImage(img);
+        }
+        QPainter p(&composite);
+        p.drawPixmap((w - iconSz) / 2, (h - iconSz) / 2, iconPm);
+    }
+    rectFinalColor->setPixmap(composite);
 }
 
 void ColorSelector::update_color_panels(void)
 {
-    updateColorIcons(number_of_colors(),ColorPixmaps,ColorNames);
-}
-
-void ColorSelector::panelIndexChanged(int i)
-{
-//qDebug() << "color Changed in Panels i=" << i;
-    emit(currentIndexChanged(i));
-}
-
-void ColorSelector::alphaValueChanged(int i)
-{
-    cmbColorSelect->panels->alpha=i;
-    cmbColorSelect->panels->alphaSlider->slider->setValue(i);
-    emit(alphaChanged(i));
-}
-
-void ColorSelector::alphaValueChanged2(int i)
-{
-//qDebug() << "alpha Changed in Panels i=" << i;
-    alphaSelector->setAlpha(i);
+    int * real_colors = new int[4];
+    int aux_cols;
+    int n = get_main_color_indices(&real_colors, &aux_cols);
+    CMap_entry * tbl = new CMap_entry[n];
+    for (int i = 0; i < n; ++i) tbl[i] = cmap_table[real_colors[i]];
+    delete[] real_colors;
+    updateColorIcons(n, tbl);
+    delete[] tbl;
 }
 
 int ColorSelector::currentIndex(void)
@@ -3127,7 +3201,7 @@ int ColorSelector::currentIndex(void)
 
 int ColorSelector::alpha(void)
 {
-    return alphaSelector->alpha;
+    return spnAlpha->value();
 }
 
 void ColorSelector::setCurrentIndex(int i)
@@ -3137,35 +3211,34 @@ void ColorSelector::setCurrentIndex(int i)
 
 void ColorSelector::setAlpha(int i)
 {
-    if (i<0 || i>255)
-    {
-    alphaSelector->setAlpha_extern(255);
-    cmbColorSelect->panels->setAlpha_extern(255);
-    }
-    else
-    {
-    alphaSelector->setAlpha_extern(i);
-    cmbColorSelect->panels->setAlpha_extern(i);
-    }
+    spnAlpha->setValue(i < 0 || i > 255 ? 255 : i);
 }
 
-void ColorSelector::updateColorIcons(int nr_of_cols,QPixmap ** ColorPixmaps,QString ** ColorNames)
+void ColorSelector::setAlphaVisible(bool v)
 {
-    int rows=int(sqrt(nr_of_cols*1.0));
-    int cols=rows;
-    int last_col=rows;
-    if (rows*cols<nr_of_cols)
-    {
-        last_col=nr_of_cols-rows*cols;
-        cols+=1;
-        while (last_col>rows)
-        {
-            cols+=1;
-            last_col-=rows;
+    spnAlpha->setVisible(v);
+}
+
+void ColorSelector::updateColorIcons(int nr_of_cols, CMap_entry * entries)
+{
+    int saved = cmbColorSelect->currentIndex();
+    cmbColorSelect->blockSignals(true);
+    cmbColorSelect->clear();
+    if (nr_of_cols > 0 && entries) {
+        int swatchH = qMax(14, int(14.0 * toolBarSizeFactor));
+        int swatchW = swatchH * 3;
+        cmbColorSelect->setIconSize(QSize(swatchW, swatchH));
+        for (int i = 0; i < nr_of_cols; ++i) {
+            QPixmap pm(swatchW, swatchH);
+            QColor c(entries[i].rgb.red, entries[i].rgb.green, entries[i].rgb.blue);
+            pm.fill(c);
+            cmbColorSelect->addItem(QIcon(pm), QString());
+            cmbColorSelect->setItemData(i, c);
         }
     }
-    cmbColorSelect->reinitializePanels(rows,cols,last_col,ColorPixmaps,ColorNames,cmbColorSelect->text_only,(cmbColorSelect->panels->alphaSlider!=NULL?true:false));
-    alphaSelector->setMaximumSize(20*sqrt(toolBarSizeFactor),20*sqrt(toolBarSizeFactor));
+    cmbColorSelect->setCurrentIndex((saved >= 0 && saved < nr_of_cols) ? saved : 0);
+    cmbColorSelect->blockSignals(false);
+    refreshFinalColor();
 }
 
 StdSelector::StdSelector(QWidget * parent)
@@ -3943,28 +4016,37 @@ sourcecols << selColumn[i]->currentValue();
 LineStyleSelector::LineStyleSelector(QWidget * parent):QWidget(parent)
 {
     add_Line_Style_Selector(this);
-    lblText=new QLabel(tr("Line style:"));
-    /*cmbStyleSelect=new QComboBox();
-for (int i=0;i<MAXLINESTYLES;i++)
-cmbStyleSelect->addItem(*LineIcons[i],"");
-cmbStyleSelect->setIconSize(QSize(82,22));*/
-
-    LineNames=new QString*[nr_of_current_linestyles];
-    char dummy[48];
-    for (int i=0;i<nr_of_current_linestyles;i++)
-    {
-        sprintf(dummy,"%d",i);
-        LineNames[i]=new QString(dummy);
+    lblText = new QLabel(tr("Line style:"));
+    cmbStyleSelect = new QComboBox(this);
+    if (nr_of_current_linestyles > 0 && LinePixmaps) {
+        if (nr_of_current_linestyles > 1 && LinePixmaps[1])
+            cmbStyleSelect->setIconSize(QSize(LinePixmaps[1]->width(), LinePixmaps[1]->height()));
+        cmbStyleSelect->addItem(tr("None"));
+        for (int i = 1; i < nr_of_current_linestyles; ++i)
+            if (LinePixmaps[i]) cmbStyleSelect->addItem(QIcon(*LinePixmaps[i]), "");
     }
-    cmbStyleSelect=new newCombo(nr_of_current_linestyles,1,nr_of_current_linestyles,LinePixmaps,LineNames,false,this);
-    cmbStyleSelect->comboType=COMBOTYPE_LINESTYLE;
-    connect(cmbStyleSelect,SIGNAL(current_Index_Changed(int)),SLOT(changed(int)));
-    layout=new QHBoxLayout;
-    //layout->setMargin(2);
-    layout->setContentsMargins(2,2,2,2);
+    connect(cmbStyleSelect, SIGNAL(currentIndexChanged(int)), SLOT(changed(int)));
+    layout = new QHBoxLayout;
+    layout->setContentsMargins(2, 2, 2, 2);
     layout->addWidget(lblText);
     layout->addWidget(cmbStyleSelect);
     setLayout(layout);
+}
+
+void LineStyleSelector::repopulateIcons(int len, QPixmap ** pix)
+{
+    int saved = cmbStyleSelect->currentIndex();
+    cmbStyleSelect->blockSignals(true);
+    cmbStyleSelect->clear();
+    if (len > 0 && pix) {
+        if (len > 1 && pix[1])
+            cmbStyleSelect->setIconSize(QSize(pix[1]->width(), pix[1]->height()));
+        cmbStyleSelect->addItem(tr("None"));
+        for (int i = 1; i < len; ++i)
+            if (pix[i]) cmbStyleSelect->addItem(QIcon(*pix[i]), "");
+    }
+    cmbStyleSelect->setCurrentIndex((saved >= 0 && saved < len) ? saved : 0);
+    cmbStyleSelect->blockSignals(false);
 }
 
 void LineStyleSelector::changed(int i)
@@ -3982,30 +4064,84 @@ void LineStyleSelector::setCurrentIndex(int i)
     cmbStyleSelect->setCurrentIndex(i);
 }
 
+PatternComboBox::PatternComboBox(int columns, QWidget *parent)
+    : QComboBox(parent), m_columns(columns)
+{
+}
+
+void PatternComboBox::showPopup()
+{
+    if (count() == 0) return;
+
+    m_popup = new QFrame(nullptr, Qt::Popup);
+    m_popup->setAttribute(Qt::WA_DeleteOnClose);
+    m_popup->setFrameShape(QFrame::StyledPanel);
+    m_popup->setFrameShadow(QFrame::Raised);
+
+    QGridLayout *grid = new QGridLayout(m_popup);
+    grid->setSpacing(2);
+    grid->setContentsMargins(4, 4, 4, 4);
+
+    QSize iconSz = iconSize();
+    int gridRow = 0, gridCol = 0;
+    for (int i = 0; i < count(); ++i) {
+        QToolButton *btn = new QToolButton(m_popup);
+        btn->setAutoRaise(true);
+        if (i == currentIndex()) {
+            btn->setDown(true);
+            btn->setStyleSheet("QToolButton { border: 2px solid palette(highlight); }");
+        }
+        connect(btn, &QToolButton::clicked, this, [this, i]() {
+            setCurrentIndex(i);
+            if (m_popup) m_popup->close();
+        });
+        QIcon ic = itemIcon(i);
+        if (ic.isNull()) {
+            btn->setText(itemText(i));
+            btn->setFixedHeight(iconSz.height() + 6);
+            grid->addWidget(btn, gridRow, 0, 1, m_columns);
+            gridRow++;
+        } else {
+            btn->setIcon(ic);
+            btn->setIconSize(iconSz);
+            btn->setFixedSize(iconSz + QSize(6, 6));
+            grid->addWidget(btn, gridRow, gridCol);
+            if (++gridCol >= m_columns) { gridCol = 0; gridRow++; }
+        }
+    }
+
+    m_popup->adjustSize();
+    QPoint pos = mapToGlobal(QPoint(0, height()));
+    // Keep popup on screen horizontally
+    QRect screen = QGuiApplication::primaryScreen()->availableGeometry();
+    if (pos.x() + m_popup->width() > screen.right())
+        pos.setX(screen.right() - m_popup->width());
+    m_popup->move(pos);
+    m_popup->show();
+    connect(m_popup, &QObject::destroyed, this, [this]() { m_popup = nullptr; });
+}
+
+void PatternComboBox::hidePopup()
+{
+    if (m_popup) {
+        m_popup->close();
+        m_popup = nullptr;
+    }
+    QComboBox::hidePopup();
+}
+
 FillPatternSelector::FillPatternSelector(QWidget * parent):QWidget(parent)
 {
-    lblText=new QLabel(tr("Fill pattern:"),this);
-/*
-cmbFillPattern=new QComboBox(this);
-cmbFillPattern->addItem(tr("None"));
-for (int i=1;i<MAXPATTERNS;i++)
-cmbFillPattern->addItem(QIcon(patterns[i]->copy(patterns[i]->rect())),"");
-*/
-    char dummy[48];
-    PatternNames=new QString*[MAXPATTERNS];
-    sprintf(dummy,"None");
-    PatternNames[0]=new QString(dummy);
-    for (int i=1;i<MAXPATTERNS;i++)
-    {
-        sprintf(dummy,"%d",i);
-        PatternNames[i]=new QString(dummy);
-    }
-    cmbFillPattern=new newCombo(8,4,8,PatternPixmaps,PatternNames,false,this);
-    cmbFillPattern->comboType=COMBOTYPE_PATTERN;
-    connect(cmbFillPattern,SIGNAL(current_Index_Changed(int)),SLOT(changed(int)));
-    layout=new QHBoxLayout;
-    //layout->setMargin(2);
-    layout->setContentsMargins(2,2,2,2);
+    lblText = new QLabel(tr("Fill pattern:"), this);
+    cmbFillPattern = new PatternComboBox(3, this);
+    if (PatternPixmaps[1])
+        cmbFillPattern->setIconSize(QSize(PatternPixmaps[1]->width(), PatternPixmaps[1]->height()));
+    cmbFillPattern->addItem(tr("None"));
+    for (int i = 1; i < MAXPATTERNS; i++)
+        if (PatternPixmaps[i]) cmbFillPattern->addItem(QIcon(*PatternPixmaps[i]), "");
+    connect(cmbFillPattern, SIGNAL(currentIndexChanged(int)), SLOT(changed(int)));
+    layout = new QHBoxLayout;
+    layout->setContentsMargins(2, 2, 2, 2);
     layout->addWidget(lblText);
     layout->addWidget(cmbFillPattern);
     setLayout(layout);
@@ -4025,6 +4161,20 @@ int FillPatternSelector::currentIndex(void)
 void FillPatternSelector::setCurrentIndex(int i)
 {
     cmbFillPattern->setCurrentIndex(i);
+}
+
+void FillPatternSelector::repopulateIcons(void)
+{
+    int saved = cmbFillPattern->currentIndex();
+    cmbFillPattern->blockSignals(true);
+    cmbFillPattern->clear();
+    if (PatternPixmaps[1])
+        cmbFillPattern->setIconSize(QSize(PatternPixmaps[1]->width(), PatternPixmaps[1]->height()));
+    cmbFillPattern->addItem(tr("None"));
+    for (int i = 1; i < MAXPATTERNS; i++)
+        if (PatternPixmaps[i]) cmbFillPattern->addItem(QIcon(*PatternPixmaps[i]), "");
+    cmbFillPattern->setCurrentIndex(saved >= 0 ? saved : 0);
+    cmbFillPattern->blockSignals(false);
 }
 
 OrderSelector::OrderSelector(QWidget * parent):QWidget(parent)
@@ -12317,7 +12467,7 @@ QString CreateRichTextColorTable(void)
 {
     char dummy[32];
     QString table=QString("{\\colortbl;");
-    for (int i=0;i<allocated_colors;i++)
+    for (int i=0;i<number_of_colors();i++)
     {
         sprintf(dummy,"\\red%d\\green%d\\blue%d;",cmap_table[i].rgb.red,cmap_table[i].rgb.green,cmap_table[i].rgb.blue);
         table+=QString(dummy);

@@ -613,8 +613,18 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
 
     updateSymbolTypeIcons();
 
-    sldSymbSize=new stdSlider(fraSymbProp,tr("Size"),0,1000);
-    layout1->addWidget(sldSymbSize);
+    {
+        QWidget * wdgSize = new QWidget(fraSymbProp);
+        QHBoxLayout * szLayout = new QHBoxLayout(wdgSize);
+        szLayout->setContentsMargins(2,2,2,2);
+        szLayout->addWidget(new QLabel(tr("Size:"), wdgSize));
+        spnSymbSize = new QDoubleSpinBox(wdgSize);
+        spnSymbSize->setRange(0.0, 10.0);
+        spnSymbSize->setSingleStep(1.0);
+        spnSymbSize->setDecimals(2);
+        szLayout->addWidget(spnSymbSize);
+        layout1->addWidget(wdgSize);
+    }
     cmbSymbColor=new ColorSelector(fraSymbProp);
     layout1->addWidget(cmbSymbColor);
     connect(cmbSymbColor,SIGNAL(currentIndexChanged(int)),SLOT(SymbColorChanged(int)));
@@ -771,7 +781,7 @@ tabSymbol::tabSymbol(QWidget * parent):QWidget(parent)
     spnSymbSkip=new stdIntSelector(this,tr("Symbol skip:"),0,100000);
     layout2->addWidget(spnSymbSkip);
     cmbSymbFont=new FontSelector(this);
-    cmbSymbFont->setLabelText(tr("Font for char symbol:"));
+    cmbSymbFont->setLabelText(tr("Font for symbol:"));
     //cmbSymbFont->lblText->setText(tr("Font for char symbol:"));
     layout2->addWidget(cmbSymbFont);
     fraExtra->setLayout(layout2);
@@ -971,8 +981,20 @@ tabErrorBars::tabErrorBars(QWidget * parent):QWidget(parent)
     layout2=new QVBoxLayout;
     //layout2->setMargin(STD_MARGIN);
     layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    sldBarSize=new stdSlider(this,tr("Size"),0,1000);
-    layout2->addWidget(sldBarSize);
+    {
+        QWidget * wdgBarSize = new QWidget(this);
+        QHBoxLayout * bsLayout = new QHBoxLayout(wdgBarSize);
+        bsLayout->setContentsMargins(2,2,2,2);
+        bsLayout->addWidget(new QLabel(tr("Size:"), wdgBarSize));
+        spnBarSize = new QDoubleSpinBox(wdgBarSize);
+        QLocale bsLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
+        spnBarSize->setLocale(bsLocale);
+        spnBarSize->setRange(0.0, 10.0);
+        spnBarSize->setSingleStep(1.0);
+        spnBarSize->setDecimals(2);
+        bsLayout->addWidget(spnBarSize);
+        layout2->addWidget(wdgBarSize);
+    }
     spnbarWidth=new LineWidthSelector(this);
     spnbarWidth->lblText->setText(tr("Width:"));
     layout2->addWidget(spnbarWidth);
@@ -1081,7 +1103,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
     connect(tabMa->cmbSymbColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
     connect(tabMa->cmbSymbType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(tabMa->ledString,SIGNAL(changed()),SLOT(update0()));
-    connect(tabMa->sldSymbSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(tabMa->spnSymbSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
     connect(tabMa->spnLineWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
     //tabSymbol
     connect(tabSy->cmbFillColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
@@ -1128,7 +1150,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
     connect(tabErBa->spnbarWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
     connect(tabErBa->spnMaxLength,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
     connect(tabErBa->spnRiserWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    connect(tabErBa->sldBarSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(tabErBa->spnBarSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
 
     layout=new QVBoxLayout;
     //layout->setMargin(STD_MARGIN);
@@ -1363,7 +1385,7 @@ apply_running=true;
     duplegs=actdupllegends->isChecked()==true?1:0;
 
     type = tabMa->Type_entries[tabMa->cmbType->currentIndex()];
-    symsize =tabMa->sldSymbSize->value()/100.0;
+    symsize = tabMa->spnSymbSize->value();
     sym = tabMa->cmbSymbType->currentIndex();
     color = tabMa->cmbLineColor->currentIndex();
     alpha = tabMa->cmbLineColor->alpha();
@@ -1434,7 +1456,7 @@ apply_running=true;
     errbar.pen.pattern = tabErBa->cmbPattern->currentIndex();
     errbar.arrow_clip = tabErBa->chkArrowClip->isChecked()==true?1:0;
     errbar.cliplen = tabErBa->spnMaxLength->value();
-    errbar.barsize = tabErBa->sldBarSize->value()/100.0;
+    errbar.barsize = tabErBa->spnBarSize->value();
     errbar.linew = tabErBa->spnbarWidth->value();
     errbar.riser_linew = tabErBa->spnRiserWidth->value();
     errbar.lines = tabErBa->cmbBarStyle->currentIndex();
@@ -1517,7 +1539,7 @@ apply_running=true;
             sprintf(dummy,"    s%d symbol char %d",setno,(int)(p.symchar));
             ListOfOldStates << QString(dummy);
         }
-        if (p.charfont != charfont)
+        if (p.charfont != charfont && charfont >= 0)
         {
             sprintf(dummy,"    s%d symbol char font %d",setno,charfont);
             ListOfChanges << QString(dummy);
@@ -1665,7 +1687,7 @@ apply_running=true;
             sprintf(dummy,"    s%d avalue %s",setno,p.avalue.active?"on":"off");
             ListOfOldStates << QString(dummy);
         }
-        if (p.avalue.font!=avalue.font)
+        if (p.avalue.font!=avalue.font && avalue.font >= 0)
         {
             sprintf(dummy,"    s%d avalue font %d",setno,avalue.font);
             ListOfChanges << QString(dummy);
@@ -2208,8 +2230,7 @@ tabMa->cmbType
     tabMa->cmbSymbColor->setCurrentIndex(p.sympen.color);
     tabMa->cmbSymbColor->setAlpha(p.sympen.alpha);
     tabMa->cmbSymbType->setCurrentIndex(p.sym);
-    tabMa->sldSymbSize->setValue((int)rint_2(p.symsize*100.0));
-    //qDebug() << "p.symsize=" << p.symsize << " sliderValue: " << (int)(p.symsize*100.0) << " rint2()=" << rint_2(p.symsize*100.0);
+    tabMa->spnSymbSize->setValue(p.symsize);
     //tabMa->ledSymbChar->setDoubleValue("%d",(int)p.symchar);
         if (tabMa->selSymbChar->valueIsInList(p.symchar)==FALSE)
         tabMa->selSymbChar->setCurrentValue(65);//revert the char to 'A', whenever the value is 0 (which is unprintable)
@@ -2279,7 +2300,7 @@ tabMa->cmbType
     tabErBa->cmbBarStyle->setCurrentIndex(p.errbar.lines);
     tabErBa->spnRiserWidth->setValue(p.errbar.riser_linew);
     tabErBa->cmbRiserStyle->setCurrentIndex(p.errbar.riser_lines);
-    tabErBa->sldBarSize->setValue((int)rint_2(p.errbar.barsize*100.0));
+    tabErBa->spnBarSize->setValue(p.errbar.barsize);
     tabErBa->cmbPlacement->setCurrentIndex(p.errbar.ptype);
     ///SET ITEM 4 ENABLED OR NOT --> ITEM 4 IS "NULL" --> DON'T KNOW WHAT THIS IS FOR!?
     /*

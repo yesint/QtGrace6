@@ -15786,35 +15786,28 @@ void frmTransform::selectorChanged(int i)
 
 void createSymbolIcons(QIcon ** symb_icons)
 {
-QPixmap map1(12*toolBarSizeFactor,12*toolBarSizeFactor);//(12,12)
-QPainter paint1(&map1);
-    paint1.setBrush(Qt::white);
-    paint1.setPen(Qt::white);
-    paint1.drawRect(0,0,13*toolBarSizeFactor,13*toolBarSizeFactor);//(0,0,13,13)
-    paint1.setPen(Qt::black);
-    paint1.setBrush(Qt::black);
+int sz = qMax(12, int(12 * toolBarSizeFactor));
+QPixmap map1(sz, sz);
+QPainter paint1;
     QFont dFont=getFontFromDatabase(0);
-    dFont.setPixelSize(10*1.4*toolBarSizeFactor);//(10*1.8)
-    paint1.setFont(dFont);
-    paint1.end();
+    dFont.setPixelSize(int(10*1.4*toolBarSizeFactor));
+    // index 0 = "None" — empty/transparent icon
+    map1.fill(Qt::transparent);
     (*symb_icons)[0]=QIcon(map1);
         for (int i=1;i<12;i++)
         {
+        map1.fill(Qt::transparent);
         paint1.begin(&map1);
-        paint1.setBrush(Qt::white);
-        paint1.setPen(Qt::white);
-        paint1.drawRect(0,0,13*toolBarSizeFactor,13*toolBarSizeFactor);//(0,0,13,13)
         paint1.setPen(Qt::black);
         paint1.setBrush(Qt::black);
         paint1.setFont(dFont);
-            if (i==11)//this prints a character - in this case ASCII(65)='A'
-            drawSimpleSymbol(paint1,3*sqrt(toolBarSizeFactor),11*toolBarSizeFactor,10*toolBarSizeFactor,i,65);//(paint1,12,2,10,i,65)
+            if (i==11)
+            drawSimpleSymbol(paint1,int(3*sqrt(toolBarSizeFactor)),int(11*toolBarSizeFactor),int(10*toolBarSizeFactor),i,65);
             else
-            drawSimpleSymbol(paint1,6*toolBarSizeFactor,6*toolBarSizeFactor,10*toolBarSizeFactor,i,65);//(paint1,6,6,10,i,65)
+            drawSimpleSymbol(paint1,sz/2,sz/2,int(10*toolBarSizeFactor),i,65);
         paint1.end();
         (*symb_icons)[i]=QIcon(map1);
         }
-//qDebug() << "IconSize=" << map1.size();
 }
 
 

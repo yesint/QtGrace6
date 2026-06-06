@@ -91,10 +91,6 @@
 #endif
 
 extern CMap_entry *cmap_table;
-extern int allocated_colors;
-extern QIcon ** ColorIcons;
-extern QPixmap ** ColorPixmaps;
-extern QString ** ColorNames;
 extern MainWindow * mainWin;
 extern QFont * GuiFont,*stdGuiFont;
 extern "C" char batchfile[];
@@ -396,118 +392,16 @@ void update_set_selectors(int gno)
     }
 }
 
-void init_color_icons(int nr_of_cols,CMap_entry * entries,int & allocated_colors,QIcon *** ColorIcons,QPixmap *** ColorPixmaps,QString *** ColorNames)
-{
-    int appfontsize=QApplication::font().pixelSize();
-    if (appfontsize<0)
-    {
-    appfontsize=QApplication::font().pointSize();
-    if (appfontsize<0) appfontsize=9;
-    }
-    //double rel_size=appfontsize/13.0*toolBarSizeFactor;
-    double rel_size=toolBarSizeFactor;//only scale with tool-bar-size and NOT font-size
-    QPixmap templIcon(int(62.0*rel_size),int(22.0*rel_size));
-    QPainter templPainter;
-    QPen pen1(Qt::black);
-    QColor col1;
-    QFont standardfont=QApplication::font();
-    double intensity;//=get_colorintensity(i);
-//qDebug() << "appfontsize=" << appfontsize << " rel_size=" << rel_size;
-//qDebug() << "GuiFont=" << GuiFont->pixelSize();
-    if (templIcon.width()<62 || templIcon.height()<22)//minimal size
-    {
-    templIcon=QPixmap(62,22);
-    }
-//qDebug() << "tmplIcon.size=" << templIcon.width() << " x " << templIcon.height();
-    if (*ColorIcons!=NULL)
-    {
-        for (int i=0;i<allocated_colors;i++)
-            delete (*ColorIcons)[i];
-        delete[] (*ColorIcons);
-    }
-    if (*ColorPixmaps!=NULL)
-    {
-        for (int i=0;i<allocated_colors;i++)
-            delete (*ColorPixmaps)[i];
-        delete[] (*ColorPixmaps);
-    }
-    if (*ColorNames!=NULL)
-    {
-        for (int i=0;i<allocated_colors;i++)
-            delete (*ColorNames)[i];
-        delete[] (*ColorNames);
-    }
-
-    if (nr_of_cols<=0)
-    qDebug() << "WARNING: Number_of_cols<=0";
-
-    allocated_colors=nr_of_cols;
-    *ColorIcons=new QIcon*[allocated_colors];
-    *ColorPixmaps=new QPixmap*[allocated_colors];
-    *ColorNames=new QString*[allocated_colors];
-
-    for (int i=0;i<nr_of_cols;i++)
-    {
-        col1.setRgb(entries[i].rgb.red,entries[i].rgb.green,entries[i].rgb.blue);
-        //intensity=get_colorintensity(i);
-        intensity=RGB2YIQ(entries[i].rgb).y;
-        if (intensity>0.5)
-            pen1.setColor(Qt::black);
-        else
-            pen1.setColor(Qt::white);
-        templIcon.fill(col1);
-        templPainter.begin(&templIcon);
-        templPainter.setPen(pen1);
-        templPainter.setBrush(pen1.color());
-//strcpy(dummy,cmap_table[i].cname);
-//QFontInfo fi(standardfont);
-        if (int(9.0*rel_size)<9)
-        standardfont.setPixelSize(9);
-        else
-        standardfont.setPixelSize(int(9.0*rel_size));
-/*
-cout << "Text-Groesse zum Zeichnen(pixel)=" << standardfont.pixelSize() << endl;
-cout << "Text-Groesse zum Zeichnen(points)=" << standardfont.pointSize() << " | ";
-cout << "STANDARD IST 9" << endl;
-qDebug() << "FontInfo(pixel, sollte 9 sein)=" << fi.pixelSize() << " Name=" << entries[i].cname <<endl;*/
-//qDebug() << "stdFont.size=" << standardfont.pixelSize();///stdfont ist 9
-//qDebug() << "qApp.font.size=" << appfontsize;//appFont ist 13
-        templPainter.setFont(standardfont);
-        if (int(9.0*rel_size)<9)
-        {
-            if (entries[i].cname)
-            templPainter.drawText(4,15,QString(entries[i].cname));//4,15
-            else
-            templPainter.drawText(4,15,QObject::tr("unnamed"));//4,15
-        }
-        else
-        {
-            if (entries[i].cname)
-            templPainter.drawText(int(4.0*rel_size),int(15.0*rel_size),QString(entries[i].cname));//4,15
-            else
-            templPainter.drawText(int(4.0*rel_size),int(15.0*rel_size),QObject::tr("unnamed"));//4,15
-        }
-        templPainter.end();
-        (*ColorIcons)[i]=new QIcon(templIcon);
-        (*ColorPixmaps)[i]=new QPixmap(templIcon);
-        (*ColorNames)[i]=new QString(entries[i].cname);
-    }
-}
 
 void update_alpha_selectors(void)
 {
-bool vis_extern=(show_transparency_selector==1?true:false);
-bool vis_intern=(show_transparency_selector==2?true:false);
+    bool vis = (show_transparency_selector > 0);
     for (int i=0;i<ncolor_selectors;i++)
-    {
-        color_selectors[i]->alphaSelector->setVisible(vis_extern);
-        color_selectors[i]->cmbColorSelect->panels->alphaSlider->setVisible(vis_intern);
-    }
+        color_selectors[i]->setAlphaVisible(vis);
 }
 
 void update_color_selectors(void)
 {
-    QSize ic_size(12*toolBarSizeFactor,12*toolBarSizeFactor);
     int * real_colors=new int[4];
     int nr_of_aux_cols;
     int map_entries=get_main_color_indices(&real_colors,&nr_of_aux_cols);
@@ -517,67 +411,38 @@ void update_color_selectors(void)
     immediateUpdate=false;
     for (int i=0;i<map_entries;i++)
     {
-        memcpy(local_cmap_table+i,cmap_table+real_colors[i],sizeof(CMap_entry));
-        /*local_cmap_table[i].cname=new char[strlen(cmap_table[real_colors[i]].cname)+2];
-        strcpy(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);*/
-        local_cmap_table[i].cname = copy_string(NULL,cmap_table[real_colors[i]].cname);
+        local_cmap_table[i]=cmap_table[real_colors[i]];
     }
-    init_color_icons(map_entries,local_cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);
-    //Local colors are only main colors
     for (int i=0;i<ncolor_selectors;i++)
     {
         if (color_selectors[i]->prevent_from_update==false)
         {
             last_val=color_selectors[i]->currentIndex();
-            color_selectors[i]->updateColorIcons(map_entries,ColorPixmaps,ColorNames);
-            color_selectors[i]->cmbColorSelect->setIconSize(ic_size);
+            color_selectors[i]->updateColorIcons(map_entries,local_cmap_table);
             color_selectors[i]->setCurrentIndex(last_val);
         }
-    }
-    for (int i=0;i<map_entries;i++)
-    {
-        //delete[] local_cmap_table[i].cname;
-        local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,NULL);
     }
     delete[] local_cmap_table;
     delete[] real_colors;
     update_alpha_selectors();
     if (Form_Preferences)
-    {
-    Form_Preferences->tab_colors->colorsel->alphaSelector->hide();
-    Form_Preferences->tab_colors->colorsel->cmbColorSelect->panels->alphaSlider->hide();
-    }
+        Form_Preferences->tab_colors->colorsel->setAlphaVisible(false);
     immediateUpdate=sav_immUpd;
 }
 
 void update_one_line_style_selector(LineStyleSelector * selStyles,int len,QPixmap ** pix)
 {
-selStyles->blockSignals(true);
-int selected_val=selStyles->currentIndex();
-    for (int i=0;i<selStyles->cmbStyleSelect->panels->number_of_elements;i++)
-    delete selStyles->LineNames[i];
-delete[] selStyles->LineNames;
-    selStyles->LineNames=new QString*[len];
-char dummy[48];
-        for (int i=0;i<len;i++)
-        {
-        sprintf(dummy,"%d",i);
-        selStyles->LineNames[i]=new QString(dummy);
-        }
-selStyles->cmbStyleSelect->reinitializePanels(len,1,len,pix,selStyles->LineNames,false,false);
-selStyles->setCurrentIndex(selected_val);
-selStyles->blockSignals(false);
+    selStyles->blockSignals(true);
+    int selected_val = selStyles->currentIndex();
+    selStyles->repopulateIcons(len, pix);
+    selStyles->setCurrentIndex(selected_val);
+    selStyles->blockSignals(false);
 }
 
 void update_line_style_selectors(void)
 {
-int x_size=82*toolBarSizeFactor;
-int y_size=16*toolBarSizeFactor;
     for (int i=0;i<nr_of_line_style_selectors;i++)
-    {
-    update_one_line_style_selector(line_style_selectors[i],nr_of_current_linestyles,LinePixmaps);
-    line_style_selectors[i]->cmbStyleSelect->setIconSize(QSize(x_size,y_size));
-    }
+        update_one_line_style_selector(line_style_selectors[i],nr_of_current_linestyles,LinePixmaps);
 }
 
 void update_font_selectors(bool appearance=false)
@@ -793,8 +658,6 @@ int replacement_main(int argc, char **argv)
     }
     /* default is POSIX */
     set_locale_num(FALSE);
-
-    init_color_icons(number_of_colors(),cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);//needed for generating color-selectors
 
     init_phase2();//includes read_settings
 
@@ -1637,7 +1500,6 @@ debug_out << "QtGrace started in normal GUI-mode." << endl;
             getparms(batchfile);
         }
     }
-    //init_color_icons(number_of_colors(),cmap_table,allocated_colors,&ColorIcons,&ColorPixmaps,&ColorNames);
     update_color_selectors();//to adapt to a change in the color palette
 /* never reaches -- now it does, because the event loop is elsewhere*/
 return 0;
@@ -2563,56 +2425,23 @@ QPainter paint;
 QBrush brush;
 QTransform trans;
 trans=trans.scale(toolBarSizeFactor,toolBarSizeFactor);
-/*int appfontsize=QApplication::font().pixelSize();
-//qDebug() << "Recreate Patterns";
-if (appfontsize<=0)
-{
-appfontsize=QApplication::font().pointSize();
-if (appfontsize<=0) appfontsize=9;
-}
-double rel_size=appfontsize/13.0*toolBarSizeFactor;*/
-QFont standardfont=qApp->font();
-    /*
-    if (int(13.0*rel_size)<13)//9
-    standardfont.setPixelSize(13);//9
-    else
-    standardfont.setPixelSize(int(13.0*rel_size));//9
-    */
-standardfont.setPixelSize((int)(h*0.75));
-//QFontMetrics fi(standardfont);
-//QRect bb=fi.boundingRect(QObject::tr("None"));
-//qDebug() << "w x h=" << w << "x" << h << " / bb=" << bb.width() << "x" << bb.height() << "PixelSize=" << standardfont.pixelSize();
-//qDebug() << "position=" << (w-bb.width())/2 << "/" << h-ceil((h-bb.height())*0.5);
 for (int i=0;i<MAXPATTERNS;i++)
 {
+pm.fill(Qt::transparent);
 paint.begin(&pm);
 paint.setPen(Qt::NoPen);
-paint.setFont(standardfont);
-paint.fillRect(0,0,w+1,h+1,QApplication::palette().window().color());
 paint.setBrush(Qt::NoBrush);
-    if (i==0)
-    {
-        paint.setPen(Qt::black);
-        //paint.drawText((w-bb.width())/2,h-(h-(bb.height()))/2,QObject::tr("None"));//16
-        ///paint.drawText((w-bb.width())/2,h-int(3.0*rel_size),QObject::tr("None"));//int(4.0*rel_size)
-        ///paint.drawText((w-bb.width())/2,h-ceil((h-bb.height())*0.5),QObject::tr("None"));
-        paint.drawText(QRect(0,0,w,h), Qt::AlignCenter, QObject::tr("None"));
-        paint.setPen(Qt::NoPen);
-        //qDebug() << "Text Pixel Size=" << paint.font().pixelSize();
-    }
-    else
+    if (i>0)
     {
         brush.setColor(Qt::black);
         brush.setTexture(*(patterns[i]));
         brush.setTransform(trans);
         paint.setBrush(brush);
         paint.drawRect(0,0,w,h);
-        //paint.drawRect((w-h)/2,0,h,h);
     }
 paint.end();
 delete PatternPixmaps[i];
 PatternPixmaps[i]=new QPixmap(pm);
-//qDebug() << "Recreate Patterns: PatternPixmaps[i].size=" << PatternPixmaps[i]->size();
 }
 }
 

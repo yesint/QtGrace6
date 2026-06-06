@@ -547,10 +547,6 @@ QPixmap * Qt_m_vh_lr_tb_bits=NULL;
 QPixmap * Qt_m_vh_rl_bt_bits=NULL;
 QPixmap * Qt_m_vh_rl_tb_bits=NULL;
 
-int allocated_colors;
-QIcon ** ColorIcons;
-QPixmap ** ColorPixmaps;
-QString ** ColorNames;
 CMap_entry *cmap_table;
 
 QCursor * wait_cursor;
@@ -640,7 +636,6 @@ int get_QtFontID_from_Grace_Name(const char *name,int whatlist);//get the index 
 int get_QtFontID_from_GraceID(int font_id,int whatlist);
 
 void update_default_props(void);
-void init_color_icons(void);
 void read_settings(void);
 void initialize_default_csv_format(void);
 void generate_string_Qt_aware(char * string,QString text);
@@ -1262,12 +1257,8 @@ QPixmap templIcon(x_size,y_size);
 QPainter templPainter;
 QPen pen1(Qt::black);
 pen1.setCapStyle(Qt::FlatCap);
-templIcon.fill(QApplication::palette().window().color());
+templIcon.fill(Qt::transparent);
 templPainter.begin(&templIcon);
-QFont fnt=qApp->font();
-//fnt.setPixelSize(y_size-4);
-fnt.setPixelSize(12*toolBarSizeFactor);
-templPainter.setFont(fnt);
 if ((*pendash)!=NULL) delete (*pendash);
 (*pendash)=new QVector<qreal>();
 //qDebug() << "Len=" << len;
@@ -1278,10 +1269,7 @@ for (int j=0;j<len;j++)
 }
 if (linestyle_pattern[0]==0)//starts with white although it should start with black
 {
-    templPainter.setPen(pen1);
-    //templPainter.drawText(10,13,"None");//15
-    //templPainter.drawText(10*toolBarSizeFactor,y_size-2,"None");
-    templPainter.drawText(10*toolBarSizeFactor,13*toolBarSizeFactor,"None");
+    // blank pixmap — "None" label is provided as item text in the dropdown
 }
 else
 {
@@ -1355,15 +1343,22 @@ void reset_stdFontList(bool clear_only=false)
                     char ermsg[128];
                     sprintf(ermsg,"Could not find font %s!",fname.toLatin1().constData());
                     errwin(ermsg);
+                    // Fall back to the first available default font so stdFontList
+                    // always has exactly nfonts entries — a missing font must not
+                    // leave the list short, which would push subsequent Grace font
+                    // indices out of range and cause Qt6 QComboBox::setCurrentIndex
+                    // to clear the selection to -1.
+                    stfont = defaultFontList.isEmpty() ? QFont() : defaultFontList.at(0);
                 }
-                else
-                {
-                    stdFontList << stfont;
-                }
+                stdFontList << stfont;
             }
             else
             {
+                // Grace font not mapped to any default Qt font — still add a
+                // placeholder so the list index matches the Grace font index.
                 fname=QString();
+                stfont = defaultFontList.isEmpty() ? QFont() : defaultFontList.at(0);
+                stdFontList << stfont;
             }
             //cout << "Looking for Grace Font #" << get_fontalias(i) << "#=" << font_index << " QtFontName=" << fname.toLatin1().constData() << endl;
         }
@@ -3114,11 +3109,6 @@ cout << "System Decimal Point=" << SystemsDecimalPoint << endl;
 cout << "comma_locale = " << comma_locale->decimalPoint().toLatin1() << endl;
 cout << "dot_locale = " << dot_locale->decimalPoint().toLatin1() << endl;
 */
-
-    allocated_colors=0;
-    ColorIcons=NULL;
-    ColorPixmaps=NULL;
-    ColorNames=NULL;
 
     Node=NULL;
     for (int i=0;i<16;i++)
@@ -5169,32 +5159,12 @@ void addPatternSelector(FillPatternSelector * selector)
 
 void update_PatternSelectors(void)
 {
-    QString ** titles=NULL;
-    int old_w=PatternPixmaps[0]->width();
-    int old_h=PatternPixmaps[0]->height();
-    bool new_dimension=false;
-    RecreatePatternIcons(38*toolBarSizeFactor,16*toolBarSizeFactor);
-    if (38*toolBarSizeFactor!=old_w || 16*toolBarSizeFactor!=old_h) new_dimension=true;
-//qDebug() << "new dimension=" << new_dimension;
-    int last_pat_val;
-    for (int i=0;i<nr_of_pattern_selectors;i++)
+    RecreatePatternIcons(38*toolBarSizeFactor, 16*toolBarSizeFactor);
+    for (int i = 0; i < nr_of_pattern_selectors; i++)
     {
-    //if (titles!=NULL) delete[] titles;
-    titles=new QString*[all_pattern_selectors[i]->cmbFillPattern->panels->number_of_elements];
-        for (int j=0;j<all_pattern_selectors[i]->cmbFillPattern->panels->number_of_elements;j++)
-        {
-        titles[j]=new QString(all_pattern_selectors[i]->cmbFillPattern->title_strings[j]);
-        //qDebug() << "Title=" << *(titles[j]);
-        }
-    last_pat_val=all_pattern_selectors[i]->currentIndex();
-    all_pattern_selectors[i]->cmbFillPattern->reinitializePanels(
-             all_pattern_selectors[i]->cmbFillPattern->panels->row_count,all_pattern_selectors[i]->cmbFillPattern->panels->col_count,
-             all_pattern_selectors[i]->cmbFillPattern->panels->last_col_count,PatternPixmaps,titles,all_pattern_selectors[i]->cmbFillPattern->text_only,false);
-    all_pattern_selectors[i]->setCurrentIndex(last_pat_val);
-        if (new_dimension==true)
-        all_pattern_selectors[i]->adjustSize();//needed because Patern-dimensions may change
+        all_pattern_selectors[i]->repopulateIcons();
+        all_pattern_selectors[i]->adjustSize();
     }
-    //if (titles!=NULL) delete[] titles;
 }
 
 void addOrderSelector(OrderSelector * selector)

@@ -107,7 +107,7 @@ public:
     QGroupBox * fraSymbProp;
     ColorSelector * cmbSymbColor;
     StdSelector * cmbSymbType;
-    stdSlider * sldSymbSize;
+    QDoubleSpinBox * spnSymbSize;
     StdSelector * selSymbChar;//changed in v0.2.6
     //stdLineEdit * ledSymbChar;
     QGroupBox * fraLineProp;
@@ -224,7 +224,7 @@ public:
     QCheckBox * chkArrowClip;
     LineWidthSelector * spnMaxLength;
     QGroupBox * fraBarLine;
-    stdSlider * sldBarSize;
+    QDoubleSpinBox * spnBarSize;
     LineWidthSelector * spnbarWidth;
     LineStyleSelector * cmbBarStyle;
     QGroupBox * fraRiserLine;

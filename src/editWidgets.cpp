@@ -125,7 +125,6 @@ extern int nr_of_true_changes(QStringList & list);
 extern void SetDecimalSeparatorToUserValue(char * str,bool remove_space=true);
 extern void strToUpper(char * tar,const char * ch);
 extern double rint_v2(double x);
-extern void init_color_icons(int nr_of_cols,CMap_entry * entries,int & allocated_colors,QIcon *** ColorIcons,QPixmap *** ColorPixmaps,QString *** ColorNames);
 extern void UpdateAllWindowContents(void);
 extern void updateAllSelectors(void);
 extern void update_font_selectors(bool appearance);
@@ -3280,7 +3279,7 @@ line=0;
 for (int i=0;i<MAXREGION;i++)
 {
 selCol[i]=new ColorSelector(this);
-//selCol[i]->alphaSelector->setVisible(false);//no alpha for regions
+//selCol[i]->setAlphaVisible(false);//no alpha for regions
 selWidth[i]=new LineWidthSelector(this);
 selStyle[i]=new LineStyleSelector(this);
 lblRegion[i]=new QLabel(tr("Region ")+QString::number(i)+QString(": "),this);
@@ -5746,12 +5745,9 @@ strcpy(base_color_names[7],QString("cyan").toLatin1().constData());
 for (int i=0;i<8;i++) base_colors[i].cname=copy_string(base_colors[i].cname,base_color_names[i]);
 
     local_cmap_table=NULL;
-    allocated_loc_colors=temp_spec_length=spectrum_path_length=0;
+    temp_spec_length=spectrum_path_length=0;
     temp_spec=NULL;
     path_positions=NULL;
-    locColorIcons=NULL;
-    locColorPixmaps=NULL;
-    locColorNames=NULL;
     tmp_path_length=2;
     tmp_path_pos=new int[2];
     tmp_path_pos[0]=1;//0;
@@ -5768,8 +5764,7 @@ for (int i=0;i<8;i++) base_colors[i].cname=copy_string(base_colors[i].cname,base
     setWindowIcon(QIcon(*GraceIcon));
     colorsel=new ColorSelector(this);//shows current palette
     colorsel->setAlpha(255);
-    colorsel->alphaSelector->hide();
-    colorsel->cmbColorSelect->panels->alphaSlider->hide();
+    colorsel->setAlphaVisible(false);
     colorsel->lblText->setText(tr("Current color palette:"));
     ///colorsel->prevent_from_update=true;//I deactivated this, there is no real reason for having this and you get more problems with having this active
     connect(colorsel,SIGNAL(currentIndexChanged(int)),SLOT(curColorChanged(int)));
@@ -5847,14 +5842,9 @@ for (int i=0;i<8;i++) base_colors[i].cname=copy_string(base_colors[i].cname,base
     connect(selNumberOfCurPathPoint,SIGNAL(currentValueChanged(int)),SLOT(CurrentPathPointChanged(int)));
     selPathCol=new ColorSelector(this);
     selPathCol->setAlpha(255);
-    selPathCol->alphaSelector->hide();
-    init_color_icons(8,base_colors,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
-    selPathCol->updateColorIcons(8,locColorPixmaps,locColorNames);
+    selPathCol->setAlphaVisible(false);
+    selPathCol->updateColorIcons(8,base_colors);
     connect(selPathCol,SIGNAL(currentIndexChanged(int)),SLOT(CurrentPathColorChanged(int)));
-
-    locColorIcons=NULL;
-    locColorPixmaps=NULL;
-    locColorNames=NULL;
 
     layout1=new QGridLayout;
     //layout1->setMargin(STD_MARGIN);
@@ -6135,9 +6125,8 @@ void frmColorManagement::doAddColor(void)
     addColorToLocal(&cmap);
     //cout << "add new color: " << map_entries-1 << endl;
     cur_col_num=map_entries-1;
-    colorsel->updateColorIcons(allocated_loc_colors,locColorPixmaps,locColorNames);
-    colorsel->alphaSelector->hide();
-    colorsel->cmbColorSelect->panels->alphaSlider->hide();
+    colorsel->updateColorIcons(map_entries,local_cmap_table);
+    colorsel->setAlphaVisible(false);
     char dummy[8];
     sprintf(dummy,"%d",cur_col_num);
     lblColNumber->setText(tr("Number = ")+QString(dummy));
@@ -6149,11 +6138,9 @@ void frmColorManagement::doDelColor(void)
     //cout << "delete current color: " << cur_col_num << endl;
     //delete_color(cur_col_num);
     delColorToLocal(cur_col_num);
-    //init_color_icons();
-    colorsel->updateColorIcons(allocated_loc_colors,locColorPixmaps,locColorNames);
+    colorsel->updateColorIcons(map_entries,local_cmap_table);
     colorsel->setCurrentIndex(0);
-    colorsel->alphaSelector->hide();
-    colorsel->cmbColorSelect->panels->alphaSlider->hide();
+    colorsel->setAlphaVisible(false);
     init_with_color(0);
 }
 
@@ -6164,10 +6151,9 @@ void frmColorManagement::doEditColor(void)
     //cout << "edit current color" << endl;
     //memcpy(&(cmap_table[cur_col_num].rgb),&(cmap.rgb),sizeof(RGB));
     //copy_string(cmap_table[cur_col_num].cname,cmap.cname);
-    colorsel->updateColorIcons(allocated_loc_colors,locColorPixmaps,locColorNames);
+    colorsel->updateColorIcons(map_entries,local_cmap_table);
     colorsel->setCurrentIndex(cur_col_num);
-    colorsel->alphaSelector->hide();
-    colorsel->cmbColorSelect->panels->alphaSlider->hide();
+    colorsel->setAlphaVisible(false);
 }
 
 void frmColorManagement::doSelColor(void)
@@ -6204,10 +6190,8 @@ void frmColorManagement::doSetStdColors(void)
         local_cmap_table[i].cname = NULL;
         local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,cmap_init[i].cname);
     }
-    init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
-    colorsel->updateColorIcons(map_entries,locColorPixmaps,locColorNames);
-    colorsel->alphaSelector->hide();
-    colorsel->cmbColorSelect->panels->alphaSlider->hide();
+    colorsel->updateColorIcons(map_entries,local_cmap_table);
+    colorsel->setAlphaVisible(false);
 }
 
 void frmColorManagement::doSetSpectrum(void)
@@ -6231,10 +6215,8 @@ void frmColorManagement::doSetSpectrum(void)
         local_cmap_table[i].cname = NULL;
         local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,temp_spec[i].cname);
     }
-    init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
-    colorsel->updateColorIcons(map_entries,locColorPixmaps,locColorNames);
-    colorsel->alphaSelector->hide();
-    colorsel->cmbColorSelect->panels->alphaSlider->hide();
+    colorsel->updateColorIcons(map_entries,local_cmap_table);
+    colorsel->setAlphaVisible(false);
     QMessageBox::information(this,tr("Warning"),tr("Local color palette changed. Check palette at top of dialog.\nIf you want to change the palette for the whole project please press Apply or Accept at bottom of dialog."));
 }
 
@@ -6317,13 +6299,11 @@ void frmColorManagement::addColorToLocal(CMap_entry * entry)
     local_cmap_table=n_table;
     map_entries++;
     //cout << "new map_entries=" << map_entries << endl;
-    init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
 }
 
 void frmColorManagement::editColorToLocal(CMap_entry * entry,int nr)
 {
     memcpy(local_cmap_table+nr,entry,sizeof(CMap_entry));
-    init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
 }
 
 void frmColorManagement::delColorToLocal(int nr)
@@ -6341,7 +6321,6 @@ void frmColorManagement::delColorToLocal(int nr)
     delete[] local_cmap_table;
     local_cmap_table=n_table;
     map_entries--;
-    init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
 }
 
 void frmColorManagement::NrOfPathPointsChanged(int nr)
@@ -6444,11 +6423,8 @@ void frmColorManagement::init(void)
         local_cmap_table[i].cname = NULL;
         local_cmap_table[i].cname = copy_string(local_cmap_table[i].cname,cmap_table[real_colors[i]].cname);
     }
-    init_color_icons(map_entries,local_cmap_table,allocated_loc_colors,&locColorIcons,&locColorPixmaps,&locColorNames);
-    //Local colors are only main colors
-    colorsel->updateColorIcons(map_entries,locColorPixmaps,locColorNames);
-    colorsel->alphaSelector->hide();
-    colorsel->cmbColorSelect->panels->alphaSlider->hide();
+    colorsel->updateColorIcons(map_entries,local_cmap_table);
+    colorsel->setAlphaVisible(false);
 }
 
 void frmColorManagement::doApply(void)

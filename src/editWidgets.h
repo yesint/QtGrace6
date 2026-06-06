@@ -786,10 +786,6 @@ public:
     int cur_col_num;
     int map_entries;
     CMap_entry * local_cmap_table;
-    int allocated_loc_colors;
-    QIcon ** locColorIcons;
-    QPixmap ** locColorPixmaps;
-    QString ** locColorNames;
     int temp_spec_length;
     CMap_entry * temp_spec;
     int spectrum_path_length;
