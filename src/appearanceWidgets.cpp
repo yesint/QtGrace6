@@ -612,13 +612,13 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     fraSymbProp       = ui->fraSymbProp;
     cmbSymbType       = ui->cmbSymbType;
     spnSymbSize       = ui->spnSymbSize;
-    cmbSymbColor      = new ColorSelector(ui->lblSymbColor, ui->cmbSymbColorBox, ui->swSymbColor, ui->spnSymbAlpha, this);
+    cmbSymbColor      = new ColorSelector(ui->lblSymbColor, ui->cmbSymbColorBox, this);
     selSymbChar       = new StdSelector(ui->lblSymbChar, ui->selSymbCharBox, this);
     fraSetLineProp    = ui->fraSetLineProp;
     cmbLineType       = new StdSelector(ui->lblLineType, ui->cmbLineTypeBox, this);
     cmbLineStyle      = new LineStyleSelector(ui->lblLineStyle, ui->cmbLineStyleBox, this);
     spnLineWidth      = new LineWidthSelector(ui->lblLineWidth, ui->spnLineWidthBox, this);
-    cmbLineColor      = new ColorSelector(ui->lblLineColor, ui->cmbLineColorBox, ui->swLineColor, ui->spnLineAlpha, this);
+    cmbLineColor      = new ColorSelector(ui->lblLineColor, ui->cmbLineColorBox, this);
     fraDispOpt        = ui->fraDispOpt;
     chkAnnVal         = ui->chkAnnVal;
     spnAnnValSize     = ui->spnAnnValSize;
@@ -630,7 +630,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     cmbSymbPattern    = new FillPatternSelector(ui->lblSymbPattern, ui->cmbSymbPatternBox, this);
     spnSymbWidth      = new LineWidthSelector(ui->lblSymbWidth, ui->spnSymbWidthBox, this);
     fraSymbFill       = ui->fraSymbFill;
-    cmbSymbFillColor  = new ColorSelector(ui->lblSymbFillColor, ui->cmbSymbFillColorBox, ui->swSymbFillColor, ui->spnSymbFillAlpha, this);
+    cmbSymbFillColor  = new ColorSelector(ui->lblSymbFillColor, ui->cmbSymbFillColorBox, this);
     cmbSymbFillPattern= new FillPatternSelector(ui->lblSymbFillPattern, ui->cmbSymbFillPatternBox, this);
     fraExtra          = ui->fraExtra;
     spnSymbSkip       = new stdIntSelector(ui->lblSymbSkip, ui->spnSymbSkipBox, this);
@@ -643,7 +643,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     cmbFillType       = new StdSelector(ui->lblFillType, ui->cmbFillTypeBox, this);
     cmbRule           = new StdSelector(ui->lblRule, ui->cmbRuleBox, this);
     cmbAreaFillPattern= new FillPatternSelector(ui->lblAreaFillPattern, ui->cmbAreaFillPatternBox, this);
-    cmbAreaFillColor  = new ColorSelector(ui->lblAreaFillColor, ui->cmbAreaFillColorBox, ui->swAreaFillColor, ui->spnAreaFillAlpha, this);
+    cmbAreaFillColor  = new ColorSelector(ui->lblAreaFillColor, ui->cmbAreaFillColorBox, this);
     cmbSet            = new SetSelectorCombo(ui->lblSet, ui->cmbSetBox, this);
     fraBaseLine       = ui->fraBaseLine;
     cmbBaseType       = new StdSelector(ui->lblBaseType, ui->cmbBaseTypeBox, this);
@@ -652,7 +652,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     fraTextProp       = ui->fraTextProp;
     cmbFont           = new FontSelector(ui->lblFont, ui->cmbFontBtn, ui->cmbFontBox, this);
     selAlign          = new AlignmentSelector(ui->lblAlign, ui->selAlignBox, this);
-    cmbAnnColor       = new ColorSelector(ui->lblAnnColor, ui->cmbAnnColorBox, ui->swAnnColor, ui->spnAnnAlpha, this);
+    cmbAnnColor       = new ColorSelector(ui->lblAnnColor, ui->cmbAnnColorBox, this);
     sldFontAngle      = ui->sldFontAngle;
     spnFontAngle      = ui->spnFontAngle;
     ledPrepend        = new stdLineEditLaTeX(ui->lblPrepend, ui->ledPrependBox, this);
@@ -667,7 +667,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     // Error bars tab
     fraCommon         = ui->fraCommon;
     cmbPlacement      = new StdSelector(ui->lblPlacement, ui->cmbPlacementBox, this);
-    cmbErrColor       = new ColorSelector(ui->lblErrColor, ui->cmbErrColorBox, ui->swErrColor, ui->spnErrAlpha, this);
+    cmbErrColor       = new ColorSelector(ui->lblErrColor, ui->cmbErrColorBox, this);
     cmbErrPattern     = new FillPatternSelector(ui->lblErrPattern, ui->cmbErrPatternBox, this);
     chkConnectErrorBars= new StdSelector(ui->lblConnectErrorBars, ui->chkConnectErrorBarsBox, this);
     chkShowInLegend   = ui->chkShowInLegend;

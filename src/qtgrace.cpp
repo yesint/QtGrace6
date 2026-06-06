@@ -4655,12 +4655,21 @@ if (!screenshotSavePath.isEmpty() || !screenshotComparePath.isEmpty()) {
         dlg->listSet->set_graph_number(get_cg(), false);
         dlg->init();
         dlg->show();
-        // Optional tab index: "setapp:2" selects the third tab
+        // Optional suffix: "setapp:2" selects tab 2; "setapp:pop" opens the
+        // symbol-color dropdown (to show the in-popup opacity control).
         int colon = screenshotDialog.indexOf(':');
-        if (colon >= 0)
-            dlg->flp->tabs->setCurrentIndex(screenshotDialog.mid(colon+1).toInt());
+        QString suffix = (colon >= 0) ? screenshotDialog.mid(colon+1) : QString();
         QApplication::processEvents(QEventLoop::AllEvents, 500);
         shotTarget = dlg;
+        if (suffix == "pop") {
+            dlg->flp->cmbSymbColor->setAlpha(128);   // demonstrate a translucent color
+            dlg->flp->cmbSymbColor->cmbColorSelect->showPopup();
+            QApplication::processEvents(QEventLoop::AllEvents, 500);
+            if (QApplication::activePopupWidget()) shotTarget = QApplication::activePopupWidget();
+        } else if (!suffix.isEmpty()) {
+            dlg->flp->tabs->setCurrentIndex(suffix.toInt());
+            QApplication::processEvents(QEventLoop::AllEvents, 500);
+        }
     }
     QPixmap px = shotTarget->grab();
 

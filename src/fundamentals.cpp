@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "fundamentals.h"
+#include <QStylePainter>
+#include <QStyleOptionComboBox>
 #include "MainWindow.h"
 #include "allWidgets.h"
 #include "windowWidgets.h"
@@ -3120,6 +3122,25 @@ void ColorComboBox::showPopup()
     action->setDefaultWidget(grid_widget);
     menu->addAction(action);
 
+    // Opacity control below the color grid (stays open while adjusting)
+    if (m_showAlpha) {
+        menu->addSeparator();
+        QWidget *op_widget = new QWidget;
+        QHBoxLayout *op = new QHBoxLayout(op_widget);
+        op->setContentsMargins(4, 2, 4, 2);
+        op->setSpacing(4);
+        op->addWidget(new QLabel(tr("Opacity:"), op_widget));
+        QSpinBox *sp = new QSpinBox(op_widget);
+        sp->setRange(0, 255);
+        sp->setValue(m_alpha);
+        sp->setToolTip(tr("0 = transparent, 255 = opaque"));
+        op->addWidget(sp);
+        connect(sp, &QSpinBox::valueChanged, this, &ColorComboBox::setAlpha);
+        QWidgetAction *op_action = new QWidgetAction(menu);
+        op_action->setDefaultWidget(op_widget);
+        menu->addAction(op_action);
+    }
+
     m_popup = menu;
     connect(menu, &QObject::destroyed, this, [this]() { m_popup = nullptr; });
     menu->popup(mapToGlobal(QPoint(0, height())));
@@ -3130,25 +3151,47 @@ void ColorComboBox::hidePopup()
     if (m_popup) { m_popup->close(); m_popup = nullptr; }
 }
 
+void ColorComboBox::setAlpha(int a)
+{
+    if (a < 0 || a > 255) a = 255;
+    if (a == m_alpha) return;
+    m_alpha = a;
+    update();
+    emit alphaChanged(m_alpha);
+}
+
+void ColorComboBox::setAlphaVisible(bool v)
+{
+    m_showAlpha = v;
+    update();
+}
+
+// Paint the closed combo face as the selected color blended over white by alpha,
+// instead of the raw item icon. The frame + drop-down arrow are drawn normally.
+void ColorComboBox::paintEvent(QPaintEvent *)
+{
+    QStylePainter p(this);
+    QStyleOptionComboBox opt;
+    initStyleOption(&opt);
+    opt.currentText.clear();
+    opt.currentIcon = QIcon();
+    p.drawComplexControl(QStyle::CC_ComboBox, opt);
+
+    QRect field = style()->subControlRect(QStyle::CC_ComboBox, &opt, QStyle::SC_ComboBoxEditField, this);
+    field.adjust(1, 1, -1, -1);
+    int idx = currentIndex();
+    QColor col = (idx >= 0 && idx < count()) ? itemData(idx).value<QColor>() : QColor(0, 0, 0);
+    int a = m_showAlpha ? m_alpha : 255;
+    int r = 255 + (col.red()   - 255) * a / 255;
+    int g = 255 + (col.green() - 255) * a / 255;
+    int b = 255 + (col.blue()  - 255) * a / 255;
+    p.fillRect(field, QColor(r, g, b));
+}
+
 ColorSelector::ColorSelector(QWidget * parent):QWidget(parent)
 {
     lblText = new QLabel(tr("Color:"));
     prevent_from_update = false;
-
-    int swatchSz = qMax(14, int(14.0 * toolBarSizeFactor));
-
-    // spnAlpha must exist before updateColorIcons (which calls refreshFinalColor)
-    spnAlpha = new QSpinBox(this);
-    spnAlpha->setRange(0, 255);
-    spnAlpha->setValue(255);
-    spnAlpha->setFixedWidth(55);
-    spnAlpha->setToolTip(tr("Opacity (0 = transparent, 255 = opaque)"));
-    connect(spnAlpha, SIGNAL(valueChanged(int)), this, SLOT(onAlphaChanged(int)));
-
-    rectFinalColor = new QLabel(this);
-    rectFinalColor->setFixedSize(swatchSz + 4, swatchSz + 4);
-    rectFinalColor->setScaledContents(false);
-    rectFinalColor->setToolTip(tr("Final color with opacity applied"));
 
     cmbColorSelect = new ColorComboBox(this);
     {
@@ -3161,7 +3204,9 @@ ColorSelector::ColorSelector(QWidget * parent):QWidget(parent)
         updateColorIcons(n, tbl);
         delete[] tbl;
     }
+    cmbColorSelect->setAlphaVisible(show_transparency_selector > 0);
     connect(cmbColorSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onColorChanged(int)));
+    connect(cmbColorSelect, SIGNAL(alphaChanged(int)), this, SLOT(onAlphaChanged(int)));
 
     layout = new QHBoxLayout;
     layout->setAlignment(Qt::AlignVCenter);
@@ -3169,34 +3214,18 @@ ColorSelector::ColorSelector(QWidget * parent):QWidget(parent)
     layout->setSpacing(STD_SPACING);
     layout->addWidget(lblText);
     layout->addWidget(cmbColorSelect);
-    layout->addWidget(rectFinalColor);
-    layout->addWidget(spnAlpha);
     setLayout(layout);
 
     add_ColorSelector(this);
-
-    spnAlpha->setVisible(show_transparency_selector > 0);
 }
 
-// Adopt label + color combo + final-color swatch + alpha spinbox from a .ui file.
-ColorSelector::ColorSelector(QLabel * lbl, ColorComboBox * combo, QLabel * swatch, QSpinBox * alpha, QWidget * parent):QWidget(parent)
+// Adopt label + color combo from a .ui file. Opacity now lives in the combo popup,
+// and the combo paints its own blended swatch, so no separate swatch/spinbox.
+ColorSelector::ColorSelector(QLabel * lbl, ColorComboBox * combo, QWidget * parent):QWidget(parent)
 {
     prevent_from_update = false;
     lblText = lbl;
     cmbColorSelect = combo;
-    rectFinalColor = swatch;
-    spnAlpha = alpha;
-
-    int swatchSz = qMax(14, int(14.0 * toolBarSizeFactor));
-    rectFinalColor->setFixedSize(swatchSz + 4, swatchSz + 4);
-    rectFinalColor->setScaledContents(false);
-    rectFinalColor->setToolTip(tr("Final color with opacity applied"));
-
-    spnAlpha->setRange(0, 255);
-    spnAlpha->setValue(255);
-    spnAlpha->setFixedWidth(55);
-    spnAlpha->setToolTip(tr("Opacity (0 = transparent, 255 = opaque)"));
-
     {
         int * real_colors = new int[4];
         int aux_cols;
@@ -3207,58 +3236,22 @@ ColorSelector::ColorSelector(QLabel * lbl, ColorComboBox * combo, QLabel * swatc
         updateColorIcons(n, tbl);
         delete[] tbl;
     }
-    connect(spnAlpha, SIGNAL(valueChanged(int)), this, SLOT(onAlphaChanged(int)));
+    cmbColorSelect->setAlphaVisible(show_transparency_selector > 0);
     connect(cmbColorSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onColorChanged(int)));
+    connect(cmbColorSelect, SIGNAL(alphaChanged(int)), this, SLOT(onAlphaChanged(int)));
 
     layout = nullptr;
     add_ColorSelector(this);
-    spnAlpha->setVisible(show_transparency_selector > 0);
 }
 
 void ColorSelector::onColorChanged(int idx)
 {
-    refreshFinalColor();
     emit currentIndexChanged(idx);
 }
 
 void ColorSelector::onAlphaChanged(int val)
 {
-    refreshFinalColor();
     emit alphaChanged(val);
-}
-
-void ColorSelector::refreshFinalColor(void)
-{
-    int idx = cmbColorSelect->currentIndex();
-    int a = spnAlpha->value();
-    QColor col = (idx >= 0 && idx < cmbColorSelect->count())
-        ? cmbColorSelect->itemData(idx).value<QColor>()
-        : QColor(0, 0, 0);
-    // blend over white to show alpha effect
-    int r = 255 + (col.red()   - 255) * a / 255;
-    int g = 255 + (col.green() - 255) * a / 255;
-    int b = 255 + (col.blue()  - 255) * a / 255;
-
-    int w = rectFinalColor->width();
-    int h = rectFinalColor->height();
-    QPixmap composite(w, h);
-    composite.fill(QColor(r, g, b));
-
-    QIcon opacIcon = QIcon::fromTheme("edit-opacity");
-    if (!opacIcon.isNull()) {
-        int iconSz = h * 3 / 4;
-        QPixmap iconPm = opacIcon.pixmap(iconSz, iconSz);
-        // invert icon on dark backgrounds so it stays visible
-        int luma = (77 * r + 150 * g + 29 * b) >> 8;
-        if (luma < 128) {
-            QImage img = iconPm.toImage().convertToFormat(QImage::Format_ARGB32);
-            img.invertPixels(QImage::InvertRgb);
-            iconPm = QPixmap::fromImage(img);
-        }
-        QPainter p(&composite);
-        p.drawPixmap((w - iconSz) / 2, (h - iconSz) / 2, iconPm);
-    }
-    rectFinalColor->setPixmap(composite);
 }
 
 void ColorSelector::update_color_panels(void)
@@ -3280,7 +3273,7 @@ int ColorSelector::currentIndex(void)
 
 int ColorSelector::alpha(void)
 {
-    return spnAlpha->value();
+    return cmbColorSelect->alpha();
 }
 
 void ColorSelector::setCurrentIndex(int i)
@@ -3290,12 +3283,12 @@ void ColorSelector::setCurrentIndex(int i)
 
 void ColorSelector::setAlpha(int i)
 {
-    spnAlpha->setValue(i < 0 || i > 255 ? 255 : i);
+    cmbColorSelect->setAlpha(i);
 }
 
 void ColorSelector::setAlphaVisible(bool v)
 {
-    spnAlpha->setVisible(v);
+    cmbColorSelect->setAlphaVisible(v);
 }
 
 void ColorSelector::updateColorIcons(int nr_of_cols, CMap_entry * entries)
@@ -3317,7 +3310,7 @@ void ColorSelector::updateColorIcons(int nr_of_cols, CMap_entry * entries)
     }
     cmbColorSelect->setCurrentIndex((saved >= 0 && saved < nr_of_cols) ? saved : 0);
     cmbColorSelect->blockSignals(false);
-    refreshFinalColor();
+    cmbColorSelect->update();
 }
 
 StdSelector::StdSelector(QWidget * parent,QString label,int number,QString * entr):QWidget(parent)

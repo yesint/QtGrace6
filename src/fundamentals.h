@@ -883,7 +883,16 @@ public:
 explicit ColorComboBox(QWidget *parent = nullptr);
 void showPopup() override;
 void hidePopup() override;
+int alpha(void) const { return m_alpha; }
+void setAlpha(int a);
+void setAlphaVisible(bool v);// whether the opacity control is offered in the popup
+signals:
+void alphaChanged(int a);
+protected:
+void paintEvent(QPaintEvent *e) override;// paint the closed face as the blended color
 private:
+int m_alpha = 255;
+bool m_showAlpha = true;
 QWidget *m_popup = nullptr;
 };
 
@@ -892,12 +901,10 @@ class ColorSelector:public QWidget
 Q_OBJECT
 public:
 ColorSelector(QWidget * parent=0);
-ColorSelector(QLabel * lbl, ColorComboBox * combo, QLabel * swatch, QSpinBox * alpha, QWidget * parent=nullptr);// adopt existing .ui widgets
+ColorSelector(QLabel * lbl, ColorComboBox * combo, QWidget * parent=nullptr);// adopt existing .ui widgets
 
 QLabel * lblText;
 ColorComboBox * cmbColorSelect;
-QLabel * rectFinalColor;
-QSpinBox * spnAlpha;
 QHBoxLayout * layout;
 bool prevent_from_update;
 
@@ -912,7 +919,6 @@ void updateColorIcons(int nr_of_cols, CMap_entry * entries);
 private slots:
 void onColorChanged(int idx);
 void onAlphaChanged(int val);
-void refreshFinalColor(void);
 signals:
 void currentIndexChanged(int i);
 void alphaChanged(int i);
