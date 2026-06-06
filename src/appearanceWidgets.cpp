@@ -612,10 +612,12 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     cmbType->cmbSelect->setIconSize(QSize(40, 13));
     for (int i=0;i<NUMBER_OF_SETTYPES;i++)
         cmbType->cmbSelect->setItemIcon(i, setTypeIcon(i));
-    layout0=new QHBoxLayout;
-    //layout0->setMargin(STD_MARGIN);
+    ledString=new stdLineEdit(fraSetPres,tr("Legend:"),true);
+    ledString->lenText->setText(QString(""));
+    layout0=new QVBoxLayout;
     layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
     layout0->addWidget(cmbType);
+    layout0->addWidget(ledString);
     fraSetPres->setLayout(layout0);
 
     fraSymbProp=new QGroupBox(tr("Symbol properties"),this);
@@ -706,15 +708,6 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     connect(cmbLineColor,SIGNAL(currentIndexChanged(int)),SLOT(LineColorChanged(int)));
     fraLineProp->setLayout(layout2);
 
-    fraLegend=new QGroupBox(tr("Legend"),this);
-    layout3=new QHBoxLayout;
-    //layout3->setMargin(STD_MARGIN);
-    layout3->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    ledString=new stdLineEdit(fraLegend,tr("String:"),true);
-    ledString->lenText->setText(QString(""));
-    layout3->addWidget(ledString);
-    fraLegend->setLayout(layout3);
-
     fraDispOpt=new QGroupBox(tr("Display options"),this);
     layout4=new QGridLayout;
     layout4->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
@@ -724,7 +717,7 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
         QWidget *wdgAnnSize = new QWidget(fraDispOpt);
         QHBoxLayout *asz = new QHBoxLayout(wdgAnnSize);
         asz->setContentsMargins(0,0,0,0);
-        asz->addWidget(new QLabel(tr("Label size:"), wdgAnnSize));
+        asz->addWidget(new QLabel(tr("Annotation label size:"), wdgAnnSize));
         spnAnnValSize = new QDoubleSpinBox(wdgAnnSize);
         spnAnnValSize->setRange(0.01, 10.0);
         spnAnnValSize->setSingleStep(0.1);
@@ -747,8 +740,7 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     layout->addWidget(fraSetPres,0,0,1,2);
     layout->addWidget(fraSymbProp,1,0);
     layout->addWidget(fraLineProp,1,1);
-    layout->addWidget(fraLegend,2,0,1,2);
-    layout->addWidget(fraDispOpt,3,0,1,2);
+    layout->addWidget(fraDispOpt,2,0,1,2);
     setLayout(layout);
     connect(cmbSymbType,SIGNAL(currentIndexChanged(int)),SLOT(SymbTypeChanged(int)));
 }
@@ -2656,7 +2648,6 @@ tabErBa->spnRiserWidth->blockSignals(false);*/
     tabMa->layout0->update();
     tabMa->layout1->update();
     tabMa->layout2->update();
-    tabMa->layout3->update();
     tabMa->layout4->update();
 
     tabSy->layout->update();
@@ -4218,7 +4209,6 @@ void frmGraph_App::redisplayContents(void)
     tabMain->layout->update();
     tabMain->layout1->update();
     tabMain->layout2->update();
-    tabMain->layout3->update();
     tabMain->layout4->update();
     tabTitles->layout->update();
     tabTitles->layout1->update();
@@ -6748,7 +6738,6 @@ void frmAxis_Prop::redisplayContents(void)
     tabMain->layout0->update();
     tabMain->layout1->update();
     tabMain->layout2->update();
-    tabMain->layout3->update();
     tabMain->layout4->update();
     tabMain->layout->update();
 

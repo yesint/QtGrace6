@@ -115,17 +115,15 @@ public:
     LineStyleSelector * cmbLineStyle;
     LineWidthSelector * spnLineWidth;
     ColorSelector * cmbLineColor;
-    QGroupBox * fraLegend;
     stdLineEdit * ledString;
     QGroupBox * fraDispOpt;
     QCheckBox * chkAnnVal;
     QCheckBox * chkDispErrBars;
     QCheckBox * chkIgnoreInAutoscale;
     QDoubleSpinBox * spnAnnValSize;
-    QHBoxLayout * layout0;
+    QVBoxLayout * layout0;
     QVBoxLayout * layout1;
     QVBoxLayout * layout2;
-    QHBoxLayout * layout3;
     QGridLayout * layout4;
     QGridLayout * layout;
 public slots:
