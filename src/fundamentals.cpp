@@ -3135,6 +3135,43 @@ ColorSelector::ColorSelector(QWidget * parent):QWidget(parent)
     spnAlpha->setVisible(show_transparency_selector > 0);
 }
 
+// Adopt label + color combo + final-color swatch + alpha spinbox from a .ui file.
+ColorSelector::ColorSelector(QLabel * lbl, ColorComboBox * combo, QLabel * swatch, QSpinBox * alpha, QWidget * parent):QWidget(parent)
+{
+    prevent_from_update = false;
+    lblText = lbl;
+    cmbColorSelect = combo;
+    rectFinalColor = swatch;
+    spnAlpha = alpha;
+
+    int swatchSz = qMax(14, int(14.0 * toolBarSizeFactor));
+    rectFinalColor->setFixedSize(swatchSz + 4, swatchSz + 4);
+    rectFinalColor->setScaledContents(false);
+    rectFinalColor->setToolTip(tr("Final color with opacity applied"));
+
+    spnAlpha->setRange(0, 255);
+    spnAlpha->setValue(255);
+    spnAlpha->setFixedWidth(55);
+    spnAlpha->setToolTip(tr("Opacity (0 = transparent, 255 = opaque)"));
+
+    {
+        int * real_colors = new int[4];
+        int aux_cols;
+        int n = get_main_color_indices(&real_colors, &aux_cols);
+        CMap_entry * tbl = new CMap_entry[n];
+        for (int i = 0; i < n; ++i) tbl[i] = cmap_table[real_colors[i]];
+        delete[] real_colors;
+        updateColorIcons(n, tbl);
+        delete[] tbl;
+    }
+    connect(spnAlpha, SIGNAL(valueChanged(int)), this, SLOT(onAlphaChanged(int)));
+    connect(cmbColorSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onColorChanged(int)));
+
+    layout = nullptr;
+    add_ColorSelector(this);
+    spnAlpha->setVisible(show_transparency_selector > 0);
+}
+
 void ColorSelector::onColorChanged(int idx)
 {
     refreshFinalColor();
@@ -3278,6 +3315,23 @@ else
     layout->addWidget(cmbSelect);
     setLayout(layout);
 addStdSelector(this);
+}
+
+// Adopt label + combobox laid out in a .ui file. The selector becomes a thin
+// controller: no children of its own, no layout. Entries are filled afterwards
+// via setNewEntries(), exactly as the dialog already does.
+StdSelector::StdSelector(QLabel * lbl, QComboBox * combo, QWidget * parent):QWidget(parent)
+{
+    lblText=lbl;
+    cmbSelect=combo;
+    entryIcons=NULL;
+    simple_graph_selector=false;
+    number_of_entries=0;
+    entries=new QString[1];
+    entryValues=new int[1];
+    layout=nullptr;
+    connect(cmbSelect,SIGNAL(currentIndexChanged(int)),SLOT(changed(int)));
+    addStdSelector(this);
 }
 
 StdSelector::~StdSelector()
@@ -4020,6 +4074,23 @@ LineStyleSelector::LineStyleSelector(QWidget * parent):QWidget(parent)
     setLayout(layout);
 }
 
+// Adopt label + combobox from a .ui file.
+LineStyleSelector::LineStyleSelector(QLabel * lbl, QComboBox * combo, QWidget * parent):QWidget(parent)
+{
+    add_Line_Style_Selector(this);
+    lblText = lbl;
+    cmbStyleSelect = combo;
+    if (nr_of_current_linestyles > 0 && LinePixmaps) {
+        if (nr_of_current_linestyles > 1 && LinePixmaps[1])
+            cmbStyleSelect->setIconSize(QSize(LinePixmaps[1]->width(), LinePixmaps[1]->height()));
+        cmbStyleSelect->addItem(tr("None"));
+        for (int i = 1; i < nr_of_current_linestyles; ++i)
+            if (LinePixmaps[i]) cmbStyleSelect->addItem(QIcon(*LinePixmaps[i]), "");
+    }
+    connect(cmbStyleSelect, SIGNAL(currentIndexChanged(int)), SLOT(changed(int)));
+    layout = nullptr;
+}
+
 void LineStyleSelector::repopulateIcons(int len, QPixmap ** pix)
 {
     int saved = cmbStyleSelect->currentIndex();
@@ -4229,6 +4300,21 @@ QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
 addLineWidthSelector(this);
 }
 
+// Adopt label + double spinbox from a .ui file.
+LineWidthSelector::LineWidthSelector(QLabel * lbl, QDoubleSpinBox * spin, QWidget * parent):QWidget(parent)
+{
+    QLocale newLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
+    lblText=lbl;
+    spnLineWidth=spin;
+    spnLineWidth->setLocale(newLocale);
+    spnLineWidth->setRange(0.0,MAX_LINEWIDTH);
+    spnLineWidth->setDecimals(1);
+    spnLineWidth->setSingleStep(0.5);
+    connect(spnLineWidth,SIGNAL(valueChanged(double)),SLOT(changed(double)));
+    layout=nullptr;
+    addLineWidthSelector(this);
+}
+
 void LineWidthSelector::setText(QString txt)
 {
     lblText->setText(txt);
@@ -4356,6 +4442,26 @@ stdLineEdit::stdLineEdit(QWidget * parent, QString label, bool accLaTeX):QWidget
     else
         add_non_LaTeX_Line(this);
 //qDebug() << "ADDING this:" << this;
+    setAcceptDrops(false);
+}
+
+// Adopt label + line edit from a .ui file.
+stdLineEdit::stdLineEdit(QLabel * lbl, QLineEdit * edit, bool accLaTeX, QWidget * parent):QWidget(parent)
+{
+    c1=c2=NULL;
+    displayStd=true;
+    acceptLaTeX=accLaTeX;
+    lblText=lbl;
+    lenText=edit;
+    connect(lenText,SIGNAL(returnPressed()),this,SLOT(ContentChanged()));
+    layout=nullptr;
+    QPalette pal=lenText->palette();
+    if (stdTextColor==NULL)
+        stdTextColor=new QColor(pal.text().color());
+    if (acceptLaTeX==true)
+        add_LaTeX_Line(this);
+    else
+        add_non_LaTeX_Line(this);
     setAcceptDrops(false);
 }
 

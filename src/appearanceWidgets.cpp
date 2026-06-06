@@ -607,18 +607,18 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
 
     // Main tab
     fraSetPres        = ui->fraSetPres;
-    cmbSetType        = ui->cmbSetType;
-    ledString         = ui->ledString;
+    cmbSetType        = new StdSelector(ui->lblSetType, ui->cmbSetTypeBox, this);
+    ledString         = new stdLineEditLaTeX(ui->lblString, ui->ledStringBox, this);
     fraSymbProp       = ui->fraSymbProp;
     cmbSymbType       = ui->cmbSymbType;
     spnSymbSize       = ui->spnSymbSize;
-    cmbSymbColor      = ui->cmbSymbColor;
-    selSymbChar       = ui->selSymbChar;
+    cmbSymbColor      = new ColorSelector(ui->lblSymbColor, ui->cmbSymbColorBox, ui->swSymbColor, ui->spnSymbAlpha, this);
+    selSymbChar       = new StdSelector(ui->lblSymbChar, ui->selSymbCharBox, this);
     fraSetLineProp    = ui->fraSetLineProp;
-    cmbLineType       = ui->cmbLineType;
-    cmbLineStyle      = ui->cmbLineStyle;
-    spnLineWidth      = ui->spnLineWidth;
-    cmbLineColor      = ui->cmbLineColor;
+    cmbLineType       = new StdSelector(ui->lblLineType, ui->cmbLineTypeBox, this);
+    cmbLineStyle      = new LineStyleSelector(ui->lblLineStyle, ui->cmbLineStyleBox, this);
+    spnLineWidth      = new LineWidthSelector(ui->lblLineWidth, ui->spnLineWidthBox, this);
+    cmbLineColor      = new ColorSelector(ui->lblLineColor, ui->cmbLineColorBox, ui->swLineColor, ui->spnLineAlpha, this);
     fraDispOpt        = ui->fraDispOpt;
     chkAnnVal         = ui->chkAnnVal;
     spnAnnValSize     = ui->spnAnnValSize;

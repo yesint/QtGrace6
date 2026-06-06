@@ -2827,6 +2827,7 @@ QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 // Screenshot/compare mode — parse and strip early so Grace's arg parser doesn't see them
 QString screenshotSavePath;
 QString screenshotComparePath;
+QString screenshotDialog;   // which dialog to capture instead of the main window ("setapp", ...)
 {
     int out = 1;
     for (int i = 1; i < argc; i++) {
@@ -2834,6 +2835,8 @@ QString screenshotComparePath;
             screenshotSavePath = QString(argv[++i]);
         } else if (QString(argv[i]) == "--compare" && i+1 < argc) {
             screenshotComparePath = QString(argv[++i]);
+        } else if (QString(argv[i]) == "--shot-dialog" && i+1 < argc) {
+            screenshotDialog = QString(argv[++i]);
         } else {
             argv[out++] = argv[i];
         }
@@ -4646,7 +4649,20 @@ qDebug() << "MainArea.lblBackgr.size=" << mainWin->mainArea->lblBackGr->size();
 if (!screenshotSavePath.isEmpty() || !screenshotComparePath.isEmpty()) {
     // Let the window fully render
     QApplication::processEvents(QEventLoop::AllEvents, 500);
-    QPixmap px = mainWin->grab();
+    QWidget * shotTarget = mainWin;
+    if (screenshotDialog.startsWith("setapp")) {
+        frmSetAppearance * dlg = new frmSetAppearance(mainWin);
+        dlg->listSet->set_graph_number(get_cg(), false);
+        dlg->init();
+        dlg->show();
+        // Optional tab index: "setapp:2" selects the third tab
+        int colon = screenshotDialog.indexOf(':');
+        if (colon >= 0)
+            dlg->flp->tabs->setCurrentIndex(screenshotDialog.mid(colon+1).toInt());
+        QApplication::processEvents(QEventLoop::AllEvents, 500);
+        shotTarget = dlg;
+    }
+    QPixmap px = shotTarget->grab();
 
     if (!screenshotSavePath.isEmpty()) {
         QDir().mkpath(QFileInfo(screenshotSavePath).absolutePath());

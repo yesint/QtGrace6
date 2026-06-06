@@ -889,6 +889,7 @@ class ColorSelector:public QWidget
 Q_OBJECT
 public:
 ColorSelector(QWidget * parent=0);
+ColorSelector(QLabel * lbl, ColorComboBox * combo, QLabel * swatch, QSpinBox * alpha, QWidget * parent=nullptr);// adopt existing .ui widgets
 
 QLabel * lblText;
 ColorComboBox * cmbColorSelect;
@@ -920,6 +921,7 @@ Q_OBJECT
 public:
 StdSelector(QWidget *parent=nullptr) : StdSelector(parent, QString(), 0, nullptr) {}
 StdSelector(QWidget * parent,QString label,int number,QString * entr);
+StdSelector(QLabel * lbl, QComboBox * combo, QWidget * parent=nullptr);// adopt existing .ui widgets
 ~StdSelector();
 bool simple_graph_selector;
 int include_NONE;
@@ -997,6 +999,7 @@ class LineStyleSelector:public QWidget
 Q_OBJECT
 public:
 LineStyleSelector(QWidget * parent=0);
+LineStyleSelector(QLabel * lbl, QComboBox * combo, QWidget * parent=nullptr);// adopt existing .ui widgets
 
 QLabel * lblText;
 QComboBox * cmbStyleSelect;
@@ -1069,6 +1072,7 @@ class LineWidthSelector:public QWidget
 Q_OBJECT
 public:
 LineWidthSelector(QWidget * parent=0);
+LineWidthSelector(QLabel * lbl, QDoubleSpinBox * spin, QWidget * parent=nullptr);// adopt existing .ui widgets
 QLabel * lblText;
 QDoubleSpinBox * spnLineWidth;
 QHBoxLayout * layout;
@@ -1125,6 +1129,7 @@ Q_OBJECT
 public:
 explicit stdLineEdit(QWidget *parent=nullptr) : stdLineEdit(parent, QString(), false) {}
 stdLineEdit(QWidget * parent,QString label,bool accLaTeX=false);
+stdLineEdit(QLabel * lbl, QLineEdit * edit, bool accLaTeX, QWidget * parent=nullptr);// adopt existing .ui widgets
 ~stdLineEdit();
 bool acceptLaTeX;//controls whether this LineEdit allows LaTeX-input
 bool displayStd;//Std is the original user input (probably in LaTeX-format)
@@ -1183,6 +1188,7 @@ class stdLineEditLaTeX : public stdLineEdit {
     Q_OBJECT
 public:
     explicit stdLineEditLaTeX(QWidget *parent=nullptr) : stdLineEdit(parent, QString(), true) {}
+    stdLineEditLaTeX(QLabel * lbl, QLineEdit * edit, QWidget * parent=nullptr) : stdLineEdit(lbl, edit, true, parent) {}
 };
 
 class dirList:public QTreeView
