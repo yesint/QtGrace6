@@ -121,11 +121,12 @@ public:
     QCheckBox * chkAnnVal;
     QCheckBox * chkDispErrBars;
     QCheckBox * chkIgnoreInAutoscale;
+    QDoubleSpinBox * spnAnnValSize;
     QHBoxLayout * layout0;
     QVBoxLayout * layout1;
     QVBoxLayout * layout2;
     QHBoxLayout * layout3;
-    QHBoxLayout * layout4;
+    QGridLayout * layout4;
     QGridLayout * layout;
 public slots:
     void SymbTypeChanged(int val);

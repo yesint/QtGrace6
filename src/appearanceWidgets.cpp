@@ -716,15 +716,30 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     fraLegend->setLayout(layout3);
 
     fraDispOpt=new QGroupBox(tr("Display options"),this);
-    layout4=new QHBoxLayout;
-    //layout4->setMargin(STD_MARGIN);
+    layout4=new QGridLayout;
     layout4->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
     chkAnnVal=new QCheckBox(tr("Annotate values"),fraDispOpt);
-    layout4->addWidget(chkAnnVal);
+    layout4->addWidget(chkAnnVal,0,0);
+    {
+        QWidget *wdgAnnSize = new QWidget(fraDispOpt);
+        QHBoxLayout *asz = new QHBoxLayout(wdgAnnSize);
+        asz->setContentsMargins(0,0,0,0);
+        asz->addWidget(new QLabel(tr("Label size:"), wdgAnnSize));
+        spnAnnValSize = new QDoubleSpinBox(wdgAnnSize);
+        spnAnnValSize->setRange(0.01, 10.0);
+        spnAnnValSize->setSingleStep(0.1);
+        spnAnnValSize->setDecimals(2);
+        spnAnnValSize->setValue(1.0);
+        spnAnnValSize->setFixedWidth(70);
+        spnAnnValSize->setEnabled(false);
+        asz->addWidget(spnAnnValSize);
+        layout4->addWidget(wdgAnnSize,0,1);
+    }
+    connect(chkAnnVal, &QCheckBox::toggled, spnAnnValSize, &QWidget::setEnabled);
     chkDispErrBars=new QCheckBox(tr("Display error bars"),fraDispOpt);
-    layout4->addWidget(chkDispErrBars);
-    chkIgnoreInAutoscale=new QCheckBox(tr("Ignore during autoscale"),fraDispOpt);;
-    layout4->addWidget(chkIgnoreInAutoscale);
+    layout4->addWidget(chkDispErrBars,1,0);
+    chkIgnoreInAutoscale=new QCheckBox(tr("Ignore during autoscale"),fraDispOpt);
+    layout4->addWidget(chkIgnoreInAutoscale,1,1);
     fraDispOpt->setLayout(layout4);
     layout=new QGridLayout;
     //layout->setMargin(STD_MARGIN);
@@ -1147,6 +1162,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
 
     //tabMain
     connect(tabMa->chkAnnVal,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(tabMa->spnAnnValSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
     connect(tabMa->chkDispErrBars,SIGNAL(toggled(bool)),SLOT(update3(bool)));
     connect(tabMa->cmbType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(tabMa->cmbLineColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
@@ -1472,6 +1488,7 @@ apply_running=true;
 
     errbar.active = tabMa->chkDispErrBars->isChecked()==true?1:0;
     avalue.active = tabMa->chkAnnVal->isChecked()==true?1:0;
+    avalue.size = tabMa->spnAnnValSize->value();
     ignore_autoscale = tabMa->chkIgnoreInAutoscale->isChecked()==true?1:0;
 
     avalue.font = tabAnVa->cmbFont->currentIndex();
@@ -1739,18 +1756,18 @@ apply_running=true;
             sprintf(dummy,"    s%d avalue %s",setno,p.avalue.active?"on":"off");
             ListOfOldStates << QString(dummy);
         }
-        if (p.avalue.font!=avalue.font && avalue.font >= 0)
-        {
-            sprintf(dummy,"    s%d avalue font %d",setno,avalue.font);
-            ListOfChanges << QString(dummy);
-            sprintf(dummy,"    s%d avalue font %d",setno,p.avalue.font);
-            ListOfOldStates << QString(dummy);
-        }
         if (p.avalue.size!=avalue.size)
         {
             sprintf(dummy,"    s%d avalue char size %f",setno,avalue.size);
             ListOfChanges << QString(dummy);
             sprintf(dummy,"    s%d avalue char size %f",setno,p.avalue.size);
+            ListOfOldStates << QString(dummy);
+        }
+        if (p.avalue.font!=avalue.font && avalue.font >= 0)
+        {
+            sprintf(dummy,"    s%d avalue font %d",setno,avalue.font);
+            ListOfChanges << QString(dummy);
+            sprintf(dummy,"    s%d avalue font %d",setno,p.avalue.font);
             ListOfOldStates << QString(dummy);
         }
         if (p.avalue.color!=avalue.color)
@@ -2300,6 +2317,8 @@ tabMa->cmbType
     //tabMa->ledString->setText(QString(p.lstr));
     tabMa->ledString->SetTextToMemory(g[graph_number].p[set_number].lstr,g[graph_number].p[set_number].orig_lstr);
     tabMa->chkAnnVal->setChecked(p.avalue.active);
+    tabMa->spnAnnValSize->setValue(p.avalue.size > 0 ? p.avalue.size : 1.0);
+    tabMa->spnAnnValSize->setEnabled(p.avalue.active);
     tabMa->chkDispErrBars->setChecked(p.errbar.active);
     tabMa->chkIgnoreInAutoscale->setChecked(p.ignore_in_autoscale);
 
