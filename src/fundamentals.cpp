@@ -3042,8 +3042,8 @@ void ColorComboBox::showPopup()
 
     m_popup = new QFrame(nullptr, Qt::Popup);
     m_popup->setAttribute(Qt::WA_DeleteOnClose);
-    m_popup->setFrameShape(QFrame::StyledPanel);
-    m_popup->setFrameShadow(QFrame::Raised);
+    m_popup->setFrameShape(QFrame::NoFrame);
+    m_popup->setStyleSheet("QFrame { border: 1px solid palette(mid); background: palette(window); }");
 
     const int cols = 8;
     int swatchSz = qMax(18, int(18.0 * toolBarSizeFactor));
@@ -4071,8 +4071,8 @@ void PatternComboBox::showPopup()
 
     m_popup = new QFrame(nullptr, Qt::Popup);
     m_popup->setAttribute(Qt::WA_DeleteOnClose);
-    m_popup->setFrameShape(QFrame::StyledPanel);
-    m_popup->setFrameShadow(QFrame::Raised);
+    m_popup->setFrameShape(QFrame::NoFrame);
+    m_popup->setStyleSheet("QFrame { border: 1px solid palette(mid); background: palette(window); }");
 
     QGridLayout *grid = new QGridLayout(m_popup);
     grid->setSpacing(2);
