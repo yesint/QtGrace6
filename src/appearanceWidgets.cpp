@@ -708,7 +708,10 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     {
         int sz = qMax(20, int(20 * toolBarSizeFactor));
         cmbSymbType->setIconSize(QSize(sz, sz));
-        cmbSymbType->setFixedHeight(sz + 6);
+        // Use a minimum (not fixed) height so the combo grows to the natural
+        // sizeHint height of the other standard dropdowns instead of being
+        // clamped shorter than them.
+        cmbSymbType->setMinimumHeight(sz + 6);
     }
     selSymbChar->setEnabled(false);// enabled only for the "Character" symbol type
     {
