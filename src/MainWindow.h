@@ -198,9 +198,7 @@ public:
     QPushButton * cmdUndo,*cmdRedo;
     QPushButton * cmdExport,*cmdPrint,*cmdPan,*cmdPick;
 
-#ifdef AUTOLAYOUT_FOR_TOOLBAR
-    QGridLayout * toolLayout1, * toolLayout2;
-#endif
+    QGridLayout * toolLayout1, * toolLayout2;  // toolbar grids from MainWindow.ui
 
     QLabel * lblNewViewStack;
     QComboBox * cmbViewStack;

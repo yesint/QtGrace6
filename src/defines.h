@@ -541,8 +541,6 @@ typedef enum {
 
 #define COMPARISON_TOLERANCE 2
 
-#define AUTOLAYOUT_FOR_TOOLBAR 1
-
 /*
  * defaults
  */

@@ -2678,20 +2678,8 @@ void MainWindow::ManageBars(void)
         int SliderW=defaultSliderW*toolBarSizeFactor;
         int SliderH=defaultSliderH*toolBarSizeFactor;
         int BorderGap=defaultBorderGap*toolBarSizeFactor;
-        //int VGap=defaultVGap*toolBarSizeFactor;
-        int LeftGap;
         int ToolBarWidth=2*toolBar1->frameWidth()+2*BorderGap+LargeButtonW;
-        //QIcon tmpIcon,newIcon;
-        /*QFont cur_std_font=cmdAutoT->font();
-        cur_std_font.setPixelSize(0.5*cmdAutoT->font().pixelSize());
-        cmbViewStack->setFont(cur_std_font);
-        cmdViewUp->setFont(cur_std_font);
-        cmdViewDown->setFont(cur_std_font);*/
 
-        LeftGap=(LargeButtonW-2*SmallButtonW)/3;
-        //QSize newIconSize(default_IconW*toolBarSizeFactor,default_IconH*toolBarSizeFactor);
-        ///Resizing buttons
-        ///Large Buttons
         // Size all toolbar buttons — setFixedSize so the layout respects them
         cmdDraw->setFixedSize(LargeButtonW,LargeButtonH);
         cmdAutoT->setFixedSize(LargeButtonW,LargeButtonH);
@@ -2741,32 +2729,9 @@ void MainWindow::ManageBars(void)
         mainGrid->setColumnMinimumWidth(0,ToolBarWidth*0.7);
 
 
-        //rearrange/reposition the buttons
-    int xpos,ypos,sav_stddist2;
-    sav_stddist2=stdDistance2;
-    stdDistance2=LeftGap;
-        xpos=2+stdDistance2;
-#ifdef WINDOWS_SYSTEM
-xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
-#endif
-        ypos=4+6+cmdDraw->height();
-        //toolbar1
+        //toolbar1 — layout is handled by toolLayout1 in MainWindow.ui; only visibility here
         if (show_Navi_B)
         {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        cmdZoom->move(xpos,ypos);
-        cmdAutoScale->move(xpos+stdDistance2+cmdZoom->width(),ypos);
-        ypos+=cmdZoom->height()+stdDistance1;
-        cmdZz->move(xpos,ypos);
-        cmdzz->move(xpos+stdDistance2+cmdZz->width(),ypos);
-        ypos+=cmdZz->height()+stdDistance1;
-        cmdLeft->move(xpos,ypos);
-        cmdRight->move(xpos+cmdLeft->width()+stdDistance2,ypos);
-        ypos+=cmdLeft->height()+stdDistance1;
-        cmdUp->move(xpos,ypos);
-        cmdDown->move(xpos+cmdUp->width()+stdDistance2,ypos);
-        ypos+=cmdUp->height()+stdDistance1;
-#endif
         cmdZoom->show();
         cmdAutoScale->show();
         cmdZz->show();
@@ -2788,82 +2753,20 @@ xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
         cmdDown->hide();
         }
         if (show_PanButton==1)
-        {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        cmdPan->move(cmdDraw->x(),ypos);
-        ypos+=cmdPan->height()+stdDistance1;
-#endif
         cmdPan->show();
-        }
         else
-        {
         cmdPan->hide();
-        }
         if (show_PickButton==1)
-        {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        cmdPick->move(cmdDraw->x(),ypos);
-        ypos+=cmdPick->height()+stdDistance1;
-#endif
         cmdPick->show();
-        }
         else
-        {
         cmdPick->hide();
-        }
         if (show_Graph_List)
-        {
-/*
-xpos=stdDistance2-2;
-#ifdef WINDOWS_SYSTEM
-xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
-#endif*/
-xpos=cmdDraw->x();///corrected position
-#ifdef WINDOWS_SYSTEM
-xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
-#endif
-
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        lstGraphs->move(xpos,ypos);
-        ypos+=lstGraphs->height()+3;//2?
-#endif
         lstGraphs->show();
-        }
         else
-        {
         lstGraphs->hide();
-        }
-        //cout << "stdRowHeight=" << stdRowHeight << endl;
-        //cout << "berechnet=" << ypos << endl;
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        mainGrid->setRowMinimumHeight(2,ypos);
-        toolBar1->setMinimumHeight(ypos);
-    #ifdef WINDOWS_SYSTEM
-    toolBar1->resize(ToolBarWidth+WIN_SIZE_CORR*toolBarSizeFactor,ypos);
-    #else
-    toolBar1->resize(ToolBarWidth,ypos);
-    #endif
-        //toolbar2
-        xpos=2;
-    #ifdef WINDOWS_SYSTEM
-    xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
-    #endif
-        cmdAutoT->move(xpos,cmdAutoT->y());
-        ypos=cmdAutoT->y()+cmdAutoT->height()+2;//position of AutoO
-#endif
+        //toolbar2 — layout is handled by toolLayout2 in MainWindow.ui; only visibility here
         if (show_special_Zoom)
         {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        cmdAutoO->move(xpos,ypos);
-        xpos+=stdDistance2;
-        ypos+=cmdAutoO->height()+stdDistance1-1;
-        cmdZX->move(xpos,ypos);
-        cmdZY->move(xpos+cmdZX->width()+stdDistance2,ypos);
-        ypos+=cmdZX->height()+stdDistance1;
-        cmdAX->move(xpos,ypos);
-        cmdAY->move(xpos+cmdAX->width()+stdDistance2,ypos);
-        ypos+=cmdAX->height()+stdDistance1;
-#endif
         cmdAutoO->show();
         cmdZX->show();
         cmdZY->show();
@@ -2881,19 +2784,6 @@ xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
 
         if (show_Viewport_Stack==1)//Grace-Viewport-Stack
         {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        xpos=cmdAutoT->x()+stdDistance2;
-        cmdPZ->move(xpos,ypos);
-        cmdPu->move(xpos+cmdPZ->width()+stdDistance2,ypos);
-        ypos+=cmdPZ->height()+stdDistance1;
-        cmdPo->move(xpos,ypos);
-        cmdCy->move(xpos+cmdPo->width()+stdDistance2,ypos);
-        ypos+=cmdPo->height()+stdDistance1;
-        lblSD->move(xpos,ypos);
-        ypos+=lblSD->height();
-        lblCW->move(xpos,ypos);
-        ypos+=lblCW->height()+12;
-#endif
         cmdPZ->show();
         cmdPu->show();
         cmdPo->show();
@@ -2914,34 +2804,6 @@ xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
         }
         else if (show_Viewport_Stack==2)//QtGrace-Viewport-Stack
         {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        xpos=cmdAutoT->x();
-        lblNewViewStack->move(xpos,ypos);
-        ypos+=lblNewViewStack->height()+stdDistance1;
-        cmbViewStack->move(xpos,ypos);
-        ypos+=cmbViewStack->height()+stdDistance1;
-        xpos+=stdDistance2;
-        cmdViewUp->move(xpos,ypos);
-        xpos+=stdDistance2+cmdViewUp->width();
-        cmdViewDown->move(xpos,ypos);
-        ypos+=cmdViewUp->height()+stdDistance1;
-        xpos=cmdViewUp->x();
-        cmdViewAdd->move(xpos,ypos);
-        //ypos+=cmdViewAdd->height()+stdDistance1;
-        xpos+=stdDistance2+cmdViewUp->width();
-        cmdViewRemove->move(xpos,ypos);
-        xpos=cmdAutoT->x();
-        ypos+=cmdViewAdd->height()+stdDistance1/2;
-        cmdViewReplace->move(xpos,ypos);
-        //xpos+=stdDistance2+cmdViewReplace->width();
-        ypos+=cmdViewReplace->height()+stdDistance1/2;
-        cmdViewRearrange->move(xpos,ypos);
-        xpos=cmdAutoT->x();
-        ypos+=cmdViewRearrange->height()+stdDistance1/2;
-        cmdViewRename->move(xpos,ypos);
-        ypos+=cmdViewRename->height()+stdDistance1;
-#endif
-
         lblNewViewStack->show();
         cmbViewStack->show();
         cmdViewUp->show();
@@ -2979,19 +2841,10 @@ xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
         lblSD->hide();
         lblCW->hide();
         }
-        xpos=cmdAutoT->x();
         if (show_UndoRedo_B)
         {
-        ypos-=5;
-        xpos=cmdZX->x();
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        cmdUndo->move(xpos,ypos);
-        cmdRedo->move(xpos+cmdPZ->width()+stdDistance2,ypos);
-#endif
         cmdUndo->show();
         cmdRedo->show();
-        xpos=cmdAutoT->x();
-        ypos+=cmdUndo->height()+12;
         }
         else
         {
@@ -3000,13 +2853,6 @@ xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
         }
         if (show_Page_Zoom)
         {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        sldPageZoom->move(xpos,ypos);
-//qDebug() << "height=" << sldPageZoom->height() << " SLIDER_HEIGHT=" << SliderH;
-        ypos+=sldPageZoom->height()+stdDistance1;
-        cmdFitPage->move(xpos,ypos);
-        ypos+=cmdFitPage->height()+stdDistance1;
-#endif
         sldPageZoom->show();
         cmdFitPage->show();
         }
@@ -3015,35 +2861,14 @@ xpos+=WIN_SIZE_CORR*toolBarSizeFactor;
         sldPageZoom->hide();
         cmdFitPage->hide();
         }
-
         if (show_Export_B)
-        {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        cmdExport->move(xpos,ypos);
-        ypos+=cmdExport->height();
-#endif
         cmdExport->show();
-        }
         else
-        {
         cmdExport->hide();
-        }
         if (show_Print_B)
-        {
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        cmdPrint->move(xpos,ypos);
-        ypos+=cmdPrint->height();
-#endif
         cmdPrint->show();
-        }
         else
-        {
         cmdPrint->hide();
-        }
-#ifndef AUTOLAYOUT_FOR_TOOLBAR
-        ypos+=int(8.0/5.0*stdDistance1);
-        stdDistance2=sav_stddist2;
-#endif
         //show the tool bar
         toolBar1->show();
         toolBar2->show();
