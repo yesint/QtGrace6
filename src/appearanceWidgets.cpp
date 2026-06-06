@@ -780,7 +780,9 @@ void tabMain::updateSymbolTypeIcons(void)
     int symbIconSz = qMax(20, int(20 * toolBarSizeFactor));
     cmbSymbType->setIconSize(QSize(symbIconSz, symbIconSz));
     cmbSymbType->clear();
-    for (int i = 0; i < 12; i++) {
+    // index 0 "None" uses a null icon so PatternComboBox shows it as a text button
+    cmbSymbType->addItem(QIcon(), tr("None"));
+    for (int i = 1; i < 12; i++) {
         cmbSymbType->addItem(symb_icons[i], QString());
         cmbSymbType->setItemData(i, tr(names[i]), Qt::ToolTipRole);
     }
