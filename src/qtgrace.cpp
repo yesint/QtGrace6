@@ -2841,36 +2841,7 @@ QString screenshotComparePath;
     argc = out;
 }
 
-QString arg_test_str;
-bool style_option_present=false;
-for (int i=0;i<argc;i++)
-{
-arg_test_str=QString(argv[i]).toLower();
-    if (arg_test_str=="-style")
-    {
-    style_option_present=true;
-        if (i<argc-1)
-        {
-        arg_test_str=QString(argv[i+1]).toLower();
-        break;
-        }
-        else
-        {
-        style_option_present=false;
-        }
-    }
-}
-if (style_option_present==false)
-{
-QApplication::setStyle(QStyleFactory::create("Fusion"));//necessary for upscaling on high-dpi-screens --> only activate this if the user does not set a different style
-}
-else
-{
-QApplication::setStyle(QStyleFactory::create(arg_test_str));
-}
 QApplication * a=new QApplication( argc, argv );
-//if (style_option_present==false)
-//a->setStyle(QString("Fusion"));//necessary for upscaling on high-dpi-screens --> only activate this if the user does not set a different style
 
 // Ensure the system icon theme is used. Qt6 does not auto-load the KDE
 // platform theme unless QT_QPA_PLATFORMTHEME is set in the environment.
