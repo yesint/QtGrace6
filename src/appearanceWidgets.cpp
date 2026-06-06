@@ -569,6 +569,20 @@ flp->resize(QSize(n_size_w,n_size_h));
 }
 
 
+static QIcon setTypeIcon(int setType)
+{
+    static const char *names[NUMBER_OF_SETTYPES] = {
+        "settype_xy", "settype_xydx", "settype_xydy", "settype_xydxdx",
+        "settype_xydydy", "settype_xydxdy", "settype_xydxdxdydy",
+        "settype_bar", "settype_bardy", "settype_bardydy",
+        "settype_xyhilo", "settype_xyz", "settype_xyr", "settype_xysize",
+        "settype_xycolor", "settype_xycolpat", "settype_xyvmap",
+        "settype_boxplot", "settype_band"
+    };
+    if (setType < 0 || setType >= NUMBER_OF_SETTYPES) return QIcon();
+    return QIcon(QString(":/icons/%1.svg").arg(names[setType]));
+}
+
 tabMain::tabMain(QWidget * parent):QWidget(parent)
 {
     int number=NUMBER_OF_SETTYPES;
@@ -585,6 +599,9 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
         entr[i]=QString(dummy);
     }
     cmbType=new StdSelector(fraSetPres,tr("Type:"),number,entr);
+    cmbType->cmbSelect->setIconSize(QSize(40, 13));
+    for (int i=0;i<NUMBER_OF_SETTYPES;i++)
+        cmbType->cmbSelect->setItemIcon(i, setTypeIcon(i));
     layout0=new QHBoxLayout;
     //layout0->setMargin(STD_MARGIN);
     layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
@@ -871,13 +888,25 @@ tabAnnVal::tabAnnVal(QWidget * parent):QWidget(parent)
     //layout0->setMargin(STD_MARGIN);
     layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
     cmbFont=new FontSelector(this);
-    layout0->addWidget(cmbFont,0,0);
-    sldFontSize=new stdSlider(this,tr("Char size"),0,1000);
-    layout0->addWidget(sldFontSize,0,1);
+    layout0->addWidget(cmbFont,0,0,1,2);
     cmbColor=new ColorSelector(this);
     layout0->addWidget(cmbColor,1,0);
-    sldFontAngle=new stdSlider(this,tr("Angle"),0,360);
-    layout0->addWidget(sldFontAngle,1,1);
+    {
+        QWidget * wdgAngle = new QWidget(this);
+        QHBoxLayout * aLayout = new QHBoxLayout(wdgAngle);
+        aLayout->setContentsMargins(2,2,2,2);
+        aLayout->addWidget(new QLabel(tr("Angle:"), wdgAngle));
+        sldFontAngle = new QSlider(Qt::Horizontal, wdgAngle);
+        sldFontAngle->setRange(0, 360);
+        spnFontAngle = new QSpinBox(wdgAngle);
+        spnFontAngle->setRange(0, 360);
+        spnFontAngle->setFixedWidth(55);
+        connect(sldFontAngle, SIGNAL(valueChanged(int)), spnFontAngle, SLOT(setValue(int)));
+        connect(spnFontAngle, SIGNAL(valueChanged(int)), sldFontAngle, SLOT(setValue(int)));
+        aLayout->addWidget(sldFontAngle);
+        aLayout->addWidget(spnFontAngle);
+        layout0->addWidget(wdgAngle,1,1);
+    }
     ledPrepend=new stdLineEdit(this,tr("Prepend:"),true);
     ledPrepend->lenText->setText(QString(""));
     layout0->addWidget(ledPrepend,2,0);
@@ -1136,8 +1165,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
     connect(tabAnVa->ledPrepend,SIGNAL(changed()),SLOT(update0()));
     connect(tabAnVa->ledXOffs,SIGNAL(changed()),SLOT(update0()));
     connect(tabAnVa->ledYOffs,SIGNAL(changed()),SLOT(update0()));
-    connect(tabAnVa->sldFontAngle,SIGNAL(valueChanged(int)),SLOT(update1(int)));
-    connect(tabAnVa->sldFontSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(tabAnVa->spnFontAngle,SIGNAL(valueChanged(int)),SLOT(update1(int)));
     connect(tabAnVa->selAlign->cmbJustSelect2,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     //tabErrorBars
     connect(tabErBa->cmbBarStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
@@ -1422,10 +1450,9 @@ apply_running=true;
     ignore_autoscale = tabMa->chkIgnoreInAutoscale->isChecked()==true?1:0;
 
     avalue.font = tabAnVa->cmbFont->currentIndex();
-    avalue.size = tabAnVa->sldFontSize->value()/100.0;
     avalue.color = tabAnVa->cmbColor->currentIndex();
     avalue.alpha = tabAnVa->cmbColor->alpha();
-    avalue.angle = tabAnVa->sldFontAngle->value();
+    avalue.angle = tabAnVa->spnFontAngle->value();
     avalue.format = tabAnVa->cmbFormat->currentIndex();
     avalue.type = tabAnVa->cmbType->currentIndex();
     avalue.prec = tabAnVa->cmbPrecision->currentIndex();
@@ -2191,6 +2218,7 @@ void frmSet_Appearance::showSetData(int graph_number,int set_number)
 
     ///SET APPROPRIATE SET_TYPE_CHOICES ACCORDING TO NUMBER OF COLUMNS --> SHOW ONLY AVAILABLE CHOICES, I DON'T KNOW HOW TO DISABLE CHOICES
     tabMa->cmbType->cmbSelect->clear();
+    tabMa->cmbType->cmbSelect->setIconSize(QSize(40, 13));
     tabMa->number_of_Type_entries=0;
     delete[] tabMa->Type_entries;
     for (int i=0;i<NUMBER_OF_SETTYPES;i++)
@@ -2202,7 +2230,7 @@ void frmSet_Appearance::showSetData(int graph_number,int set_number)
         if (settype_cols(i) == settype_cols(p.type))
         {
             strToUpper(dummy,set_types(i));
-            tabMa->cmbType->cmbSelect->addItem(QString(dummy));
+            tabMa->cmbType->cmbSelect->addItem(setTypeIcon(i), QString(dummy));
             tabMa->Type_entries[tabMa->number_of_Type_entries]=i;
             tabMa->number_of_Type_entries++;
         }
@@ -2271,10 +2299,9 @@ tabMa->cmbType
     tabLi->cmbSet->setValue(p.polygone_base_set);
 
     tabAnVa->cmbFont->setCurrentIndex(p.avalue.font);
-    tabAnVa->sldFontSize->setValue((int)rint_2(p.avalue.size*100.0));
     tabAnVa->cmbColor->setCurrentIndex(p.avalue.color);
     tabAnVa->cmbColor->setAlpha(p.avalue.alpha);
-    tabAnVa->sldFontAngle->setValue(p.avalue.angle);
+    tabAnVa->spnFontAngle->setValue(p.avalue.angle);
     //tabAnVa->ledPrepend->setText(QString(p.avalue.prestr));
     //tabAnVa->ledAppend->setText(QString(p.avalue.appstr));
     tabAnVa->ledPrepend->SetTextToMemory(g[graph_number].p[set_number].avalue.prestr,g[graph_number].p[set_number].avalue.orig_prestr);

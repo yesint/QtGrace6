@@ -190,9 +190,9 @@ public:
     tabAnnVal(QWidget * parent=0);
     QGroupBox * fraTextProp;
     FontSelector * cmbFont;
-    stdSlider * sldFontSize;
     ColorSelector * cmbColor;
-    stdSlider * sldFontAngle;
+    QSlider * sldFontAngle;
+    QSpinBox * spnFontAngle;
     stdLineEdit * ledPrepend;
     stdLineEdit * ledAppend;
     AlignmentSelector * selAlign;

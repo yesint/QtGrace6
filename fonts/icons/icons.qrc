@@ -30,5 +30,24 @@
     <file>zoomIn.png</file>
     <file>zoomOut.png</file>
     <file>zoom.png</file>
+    <file>settype_xy.svg</file>
+    <file>settype_xydx.svg</file>
+    <file>settype_xydy.svg</file>
+    <file>settype_xydxdx.svg</file>
+    <file>settype_xydydy.svg</file>
+    <file>settype_xydxdy.svg</file>
+    <file>settype_xydxdxdydy.svg</file>
+    <file>settype_bar.svg</file>
+    <file>settype_bardy.svg</file>
+    <file>settype_bardydy.svg</file>
+    <file>settype_xyhilo.svg</file>
+    <file>settype_xyz.svg</file>
+    <file>settype_xyr.svg</file>
+    <file>settype_xysize.svg</file>
+    <file>settype_xycolor.svg</file>
+    <file>settype_xycolpat.svg</file>
+    <file>settype_xyvmap.svg</file>
+    <file>settype_boxplot.svg</file>
+    <file>settype_band.svg</file>
   </qresource>
 </RCC>

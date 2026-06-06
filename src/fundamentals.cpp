@@ -2963,28 +2963,24 @@ void JustificationSelector::setCurrentIndex2(int i)
 
 AlignmentSelector::AlignmentSelector(QWidget * parent):QWidget(parent)
 {
-    just_names2=new QString*[3];
+    values2[0] = JUST_LEFT;
+    values2[1] = JUST_CENTER;
+    values2[2] = JUST_RIGHT;
 
-    just_names2[0]=new QString("left");
-    values2[0]=JUST_LEFT;
-    just_names2[1]=new QString("center");
-    values2[1]=JUST_CENTER;
-    just_names2[2]=new QString("right");
-    values2[2]=JUST_RIGHT;
-
-    cmbJustSelect2=new newCombo(3,1,3,Qt_sub_justifications,just_names2,false,this);
-    cmbJustSelect2->comboType=COMBOTYPE_ALIGNMENT;
-    lblText2=new QLabel(tr("Alignment:"));
+    lblText2 = new QLabel(tr("Alignment:"));
+    cmbJustSelect2 = new QComboBox(this);
+    cmbJustSelect2->addItem(tr("Left"));
+    cmbJustSelect2->addItem(tr("Center"));
+    cmbJustSelect2->addItem(tr("Right"));
 
     setToolTip(tr("Set the text alignment in each line"));
 
-    layout=new QHBoxLayout;
-    //layout->setMargin(2);
-    layout->setContentsMargins(2,2,2,2);
+    layout = new QHBoxLayout;
+    layout->setContentsMargins(2, 2, 2, 2);
     layout->addWidget(lblText2);
     layout->addWidget(cmbJustSelect2);
     setLayout(layout);
-addAlignmentSelector(this);
+    addAlignmentSelector(this);
 }
 
 int AlignmentSelector::currentValue(void)

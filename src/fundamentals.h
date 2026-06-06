@@ -859,9 +859,8 @@ public:
 AlignmentSelector(QWidget * parent=0);
 int values2[3];
 QLabel * lblText2;
-newCombo * cmbJustSelect2;
+QComboBox * cmbJustSelect2;
 QHBoxLayout * layout;
-QString ** just_names2;
 public slots:
 int currentValue(void);
 void setCurrentValue(int i);

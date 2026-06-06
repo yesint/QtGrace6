@@ -5223,24 +5223,11 @@ void addAlignmentSelector(AlignmentSelector * selector)
 
 void update_AlignmentSelectors(void)
 {
-    int last_val;
-    bool new_dimensions=false;
-    for (int i=0;i<nr_of_alignment_selectors;i++)
+    for (int i = 0; i < nr_of_alignment_selectors; i++)
     {
-        if (i==0)
-        {
-            if (all_alignment_selectors[i]->cmbJustSelect2->iconSize()!=QSize(Qt_sub_justifications[0]->width(),Qt_sub_justifications[0]->height()))
-            {
-            new_dimensions=true;
-            }
-        }
-    last_val=all_alignment_selectors[i]->currentValue();
-    all_alignment_selectors[i]->cmbJustSelect2->reinitializePanels(3,1,3,Qt_sub_justifications,all_alignment_selectors[i]->just_names2,false,false);
-    all_alignment_selectors[i]->setCurrentValue(last_val);
-        if (new_dimensions==true)
-        all_alignment_selectors[i]->adjustSize();
+        int last_val = all_alignment_selectors[i]->currentValue();
+        all_alignment_selectors[i]->setCurrentValue(last_val);
     }
-//qDebug() << "AlignmentSelectors: new_dimensions=" << new_dimensions;
 }
 
 void addJustificationSelector(JustificationSelector * selector)
