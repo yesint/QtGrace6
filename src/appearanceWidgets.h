@@ -116,7 +116,7 @@ public:
     PatternComboBox4 * cmbSymbType;
     QDoubleSpinBox * spnSymbSize;
     ColorSelector * cmbSymbColor;
-    StdSelector * selSymbChar;
+    QLineEdit * selSymbChar;
     QGroupBox * fraSetLineProp;
     StdSelector * cmbLineType;
     LineStyleSelector * cmbLineStyle;

@@ -613,7 +613,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     cmbSymbType       = ui->cmbSymbType;
     spnSymbSize       = ui->spnSymbSize;
     cmbSymbColor      = new ColorSelector(ui->lblSymbColor, ui->cmbSymbColorBox, this);
-    selSymbChar       = new StdSelector(ui->lblSymbChar, ui->selSymbCharBox, this);
+    selSymbChar       = ui->selSymbCharBox;
     fraSetLineProp    = ui->fraSetLineProp;
     cmbLineType       = new StdSelector(ui->lblLineType, ui->cmbLineTypeBox, this);
     cmbLineStyle      = new LineStyleSelector(ui->lblLineStyle, ui->cmbLineStyleBox, this);
@@ -709,15 +709,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
         cmbSymbType->setIconSize(QSize(sz, sz));
         cmbSymbType->setFixedHeight(sz + 6);
     }
-    {
-        int nr = 0; int char_vals[256]; QString char_entr[256];
-        for (int i = 0; i < 256; i++)
-            if (isprint(i)) { char_vals[nr]=i; char_entr[nr]=QChar(i); nr++; }
-        selSymbChar->setNewEntries(nr, char_entr);
-        selSymbChar->setValues(char_vals);
-        selSymbChar->lblText->setText(tr("Symbol char:"));
-        selSymbChar->setEnabled(false);
-    }
+    selSymbChar->setEnabled(false);// enabled only for the "Character" symbol type
     {
         QString entr[8];
         entr[0]=tr("None"); entr[1]=tr("Straight"); entr[2]=tr("Left stairs");
@@ -1209,8 +1201,7 @@ apply_running=true;
     symfillpattern = cmbSymbFillPattern->currentIndex();
     symlinew = spnSymbWidth->value();
     symlines = cmbSymbStyle->currentIndex();
-    symchar = selSymbChar->currentValue();
-    //symchar = atoi(ledSymbChar->text().toLatin1().constData());
+    { QString t = selSymbChar->text(); symchar = t.isEmpty() ? 65 : (char)t.at(0).toLatin1(); }
     charfont = cmbSymbFont->currentIndex();
 
     errbar.active = chkDispErrBars->isChecked()==true?1:0;
@@ -2028,11 +2019,8 @@ cmbSetType
     cmbSymbColor->setAlpha(p.sympen.alpha);
     cmbSymbType->setCurrentIndex(p.sym);
     spnSymbSize->setValue(p.symsize);
-    //ledSymbChar->setDoubleValue("%d",(int)p.symchar);
-        if (selSymbChar->valueIsInList(p.symchar)==FALSE)
-        selSymbChar->setCurrentValue(65);//revert the char to 'A', whenever the value is 0 (which is unprintable)
-        else
-        selSymbChar->setCurrentValue(p.symchar);
+    { int c = (unsigned char)p.symchar; if (!isprint(c)) c = 65;// show 'A' for non-printable codes
+      selSymbChar->setText(QString(QChar(c))); }
     SymbTypeChanged(p.sym);
     //sprintf(val, "%d", p.symchar);
     //ledSymbChar->setText(QString(val));
