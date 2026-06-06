@@ -874,7 +874,7 @@ explicit ColorComboBox(QWidget *parent = nullptr);
 void showPopup() override;
 void hidePopup() override;
 private:
-QFrame *m_popup = nullptr;
+QWidget *m_popup = nullptr;
 };
 
 class ColorSelector:public QWidget
@@ -1012,7 +1012,7 @@ void showPopup() override;
 void hidePopup() override;
 private:
 int m_columns;
-QFrame *m_popup = nullptr;
+QWidget *m_popup = nullptr;
 };
 
 class FillPatternSelector:public QWidget

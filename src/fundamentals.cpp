@@ -3040,19 +3040,23 @@ void ColorComboBox::showPopup()
 {
     if (count() == 0) return;
 
-    m_popup = new QFrame(nullptr, Qt::Popup);
-    m_popup->setAttribute(Qt::WA_DeleteOnClose);
-    m_popup->setFrameShape(QFrame::NoFrame);
-    m_popup->setStyleSheet("QFrame { border: 1px solid palette(mid); background: palette(window); }");
+    QMenu *menu = new QMenu(this);
+    menu->setAttribute(Qt::WA_DeleteOnClose);
+    menu->setStyleSheet(
+        "QMenu { padding: 4px; }"
+        "QMenu::item { padding: 0; }"
+        "QMenu::item:selected { background: transparent; }"
+    );
+
+    QWidget *grid_widget = new QWidget;
+    QGridLayout *grid = new QGridLayout(grid_widget);
+    grid->setSpacing(2);
+    grid->setContentsMargins(0, 0, 0, 0);
 
     const int cols = 8;
     int swatchSz = qMax(18, int(18.0 * toolBarSizeFactor));
-    QGridLayout *grid = new QGridLayout(m_popup);
-    grid->setSpacing(2);
-    grid->setContentsMargins(4, 4, 4, 4);
-
     for (int i = 0; i < count(); ++i) {
-        QToolButton *btn = new QToolButton(m_popup);
+        QToolButton *btn = new QToolButton(grid_widget);
         btn->setAutoRaise(true);
         QColor col = itemData(i).value<QColor>();
         QPixmap pm(swatchSz, swatchSz);
@@ -3062,21 +3066,20 @@ void ColorComboBox::showPopup()
         btn->setFixedSize(swatchSz + 6, swatchSz + 6);
         if (i == currentIndex())
             btn->setStyleSheet("QToolButton { border: 2px solid palette(highlight); }");
-        connect(btn, &QToolButton::clicked, this, [this, i]() {
+        connect(btn, &QToolButton::clicked, this, [this, i, menu]() {
             setCurrentIndex(i);
-            if (m_popup) m_popup->close();
+            menu->close();
         });
         grid->addWidget(btn, i / cols, i % cols);
     }
 
-    m_popup->adjustSize();
-    QPoint pos = mapToGlobal(QPoint(0, height()));
-    QRect screen = QGuiApplication::primaryScreen()->availableGeometry();
-    if (pos.x() + m_popup->width() > screen.right())
-        pos.setX(screen.right() - m_popup->width());
-    m_popup->move(pos);
-    m_popup->show();
-    connect(m_popup, &QObject::destroyed, this, [this]() { m_popup = nullptr; });
+    QWidgetAction *action = new QWidgetAction(menu);
+    action->setDefaultWidget(grid_widget);
+    menu->addAction(action);
+
+    m_popup = menu;
+    connect(menu, &QObject::destroyed, this, [this]() { m_popup = nullptr; });
+    menu->popup(mapToGlobal(QPoint(0, height())));
 }
 
 void ColorComboBox::hidePopup()
@@ -4069,27 +4072,31 @@ void PatternComboBox::showPopup()
 {
     if (count() == 0) return;
 
-    m_popup = new QFrame(nullptr, Qt::Popup);
-    m_popup->setAttribute(Qt::WA_DeleteOnClose);
-    m_popup->setFrameShape(QFrame::NoFrame);
-    m_popup->setStyleSheet("QFrame { border: 1px solid palette(mid); background: palette(window); }");
+    QMenu *menu = new QMenu(this);
+    menu->setAttribute(Qt::WA_DeleteOnClose);
+    menu->setStyleSheet(
+        "QMenu { padding: 4px; }"
+        "QMenu::item { padding: 0; }"
+        "QMenu::item:selected { background: transparent; }"
+    );
 
-    QGridLayout *grid = new QGridLayout(m_popup);
+    QWidget *grid_widget = new QWidget;
+    QGridLayout *grid = new QGridLayout(grid_widget);
     grid->setSpacing(2);
-    grid->setContentsMargins(4, 4, 4, 4);
+    grid->setContentsMargins(0, 0, 0, 0);
 
     QSize iconSz = iconSize();
     int gridRow = 0, gridCol = 0;
     for (int i = 0; i < count(); ++i) {
-        QToolButton *btn = new QToolButton(m_popup);
+        QToolButton *btn = new QToolButton(grid_widget);
         btn->setAutoRaise(true);
         if (i == currentIndex()) {
             btn->setDown(true);
             btn->setStyleSheet("QToolButton { border: 2px solid palette(highlight); }");
         }
-        connect(btn, &QToolButton::clicked, this, [this, i]() {
+        connect(btn, &QToolButton::clicked, this, [this, i, menu]() {
             setCurrentIndex(i);
-            if (m_popup) m_popup->close();
+            menu->close();
         });
         QIcon ic = itemIcon(i);
         if (ic.isNull()) {
@@ -4111,15 +4118,13 @@ void PatternComboBox::showPopup()
         }
     }
 
-    m_popup->adjustSize();
-    QPoint pos = mapToGlobal(QPoint(0, height()));
-    // Keep popup on screen horizontally
-    QRect screen = QGuiApplication::primaryScreen()->availableGeometry();
-    if (pos.x() + m_popup->width() > screen.right())
-        pos.setX(screen.right() - m_popup->width());
-    m_popup->move(pos);
-    m_popup->show();
-    connect(m_popup, &QObject::destroyed, this, [this]() { m_popup = nullptr; });
+    QWidgetAction *action = new QWidgetAction(menu);
+    action->setDefaultWidget(grid_widget);
+    menu->addAction(action);
+
+    m_popup = menu;
+    connect(menu, &QObject::destroyed, this, [this]() { m_popup = nullptr; });
+    menu->popup(mapToGlobal(QPoint(0, height())));
 }
 
 void PatternComboBox::hidePopup()
