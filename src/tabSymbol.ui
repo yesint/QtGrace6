@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>tabSymbol</class>
+ <widget class="QWidget" name="tabSymbol">
+  <layout class="QVBoxLayout" name="outerLayout">
+   <property name="spacing"><number>2</number></property>
+   <property name="leftMargin"><number>2</number></property>
+   <property name="topMargin"><number>2</number></property>
+   <property name="rightMargin"><number>2</number></property>
+   <property name="bottomMargin"><number>2</number></property>
+   <item>
+    <widget class="QGroupBox" name="fraSymbOutl">
+     <property name="title"><string>Symbol outline</string></property>
+     <layout class="QHBoxLayout" name="layoutSymbOutl">
+      <property name="spacing"><number>2</number></property>
+      <property name="leftMargin"><number>2</number></property>
+      <property name="topMargin"><number>2</number></property>
+      <property name="rightMargin"><number>2</number></property>
+      <property name="bottomMargin"><number>2</number></property>
+      <item><widget class="LineStyleSelector" name="cmbSymbStyle"/></item>
+      <item><widget class="FillPatternSelector" name="cmbSymbPattern"/></item>
+      <item><widget class="LineWidthSelector" name="spnSymbWidth"/></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="fraSymbFill">
+     <property name="title"><string>Symbol fill</string></property>
+     <layout class="QHBoxLayout" name="layoutSymbFill">
+      <property name="spacing"><number>2</number></property>
+      <property name="leftMargin"><number>2</number></property>
+      <property name="topMargin"><number>2</number></property>
+      <property name="rightMargin"><number>2</number></property>
+      <property name="bottomMargin"><number>2</number></property>
+      <item><widget class="ColorSelector" name="cmbFillColor"/></item>
+      <item><widget class="FillPatternSelector" name="cmbFillPattern"/></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="fraExtra">
+     <property name="title"><string>Extra</string></property>
+     <layout class="QHBoxLayout" name="layoutExtra">
+      <property name="spacing"><number>2</number></property>
+      <property name="leftMargin"><number>2</number></property>
+      <property name="topMargin"><number>2</number></property>
+      <property name="rightMargin"><number>2</number></property>
+      <property name="bottomMargin"><number>2</number></property>
+      <item><widget class="stdIntSelector" name="spnSymbSkip"/></item>
+      <item><widget class="FontSelector" name="cmbSymbFont"/></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="vertSpacer">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+     <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LineStyleSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>FillPatternSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LineWidthSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>stdIntSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>FontSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

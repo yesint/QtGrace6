@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>tabLine</class>
+ <widget class="QWidget" name="tabLine">
+  <layout class="QVBoxLayout" name="outerLayout">
+   <property name="spacing"><number>2</number></property>
+   <property name="leftMargin"><number>2</number></property>
+   <property name="topMargin"><number>2</number></property>
+   <property name="rightMargin"><number>2</number></property>
+   <property name="bottomMargin"><number>2</number></property>
+   <item>
+    <widget class="QGroupBox" name="fraLineProp">
+     <property name="title"><string>Line properties</string></property>
+     <layout class="QHBoxLayout" name="layoutLineProp">
+      <property name="spacing"><number>2</number></property>
+      <property name="leftMargin"><number>2</number></property>
+      <property name="topMargin"><number>2</number></property>
+      <property name="rightMargin"><number>2</number></property>
+      <property name="bottomMargin"><number>2</number></property>
+      <item><widget class="FillPatternSelector" name="cmbPattern"/></item>
+      <item>
+       <widget class="QCheckBox" name="chkDrawDropLines">
+        <property name="text"><string>Draw drop lines</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="fraFillProp">
+     <property name="title"><string>Fill properties</string></property>
+     <layout class="QGridLayout" name="layoutFillProp">
+      <property name="spacing"><number>2</number></property>
+      <property name="leftMargin"><number>2</number></property>
+      <property name="topMargin"><number>2</number></property>
+      <property name="rightMargin"><number>2</number></property>
+      <property name="bottomMargin"><number>2</number></property>
+      <item row="0" column="0"><widget class="StdSelector" name="cmbType"/></item>
+      <item row="0" column="1"><widget class="StdSelector" name="cmbRule"/></item>
+      <item row="1" column="0"><widget class="FillPatternSelector" name="cmbFillPattern"/></item>
+      <item row="1" column="1"><widget class="ColorSelector" name="cmbFillColor"/></item>
+      <item row="2" column="0"><widget class="SetSelectorCombo" name="cmbSet"/></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="fraBaseLine">
+     <property name="title"><string>Base line</string></property>
+     <layout class="QHBoxLayout" name="layoutBaseLine">
+      <property name="spacing"><number>2</number></property>
+      <property name="leftMargin"><number>2</number></property>
+      <property name="topMargin"><number>2</number></property>
+      <property name="rightMargin"><number>2</number></property>
+      <property name="bottomMargin"><number>2</number></property>
+      <item>
+       <widget class="QCheckBox" name="chkDrawLine">
+        <property name="text"><string>Draw line</string></property>
+       </widget>
+      </item>
+      <item><widget class="StdSelector" name="cmbBaseType"/></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="vertSpacer">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+     <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>FillPatternSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>StdSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorSelector</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SetSelectorCombo</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

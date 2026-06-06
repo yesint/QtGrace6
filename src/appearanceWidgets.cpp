@@ -20,6 +20,11 @@
 
 #include "appearanceWidgets.h"
 #include "ui_frmSet_Appearance.h"
+#include "ui_tabMain.h"
+#include "ui_tabSymbol.h"
+#include "ui_tabLine.h"
+#include "ui_tabAnnVal.h"
+#include "ui_tabErrorBars.h"
 
 #define cg get_cg()
 
@@ -594,161 +599,97 @@ static QIcon setTypeIcon(int setType)
     return QIcon(QString(":/icons/%1.svg").arg(names[setType]));
 }
 
-tabMain::tabMain(QWidget * parent):QWidget(parent)
+tabMain::tabMain(QWidget * parent):QWidget(parent),
+    ui(new Ui::tabMain)
 {
-    int number=NUMBER_OF_SETTYPES;
-    QString entr[NUMBER_OF_SETTYPES];
+    ui->setupUi(this);
 
-    char dummy[2000];
-    fraSetPres=new QGroupBox(tr("Set presentation"),this);
+    fraSetPres        = ui->fraSetPres;
+    cmbType           = ui->cmbType;
+    ledString         = ui->ledString;
+    fraSymbProp       = ui->fraSymbProp;
+    cmbSymbType       = ui->cmbSymbType;
+    spnSymbSize       = ui->spnSymbSize;
+    cmbSymbColor      = ui->cmbSymbColor;
+    selSymbChar       = ui->selSymbChar;
+    fraLineProp       = ui->fraLineProp;
+    cmbLineType       = ui->cmbLineType;
+    cmbLineStyle      = ui->cmbLineStyle;
+    spnLineWidth      = ui->spnLineWidth;
+    cmbLineColor      = ui->cmbLineColor;
+    fraDispOpt        = ui->fraDispOpt;
+    chkAnnVal         = ui->chkAnnVal;
+    spnAnnValSize     = ui->spnAnnValSize;
+    chkDispErrBars    = ui->chkDispErrBars;
+    chkIgnoreInAutoscale = ui->chkIgnoreInAutoscale;
 
-    number_of_Type_entries=NUMBER_OF_SETTYPES;
-    Type_entries=new int[NUMBER_OF_SETTYPES];
-    for (int i=0;i<NUMBER_OF_SETTYPES;i++)
+    // Populate set type selector
+    number_of_Type_entries = NUMBER_OF_SETTYPES;
+    Type_entries = new int[NUMBER_OF_SETTYPES];
     {
-        strToUpper(dummy,set_types(i));
-        entr[i]=QString(dummy);
-    }
-    cmbType=new StdSelector(fraSetPres,tr("Type:"),number,entr);
-    cmbType->cmbSelect->setIconSize(QSize(40, 13));
-    for (int i=0;i<NUMBER_OF_SETTYPES;i++)
-        cmbType->cmbSelect->setItemIcon(i, setTypeIcon(i));
-    ledString=new stdLineEdit(fraSetPres,tr("Legend:"),true);
-    ledString->lenText->setText(QString(""));
-    layout0=new QVBoxLayout;
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout0->addWidget(cmbType);
-    layout0->addWidget(ledString);
-    fraSetPres->setLayout(layout0);
-
-    fraSymbProp=new QGroupBox(tr("Symbol properties"),this);
-    layout1=new QVBoxLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    {
-        QWidget *typeAndSizeRow = new QWidget(fraSymbProp);
-        QHBoxLayout *rowLayout = new QHBoxLayout(typeAndSizeRow);
-        rowLayout->setContentsMargins(2,2,2,2);
-        rowLayout->setSpacing(4);
-        rowLayout->addWidget(new QLabel(tr("Type:"), typeAndSizeRow));
-        cmbSymbType = new PatternComboBox(4, fraSymbProp);
-        int symbIconSz = qMax(20, int(20 * toolBarSizeFactor));
-        cmbSymbType->setIconSize(QSize(symbIconSz, symbIconSz));
-        cmbSymbType->setFixedHeight(symbIconSz + 6);
-        rowLayout->addWidget(cmbSymbType, 1);
-        rowLayout->addWidget(new QLabel(tr("Size:"), typeAndSizeRow));
-        spnSymbSize = new QDoubleSpinBox(typeAndSizeRow);
-        spnSymbSize->setRange(0.0, 10.0);
-        spnSymbSize->setSingleStep(1.0);
-        spnSymbSize->setDecimals(2);
-        spnSymbSize->setFixedWidth(70);
-        rowLayout->addWidget(spnSymbSize);
-        layout1->addWidget(typeAndSizeRow);
-    }
-
-    updateSymbolTypeIcons();
-    cmbSymbColor=new ColorSelector(fraSymbProp);
-    layout1->addWidget(cmbSymbColor);
-    connect(cmbSymbColor,SIGNAL(currentIndexChanged(int)),SLOT(SymbColorChanged(int)));
-
-    ///addition for v0.2.6
-    int nr_of_char_entries=0;
-    int char_entry_values[256];
-    QString char_entries[256];
-    for (int i=0;i<256;i++)
-    {
-        if (isprint(i))
-        {
-        char_entry_values[nr_of_char_entries]=i;
-        char_entries[nr_of_char_entries]=QChar(i);
-        nr_of_char_entries++;
+        char dummy[2000];
+        QString entr[NUMBER_OF_SETTYPES];
+        for (int i = 0; i < NUMBER_OF_SETTYPES; i++) {
+            strToUpper(dummy, set_types(i));
+            entr[i] = QString(dummy);
+            Type_entries[i] = i;
         }
+        cmbType->setNewEntries(NUMBER_OF_SETTYPES, entr);
     }
-    selSymbChar=new StdSelector(this,tr("Symbol char:"),nr_of_char_entries,char_entries);
-    selSymbChar->setValues(char_entry_values);
-    selSymbChar->setEnabled(false);
-    layout1->addWidget(selSymbChar);
+    cmbType->lblText->setText(tr("Type:"));
+    cmbType->cmbSelect->setIconSize(QSize(40, 13));
+    for (int i = 0; i < NUMBER_OF_SETTYPES; i++)
+        cmbType->cmbSelect->setItemIcon(i, setTypeIcon(i));
 
-    //ledSymbChar=new stdLineEdit(fraSymbProp,tr("Symbol char:"));
-    //ledSymbChar->lenText->setText(QString(""));
-    //layout1->addWidget(ledSymbChar);
-    fraSymbProp->setLayout(layout1);
+    ledString->lblText->setText(tr("Legend:"));
+    ledString->lenText->setText(QString(""));
 
-    fraLineProp=new QGroupBox(tr("Line properties"),this);
-    layout2=new QVBoxLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    entr[0]=tr("None");
-    entr[1]=tr("Straight");
-    entr[2]=tr("Left stairs");
-    entr[3]=tr("Right stairs");
-    entr[4]=tr("Segments");
-    entr[5]=tr("3-Segments");
-    entr[6]=tr("Increasing X only");
-    entr[7]=tr("Decreasing X only");
-    number=8;
-    cmbLineType=new StdSelector(fraLineProp,tr("Type:"),number,entr);
+    // Symbol type icons
+    updateSymbolTypeIcons();
+    int symbIconSz = qMax(20, int(20 * toolBarSizeFactor));
+    cmbSymbType->setIconSize(QSize(symbIconSz, symbIconSz));
+    cmbSymbType->setFixedHeight(symbIconSz + 6);
+
+    // Symbol char selector
+    {
+        int nr = 0;
+        int char_vals[256];
+        QString char_entr[256];
+        for (int i = 0; i < 256; i++) {
+            if (isprint(i)) { char_vals[nr] = i; char_entr[nr] = QChar(i); nr++; }
+        }
+        selSymbChar->setNewEntries(nr, char_entr);
+        selSymbChar->setValues(char_vals);
+        selSymbChar->lblText->setText(tr("Symbol char:"));
+        selSymbChar->setEnabled(false);
+    }
+
+    // Line type selector
+    {
+        QString entr[8];
+        entr[0]=tr("None"); entr[1]=tr("Straight"); entr[2]=tr("Left stairs");
+        entr[3]=tr("Right stairs"); entr[4]=tr("Segments"); entr[5]=tr("3-Segments");
+        entr[6]=tr("Increasing X only"); entr[7]=tr("Decreasing X only");
+        cmbLineType->setNewEntries(8, entr);
+    }
+    cmbLineType->lblText->setText(tr("Type:"));
     cmbLineType->cmbSelect->setIconSize(QSize(40, 13));
-    for (int i=0; i<8; i++)
+    for (int i = 0; i < 8; i++)
         cmbLineType->cmbSelect->setItemIcon(i, lineTypeIcon(i));
-    layout2->addWidget(cmbLineType);
-    cmbLineStyle=new LineStyleSelector(fraLineProp);
-    cmbLineStyle->lblText->setText(tr("Style:"));
-    spnLineWidth=new LineWidthSelector(fraLineProp);
-    spnLineWidth->lblText->setText(tr("Width:"));
-    {
-        QWidget *styleWidthRow = new QWidget(fraLineProp);
-        QHBoxLayout *swLayout = new QHBoxLayout(styleWidthRow);
-        swLayout->setContentsMargins(0,0,0,0);
-        swLayout->addWidget(cmbLineStyle);
-        swLayout->addWidget(spnLineWidth);
-        layout2->addWidget(styleWidthRow);
-    }
-    cmbLineColor=new ColorSelector(fraLineProp);
-    layout2->addWidget(cmbLineColor);
-    connect(cmbLineColor,SIGNAL(currentIndexChanged(int)),SLOT(LineColorChanged(int)));
-    fraLineProp->setLayout(layout2);
 
-    fraDispOpt=new QGroupBox(tr("Display options"),this);
-    layout4=new QGridLayout;
-    layout4->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    chkAnnVal=new QCheckBox(tr("Annotate values"),fraDispOpt);
-    layout4->addWidget(chkAnnVal,0,0);
-    {
-        QWidget *wdgAnnSize = new QWidget(fraDispOpt);
-        QHBoxLayout *asz = new QHBoxLayout(wdgAnnSize);
-        asz->setContentsMargins(0,0,0,0);
-        asz->addWidget(new QLabel(tr("Annotation label size:"), wdgAnnSize));
-        spnAnnValSize = new QDoubleSpinBox(wdgAnnSize);
-        spnAnnValSize->setRange(0.01, 10.0);
-        spnAnnValSize->setSingleStep(0.1);
-        spnAnnValSize->setDecimals(2);
-        spnAnnValSize->setValue(1.0);
-        spnAnnValSize->setFixedWidth(70);
-        spnAnnValSize->setEnabled(false);
-        asz->addWidget(spnAnnValSize);
-        layout4->addWidget(wdgAnnSize,0,1);
-    }
+    cmbLineStyle->lblText->setText(tr("Style:"));
+    spnLineWidth->lblText->setText(tr("Width:"));
+
     connect(chkAnnVal, &QCheckBox::toggled, spnAnnValSize, &QWidget::setEnabled);
-    chkDispErrBars=new QCheckBox(tr("Display error bars"),fraDispOpt);
-    layout4->addWidget(chkDispErrBars,1,0);
-    chkIgnoreInAutoscale=new QCheckBox(tr("Ignore during autoscale"),fraDispOpt);
-    layout4->addWidget(chkIgnoreInAutoscale,1,1);
-    fraDispOpt->setLayout(layout4);
-    layout=new QGridLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(fraSetPres,0,0,1,2);
-    layout->addWidget(fraSymbProp,1,0);
-    layout->addWidget(fraLineProp,1,1);
-    layout->addWidget(fraDispOpt,2,0,1,2);
-    setLayout(layout);
-    connect(cmbSymbType,SIGNAL(currentIndexChanged(int)),SLOT(SymbTypeChanged(int)));
+    connect(cmbSymbType, SIGNAL(currentIndexChanged(int)), SLOT(SymbTypeChanged(int)));
+    connect(cmbSymbColor, SIGNAL(currentIndexChanged(int)), SLOT(SymbColorChanged(int)));
+    connect(cmbLineColor, SIGNAL(currentIndexChanged(int)), SLOT(LineColorChanged(int)));
 }
 
 tabMain::~tabMain()
 {
     delete[] Type_entries;
+    delete ui;
 }
 
 void tabMain::SymbTypeChanged(int val)
@@ -797,294 +738,205 @@ void tabMain::updateSymbolTypeIcons(void)
     if (saved >= 0 && saved < 12) cmbSymbType->setCurrentIndex(saved);
 }
 
-tabSymbol::tabSymbol(QWidget * parent):QWidget(parent)
+tabSymbol::tabSymbol(QWidget * parent):QWidget(parent),
+    ui(new Ui::tabSymbol)
 {
-    fraSymbOutl=new QGroupBox(tr("Symbol outline"),this);
-    layout0=new QHBoxLayout;
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    cmbSymbStyle=new LineStyleSelector(this);
+    ui->setupUi(this);
+
+    fraSymbOutl   = ui->fraSymbOutl;
+    cmbSymbStyle  = ui->cmbSymbStyle;
+    cmbSymbPattern= ui->cmbSymbPattern;
+    spnSymbWidth  = ui->spnSymbWidth;
+    fraSymbFill   = ui->fraSymbFill;
+    cmbFillColor  = ui->cmbFillColor;
+    cmbFillPattern= ui->cmbFillPattern;
+    fraExtra      = ui->fraExtra;
+    spnSymbSkip   = ui->spnSymbSkip;
+    cmbSymbFont   = ui->cmbSymbFont;
+
     cmbSymbStyle->lblText->setText(tr("Style:"));
-    layout0->addWidget(cmbSymbStyle);
-    cmbSymbPattern=new FillPatternSelector(this);
     cmbSymbPattern->lblText->setText(tr("Pattern:"));
-    layout0->addWidget(cmbSymbPattern);
-    spnSymbWidth=new LineWidthSelector(this);
     spnSymbWidth->lblText->setText(tr("Width:"));
-    layout0->addWidget(spnSymbWidth);
-    fraSymbOutl->setLayout(layout0);
-    fraSymbFill=new QGroupBox(tr("Symbol fill"),this);
-    layout1=new QHBoxLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    cmbFillColor=new ColorSelector(this);
     cmbFillColor->lblText->setText(tr("Color:"));
-    layout1->addWidget(cmbFillColor);
-    cmbFillPattern=new FillPatternSelector(this);
     cmbFillPattern->lblText->setText(tr("Pattern:"));
-    layout1->addWidget(cmbFillPattern);
-    fraSymbFill->setLayout(layout1);
-    fraExtra=new QGroupBox(tr("Extra"),this);
-    layout2=new QHBoxLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    spnSymbSkip=new stdIntSelector(this,tr("Symbol skip:"),0,100000);
-    layout2->addWidget(spnSymbSkip);
-    cmbSymbFont=new FontSelector(this);
+    spnSymbSkip->lblText->setText(tr("Symbol skip:"));
+    spnSymbSkip->setRange(0, 100000);
     cmbSymbFont->setLabelText(tr("Font for symbol:"));
-    layout2->addWidget(cmbSymbFont);
-    fraExtra->setLayout(layout2);
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(fraSymbOutl);
-    layout->addWidget(fraSymbFill);
-    layout->addWidget(fraExtra);
-    empty=new QWidget(this);
-    layout->addWidget(empty);
-    setLayout(layout);
 }
 
-tabLine::tabLine(QWidget * parent):QWidget(parent)
+tabSymbol::~tabSymbol()
 {
-    int number=3;
-    QString entr[6];
-    fraLineProp=new QGroupBox(tr("Line properties"),this);
-    //fraLineProp->setGeometry(2,2,parent->width()-8,63);
-    layout0=new QHBoxLayout;
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    cmbPattern=new FillPatternSelector(this);
+    delete ui;
+}
+
+tabLine::tabLine(QWidget * parent):QWidget(parent),
+    ui(new Ui::tabLine)
+{
+    ui->setupUi(this);
+
+    fraLineProp    = ui->fraLineProp;
+    cmbPattern     = ui->cmbPattern;
+    chkDrawDropLines = ui->chkDrawDropLines;
+    fraFillProp    = ui->fraFillProp;
+    cmbType        = ui->cmbType;
+    cmbRule        = ui->cmbRule;
+    cmbFillPattern = ui->cmbFillPattern;
+    cmbFillColor   = ui->cmbFillColor;
+    cmbSet         = ui->cmbSet;
+    fraBaseLine    = ui->fraBaseLine;
+    cmbBaseType    = ui->cmbBaseType;
+    chkDrawLine    = ui->chkDrawLine;
+
     cmbPattern->lblText->setText(tr("Pattern:"));
-    layout0->addWidget(cmbPattern);
-    chkDrawDropLines=new QCheckBox(tr("Draw drop lines"),fraLineProp);
-    layout0->addWidget(chkDrawDropLines);
-    fraLineProp->setLayout(layout0);
-    fraFillProp=new QGroupBox(tr("Fill properties"),this);
-    layout1=new QGridLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    number=3;
-    entr[0]=tr("None");
-    entr[1]=tr("As polygon");
-    entr[2]=tr("To baseline");
-    cmbType=new StdSelector(this,tr("Type:"),number,entr);
-    layout1->addWidget(cmbType,0,0);
-    number=2;
-    entr[0]=tr("Winding");
-    entr[1]=tr("Even-Odd");
-    cmbRule=new StdSelector(this,tr("Rule:"),number,entr);
-    layout1->addWidget(cmbRule,0,1);
-    cmbFillPattern=new FillPatternSelector(this);
+
+    {
+        QString entr[3];
+        entr[0]=tr("None"); entr[1]=tr("As polygon"); entr[2]=tr("To baseline");
+        cmbType->setNewEntries(3, entr);
+        cmbType->lblText->setText(tr("Type:"));
+    }
+    {
+        QString entr[2];
+        entr[0]=tr("Winding"); entr[1]=tr("Even-Odd");
+        cmbRule->setNewEntries(2, entr);
+        cmbRule->lblText->setText(tr("Rule:"));
+    }
+
     cmbFillPattern->lblText->setText(tr("Pattern:"));
-    layout1->addWidget(cmbFillPattern,1,0);
-    cmbFillColor=new ColorSelector(this);
-    layout1->addWidget(cmbFillColor,1,1);
-    cmbSet=new SetSelectorCombo(tr("Polygon base set:"),this);
-    layout1->addWidget(cmbSet,2,0);
-    fraFillProp->setLayout(layout1);
-    fraBaseLine=new QGroupBox(tr("Base line"),this);
-    layout2=new QHBoxLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    number=6;
-    entr[0]=tr("Zero");
-    entr[1]=tr("Set min");
-    entr[2]=tr("Set max");
-    entr[3]=tr("Graph min");
-    entr[4]=tr("Graph max");
-    entr[5]=tr("Set average");
-    cmbBaseType=new StdSelector(this,tr("Type:"),number,entr);
-    chkDrawLine=new QCheckBox(tr("Draw line"),fraBaseLine);
-    layout2->addWidget(chkDrawLine);
-    layout2->addWidget(cmbBaseType);
-    fraBaseLine->setLayout(layout2);
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(fraLineProp);
-    layout->addWidget(fraFillProp);
-    layout->addWidget(fraBaseLine);
-    empty=new QWidget(this);
-    layout->addWidget(empty);
-    setLayout(layout);
+
+    cmbSet->lblCombo->setText(tr("Polygon base set:"));
+
+    {
+        QString entr[6];
+        entr[0]=tr("Zero"); entr[1]=tr("Set min"); entr[2]=tr("Set max");
+        entr[3]=tr("Graph min"); entr[4]=tr("Graph max"); entr[5]=tr("Set average");
+        cmbBaseType->setNewEntries(6, entr);
+        cmbBaseType->lblText->setText(tr("Type:"));
+    }
 }
 
-tabAnnVal::tabAnnVal(QWidget * parent):QWidget(parent)
+tabLine::~tabLine()
 {
-    int number=6;
-    QString entr[NUM_FMT_OPTION_ITEMS+2];
-    char dummy[500];
-    fraTextProp=new QGroupBox(tr("Text properties"),this);
-    layout0=new QGridLayout;
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    cmbFont=new FontSelector(this);
-    layout0->addWidget(cmbFont,0,0);
-    selAlign=new AlignmentSelector(this);
+    delete ui;
+}
+
+tabAnnVal::tabAnnVal(QWidget * parent):QWidget(parent),
+    ui(new Ui::tabAnnVal)
+{
+    ui->setupUi(this);
+
+    fraTextProp   = ui->fraTextProp;
+    cmbFont       = ui->cmbFont;
+    selAlign      = ui->selAlign;
+    cmbColor      = ui->cmbColor;
+    sldFontAngle  = ui->sldFontAngle;
+    spnFontAngle  = ui->spnFontAngle;
+    ledPrepend    = ui->ledPrepend;
+    ledAppend     = ui->ledAppend;
+    fraFormatOpt  = ui->fraFormatOpt;
+    cmbType       = ui->cmbType;
+    cmbPrecision  = ui->cmbPrecision;
+    cmbFormat     = ui->cmbFormat;
+    fraPlacement  = ui->fraPlacement;
+    ledXOffs      = ui->ledXOffs;
+    ledYOffs      = ui->ledYOffs;
+
     selAlign->setToolTip(tr("Sets the text-alignment for each line\n(only useful if you have annotations with more than one line)"));
-    layout0->addWidget(selAlign,0,1);
-    cmbColor=new ColorSelector(this);
-    layout0->addWidget(cmbColor,1,0);
-    {
-        QWidget * wdgAngle = new QWidget(this);
-        QHBoxLayout * aLayout = new QHBoxLayout(wdgAngle);
-        aLayout->setContentsMargins(2,2,2,2);
-        aLayout->addWidget(new QLabel(tr("Angle:"), wdgAngle));
-        sldFontAngle = new QSlider(Qt::Horizontal, wdgAngle);
-        sldFontAngle->setRange(0, 360);
-        spnFontAngle = new QSpinBox(wdgAngle);
-        spnFontAngle->setRange(0, 360);
-        spnFontAngle->setFixedWidth(55);
-        connect(sldFontAngle, SIGNAL(valueChanged(int)), spnFontAngle, SLOT(setValue(int)));
-        connect(spnFontAngle, SIGNAL(valueChanged(int)), sldFontAngle, SLOT(setValue(int)));
-        aLayout->addWidget(sldFontAngle);
-        aLayout->addWidget(spnFontAngle);
-        layout0->addWidget(wdgAngle,1,1);
-    }
-    ledPrepend=new stdLineEdit(this,tr("Prepend:"),true);
+
+    connect(sldFontAngle, SIGNAL(valueChanged(int)), spnFontAngle, SLOT(setValue(int)));
+    connect(spnFontAngle, SIGNAL(valueChanged(int)), sldFontAngle, SLOT(setValue(int)));
+
+    ledPrepend->lblText->setText(tr("Prepend:"));
     ledPrepend->lenText->setText(QString(""));
-    layout0->addWidget(ledPrepend,2,0);
-    ledAppend=new stdLineEdit(this,tr("Append:"),true);
+    ledAppend->lblText->setText(tr("Append:"));
     ledAppend->lenText->setText(QString(""));
-    layout0->addWidget(ledAppend,2,1);
-    fraTextProp->setLayout(layout0);
-    fraFormatOpt=new QGroupBox(tr("Format options"),this);
-    layout1=new QHBoxLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    number=6;
-    entr[0]=tr("None");
-    entr[1]=tr("X");
-    entr[2]=tr("Y");
-    entr[3]=tr("X,Y");
-    entr[4]=tr("String");
-    entr[5]=tr("Z");
-    cmbType=new StdSelector(this,tr("Type:"),number,entr);
-    layout1->addWidget(cmbType);
-    number=10;
-    for (int i=0;i<number;i++)
+
     {
-        sprintf(dummy,"%d",i);
-        entr[i]=QString(dummy);
+        QString entr[6];
+        entr[0]=tr("None"); entr[1]=tr("X"); entr[2]=tr("Y");
+        entr[3]=tr("X,Y"); entr[4]=tr("String"); entr[5]=tr("Z");
+        cmbType->setNewEntries(6, entr);
+        cmbType->lblText->setText(tr("Type:"));
     }
-    cmbPrecision=new StdSelector(this,tr("Precision:"),number,entr);
-    layout1->addWidget(cmbPrecision);
-    for (int i=0;i<NUM_FMT_OPTION_ITEMS;i++)
-        entr[i]=QString(fmt_option_items[i].label);
-    number=NUM_FMT_OPTION_ITEMS;
-    cmbFormat=new StdSelector(this,tr("Format:"),number,entr);
-    layout1->addWidget(cmbFormat);
-    fraFormatOpt->setLayout(layout1);
-    fraPlacement=new QGroupBox(tr("Placement"),this);
-    layout2=new QHBoxLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    ledXOffs=new stdLineEdit(this,tr("X offset:"));
+    {
+        char dummy[32];
+        QString entr[10];
+        for (int i = 0; i < 10; i++) { sprintf(dummy, "%d", i); entr[i] = QString(dummy); }
+        cmbPrecision->setNewEntries(10, entr);
+        cmbPrecision->lblText->setText(tr("Precision:"));
+    }
+    {
+        QString entr[NUM_FMT_OPTION_ITEMS];
+        for (int i = 0; i < NUM_FMT_OPTION_ITEMS; i++)
+            entr[i] = QString(fmt_option_items[i].label);
+        cmbFormat->setNewEntries(NUM_FMT_OPTION_ITEMS, entr);
+        cmbFormat->lblText->setText(tr("Format:"));
+    }
+
+    ledXOffs->lblText->setText(tr("X offset:"));
     ledXOffs->lenText->setText(QString(""));
-    layout2->addWidget(ledXOffs);
-    ledYOffs=new stdLineEdit(this,tr("Y offset:"));
+    ledYOffs->lblText->setText(tr("Y offset:"));
     ledYOffs->lenText->setText(QString(""));
-    layout2->addWidget(ledYOffs);
-    fraPlacement->setLayout(layout2);
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(fraTextProp);
-    layout->addWidget(fraFormatOpt);
-    layout->addWidget(fraPlacement);
-    setLayout(layout);
 }
 
-tabErrorBars::tabErrorBars(QWidget * parent):QWidget(parent)
+tabAnnVal::~tabAnnVal()
 {
-    int number=3;
-    QString entr[33];
-    fraCommon=new QGroupBox(tr("Common"),this);
-    layout0=new QVBoxLayout;
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    number=3;
-    entr[0]=tr("Normal");
-    entr[1]=tr("Opposite");
-    entr[2]=tr("Both");
-    cmbPlacement=new StdSelector(this,tr("Placement:"),number,entr);
-    layout0->addWidget(cmbPlacement);
-    cmbColor=new ColorSelector(this);
-    layout0->addWidget(cmbColor);
-    cmbPattern=new FillPatternSelector(this);
-    cmbPattern->lblText->setText(tr("Pattern:"));
-    layout0->addWidget(cmbPattern);
-    entr[0]=tr("None");
-    entr[1]=tr("X- and Y-bars");
-    entr[2]=tr("Y-bars only");
-    entr[3]=tr("X-bars only");
-    entr[4]=tr("Fill Y-bars as polygon");
-    entr[5]=tr("Fill X-bars as polygon");
-    entr[6]=tr("Fill X- and Y-bars as polygons");
-    number=7;
-    chkConnectErrorBars=new StdSelector(this,tr("Connect errorbars:"),number,entr);
-    layout0->addWidget(chkConnectErrorBars);
-    chkShowInLegend=new QCheckBox(tr("Show error bars in legend"),this);
-    layout0->addWidget(chkShowInLegend);
-    fraCommon->setLayout(layout0);
-    fraClipping=new QGroupBox(tr("Clipping"),this);
-    layout1=new QVBoxLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    chkArrowClip=new QCheckBox(tr("Arrow clip"),fraClipping);
-    layout1->addWidget(chkArrowClip);
-    spnMaxLength=new LineWidthSelector(this);
-    spnMaxLength->lblText->setText(tr("Max length:"));
-    layout1->addWidget(spnMaxLength);
-    fraClipping->setLayout(layout1);
-    fraBarLine=new QGroupBox(tr("Bar line"),this);
-    layout2=new QVBoxLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
+    delete ui;
+}
+
+tabErrorBars::tabErrorBars(QWidget * parent):QWidget(parent),
+    ui(new Ui::tabErrorBars)
+{
+    ui->setupUi(this);
+
+    fraCommon          = ui->fraCommon;
+    cmbPlacement       = ui->cmbPlacement;
+    cmbColor           = ui->cmbColor;
+    cmbPattern         = ui->cmbPattern;
+    chkConnectErrorBars= ui->chkConnectErrorBars;
+    chkShowInLegend    = ui->chkShowInLegend;
+    fraClipping        = ui->fraClipping;
+    chkArrowClip       = ui->chkArrowClip;
+    spnMaxLength       = ui->spnMaxLength;
+    fraBarLine         = ui->fraBarLine;
+    spnBarSize         = ui->spnBarSize;
+    spnbarWidth        = ui->spnbarWidth;
+    cmbBarStyle        = ui->cmbBarStyle;
+    fraRiserLine       = ui->fraRiserLine;
+    spnRiserWidth      = ui->spnRiserWidth;
+    cmbRiserStyle      = ui->cmbRiserStyle;
+
     {
-        QWidget * wdgBarSize = new QWidget(this);
-        QHBoxLayout * bsLayout = new QHBoxLayout(wdgBarSize);
-        bsLayout->setContentsMargins(2,2,2,2);
-        bsLayout->addWidget(new QLabel(tr("Size:"), wdgBarSize));
-        spnBarSize = new QDoubleSpinBox(wdgBarSize);
-        QLocale bsLocale=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale);
-        spnBarSize->setLocale(bsLocale);
-        spnBarSize->setRange(0.0, 10.0);
-        spnBarSize->setSingleStep(1.0);
-        spnBarSize->setDecimals(2);
-        bsLayout->addWidget(spnBarSize);
-        layout2->addWidget(wdgBarSize);
+        QString entr[3];
+        entr[0]=tr("Normal"); entr[1]=tr("Opposite"); entr[2]=tr("Both");
+        cmbPlacement->setNewEntries(3, entr);
+        cmbPlacement->lblText->setText(tr("Placement:"));
     }
-    spnbarWidth=new LineWidthSelector(this);
+    cmbPattern->lblText->setText(tr("Pattern:"));
+    {
+        QString entr[7];
+        entr[0]=tr("None"); entr[1]=tr("X- and Y-bars"); entr[2]=tr("Y-bars only");
+        entr[3]=tr("X-bars only"); entr[4]=tr("Fill Y-bars as polygon");
+        entr[5]=tr("Fill X-bars as polygon"); entr[6]=tr("Fill X- and Y-bars as polygons");
+        chkConnectErrorBars->setNewEntries(7, entr);
+        chkConnectErrorBars->lblText->setText(tr("Connect errorbars:"));
+    }
+
+    spnMaxLength->lblText->setText(tr("Max length:"));
+
+    {
+        QLocale bsLocale = (DecimalPointToUse == '.') ? (*dot_locale) : (*comma_locale);
+        spnBarSize->setLocale(bsLocale);
+    }
     spnbarWidth->lblText->setText(tr("Width:"));
-    layout2->addWidget(spnbarWidth);
-    cmbBarStyle=new LineStyleSelector(this);
     cmbBarStyle->lblText->setText(tr("Style:"));
-    layout2->addWidget(cmbBarStyle);
-    fraBarLine->setLayout(layout2);
-    fraRiserLine=new QGroupBox(tr("Riser line"),this);
-    layout3=new QVBoxLayout;
-    //layout3->setMargin(STD_MARGIN);
-    layout3->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    spnRiserWidth=new LineWidthSelector(this);
     spnRiserWidth->lblText->setText(tr("Width:"));
-    layout3->addWidget(spnRiserWidth);
-    cmbRiserStyle=new LineStyleSelector(this);
     cmbRiserStyle->lblText->setText(tr("Style:"));
-    layout3->addWidget(cmbRiserStyle);
-    empty=new QWidget(this);
-    empty->setMinimumHeight(30);
-    fraRiserLine->setLayout(layout3);
-    layout=new QGridLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(fraCommon,0,0);
-    layout->addWidget(fraClipping,1,0);
-    layout->addWidget(fraBarLine,0,1);
-    layout->addWidget(fraRiserLine,1,1);
-    layout->addWidget(empty,2,0,1,2);
-    setLayout(layout);
+}
+
+tabErrorBars::~tabErrorBars()
+{
+    delete ui;
 }
 
 frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
@@ -2631,32 +2483,6 @@ tabErBa->spnRiserWidth->blockSignals(false);*/
     tabAnVa->adjustSize();
     tabErBa->adjustSize();*/
 
-    tabMa->layout->update();
-    tabMa->layout0->update();
-    tabMa->layout1->update();
-    tabMa->layout2->update();
-    tabMa->layout4->update();
-
-    tabSy->layout->update();
-    tabSy->layout0->update();
-    tabSy->layout1->update();
-    tabSy->layout2->update();
-
-    tabLi->layout->update();
-    tabLi->layout0->update();
-    tabLi->layout1->update();
-    tabLi->layout2->update();
-
-    tabAnVa->layout->update();
-    tabAnVa->layout0->update();
-    tabAnVa->layout1->update();
-    tabAnVa->layout2->update();
-
-    tabErBa->layout->update();
-    tabErBa->layout0->update();
-    tabErBa->layout1->update();
-    tabErBa->layout2->update();
-    tabErBa->layout3->update();
 }
 
 dialogScrollArea::dialogScrollArea(QWidget * parent):QScrollArea(parent)

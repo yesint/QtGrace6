@@ -94,6 +94,8 @@ public slots:
 };
 
 
+namespace Ui { class tabMain; }
+
 class tabMain:public QWidget
 {
     Q_OBJECT
@@ -106,26 +108,20 @@ public:
     int * Type_entries;
     QGroupBox * fraSymbProp;
     ColorSelector * cmbSymbColor;
-    PatternComboBox * cmbSymbType;
+    PatternComboBox4 * cmbSymbType;
     QDoubleSpinBox * spnSymbSize;
-    StdSelector * selSymbChar;//changed in v0.2.6
-    //stdLineEdit * ledSymbChar;
+    StdSelector * selSymbChar;
     QGroupBox * fraLineProp;
     StdSelector * cmbLineType;
     LineStyleSelector * cmbLineStyle;
     LineWidthSelector * spnLineWidth;
     ColorSelector * cmbLineColor;
-    stdLineEdit * ledString;
+    stdLineEditLaTeX * ledString;
     QGroupBox * fraDispOpt;
     QCheckBox * chkAnnVal;
     QCheckBox * chkDispErrBars;
     QCheckBox * chkIgnoreInAutoscale;
     QDoubleSpinBox * spnAnnValSize;
-    QVBoxLayout * layout0;
-    QVBoxLayout * layout1;
-    QVBoxLayout * layout2;
-    QGridLayout * layout4;
-    QGridLayout * layout;
 public slots:
     void SymbTypeChanged(int val);
     void LineColorChanged(int val);
@@ -134,13 +130,18 @@ public slots:
 signals:
     void colorChanged(int val);
     void colorChanged2(int val);
+private:
+    Ui::tabMain *ui;
 };
+
+namespace Ui { class tabSymbol; }
 
 class tabSymbol:public QWidget
 {
     Q_OBJECT
 public:
     tabSymbol(QWidget * parent=0);
+    ~tabSymbol();
     QGroupBox * fraSymbOutl;
     LineStyleSelector * cmbSymbStyle;
     FillPatternSelector * cmbSymbPattern;
@@ -151,18 +152,18 @@ public:
     QGroupBox * fraExtra;
     stdIntSelector * spnSymbSkip;
     FontSelector * cmbSymbFont;
-    QWidget * empty;
-    QVBoxLayout * layout;
-    QHBoxLayout * layout0;
-    QHBoxLayout * layout1;
-    QHBoxLayout * layout2;
+private:
+    Ui::tabSymbol *ui;
 };
+
+namespace Ui { class tabLine; }
 
 class tabLine:public QWidget
 {
     Q_OBJECT
 public:
     tabLine(QWidget * parent=0);
+    ~tabLine();
     QGroupBox * fraLineProp;
     FillPatternSelector * cmbPattern;
     QCheckBox * chkDrawDropLines;
@@ -175,25 +176,25 @@ public:
     QGroupBox * fraBaseLine;
     StdSelector * cmbBaseType;
     QCheckBox * chkDrawLine;
-    QWidget * empty;
-    QVBoxLayout * layout;
-    QHBoxLayout * layout0;
-    QGridLayout * layout1;
-    QHBoxLayout * layout2;
+private:
+    Ui::tabLine *ui;
 };
+
+namespace Ui { class tabAnnVal; }
 
 class tabAnnVal:public QWidget
 {
     Q_OBJECT
 public:
     tabAnnVal(QWidget * parent=0);
+    ~tabAnnVal();
     QGroupBox * fraTextProp;
     FontSelector * cmbFont;
     ColorSelector * cmbColor;
     QSlider * sldFontAngle;
     QSpinBox * spnFontAngle;
-    stdLineEdit * ledPrepend;
-    stdLineEdit * ledAppend;
+    stdLineEditLaTeX * ledPrepend;
+    stdLineEditLaTeX * ledAppend;
     AlignmentSelector * selAlign;
     QGroupBox * fraFormatOpt;
     StdSelector * cmbType;
@@ -202,17 +203,18 @@ public:
     QGroupBox * fraPlacement;
     stdLineEdit * ledXOffs;
     stdLineEdit * ledYOffs;
-    QVBoxLayout * layout;
-    QGridLayout * layout0;
-    QHBoxLayout * layout1;
-    QHBoxLayout * layout2;
+private:
+    Ui::tabAnnVal *ui;
 };
+
+namespace Ui { class tabErrorBars; }
 
 class tabErrorBars:public QWidget
 {
     Q_OBJECT
 public:
     tabErrorBars(QWidget * parent=0);
+    ~tabErrorBars();
     QGroupBox * fraCommon;
     StdSelector * cmbPlacement;
     ColorSelector * cmbColor;
@@ -229,12 +231,8 @@ public:
     QGroupBox * fraRiserLine;
     LineWidthSelector * spnRiserWidth;
     LineStyleSelector * cmbRiserStyle;
-    QWidget * empty;
-    QGridLayout * layout;
-    QVBoxLayout * layout0;
-    QVBoxLayout * layout1;
-    QVBoxLayout * layout2;
-    QVBoxLayout * layout3;
+private:
+    Ui::tabErrorBars *ui;
 };
 
 namespace Ui { class frmSet_Appearance; }

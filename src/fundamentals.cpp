@@ -3240,18 +3240,6 @@ void ColorSelector::updateColorIcons(int nr_of_cols, CMap_entry * entries)
     refreshFinalColor();
 }
 
-StdSelector::StdSelector(QWidget * parent)
-{
-    int number=2;
-    QString * entr=new QString[2];
-    entr[0]=QString("");
-    entr[1]=QString("");
-    QString label("");
-    StdSelector(parent,label,number,entr);
-    entryIcons=NULL;
-//addStdSelector(this);
-}
-
 StdSelector::StdSelector(QWidget * parent,QString label,int number,QString * entr):QWidget(parent)
 {
     lblText=new QLabel(label);

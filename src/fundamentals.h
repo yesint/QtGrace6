@@ -482,6 +482,7 @@ class SetSelectorCombo:public QWidget
 {
 Q_OBJECT
 public:
+explicit SetSelectorCombo(QWidget *parent=nullptr) : SetSelectorCombo(QString(), parent) {}
 SetSelectorCombo(QString text,QWidget * parent=0);
 SetCombo * cmb;
 QLabel * lblCombo;
@@ -917,7 +918,7 @@ class StdSelector:public QWidget
 {
 Q_OBJECT
 public:
-StdSelector(QWidget * parent=0);
+StdSelector(QWidget *parent=nullptr) : StdSelector(parent, QString(), 0, nullptr) {}
 StdSelector(QWidget * parent,QString label,int number,QString * entr);
 ~StdSelector();
 bool simple_graph_selector;
@@ -1021,6 +1022,12 @@ int m_columns;
 QWidget *m_popup = nullptr;
 };
 
+class PatternComboBox4 : public PatternComboBox {
+    Q_OBJECT
+public:
+    explicit PatternComboBox4(QWidget *parent=nullptr) : PatternComboBox(4, parent) {}
+};
+
 class FillPatternSelector:public QWidget
 {
 Q_OBJECT
@@ -1081,6 +1088,7 @@ class stdIntSelector:public QWidget
 {
 Q_OBJECT
 public:
+explicit stdIntSelector(QWidget *parent=nullptr) : stdIntSelector(parent, QString(), 0, 100) {}
 stdIntSelector(QWidget * parent,QString label,int min,int max);
 QLabel * lblText;
 QSpinBox * spnInt;
@@ -1115,6 +1123,7 @@ class stdLineEdit:public QWidget
 {
 Q_OBJECT
 public:
+explicit stdLineEdit(QWidget *parent=nullptr) : stdLineEdit(parent, QString(), false) {}
 stdLineEdit(QWidget * parent,QString label,bool accLaTeX=false);
 ~stdLineEdit();
 bool acceptLaTeX;//controls whether this LineEdit allows LaTeX-input
@@ -1168,6 +1177,12 @@ QPushButton * cmdHelp;
 QHBoxLayout * layout;
 public slots:
 
+};
+
+class stdLineEditLaTeX : public stdLineEdit {
+    Q_OBJECT
+public:
+    explicit stdLineEditLaTeX(QWidget *parent=nullptr) : stdLineEdit(parent, QString(), true) {}
 };
 
 class dirList:public QTreeView
