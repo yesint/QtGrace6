@@ -237,6 +237,8 @@ public:
     QVBoxLayout * layout3;
 };
 
+namespace Ui { class frmSet_Appearance; }
+
 class frmSet_Appearance:public QWidget
 {
     Q_OBJECT
@@ -267,8 +269,6 @@ public:
     QAction * actdupllegends,*actcolorsync,*actapplyall;
     QAction * actsetdiffcolors,*actsetdifflinestyles,*actsetdifflinewidths,*actsetdiffsymbols,*actsetbaw;
     QAction * actloadcoments,*actstriplegends;
-
-    QVBoxLayout * layout;
 
 public slots:
     //Initializations
@@ -310,6 +310,8 @@ public slots:
     void redisplayContents(void);
 signals:
     void closeWish(void);
+private:
+    Ui::frmSet_Appearance *ui;
 };
 
 class dialogScrollArea:public QScrollArea
@@ -328,16 +330,13 @@ public:
     frmSetAppearance(QWidget * parent=0);
     ~frmSetAppearance();
     frmSet_Appearance * flp;
-    dialogScrollArea * scroll;
     uniList * listSet;
-    int min_w,min_h,bar_w,bar_h;
 public slots:
     void init(void);
     void ShowSetData_external(int graph_number,int set_number);
     void doApply(void);
     void doAccept(void);
     void doClose(void);
-    virtual void resizeEvent(QResizeEvent * event);
     virtual void showEvent(QShowEvent * event);
 };
 

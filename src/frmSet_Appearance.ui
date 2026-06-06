@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>frmSet_Appearance</class>
+ <widget class="QWidget" name="frmSet_Appearance">
+  <property name="windowTitle">
+   <string>Set Appearance</string>
+  </property>
+  <layout class="QVBoxLayout" name="layout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   <item>
+    <widget class="QMenuBar" name="menuBar"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblSelSet">
+     <property name="text">
+      <string>Select set:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="uniSetList" name="listSet">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>100</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="tabs">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="tabMain" name="tabMa">
+      <attribute name="title">
+       <string>Main</string>
+      </attribute>
+     </widget>
+     <widget class="tabSymbol" name="tabSy">
+      <attribute name="title">
+       <string>Symbols</string>
+      </attribute>
+     </widget>
+     <widget class="tabLine" name="tabLi">
+      <attribute name="title">
+       <string>Line</string>
+      </attribute>
+     </widget>
+     <widget class="tabAnnVal" name="tabAnVa">
+      <attribute name="title">
+       <string>Ann. values</string>
+      </attribute>
+     </widget>
+     <widget class="tabErrorBars" name="tabErBa">
+      <attribute name="title">
+       <string>Error bars</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="stdButtonGroup" name="buttonGroup"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>uniSetList</class>
+   <extends>QListWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>tabMain</class>
+   <extends>QWidget</extends>
+   <header>appearanceWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>tabSymbol</class>
+   <extends>QWidget</extends>
+   <header>appearanceWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>tabLine</class>
+   <extends>QWidget</extends>
+   <header>appearanceWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>tabAnnVal</class>
+   <extends>QWidget</extends>
+   <header>appearanceWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>tabErrorBars</class>
+   <extends>QWidget</extends>
+   <header>appearanceWidgets.h</header>
+  </customwidget>
+  <customwidget>
+   <class>stdButtonGroup</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

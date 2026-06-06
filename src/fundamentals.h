@@ -457,6 +457,12 @@ void new_selection(int a);
 friend class SetPopup;
 };
 
+class uniSetList : public uniList {
+    Q_OBJECT
+public:
+    explicit uniSetList(QWidget *parent = nullptr) : uniList(SETLIST, parent) {}
+};
+
 class SetCombo:public QComboBox
 {
 Q_OBJECT

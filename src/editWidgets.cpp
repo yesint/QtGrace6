@@ -8256,15 +8256,7 @@ void frm_Preferences::read_Misc(void)
         }
         if (FormSetAppearance!=NULL)
         {
-            if (small_screen_adjustments & 2)
-            {
-            FormSetAppearance->setMinimumSize(0,0);
-            }
-            else
-            {
-            FormSetAppearance->setMinimumSize(FormSetAppearance->min_w,FormSetAppearance->min_h);
-            }
-        FormSetAppearance->resize(FormSetAppearance->min_w,FormSetAppearance->min_h);
+            FormSetAppearance->adjustSize();
         }
             if (small_screen_adjustments & 2)
             {

@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "appearanceWidgets.h"
+#include "ui_frmSet_Appearance.h"
 
 #define cg get_cg()
 
@@ -1087,20 +1088,33 @@ tabErrorBars::tabErrorBars(QWidget * parent):QWidget(parent)
     setLayout(layout);
 }
 
-frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
+frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
+    ui(new Ui::frmSet_Appearance)
 {
-    //setFont(*stdFont);
-    //setWindowTitle(tr("QtGrace: Set Appearance"));
-    //setWindowIcon(QIcon(*GraceIcon));
-    CreateActions();
+    ui->setupUi(this);
+
+    // Assign public member aliases from generated UI
+    menuBar    = ui->menuBar;
+    lblSelSet  = ui->lblSelSet;
+    listSet    = ui->listSet;
+    tabs       = ui->tabs;
+    tabMa      = ui->tabMa;
+    tabSy      = ui->tabSy;
+    tabLi      = ui->tabLi;
+    tabAnVa    = ui->tabAnVa;
+    tabErBa    = ui->tabErBa;
+    buttonGroup= ui->buttonGroup;
+
+#ifdef MAC_SYSTEM
+    menuBar->hide();
+#endif
+
     updating=false;
     cset=0;
 
-    menuBar=new QMenuBar(this);
+    CreateActions();
 
     mnuFile=new QMenu(tr("&File"),this);
-    /*mnuFile->addAction(actOpenFontTool);
-    mnuFile->addSeparator();*/
     mnuFile->addAction(actclose);
 
     mnuEdit=new QMenu(tr("&Edit"),this);
@@ -1128,26 +1142,11 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
     menuBar->addSeparator();
     menuBar->addMenu(mnuHelp);
 
-    lblSelSet=new QLabel(tr("Select set:"),this);
-    listSet=new uniList(SETLIST,this);
     connect(listSet,SIGNAL(new_selection(int)),SLOT(newListSelection(int)));
 
-    tabs=new QTabWidget(this);
-    tabMa=new tabMain(tabs);
     connect(tabMa,SIGNAL(colorChanged(int)),SLOT(SyncColors(int)));
     connect(tabMa,SIGNAL(colorChanged2(int)),SLOT(SyncColors2(int)));
-    tabSy=new tabSymbol(tabs);
-    tabLi=new tabLine(tabs);
-    tabAnVa=new tabAnnVal(tabs);
-    tabErBa=new tabErrorBars(tabs);
 
-    tabs->addTab(tabMa, tr("Main"));
-    tabs->addTab(tabSy, tr("Symbols"));
-    tabs->addTab(tabLi, tr("Line"));
-    tabs->addTab(tabAnVa, tr("Ann. values"));
-    tabs->addTab(tabErBa, tr("Error bars"));
-
-    buttonGroup=new stdButtonGroup(this);
     connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
     connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
     connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
@@ -1187,7 +1186,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
     connect(tabLi->chkDrawDropLines,SIGNAL(toggled(bool)),SLOT(update3(bool)));
     connect(tabLi->chkDrawLine,SIGNAL(toggled(bool)),SLOT(update3(bool)));
     connect(tabLi->cmbSet->cmb,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    //tabtabAnnVal
+    //tabAnnVal
     connect(tabAnVa->cmbColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(tabAnVa->cmbColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
     connect(tabAnVa->cmbFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
@@ -1212,22 +1211,11 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent)
     connect(tabErBa->spnMaxLength,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
     connect(tabErBa->spnRiserWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
     connect(tabErBa->spnBarSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
-
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-#ifndef MAC_SYSTEM
-    layout->addWidget(menuBar);
-#endif
-    layout->addWidget(lblSelSet);
-    layout->addWidget(listSet);
-    layout->addWidget(tabs);
-    layout->addWidget(buttonGroup);
-    setLayout(layout);
 }
 
 frmSet_Appearance::~frmSet_Appearance()
 {
+    delete ui;
 }
 
 void frmSet_Appearance::ApplyListOfChanges(void)
@@ -2696,32 +2684,20 @@ void dialogScrollArea::keyPressEvent(QKeyEvent * k)
 
 frmSetAppearance::frmSetAppearance(QWidget * parent):QDialog(parent)
 {
-//setFont(*stdFont);
-    min_w=502;
-    min_h=600;
-    bar_w=bar_h=20;//15
     setWindowTitle(tr("QtGrace: Set Appearance"));
     setWindowIcon(QIcon(*GraceIcon));
     QVBoxLayout * layout=new QVBoxLayout;
-    //layout->setMargin(0);
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(0);
     flp=new frmSet_Appearance(this);
     connect(flp,SIGNAL(closeWish()),SLOT(close()));
-    layout->addWidget(flp->menuBar);
-    //layout->addWidget(flp);
-    scroll=new dialogScrollArea(this);
-    scroll->setWidget(flp);
-    layout->addWidget(scroll);
+    layout->addWidget(flp);
     listSet=flp->listSet;
     setLayout(layout);
-    //resize(min_w,min_h);
-    resize(LastSize_FormSetAppearance);
 }
 
 frmSetAppearance::~frmSetAppearance()
 {
-    LastSize_FormSetAppearance=this->size();
 }
 
 void frmSetAppearance::init(void)
@@ -2749,56 +2725,12 @@ void frmSetAppearance::doClose(void)
     hide();
 }
 
-void frmSetAppearance::resizeEvent(QResizeEvent * event)
-{
-//cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
-
-int n_size_w=event->size().width(),n_size_h=event->size().height();
-int actual_space_w=n_size_w,actual_space_h=n_size_h;
-if (small_screen_adjustments & 2)
-{
-    for (int i=0;i<2;i++)
-    {
-        if (actual_space_w<min_w)
-        {
-            n_size_w=min_w;
-            actual_space_h=event->size().height()-bar_h;
-            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-        }
-        else
-        {
-            scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        }
-        if (actual_space_h<min_h)
-        {
-            n_size_h=min_h;
-            actual_space_w=event->size().width()-bar_w;
-            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-        }
-        else
-        {
-            scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        }
-    }
-if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
-if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
-#if defined(WINDOWS_SYSTEM) || defined(LINUX_SYSTEM)
-n_size_h-=flp->menuBar->height();
-#endif
-setMinimumSize(0,0);
-}
-else
-{
-scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-setMinimumSize(min_w,min_h);
-}
-flp->resize(QSize(n_size_w,n_size_h));
-}
-
 void frmSetAppearance::showEvent(QShowEvent * event)
 {
-    (void)event;
+    if (!event->spontaneous()) {
+        adjustSize();
+        setFixedWidth(width());
+    }
 int * selected=new int[2];
 int nr_sel=0;
 flp->listSet->get_selection(&nr_sel,&selected);
