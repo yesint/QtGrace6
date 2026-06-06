@@ -8167,7 +8167,7 @@ void frm_Preferences::read_Behavior(void)
 //cout << "Read: redisplay" << endl;
     if (FormSetAppearance!=NULL)
     {
-    FormSetAppearance->flp->tabMa->cmbSymbType->redisplayItems();
+    FormSetAppearance->flp->tabMa->updateSymbolTypeIcons();
     }
 //cout << "Ende Read: redisplay" << endl;
     //universal_font_size_factor=selFontSize->value()*0.01;

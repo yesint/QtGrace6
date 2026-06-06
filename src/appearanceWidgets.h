@@ -106,7 +106,7 @@ public:
     int * Type_entries;
     QGroupBox * fraSymbProp;
     ColorSelector * cmbSymbColor;
-    StdSelector * cmbSymbType;
+    PatternComboBox * cmbSymbType;
     QDoubleSpinBox * spnSymbSize;
     StdSelector * selSymbChar;//changed in v0.2.6
     //stdLineEdit * ledSymbChar;

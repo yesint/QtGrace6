@@ -622,21 +622,19 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     layout1=new QVBoxLayout;
     //layout1->setMargin(STD_MARGIN);
     layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    entr[0]=tr("None");
-    entr[1]=tr("Circle");
-    entr[2]=tr("Square");
-    entr[3]=tr("Diamond");
-    entr[4]=tr("Triangle up");
-    entr[5]=tr("Triangle left");
-    entr[6]=tr("Triangle down");
-    entr[7]=tr("Triangle right");
-    entr[8]=tr("Plus");
-    entr[9]=tr("X");
-    entr[10]=tr("Star");
-    entr[11]=tr("Char");
-    number=12;
-    cmbSymbType=new StdSelector(fraSymbProp,tr("Type:"),number,entr);
-    layout1->addWidget(cmbSymbType);
+    {
+        QHBoxLayout *symbTypeRow = new QHBoxLayout;
+        symbTypeRow->addWidget(new QLabel(tr("Type:"), fraSymbProp));
+        cmbSymbType = new PatternComboBox(4, fraSymbProp);
+        int symbIconSz = qMax(20, int(20 * toolBarSizeFactor));
+        cmbSymbType->setIconSize(QSize(symbIconSz, symbIconSz));
+        cmbSymbType->setFixedHeight(symbIconSz + 6);
+        symbTypeRow->addWidget(cmbSymbType);
+        symbTypeRow->addStretch();
+        QWidget *symbTypeWidget = new QWidget(fraSymbProp);
+        symbTypeWidget->setLayout(symbTypeRow);
+        layout1->addWidget(symbTypeWidget);
+    }
 
     updateSymbolTypeIcons();
 
@@ -769,12 +767,24 @@ void tabMain::SymbColorChanged(int val)
 
 void tabMain::updateSymbolTypeIcons(void)
 {
-/* symbol-icons */
-QIcon * symb_icons=new QIcon[12];
-    createSymbolIcons(&symb_icons);
-    cmbSymbType->setIcons(symb_icons);
-    cmbSymbType->cmbSelect->setIconSize(QSize(12*toolBarSizeFactor,12*toolBarSizeFactor));
-delete[] symb_icons;
+    static const char *names[12] = {
+        QT_TR_NOOP("None"), QT_TR_NOOP("Circle"), QT_TR_NOOP("Square"),
+        QT_TR_NOOP("Diamond"), QT_TR_NOOP("Triangle up"), QT_TR_NOOP("Triangle left"),
+        QT_TR_NOOP("Triangle down"), QT_TR_NOOP("Triangle right"),
+        QT_TR_NOOP("Plus"), QT_TR_NOOP("X"), QT_TR_NOOP("Star"), QT_TR_NOOP("Char")
+    };
+    int saved = cmbSymbType->currentIndex();
+    QIcon symb_icons[12];
+    QIcon *ptr = symb_icons;
+    createSymbolIcons(&ptr);
+    int symbIconSz = qMax(20, int(20 * toolBarSizeFactor));
+    cmbSymbType->setIconSize(QSize(symbIconSz, symbIconSz));
+    cmbSymbType->clear();
+    for (int i = 0; i < 12; i++) {
+        cmbSymbType->addItem(symb_icons[i], QString());
+        cmbSymbType->setItemData(i, tr(names[i]), Qt::ToolTipRole);
+    }
+    if (saved >= 0 && saved < 12) cmbSymbType->setCurrentIndex(saved);
 }
 
 tabSymbol::tabSymbol(QWidget * parent):QWidget(parent)

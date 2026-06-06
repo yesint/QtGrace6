@@ -4101,6 +4101,11 @@ void PatternComboBox::showPopup()
             btn->setIcon(ic);
             btn->setIconSize(iconSz);
             btn->setFixedSize(iconSz + QSize(6, 6));
+            {
+                QString tip = itemData(i, Qt::ToolTipRole).toString();
+                if (tip.isEmpty()) tip = itemText(i);
+                if (!tip.isEmpty()) btn->setToolTip(tip);
+            }
             grid->addWidget(btn, gridRow, gridCol);
             if (++gridCol >= m_columns) { gridCol = 0; gridRow++; }
         }
