@@ -94,147 +94,6 @@ public slots:
 };
 
 
-namespace Ui { class tabMain; }
-
-class tabMain:public QWidget
-{
-    Q_OBJECT
-public:
-    tabMain(QWidget * parent=0);
-    ~tabMain();
-    QGroupBox * fraSetPres;
-    StdSelector * cmbType;
-    int number_of_Type_entries;
-    int * Type_entries;
-    QGroupBox * fraSymbProp;
-    ColorSelector * cmbSymbColor;
-    PatternComboBox4 * cmbSymbType;
-    QDoubleSpinBox * spnSymbSize;
-    StdSelector * selSymbChar;
-    QGroupBox * fraLineProp;
-    StdSelector * cmbLineType;
-    LineStyleSelector * cmbLineStyle;
-    LineWidthSelector * spnLineWidth;
-    ColorSelector * cmbLineColor;
-    stdLineEditLaTeX * ledString;
-    QGroupBox * fraDispOpt;
-    QCheckBox * chkAnnVal;
-    QCheckBox * chkDispErrBars;
-    QCheckBox * chkIgnoreInAutoscale;
-    QDoubleSpinBox * spnAnnValSize;
-public slots:
-    void SymbTypeChanged(int val);
-    void LineColorChanged(int val);
-    void SymbColorChanged(int val);
-    void updateSymbolTypeIcons(void);
-signals:
-    void colorChanged(int val);
-    void colorChanged2(int val);
-private:
-    Ui::tabMain *ui;
-};
-
-namespace Ui { class tabSymbol; }
-
-class tabSymbol:public QWidget
-{
-    Q_OBJECT
-public:
-    tabSymbol(QWidget * parent=0);
-    ~tabSymbol();
-    QGroupBox * fraSymbOutl;
-    LineStyleSelector * cmbSymbStyle;
-    FillPatternSelector * cmbSymbPattern;
-    LineWidthSelector * spnSymbWidth;
-    QGroupBox * fraSymbFill;
-    ColorSelector * cmbFillColor;
-    FillPatternSelector * cmbFillPattern;
-    QGroupBox * fraExtra;
-    stdIntSelector * spnSymbSkip;
-    FontSelector * cmbSymbFont;
-private:
-    Ui::tabSymbol *ui;
-};
-
-namespace Ui { class tabLine; }
-
-class tabLine:public QWidget
-{
-    Q_OBJECT
-public:
-    tabLine(QWidget * parent=0);
-    ~tabLine();
-    QGroupBox * fraLineProp;
-    FillPatternSelector * cmbPattern;
-    QCheckBox * chkDrawDropLines;
-    QGroupBox * fraFillProp;
-    StdSelector * cmbType;
-    StdSelector * cmbRule;
-    FillPatternSelector * cmbFillPattern;
-    ColorSelector * cmbFillColor;
-    SetSelectorCombo * cmbSet;
-    QGroupBox * fraBaseLine;
-    StdSelector * cmbBaseType;
-    QCheckBox * chkDrawLine;
-private:
-    Ui::tabLine *ui;
-};
-
-namespace Ui { class tabAnnVal; }
-
-class tabAnnVal:public QWidget
-{
-    Q_OBJECT
-public:
-    tabAnnVal(QWidget * parent=0);
-    ~tabAnnVal();
-    QGroupBox * fraTextProp;
-    FontSelector * cmbFont;
-    ColorSelector * cmbColor;
-    QSlider * sldFontAngle;
-    QSpinBox * spnFontAngle;
-    stdLineEditLaTeX * ledPrepend;
-    stdLineEditLaTeX * ledAppend;
-    AlignmentSelector * selAlign;
-    QGroupBox * fraFormatOpt;
-    StdSelector * cmbType;
-    StdSelector * cmbPrecision;
-    StdSelector * cmbFormat;
-    QGroupBox * fraPlacement;
-    stdLineEdit * ledXOffs;
-    stdLineEdit * ledYOffs;
-private:
-    Ui::tabAnnVal *ui;
-};
-
-namespace Ui { class tabErrorBars; }
-
-class tabErrorBars:public QWidget
-{
-    Q_OBJECT
-public:
-    tabErrorBars(QWidget * parent=0);
-    ~tabErrorBars();
-    QGroupBox * fraCommon;
-    StdSelector * cmbPlacement;
-    ColorSelector * cmbColor;
-    FillPatternSelector * cmbPattern;
-    QCheckBox * chkShowInLegend;
-    StdSelector * chkConnectErrorBars;
-    QGroupBox * fraClipping;
-    QCheckBox * chkArrowClip;
-    LineWidthSelector * spnMaxLength;
-    QGroupBox * fraBarLine;
-    QDoubleSpinBox * spnBarSize;
-    LineWidthSelector * spnbarWidth;
-    LineStyleSelector * cmbBarStyle;
-    QGroupBox * fraRiserLine;
-    LineWidthSelector * spnRiserWidth;
-    LineStyleSelector * cmbRiserStyle;
-private:
-    Ui::tabErrorBars *ui;
-};
-
 namespace Ui { class frmSet_Appearance; }
 
 class frmSet_Appearance:public QWidget
@@ -247,12 +106,86 @@ public:
     bool updating;
     int cset;
 
-    tabMain * tabMa;
-    tabSymbol * tabSy;
-    tabLine * tabLi;
-    tabAnnVal * tabAnVa;
-    tabErrorBars * tabErBa;
+    // --- Main tab ---
+    QGroupBox * fraSetPres;
+    StdSelector * cmbSetType;
+    int number_of_Type_entries;
+    int * Type_entries;
+    stdLineEditLaTeX * ledString;
+    QGroupBox * fraSymbProp;
+    PatternComboBox4 * cmbSymbType;
+    QDoubleSpinBox * spnSymbSize;
+    ColorSelector * cmbSymbColor;
+    StdSelector * selSymbChar;
+    QGroupBox * fraSetLineProp;
+    StdSelector * cmbLineType;
+    LineStyleSelector * cmbLineStyle;
+    LineWidthSelector * spnLineWidth;
+    ColorSelector * cmbLineColor;
+    QGroupBox * fraDispOpt;
+    QCheckBox * chkAnnVal;
+    QDoubleSpinBox * spnAnnValSize;
+    QCheckBox * chkDispErrBars;
+    QCheckBox * chkIgnoreInAutoscale;
+    // --- Symbols tab ---
+    QGroupBox * fraSymbOutl;
+    LineStyleSelector * cmbSymbStyle;
+    FillPatternSelector * cmbSymbPattern;
+    LineWidthSelector * spnSymbWidth;
+    QGroupBox * fraSymbFill;
+    ColorSelector * cmbSymbFillColor;
+    FillPatternSelector * cmbSymbFillPattern;
+    QGroupBox * fraExtra;
+    stdIntSelector * spnSymbSkip;
+    FontSelector * cmbSymbFont;
+    // --- Line tab ---
+    QGroupBox * fraDropLineProp;
+    FillPatternSelector * cmbDropPattern;
+    QCheckBox * chkDrawDropLines;
+    QGroupBox * fraFillProp;
+    StdSelector * cmbFillType;
+    StdSelector * cmbRule;
+    FillPatternSelector * cmbAreaFillPattern;
+    ColorSelector * cmbAreaFillColor;
+    SetSelectorCombo * cmbSet;
+    QGroupBox * fraBaseLine;
+    StdSelector * cmbBaseType;
+    QCheckBox * chkDrawLine;
+    // --- Ann. values tab ---
+    QGroupBox * fraTextProp;
+    FontSelector * cmbFont;
+    AlignmentSelector * selAlign;
+    ColorSelector * cmbAnnColor;
+    QSlider * sldFontAngle;
+    QSpinBox * spnFontAngle;
+    stdLineEditLaTeX * ledPrepend;
+    stdLineEditLaTeX * ledAppend;
+    QGroupBox * fraFormatOpt;
+    StdSelector * cmbAnnValType;
+    StdSelector * cmbPrecision;
+    StdSelector * cmbFormat;
+    QGroupBox * fraPlacement;
+    stdLineEdit * ledXOffs;
+    stdLineEdit * ledYOffs;
+    // --- Error bars tab ---
+    QGroupBox * fraCommon;
+    StdSelector * cmbPlacement;
+    ColorSelector * cmbErrColor;
+    FillPatternSelector * cmbErrPattern;
+    StdSelector * chkConnectErrorBars;
+    QCheckBox * chkShowInLegend;
+    QGroupBox * fraClipping;
+    QCheckBox * chkArrowClip;
+    LineWidthSelector * spnMaxLength;
+    QGroupBox * fraBarLine;
+    QDoubleSpinBox * spnBarSize;
+    LineWidthSelector * spnbarWidth;
+    LineStyleSelector * cmbBarStyle;
+    QGroupBox * fraRiserLine;
+    LineWidthSelector * spnRiserWidth;
+    LineStyleSelector * cmbRiserStyle;
 
+    // --- Outer shell ---
     QMenuBar * menuBar;
     QMenu * mnuFile;
     QMenu * mnuEdit;
@@ -269,14 +202,11 @@ public:
     QAction * actloadcoments,*actstriplegends;
 
 public slots:
-    //Initializations
     void CreateActions(void);
     void init(void);
-    //Button-Actions
     void doApply(void);
     void doAccept(void);
     void doClose(void);
-    //Menu-Actions
     void doOpenFontTool(void);
     void doHelpOnContext(void);
     void doHelpOnSetAppearance(void);
@@ -290,24 +220,28 @@ public slots:
     void doSetBlackAndWhite(void);
     void doLoadComments(void);
     void doStripLegends(void);
-    //immediateUpdates
     void ApplyListOfChanges(void);
     void update0(void);
     void update1(int v);
     void update2(QString v);
     void update3(bool v);
     void update4(double v);
-    //Set-Actions
     void newListSelection(int a);
-    void ShowSetData_external(int graph_number,int set_number);//the same as showSetData, but does also a new selection
+    void ShowSetData_external(int graph_number,int set_number);
     void showSetData(int graph_number,int set_number);
     void writeSetData(int graph_number,int set_number);
     void SyncColors(int val);
     void SyncColors2(int val);
     void setapp_data_proc(int dat);
     void redisplayContents(void);
+    void SymbTypeChanged(int val);
+    void LineColorChanged(int val);
+    void SymbColorChanged(int val);
+    void updateSymbolTypeIcons(void);
 signals:
     void closeWish(void);
+    void colorChanged(int val);
+    void colorChanged2(int val);
 private:
     Ui::frmSet_Appearance *ui;
 };

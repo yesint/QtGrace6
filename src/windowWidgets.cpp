@@ -4548,9 +4548,9 @@ errmsg(tr("No set appearance dialog opened.").toLocal8Bit().constData());
 return;
 }
 
-FormSetAppearance->flp->tabMa->selSymbChar->setCurrentValue(val);
-//FormSetAppearance->flp->tabMa->ledSymbChar->setText(ledAscii->text());
-FormSetAppearance->flp->tabMa->cmbSymbType->setCurrentIndex(SYM_CHAR);
+FormSetAppearance->flp->selSymbChar->setCurrentValue(val);
+//FormSetAppearance->flp->ledSymbChar->setText(ledAscii->text());
+FormSetAppearance->flp->cmbSymbType->setCurrentIndex(SYM_CHAR);
 
 //qDebug() << "val=" << val << " last_char=" << last_character << " printable=" << QChar::isPrint(last_character);
 

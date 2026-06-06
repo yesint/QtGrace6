@@ -1863,7 +1863,7 @@ bool sav_imm_upd;
         SetChoice(FormPruneData->selector[3],(get_graph_yscale(get_cg()) == SCALE_LOG) ? 1 : 0);
     }
     if (FormLocatorProps!=NULL) FormLocatorProps->update_locator_items(gno);
-    if (FormSetAppearance!=NULL) FormSetAppearance->flp->tabLi->cmbSet->update_entries(gno,true);
+    if (FormSetAppearance!=NULL) FormSetAppearance->flp->cmbSet->update_entries(gno,true);
     update_explorer();
     if (FormRegionMaster!=NULL) FormRegionMaster->init();
     if (FormPlotAppearance!=NULL) FormPlotAppearance->init();

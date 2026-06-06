@@ -20,11 +20,6 @@
 
 #include "appearanceWidgets.h"
 #include "ui_frmSet_Appearance.h"
-#include "ui_tabMain.h"
-#include "ui_tabSymbol.h"
-#include "ui_tabLine.h"
-#include "ui_tabAnnVal.h"
-#include "ui_tabErrorBars.h"
 
 #define cg get_cg()
 
@@ -599,20 +594,27 @@ static QIcon setTypeIcon(int setType)
     return QIcon(QString(":/icons/%1.svg").arg(names[setType]));
 }
 
-tabMain::tabMain(QWidget * parent):QWidget(parent),
-    ui(new Ui::tabMain)
+frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
+    ui(new Ui::frmSet_Appearance)
 {
     ui->setupUi(this);
 
+    menuBar    = ui->menuBar;
+    lblSelSet  = ui->lblSelSet;
+    listSet    = ui->listSet;
+    tabs       = ui->tabs;
+    buttonGroup= ui->buttonGroup;
+
+    // Main tab
     fraSetPres        = ui->fraSetPres;
-    cmbType           = ui->cmbType;
+    cmbSetType        = ui->cmbSetType;
     ledString         = ui->ledString;
     fraSymbProp       = ui->fraSymbProp;
     cmbSymbType       = ui->cmbSymbType;
     spnSymbSize       = ui->spnSymbSize;
     cmbSymbColor      = ui->cmbSymbColor;
     selSymbChar       = ui->selSymbChar;
-    fraLineProp       = ui->fraLineProp;
+    fraSetLineProp    = ui->fraSetLineProp;
     cmbLineType       = ui->cmbLineType;
     cmbLineStyle      = ui->cmbLineStyle;
     spnLineWidth      = ui->spnLineWidth;
@@ -622,8 +624,65 @@ tabMain::tabMain(QWidget * parent):QWidget(parent),
     spnAnnValSize     = ui->spnAnnValSize;
     chkDispErrBars    = ui->chkDispErrBars;
     chkIgnoreInAutoscale = ui->chkIgnoreInAutoscale;
+    // Symbols tab
+    fraSymbOutl       = ui->fraSymbOutl;
+    cmbSymbStyle      = ui->cmbSymbStyle;
+    cmbSymbPattern    = ui->cmbSymbPattern;
+    spnSymbWidth      = ui->spnSymbWidth;
+    fraSymbFill       = ui->fraSymbFill;
+    cmbSymbFillColor  = ui->cmbSymbFillColor;
+    cmbSymbFillPattern= ui->cmbSymbFillPattern;
+    fraExtra          = ui->fraExtra;
+    spnSymbSkip       = ui->spnSymbSkip;
+    cmbSymbFont       = ui->cmbSymbFont;
+    // Line tab
+    fraDropLineProp   = ui->fraDropLineProp;
+    cmbDropPattern    = ui->cmbDropPattern;
+    chkDrawDropLines  = ui->chkDrawDropLines;
+    fraFillProp       = ui->fraFillProp;
+    cmbFillType       = ui->cmbFillType;
+    cmbRule           = ui->cmbRule;
+    cmbAreaFillPattern= ui->cmbAreaFillPattern;
+    cmbAreaFillColor  = ui->cmbAreaFillColor;
+    cmbSet            = ui->cmbSet;
+    fraBaseLine       = ui->fraBaseLine;
+    cmbBaseType       = ui->cmbBaseType;
+    chkDrawLine       = ui->chkDrawLine;
+    // Ann. values tab
+    fraTextProp       = ui->fraTextProp;
+    cmbFont           = ui->cmbFont;
+    selAlign          = ui->selAlign;
+    cmbAnnColor       = ui->cmbAnnColor;
+    sldFontAngle      = ui->sldFontAngle;
+    spnFontAngle      = ui->spnFontAngle;
+    ledPrepend        = ui->ledPrepend;
+    ledAppend         = ui->ledAppend;
+    fraFormatOpt      = ui->fraFormatOpt;
+    cmbAnnValType     = ui->cmbAnnValType;
+    cmbPrecision      = ui->cmbPrecision;
+    cmbFormat         = ui->cmbFormat;
+    fraPlacement      = ui->fraPlacement;
+    ledXOffs          = ui->ledXOffs;
+    ledYOffs          = ui->ledYOffs;
+    // Error bars tab
+    fraCommon         = ui->fraCommon;
+    cmbPlacement      = ui->cmbPlacement;
+    cmbErrColor       = ui->cmbErrColor;
+    cmbErrPattern     = ui->cmbErrPattern;
+    chkConnectErrorBars= ui->chkConnectErrorBars;
+    chkShowInLegend   = ui->chkShowInLegend;
+    fraClipping       = ui->fraClipping;
+    chkArrowClip      = ui->chkArrowClip;
+    spnMaxLength      = ui->spnMaxLength;
+    fraBarLine        = ui->fraBarLine;
+    spnBarSize        = ui->spnBarSize;
+    spnbarWidth       = ui->spnbarWidth;
+    cmbBarStyle       = ui->cmbBarStyle;
+    fraRiserLine      = ui->fraRiserLine;
+    spnRiserWidth     = ui->spnRiserWidth;
+    cmbRiserStyle     = ui->cmbRiserStyle;
 
-    // Populate set type selector
+    // ---- post-init: Main tab ----
     number_of_Type_entries = NUMBER_OF_SETTYPES;
     Type_entries = new int[NUMBER_OF_SETTYPES];
     {
@@ -634,37 +693,31 @@ tabMain::tabMain(QWidget * parent):QWidget(parent),
             entr[i] = QString(dummy);
             Type_entries[i] = i;
         }
-        cmbType->setNewEntries(NUMBER_OF_SETTYPES, entr);
+        cmbSetType->setNewEntries(NUMBER_OF_SETTYPES, entr);
     }
-    cmbType->lblText->setText(tr("Type:"));
-    cmbType->cmbSelect->setIconSize(QSize(40, 13));
+    cmbSetType->lblText->setText(tr("Type:"));
+    cmbSetType->cmbSelect->setIconSize(QSize(40, 13));
     for (int i = 0; i < NUMBER_OF_SETTYPES; i++)
-        cmbType->cmbSelect->setItemIcon(i, setTypeIcon(i));
+        cmbSetType->cmbSelect->setItemIcon(i, setTypeIcon(i));
 
     ledString->lblText->setText(tr("Legend:"));
     ledString->lenText->setText(QString(""));
 
-    // Symbol type icons
     updateSymbolTypeIcons();
-    int symbIconSz = qMax(20, int(20 * toolBarSizeFactor));
-    cmbSymbType->setIconSize(QSize(symbIconSz, symbIconSz));
-    cmbSymbType->setFixedHeight(symbIconSz + 6);
-
-    // Symbol char selector
     {
-        int nr = 0;
-        int char_vals[256];
-        QString char_entr[256];
-        for (int i = 0; i < 256; i++) {
-            if (isprint(i)) { char_vals[nr] = i; char_entr[nr] = QChar(i); nr++; }
-        }
+        int sz = qMax(20, int(20 * toolBarSizeFactor));
+        cmbSymbType->setIconSize(QSize(sz, sz));
+        cmbSymbType->setFixedHeight(sz + 6);
+    }
+    {
+        int nr = 0; int char_vals[256]; QString char_entr[256];
+        for (int i = 0; i < 256; i++)
+            if (isprint(i)) { char_vals[nr]=i; char_entr[nr]=QChar(i); nr++; }
         selSymbChar->setNewEntries(nr, char_entr);
         selSymbChar->setValues(char_vals);
         selSymbChar->lblText->setText(tr("Symbol char:"));
         selSymbChar->setEnabled(false);
     }
-
-    // Line type selector
     {
         QString entr[8];
         entr[0]=tr("None"); entr[1]=tr("Straight"); entr[2]=tr("Left stairs");
@@ -676,45 +729,220 @@ tabMain::tabMain(QWidget * parent):QWidget(parent),
     cmbLineType->cmbSelect->setIconSize(QSize(40, 13));
     for (int i = 0; i < 8; i++)
         cmbLineType->cmbSelect->setItemIcon(i, lineTypeIcon(i));
-
     cmbLineStyle->lblText->setText(tr("Style:"));
     spnLineWidth->lblText->setText(tr("Width:"));
 
+    // ---- post-init: Symbols tab ----
+    cmbSymbStyle->lblText->setText(tr("Style:"));
+    cmbSymbPattern->lblText->setText(tr("Pattern:"));
+    spnSymbWidth->lblText->setText(tr("Width:"));
+    cmbSymbFillColor->lblText->setText(tr("Color:"));
+    cmbSymbFillPattern->lblText->setText(tr("Pattern:"));
+    spnSymbSkip->lblText->setText(tr("Symbol skip:"));
+    spnSymbSkip->setRange(0, 100000);
+    cmbSymbFont->setLabelText(tr("Font for symbol:"));
+
+    // ---- post-init: Line tab ----
+    cmbDropPattern->lblText->setText(tr("Pattern:"));
+    {
+        QString entr[3];
+        entr[0]=tr("None"); entr[1]=tr("As polygon"); entr[2]=tr("To baseline");
+        cmbFillType->setNewEntries(3, entr);
+        cmbFillType->lblText->setText(tr("Type:"));
+    }
+    {
+        QString entr[2];
+        entr[0]=tr("Winding"); entr[1]=tr("Even-Odd");
+        cmbRule->setNewEntries(2, entr);
+        cmbRule->lblText->setText(tr("Rule:"));
+    }
+    cmbAreaFillPattern->lblText->setText(tr("Pattern:"));
+    cmbSet->lblCombo->setText(tr("Polygon base set:"));
+    {
+        QString entr[6];
+        entr[0]=tr("Zero"); entr[1]=tr("Set min"); entr[2]=tr("Set max");
+        entr[3]=tr("Graph min"); entr[4]=tr("Graph max"); entr[5]=tr("Set average");
+        cmbBaseType->setNewEntries(6, entr);
+        cmbBaseType->lblText->setText(tr("Type:"));
+    }
+
+    // ---- post-init: Ann. values tab ----
+    selAlign->setToolTip(tr("Sets the text-alignment for each line\n(only useful if you have annotations with more than one line)"));
+    ledPrepend->lblText->setText(tr("Prepend:")); ledPrepend->lenText->setText(QString(""));
+    ledAppend->lblText->setText(tr("Append:")); ledAppend->lenText->setText(QString(""));
+    {
+        QString entr[6];
+        entr[0]=tr("None"); entr[1]=tr("X"); entr[2]=tr("Y");
+        entr[3]=tr("X,Y"); entr[4]=tr("String"); entr[5]=tr("Z");
+        cmbAnnValType->setNewEntries(6, entr);
+        cmbAnnValType->lblText->setText(tr("Type:"));
+    }
+    {
+        char dummy[32]; QString entr[10];
+        for (int i = 0; i < 10; i++) { sprintf(dummy,"%d",i); entr[i]=QString(dummy); }
+        cmbPrecision->setNewEntries(10, entr);
+        cmbPrecision->lblText->setText(tr("Precision:"));
+    }
+    {
+        QString entr[NUM_FMT_OPTION_ITEMS];
+        for (int i = 0; i < NUM_FMT_OPTION_ITEMS; i++) entr[i]=QString(fmt_option_items[i].label);
+        cmbFormat->setNewEntries(NUM_FMT_OPTION_ITEMS, entr);
+        cmbFormat->lblText->setText(tr("Format:"));
+    }
+    ledXOffs->lblText->setText(tr("X offset:")); ledXOffs->lenText->setText(QString(""));
+    ledYOffs->lblText->setText(tr("Y offset:")); ledYOffs->lenText->setText(QString(""));
+
+    // ---- post-init: Error bars tab ----
+    {
+        QString entr[3];
+        entr[0]=tr("Normal"); entr[1]=tr("Opposite"); entr[2]=tr("Both");
+        cmbPlacement->setNewEntries(3, entr);
+        cmbPlacement->lblText->setText(tr("Placement:"));
+    }
+    cmbErrPattern->lblText->setText(tr("Pattern:"));
+    {
+        QString entr[7];
+        entr[0]=tr("None"); entr[1]=tr("X- and Y-bars"); entr[2]=tr("Y-bars only");
+        entr[3]=tr("X-bars only"); entr[4]=tr("Fill Y-bars as polygon");
+        entr[5]=tr("Fill X-bars as polygon"); entr[6]=tr("Fill X- and Y-bars as polygons");
+        chkConnectErrorBars->setNewEntries(7, entr);
+        chkConnectErrorBars->lblText->setText(tr("Connect errorbars:"));
+    }
+    spnMaxLength->lblText->setText(tr("Max length:"));
+    { QLocale loc=(DecimalPointToUse=='.')?(*dot_locale):(*comma_locale); spnBarSize->setLocale(loc); }
+    spnbarWidth->lblText->setText(tr("Width:"));
+    cmbBarStyle->lblText->setText(tr("Style:"));
+    spnRiserWidth->lblText->setText(tr("Width:"));
+    cmbRiserStyle->lblText->setText(tr("Style:"));
+
+    // ---- menus and connections ----
+#ifdef MAC_SYSTEM
+    menuBar->hide();
+#endif
+    updating=false;
+    cset=0;
+    CreateActions();
+
+    mnuFile=new QMenu(tr("&File"),this);
+    mnuFile->addAction(actclose);
+    mnuEdit=new QMenu(tr("&Edit"),this);
+    mnuEdit->addAction(actsetdiffcolors);
+    mnuEdit->addAction(actsetdiffsymbols);
+    mnuEdit->addAction(actsetdifflinestyles);
+    mnuEdit->addAction(actsetdifflinewidths);
+    mnuEdit->addAction(actsetbaw);
+    mnuEdit->addSeparator();
+    mnuEdit->addAction(actloadcoments);
+    mnuEdit->addAction(actstriplegends);
+    mnuOptions=new QMenu(tr("&Options"),this);
+    mnuOptions->addAction(actdupllegends);
+    mnuOptions->addAction(actcolorsync);
+    mnuOptions->addAction(actapplyall);
+    mnuHelp=new QMenu(tr("&Help"),this);
+    mnuHelp->addAction(acthelponcontext);
+    mnuHelp->addAction(acthelponsetappearance);
+    menuBar->addMenu(mnuFile);
+    menuBar->addMenu(mnuEdit);
+    menuBar->addMenu(mnuOptions);
+    menuBar->addSeparator();
+    menuBar->addMenu(mnuHelp);
+
+    connect(listSet,SIGNAL(new_selection(int)),SLOT(newListSelection(int)));
+    connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
+    connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
+    connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
+
     connect(chkAnnVal, &QCheckBox::toggled, spnAnnValSize, &QWidget::setEnabled);
-    connect(cmbSymbType, SIGNAL(currentIndexChanged(int)), SLOT(SymbTypeChanged(int)));
-    connect(cmbSymbColor, SIGNAL(currentIndexChanged(int)), SLOT(SymbColorChanged(int)));
-    connect(cmbLineColor, SIGNAL(currentIndexChanged(int)), SLOT(LineColorChanged(int)));
+    connect(cmbSymbType,SIGNAL(currentIndexChanged(int)),SLOT(SymbTypeChanged(int)));
+    connect(cmbSymbColor,SIGNAL(currentIndexChanged(int)),SLOT(SymbColorChanged(int)));
+    connect(cmbLineColor,SIGNAL(currentIndexChanged(int)),SLOT(LineColorChanged(int)));
+    connect(sldFontAngle,SIGNAL(valueChanged(int)),spnFontAngle,SLOT(setValue(int)));
+    connect(spnFontAngle,SIGNAL(valueChanged(int)),sldFontAngle,SLOT(setValue(int)));
+
+    //tabMain
+    connect(chkAnnVal,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(spnAnnValSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
+    connect(chkDispErrBars,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(cmbSetType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbLineColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbLineColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(cmbLineStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbLineType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbSymbColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbSymbColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(cmbSymbType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(ledString,SIGNAL(changed()),SLOT(update0()));
+    connect(spnSymbSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
+    connect(spnLineWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
+    //tabSymbol
+    connect(cmbSymbFillColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbSymbFillColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(cmbSymbFillPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbSymbFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbSymbPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbSymbStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(spnSymbSkip,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
+    connect(spnSymbWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
+    //tabLine
+    connect(cmbBaseType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbAreaFillColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbAreaFillColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(cmbAreaFillPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbDropPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbRule,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbFillType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(chkDrawDropLines,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(chkDrawLine,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(cmbSet->cmb,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    //tabAnnVal
+    connect(cmbAnnColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbAnnColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(cmbFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbFormat,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbPrecision,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbAnnValType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(ledAppend,SIGNAL(changed()),SLOT(update0()));
+    connect(ledPrepend,SIGNAL(changed()),SLOT(update0()));
+    connect(ledXOffs,SIGNAL(changed()),SLOT(update0()));
+    connect(ledYOffs,SIGNAL(changed()),SLOT(update0()));
+    connect(spnFontAngle,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(selAlign->cmbJustSelect2,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    //tabErrorBars
+    connect(cmbBarStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbErrColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbErrColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(cmbErrPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbPlacement,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbRiserStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(chkArrowClip,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(spnbarWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
+    connect(spnMaxLength,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
+    connect(spnRiserWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
+    connect(spnBarSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
 }
 
-tabMain::~tabMain()
+frmSet_Appearance::~frmSet_Appearance()
 {
     delete[] Type_entries;
     delete ui;
 }
 
-void tabMain::SymbTypeChanged(int val)
+void frmSet_Appearance::SymbTypeChanged(int val)
 {
-    if (val!=SYM_CHAR)
-    {
-    selSymbChar->setEnabled(false);
-    }
-    else
-    {
-    selSymbChar->setEnabled(true);
-    }
+    selSymbChar->setEnabled(val == SYM_CHAR);
 }
 
-void tabMain::LineColorChanged(int val)
+void frmSet_Appearance::LineColorChanged(int val)
 {
-    emit(colorChanged(val));
+    SyncColors(val);
 }
 
-void tabMain::SymbColorChanged(int val)
+void frmSet_Appearance::SymbColorChanged(int val)
 {
-    emit(colorChanged2(val));
+    SyncColors2(val);
 }
 
-void tabMain::updateSymbolTypeIcons(void)
+void frmSet_Appearance::updateSymbolTypeIcons(void)
 {
     static const char *names[12] = {
         QT_TR_NOOP("None"), QT_TR_NOOP("Circle"), QT_TR_NOOP("Square"),
@@ -726,347 +954,15 @@ void tabMain::updateSymbolTypeIcons(void)
     QIcon symb_icons[12];
     QIcon *ptr = symb_icons;
     createSymbolIcons(&ptr);
-    int symbIconSz = qMax(20, int(20 * toolBarSizeFactor));
-    cmbSymbType->setIconSize(QSize(symbIconSz, symbIconSz));
+    int sz = qMax(20, int(20 * toolBarSizeFactor));
+    cmbSymbType->setIconSize(QSize(sz, sz));
     cmbSymbType->clear();
-    // index 0 "None" uses a null icon so PatternComboBox shows it as a text button
     cmbSymbType->addItem(QIcon(), tr("None"));
     for (int i = 1; i < 12; i++) {
         cmbSymbType->addItem(symb_icons[i], QString());
         cmbSymbType->setItemData(i, tr(names[i]), Qt::ToolTipRole);
     }
     if (saved >= 0 && saved < 12) cmbSymbType->setCurrentIndex(saved);
-}
-
-tabSymbol::tabSymbol(QWidget * parent):QWidget(parent),
-    ui(new Ui::tabSymbol)
-{
-    ui->setupUi(this);
-
-    fraSymbOutl   = ui->fraSymbOutl;
-    cmbSymbStyle  = ui->cmbSymbStyle;
-    cmbSymbPattern= ui->cmbSymbPattern;
-    spnSymbWidth  = ui->spnSymbWidth;
-    fraSymbFill   = ui->fraSymbFill;
-    cmbFillColor  = ui->cmbFillColor;
-    cmbFillPattern= ui->cmbFillPattern;
-    fraExtra      = ui->fraExtra;
-    spnSymbSkip   = ui->spnSymbSkip;
-    cmbSymbFont   = ui->cmbSymbFont;
-
-    cmbSymbStyle->lblText->setText(tr("Style:"));
-    cmbSymbPattern->lblText->setText(tr("Pattern:"));
-    spnSymbWidth->lblText->setText(tr("Width:"));
-    cmbFillColor->lblText->setText(tr("Color:"));
-    cmbFillPattern->lblText->setText(tr("Pattern:"));
-    spnSymbSkip->lblText->setText(tr("Symbol skip:"));
-    spnSymbSkip->setRange(0, 100000);
-    cmbSymbFont->setLabelText(tr("Font for symbol:"));
-}
-
-tabSymbol::~tabSymbol()
-{
-    delete ui;
-}
-
-tabLine::tabLine(QWidget * parent):QWidget(parent),
-    ui(new Ui::tabLine)
-{
-    ui->setupUi(this);
-
-    fraLineProp    = ui->fraLineProp;
-    cmbPattern     = ui->cmbPattern;
-    chkDrawDropLines = ui->chkDrawDropLines;
-    fraFillProp    = ui->fraFillProp;
-    cmbType        = ui->cmbType;
-    cmbRule        = ui->cmbRule;
-    cmbFillPattern = ui->cmbFillPattern;
-    cmbFillColor   = ui->cmbFillColor;
-    cmbSet         = ui->cmbSet;
-    fraBaseLine    = ui->fraBaseLine;
-    cmbBaseType    = ui->cmbBaseType;
-    chkDrawLine    = ui->chkDrawLine;
-
-    cmbPattern->lblText->setText(tr("Pattern:"));
-
-    {
-        QString entr[3];
-        entr[0]=tr("None"); entr[1]=tr("As polygon"); entr[2]=tr("To baseline");
-        cmbType->setNewEntries(3, entr);
-        cmbType->lblText->setText(tr("Type:"));
-    }
-    {
-        QString entr[2];
-        entr[0]=tr("Winding"); entr[1]=tr("Even-Odd");
-        cmbRule->setNewEntries(2, entr);
-        cmbRule->lblText->setText(tr("Rule:"));
-    }
-
-    cmbFillPattern->lblText->setText(tr("Pattern:"));
-
-    cmbSet->lblCombo->setText(tr("Polygon base set:"));
-
-    {
-        QString entr[6];
-        entr[0]=tr("Zero"); entr[1]=tr("Set min"); entr[2]=tr("Set max");
-        entr[3]=tr("Graph min"); entr[4]=tr("Graph max"); entr[5]=tr("Set average");
-        cmbBaseType->setNewEntries(6, entr);
-        cmbBaseType->lblText->setText(tr("Type:"));
-    }
-}
-
-tabLine::~tabLine()
-{
-    delete ui;
-}
-
-tabAnnVal::tabAnnVal(QWidget * parent):QWidget(parent),
-    ui(new Ui::tabAnnVal)
-{
-    ui->setupUi(this);
-
-    fraTextProp   = ui->fraTextProp;
-    cmbFont       = ui->cmbFont;
-    selAlign      = ui->selAlign;
-    cmbColor      = ui->cmbColor;
-    sldFontAngle  = ui->sldFontAngle;
-    spnFontAngle  = ui->spnFontAngle;
-    ledPrepend    = ui->ledPrepend;
-    ledAppend     = ui->ledAppend;
-    fraFormatOpt  = ui->fraFormatOpt;
-    cmbType       = ui->cmbType;
-    cmbPrecision  = ui->cmbPrecision;
-    cmbFormat     = ui->cmbFormat;
-    fraPlacement  = ui->fraPlacement;
-    ledXOffs      = ui->ledXOffs;
-    ledYOffs      = ui->ledYOffs;
-
-    selAlign->setToolTip(tr("Sets the text-alignment for each line\n(only useful if you have annotations with more than one line)"));
-
-    connect(sldFontAngle, SIGNAL(valueChanged(int)), spnFontAngle, SLOT(setValue(int)));
-    connect(spnFontAngle, SIGNAL(valueChanged(int)), sldFontAngle, SLOT(setValue(int)));
-
-    ledPrepend->lblText->setText(tr("Prepend:"));
-    ledPrepend->lenText->setText(QString(""));
-    ledAppend->lblText->setText(tr("Append:"));
-    ledAppend->lenText->setText(QString(""));
-
-    {
-        QString entr[6];
-        entr[0]=tr("None"); entr[1]=tr("X"); entr[2]=tr("Y");
-        entr[3]=tr("X,Y"); entr[4]=tr("String"); entr[5]=tr("Z");
-        cmbType->setNewEntries(6, entr);
-        cmbType->lblText->setText(tr("Type:"));
-    }
-    {
-        char dummy[32];
-        QString entr[10];
-        for (int i = 0; i < 10; i++) { sprintf(dummy, "%d", i); entr[i] = QString(dummy); }
-        cmbPrecision->setNewEntries(10, entr);
-        cmbPrecision->lblText->setText(tr("Precision:"));
-    }
-    {
-        QString entr[NUM_FMT_OPTION_ITEMS];
-        for (int i = 0; i < NUM_FMT_OPTION_ITEMS; i++)
-            entr[i] = QString(fmt_option_items[i].label);
-        cmbFormat->setNewEntries(NUM_FMT_OPTION_ITEMS, entr);
-        cmbFormat->lblText->setText(tr("Format:"));
-    }
-
-    ledXOffs->lblText->setText(tr("X offset:"));
-    ledXOffs->lenText->setText(QString(""));
-    ledYOffs->lblText->setText(tr("Y offset:"));
-    ledYOffs->lenText->setText(QString(""));
-}
-
-tabAnnVal::~tabAnnVal()
-{
-    delete ui;
-}
-
-tabErrorBars::tabErrorBars(QWidget * parent):QWidget(parent),
-    ui(new Ui::tabErrorBars)
-{
-    ui->setupUi(this);
-
-    fraCommon          = ui->fraCommon;
-    cmbPlacement       = ui->cmbPlacement;
-    cmbColor           = ui->cmbColor;
-    cmbPattern         = ui->cmbPattern;
-    chkConnectErrorBars= ui->chkConnectErrorBars;
-    chkShowInLegend    = ui->chkShowInLegend;
-    fraClipping        = ui->fraClipping;
-    chkArrowClip       = ui->chkArrowClip;
-    spnMaxLength       = ui->spnMaxLength;
-    fraBarLine         = ui->fraBarLine;
-    spnBarSize         = ui->spnBarSize;
-    spnbarWidth        = ui->spnbarWidth;
-    cmbBarStyle        = ui->cmbBarStyle;
-    fraRiserLine       = ui->fraRiserLine;
-    spnRiserWidth      = ui->spnRiserWidth;
-    cmbRiserStyle      = ui->cmbRiserStyle;
-
-    {
-        QString entr[3];
-        entr[0]=tr("Normal"); entr[1]=tr("Opposite"); entr[2]=tr("Both");
-        cmbPlacement->setNewEntries(3, entr);
-        cmbPlacement->lblText->setText(tr("Placement:"));
-    }
-    cmbPattern->lblText->setText(tr("Pattern:"));
-    {
-        QString entr[7];
-        entr[0]=tr("None"); entr[1]=tr("X- and Y-bars"); entr[2]=tr("Y-bars only");
-        entr[3]=tr("X-bars only"); entr[4]=tr("Fill Y-bars as polygon");
-        entr[5]=tr("Fill X-bars as polygon"); entr[6]=tr("Fill X- and Y-bars as polygons");
-        chkConnectErrorBars->setNewEntries(7, entr);
-        chkConnectErrorBars->lblText->setText(tr("Connect errorbars:"));
-    }
-
-    spnMaxLength->lblText->setText(tr("Max length:"));
-
-    {
-        QLocale bsLocale = (DecimalPointToUse == '.') ? (*dot_locale) : (*comma_locale);
-        spnBarSize->setLocale(bsLocale);
-    }
-    spnbarWidth->lblText->setText(tr("Width:"));
-    cmbBarStyle->lblText->setText(tr("Style:"));
-    spnRiserWidth->lblText->setText(tr("Width:"));
-    cmbRiserStyle->lblText->setText(tr("Style:"));
-}
-
-tabErrorBars::~tabErrorBars()
-{
-    delete ui;
-}
-
-frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
-    ui(new Ui::frmSet_Appearance)
-{
-    ui->setupUi(this);
-
-    // Assign public member aliases from generated UI
-    menuBar    = ui->menuBar;
-    lblSelSet  = ui->lblSelSet;
-    listSet    = ui->listSet;
-    tabs       = ui->tabs;
-    tabMa      = ui->tabMa;
-    tabSy      = ui->tabSy;
-    tabLi      = ui->tabLi;
-    tabAnVa    = ui->tabAnVa;
-    tabErBa    = ui->tabErBa;
-    buttonGroup= ui->buttonGroup;
-
-#ifdef MAC_SYSTEM
-    menuBar->hide();
-#endif
-
-    updating=false;
-    cset=0;
-
-    CreateActions();
-
-    mnuFile=new QMenu(tr("&File"),this);
-    mnuFile->addAction(actclose);
-
-    mnuEdit=new QMenu(tr("&Edit"),this);
-    mnuEdit->addAction(actsetdiffcolors);
-    mnuEdit->addAction(actsetdiffsymbols);
-    mnuEdit->addAction(actsetdifflinestyles);
-    mnuEdit->addAction(actsetdifflinewidths);
-    mnuEdit->addAction(actsetbaw);
-    mnuEdit->addSeparator();
-    mnuEdit->addAction(actloadcoments);
-    mnuEdit->addAction(actstriplegends);
-
-    mnuOptions=new QMenu(tr("&Options"),this);
-    mnuOptions->addAction(actdupllegends);
-    mnuOptions->addAction(actcolorsync);
-    mnuOptions->addAction(actapplyall);
-
-    mnuHelp=new QMenu(tr("&Help"),this);
-    mnuHelp->addAction(acthelponcontext);
-    mnuHelp->addAction(acthelponsetappearance);
-
-    menuBar->addMenu(mnuFile);
-    menuBar->addMenu(mnuEdit);
-    menuBar->addMenu(mnuOptions);
-    menuBar->addSeparator();
-    menuBar->addMenu(mnuHelp);
-
-    connect(listSet,SIGNAL(new_selection(int)),SLOT(newListSelection(int)));
-
-    connect(tabMa,SIGNAL(colorChanged(int)),SLOT(SyncColors(int)));
-    connect(tabMa,SIGNAL(colorChanged2(int)),SLOT(SyncColors2(int)));
-
-    connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
-    connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
-    connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
-
-    //tabMain
-    connect(tabMa->chkAnnVal,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabMa->spnAnnValSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
-    connect(tabMa->chkDispErrBars,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabMa->cmbType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMa->cmbLineColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMa->cmbLineColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabMa->cmbLineStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMa->cmbLineType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMa->cmbSymbColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMa->cmbSymbColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabMa->cmbSymbType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMa->ledString,SIGNAL(changed()),SLOT(update0()));
-    connect(tabMa->spnSymbSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
-    connect(tabMa->spnLineWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    //tabSymbol
-    connect(tabSy->cmbFillColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabSy->cmbFillColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabSy->cmbFillPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabSy->cmbSymbFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabSy->cmbSymbPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabSy->cmbSymbStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabSy->spnSymbSkip,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
-    connect(tabSy->spnSymbWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    //tabLine
-    connect(tabLi->cmbBaseType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLi->cmbFillColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLi->cmbFillColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabLi->cmbFillPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLi->cmbPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLi->cmbRule,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLi->cmbType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLi->chkDrawDropLines,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabLi->chkDrawLine,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabLi->cmbSet->cmb,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    //tabAnnVal
-    connect(tabAnVa->cmbColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabAnVa->cmbColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabAnVa->cmbFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabAnVa->cmbFormat,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabAnVa->cmbPrecision,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabAnVa->cmbType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabAnVa->ledAppend,SIGNAL(changed()),SLOT(update0()));
-    connect(tabAnVa->ledPrepend,SIGNAL(changed()),SLOT(update0()));
-    connect(tabAnVa->ledXOffs,SIGNAL(changed()),SLOT(update0()));
-    connect(tabAnVa->ledYOffs,SIGNAL(changed()),SLOT(update0()));
-    connect(tabAnVa->spnFontAngle,SIGNAL(valueChanged(int)),SLOT(update1(int)));
-    connect(tabAnVa->selAlign->cmbJustSelect2,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    //tabErrorBars
-    connect(tabErBa->cmbBarStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabErBa->cmbColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabErBa->cmbColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabErBa->cmbPattern,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabErBa->cmbPlacement,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabErBa->cmbRiserStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabErBa->chkArrowClip,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabErBa->spnbarWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    connect(tabErBa->spnMaxLength,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    connect(tabErBa->spnRiserWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    connect(tabErBa->spnBarSize,SIGNAL(valueChanged(double)),SLOT(update4(double)));
-}
-
-frmSet_Appearance::~frmSet_Appearance()
-{
-    delete ui;
 }
 
 void frmSet_Appearance::ApplyListOfChanges(void)
@@ -1126,7 +1022,7 @@ cur_update_running=true;
             convert_single_string_from_encoding_to_UTF8_static(g[this->listSet->gr_no].p[selset[i]].lstr);
             update_grace_string_from_UTF8_static(g[this->listSet->gr_no].p[selset[i]].lstr);
             }
-        //tabMa->ledString->SetTextToMemory(g[this->listSet->gr_no].p[this->cset].lstr,g[this->listSet->gr_no].p[this->cset].orig_lstr);
+        //ledString->SetTextToMemory(g[this->listSet->gr_no].p[this->cset].lstr,g[this->listSet->gr_no].p[this->cset].orig_lstr);
 if (selset) delete[] selset;
 
     GlobalInhibitor=false;
@@ -1284,62 +1180,62 @@ apply_running=true;
 
     duplegs=actdupllegends->isChecked()==true?1:0;
 
-    type = tabMa->Type_entries[tabMa->cmbType->currentIndex()];
-    symsize = tabMa->spnSymbSize->value();
-    sym = tabMa->cmbSymbType->currentIndex();
-    color = tabMa->cmbLineColor->currentIndex();
-    alpha = tabMa->cmbLineColor->alpha();
+    type = Type_entries[cmbSetType->currentIndex()];
+    symsize = spnSymbSize->value();
+    sym = cmbSymbType->currentIndex();
+    color = cmbLineColor->currentIndex();
+    alpha = cmbLineColor->alpha();
 
-    pattern = tabLi->cmbPattern->currentIndex();
-    wid = tabMa->spnLineWidth->value();
-    baseline = tabLi->chkDrawLine->isChecked()==true?1:0;
-    baselinetype = tabLi->cmbBaseType->currentIndex();
-    dropline = tabLi->chkDrawDropLines->isChecked()==true?1:0;
-    line = tabMa->cmbLineStyle->currentIndex();
-    linet = tabMa->cmbLineType->currentIndex();
+    pattern = cmbDropPattern->currentIndex();
+    wid = spnLineWidth->value();
+    baseline = chkDrawLine->isChecked()==true?1:0;
+    baselinetype = cmbBaseType->currentIndex();
+    dropline = chkDrawDropLines->isChecked()==true?1:0;
+    line = cmbLineStyle->currentIndex();
+    linet = cmbLineType->currentIndex();
 
-    filltype = tabLi->cmbType->currentIndex();
-    fillrule = tabLi->cmbRule->currentIndex();
-    fillpat = tabLi->cmbFillPattern->currentIndex();
-    fillcol = tabLi->cmbFillColor->currentIndex();
-    fillalpha = tabLi->cmbFillColor->alpha();
-    polybase = tabLi->cmbSet->value();
-    symskip = tabSy->spnSymbSkip->value();
-    symcolor = tabMa->cmbSymbColor->currentIndex();
-    symalpha = tabMa->cmbSymbColor->alpha();
-    sympattern = tabSy->cmbSymbPattern->currentIndex();
-    symfillcolor = tabSy->cmbFillColor->currentIndex();
-    symfillalpha = tabSy->cmbFillColor->alpha();
-    symfillpattern = tabSy->cmbFillPattern->currentIndex();
-    symlinew = tabSy->spnSymbWidth->value();
-    symlines = tabSy->cmbSymbStyle->currentIndex();
-    symchar = tabMa->selSymbChar->currentValue();
-    //symchar = atoi(tabMa->ledSymbChar->text().toLatin1().constData());
-    charfont = tabSy->cmbSymbFont->currentIndex();
+    filltype = cmbFillType->currentIndex();
+    fillrule = cmbRule->currentIndex();
+    fillpat = cmbAreaFillPattern->currentIndex();
+    fillcol = cmbAreaFillColor->currentIndex();
+    fillalpha = cmbAreaFillColor->alpha();
+    polybase = cmbSet->value();
+    symskip = spnSymbSkip->value();
+    symcolor = cmbSymbColor->currentIndex();
+    symalpha = cmbSymbColor->alpha();
+    sympattern = cmbSymbPattern->currentIndex();
+    symfillcolor = cmbSymbFillColor->currentIndex();
+    symfillalpha = cmbSymbFillColor->alpha();
+    symfillpattern = cmbSymbFillPattern->currentIndex();
+    symlinew = spnSymbWidth->value();
+    symlines = cmbSymbStyle->currentIndex();
+    symchar = selSymbChar->currentValue();
+    //symchar = atoi(ledSymbChar->text().toLatin1().constData());
+    charfont = cmbSymbFont->currentIndex();
 
-    errbar.active = tabMa->chkDispErrBars->isChecked()==true?1:0;
-    avalue.active = tabMa->chkAnnVal->isChecked()==true?1:0;
-    avalue.size = tabMa->spnAnnValSize->value();
-    ignore_autoscale = tabMa->chkIgnoreInAutoscale->isChecked()==true?1:0;
+    errbar.active = chkDispErrBars->isChecked()==true?1:0;
+    avalue.active = chkAnnVal->isChecked()==true?1:0;
+    avalue.size = spnAnnValSize->value();
+    ignore_autoscale = chkIgnoreInAutoscale->isChecked()==true?1:0;
 
-    avalue.font = tabAnVa->cmbFont->currentIndex();
-    avalue.color = tabAnVa->cmbColor->currentIndex();
-    avalue.alpha = tabAnVa->cmbColor->alpha();
-    avalue.angle = tabAnVa->spnFontAngle->value();
-    avalue.format = tabAnVa->cmbFormat->currentIndex();
-    avalue.type = tabAnVa->cmbType->currentIndex();
-    avalue.prec = tabAnVa->cmbPrecision->currentIndex();
-    avalue.align = tabAnVa->selAlign->currentValue();
+    avalue.font = cmbFont->currentIndex();
+    avalue.color = cmbAnnColor->currentIndex();
+    avalue.alpha = cmbAnnColor->alpha();
+    avalue.angle = spnFontAngle->value();
+    avalue.format = cmbFormat->currentIndex();
+    avalue.type = cmbAnnValType->currentIndex();
+    avalue.prec = cmbPrecision->currentIndex();
+    avalue.align = selAlign->currentValue();
 
-    tabAnVa->ledPrepend->SetMemoryToText(avalue.prestr,avalue.orig_prestr);
-    tabAnVa->ledAppend->SetMemoryToText(avalue.appstr,avalue.orig_appstr);
+    ledPrepend->SetMemoryToText(avalue.prestr,avalue.orig_prestr);
+    ledAppend->SetMemoryToText(avalue.appstr,avalue.orig_appstr);
 
-    xv_evalexpr(tabAnVa->ledXOffs,&avalue.offset.x);
-    xv_evalexpr(tabAnVa->ledYOffs,&avalue.offset.y);
+    xv_evalexpr(ledXOffs,&avalue.offset.x);
+    xv_evalexpr(ledYOffs,&avalue.offset.y);
 
-    errbar.pen.color = tabErBa->cmbColor->currentIndex();
-    errbar.pen.alpha = tabErBa->cmbColor->alpha();
-    switch (tabErBa->cmbPlacement->currentIndex())
+    errbar.pen.color = cmbErrColor->currentIndex();
+    errbar.pen.alpha = cmbErrColor->alpha();
+    switch (cmbPlacement->currentIndex())
     {
     case 1:
         errbar.ptype = PLACEMENT_OPPOSITE;
@@ -1351,16 +1247,16 @@ apply_running=true;
         errbar.ptype = PLACEMENT_NORMAL;
         break;
     }
-    errbar.show_in_legend = tabErBa->chkShowInLegend->isChecked()==true?1:0;
-    errbar.connect_bars = tabErBa->chkConnectErrorBars->currentValue();
-    errbar.pen.pattern = tabErBa->cmbPattern->currentIndex();
-    errbar.arrow_clip = tabErBa->chkArrowClip->isChecked()==true?1:0;
-    errbar.cliplen = tabErBa->spnMaxLength->value();
-    errbar.barsize = tabErBa->spnBarSize->value();
-    errbar.linew = tabErBa->spnbarWidth->value();
-    errbar.riser_linew = tabErBa->spnRiserWidth->value();
-    errbar.lines = tabErBa->cmbBarStyle->currentIndex();
-    errbar.riser_lines = tabErBa->cmbRiserStyle->currentIndex();
+    errbar.show_in_legend = chkShowInLegend->isChecked()==true?1:0;
+    errbar.connect_bars = chkConnectErrorBars->currentValue();
+    errbar.pen.pattern = cmbErrPattern->currentIndex();
+    errbar.arrow_clip = chkArrowClip->isChecked()==true?1:0;
+    errbar.cliplen = spnMaxLength->value();
+    errbar.barsize = spnBarSize->value();
+    errbar.linew = spnbarWidth->value();
+    errbar.riser_linew = spnRiserWidth->value();
+    errbar.lines = cmbBarStyle->currentIndex();
+    errbar.riser_lines = cmbRiserStyle->currentIndex();
 
     ListOfChanges.clear();
     ListOfOldStates.clear();
@@ -1566,10 +1462,10 @@ apply_running=true;
             ListOfOldStates << QString(dummy);
         }
 
-        strcpy(dummy2,tabMa->ledString->text().toLocal8Bit());
+        strcpy(dummy2,ledString->text().toLocal8Bit());
         if (actapplyall->isChecked()==false && GlobalInhibitor==false)//only apply the changes
         {
-        strcpy(dummy2,tabMa->ledString->text().toUtf8());
+        strcpy(dummy2,ledString->text().toUtf8());
         convert_single_string_from_UTF8_to_encoding_static(dummy2);
         }
         if (strcmp(p.orig_lstr,dummy2) && (cd == 1 || duplegs))
@@ -1830,8 +1726,8 @@ apply_running=true;
                 p.setfillpen.alpha = fillalpha;
                 if (cd == 1 || duplegs)
                 {
-                    //strcpy(p.lstr,tabMa->ledString->text().toLocal8Bit());
-                    tabMa->ledString->SetMemoryToText(p.lstr,p.orig_lstr);
+                    //strcpy(p.lstr,ledString->text().toLocal8Bit());
+                    ledString->SetMemoryToText(p.lstr,p.orig_lstr);
                     //setting a string
                 }
                 p.sym = sym;
@@ -1860,7 +1756,7 @@ apply_running=true;
 
                 if (cd == 1 || duplegs)//with dynamic strings-->we have to reload from the NEW address
                 {
-                    tabMa->ledString->SetTextToMemory(g[grano].p[setno].lstr,g[grano].p[setno].orig_lstr);
+                    ledString->SetTextToMemory(g[grano].p[setno].lstr,g[grano].p[setno].orig_lstr);
                 }
 
             }
@@ -1913,7 +1809,7 @@ apply_running=true;
         convert_single_string_from_encoding_to_UTF8_static(g[grano].p[selset[i]].lstr);
         update_grace_string_from_UTF8_static(g[grano].p[selset[i]].lstr);
         }*/
-    //tabMa->ledString->SetTextToMemory(g[this->listSet->gr_no].p[this->cset].lstr,g[this->listSet->gr_no].p[this->cset].orig_lstr);
+    //ledString->SetTextToMemory(g[this->listSet->gr_no].p[this->cset].lstr,g[this->listSet->gr_no].p[this->cset].orig_lstr);
     mainWin->mainArea->completeRedraw();
     }
     else if (GlobalInhibitor==false)//we already did the changes
@@ -2087,25 +1983,25 @@ void frmSet_Appearance::showSetData(int graph_number,int set_number)
 
     redisplayContents();//to switch the decimal separator
 
-    tabLi->cmbSet->update_entries(graph_number,true);
+    cmbSet->update_entries(graph_number,true);
 
     ///SET APPROPRIATE SET_TYPE_CHOICES ACCORDING TO NUMBER OF COLUMNS --> SHOW ONLY AVAILABLE CHOICES, I DON'T KNOW HOW TO DISABLE CHOICES
-    tabMa->cmbType->cmbSelect->clear();
-    tabMa->cmbType->cmbSelect->setIconSize(QSize(40, 13));
-    tabMa->number_of_Type_entries=0;
-    delete[] tabMa->Type_entries;
+    cmbSetType->cmbSelect->clear();
+    cmbSetType->cmbSelect->setIconSize(QSize(40, 13));
+    number_of_Type_entries=0;
+    delete[] Type_entries;
     for (int i=0;i<NUMBER_OF_SETTYPES;i++)
-        if (settype_cols(i) == settype_cols(p.type)) tabMa->number_of_Type_entries++;
-    tabMa->Type_entries=new int[tabMa->number_of_Type_entries];
-    tabMa->number_of_Type_entries=0;
+        if (settype_cols(i) == settype_cols(p.type)) number_of_Type_entries++;
+    Type_entries=new int[number_of_Type_entries];
+    number_of_Type_entries=0;
     for (int i=0;i<NUMBER_OF_SETTYPES;i++)
     {
         if (settype_cols(i) == settype_cols(p.type))
         {
             strToUpper(dummy,set_types(i));
-            tabMa->cmbType->cmbSelect->addItem(setTypeIcon(i), QString(dummy));
-            tabMa->Type_entries[tabMa->number_of_Type_entries]=i;
-            tabMa->number_of_Type_entries++;
+            cmbSetType->cmbSelect->addItem(setTypeIcon(i), QString(dummy));
+            Type_entries[number_of_Type_entries]=i;
+            number_of_Type_entries++;
         }
     }
     /*
@@ -2118,92 +2014,92 @@ SetOptionChoice(type_item, p.type);
                 SetSensitive(type_item->options[i].widget, False);
             }
         }
-tabMa->cmbType
+cmbSetType
 */
-    for (int i=0;i<tabMa->number_of_Type_entries;i++)
+    for (int i=0;i<number_of_Type_entries;i++)
     {
-        if (p.type==tabMa->Type_entries[i])
+        if (p.type==Type_entries[i])
         {
-            tabMa->cmbType->setCurrentIndex(i);
+            cmbSetType->setCurrentIndex(i);
             break;
         }
     }
-    tabMa->cmbSymbColor->setCurrentIndex(p.sympen.color);
-    tabMa->cmbSymbColor->setAlpha(p.sympen.alpha);
-    tabMa->cmbSymbType->setCurrentIndex(p.sym);
-    tabMa->spnSymbSize->setValue(p.symsize);
-    //tabMa->ledSymbChar->setDoubleValue("%d",(int)p.symchar);
-        if (tabMa->selSymbChar->valueIsInList(p.symchar)==FALSE)
-        tabMa->selSymbChar->setCurrentValue(65);//revert the char to 'A', whenever the value is 0 (which is unprintable)
+    cmbSymbColor->setCurrentIndex(p.sympen.color);
+    cmbSymbColor->setAlpha(p.sympen.alpha);
+    cmbSymbType->setCurrentIndex(p.sym);
+    spnSymbSize->setValue(p.symsize);
+    //ledSymbChar->setDoubleValue("%d",(int)p.symchar);
+        if (selSymbChar->valueIsInList(p.symchar)==FALSE)
+        selSymbChar->setCurrentValue(65);//revert the char to 'A', whenever the value is 0 (which is unprintable)
         else
-        tabMa->selSymbChar->setCurrentValue(p.symchar);
-    tabMa->SymbTypeChanged(p.sym);
+        selSymbChar->setCurrentValue(p.symchar);
+    SymbTypeChanged(p.sym);
     //sprintf(val, "%d", p.symchar);
-    //tabMa->ledSymbChar->setText(QString(val));
-    tabMa->cmbLineType->setCurrentIndex(p.linet);
-    tabMa->cmbLineStyle->setCurrentIndex(p.lines);
-    tabMa->cmbLineColor->setCurrentIndex(p.linepen.color);
-    tabMa->cmbLineColor->setAlpha(p.linepen.alpha);
-    tabMa->spnLineWidth->setValue(p.linew);
-    //tabMa->ledString->setText(QString(p.lstr));
-    tabMa->ledString->SetTextToMemory(g[graph_number].p[set_number].lstr,g[graph_number].p[set_number].orig_lstr);
-    tabMa->chkAnnVal->setChecked(p.avalue.active);
-    tabMa->spnAnnValSize->setValue(p.avalue.size > 0 ? p.avalue.size : 1.0);
-    tabMa->spnAnnValSize->setEnabled(p.avalue.active);
-    tabMa->chkDispErrBars->setChecked(p.errbar.active);
-    tabMa->chkIgnoreInAutoscale->setChecked(p.ignore_in_autoscale);
+    //ledSymbChar->setText(QString(val));
+    cmbLineType->setCurrentIndex(p.linet);
+    cmbLineStyle->setCurrentIndex(p.lines);
+    cmbLineColor->setCurrentIndex(p.linepen.color);
+    cmbLineColor->setAlpha(p.linepen.alpha);
+    spnLineWidth->setValue(p.linew);
+    //ledString->setText(QString(p.lstr));
+    ledString->SetTextToMemory(g[graph_number].p[set_number].lstr,g[graph_number].p[set_number].orig_lstr);
+    chkAnnVal->setChecked(p.avalue.active);
+    spnAnnValSize->setValue(p.avalue.size > 0 ? p.avalue.size : 1.0);
+    spnAnnValSize->setEnabled(p.avalue.active);
+    chkDispErrBars->setChecked(p.errbar.active);
+    chkIgnoreInAutoscale->setChecked(p.ignore_in_autoscale);
 
-    tabSy->spnSymbWidth->setValue(p.symlinew);
-    tabSy->cmbSymbStyle->setCurrentIndex(p.symlines);
-    tabSy->cmbSymbPattern->setCurrentIndex(p.sympen.pattern);
-    tabSy->cmbFillColor->setCurrentIndex(p.symfillpen.color);
-    tabSy->cmbFillColor->setAlpha(p.symfillpen.alpha);
-    tabSy->cmbFillPattern->setCurrentIndex(p.symfillpen.pattern);
-    tabSy->spnSymbSkip->setValue(p.symskip);
-    tabSy->cmbSymbFont->setCurrentIndex(p.charfont);
+    spnSymbWidth->setValue(p.symlinew);
+    cmbSymbStyle->setCurrentIndex(p.symlines);
+    cmbSymbPattern->setCurrentIndex(p.sympen.pattern);
+    cmbSymbFillColor->setCurrentIndex(p.symfillpen.color);
+    cmbSymbFillColor->setAlpha(p.symfillpen.alpha);
+    cmbSymbFillPattern->setCurrentIndex(p.symfillpen.pattern);
+    spnSymbSkip->setValue(p.symskip);
+    cmbSymbFont->setCurrentIndex(p.charfont);
 
-    tabLi->cmbPattern->setCurrentIndex(p.linepen.pattern);
-    tabLi->chkDrawDropLines->setChecked(p.dropline);
-    tabLi->chkDrawLine->setChecked(p.baseline);
-    tabLi->cmbBaseType->setCurrentIndex(p.baseline_type);
-    tabLi->cmbType->setCurrentIndex(p.filltype);
-    tabLi->cmbRule->setCurrentIndex(p.fillrule);
-    tabLi->cmbFillPattern->setCurrentIndex(p.setfillpen.pattern);
-    tabLi->cmbFillColor->setCurrentIndex(p.setfillpen.color);
-    tabLi->cmbFillColor->setAlpha(p.setfillpen.alpha);
-    tabLi->cmbSet->setValue(p.polygone_base_set);
+    cmbDropPattern->setCurrentIndex(p.linepen.pattern);
+    chkDrawDropLines->setChecked(p.dropline);
+    chkDrawLine->setChecked(p.baseline);
+    cmbBaseType->setCurrentIndex(p.baseline_type);
+    cmbFillType->setCurrentIndex(p.filltype);
+    cmbRule->setCurrentIndex(p.fillrule);
+    cmbAreaFillPattern->setCurrentIndex(p.setfillpen.pattern);
+    cmbAreaFillColor->setCurrentIndex(p.setfillpen.color);
+    cmbAreaFillColor->setAlpha(p.setfillpen.alpha);
+    cmbSet->setValue(p.polygone_base_set);
 
-    tabAnVa->cmbFont->setCurrentIndex(p.avalue.font);
-    tabAnVa->cmbColor->setCurrentIndex(p.avalue.color);
-    tabAnVa->cmbColor->setAlpha(p.avalue.alpha);
-    tabAnVa->spnFontAngle->setValue(p.avalue.angle);
-    //tabAnVa->ledPrepend->setText(QString(p.avalue.prestr));
-    //tabAnVa->ledAppend->setText(QString(p.avalue.appstr));
-    tabAnVa->ledPrepend->SetTextToMemory(g[graph_number].p[set_number].avalue.prestr,g[graph_number].p[set_number].avalue.orig_prestr);
-    tabAnVa->ledAppend->SetTextToMemory(g[graph_number].p[set_number].avalue.appstr,g[graph_number].p[set_number].avalue.orig_appstr);
-    tabAnVa->selAlign->setCurrentValue(p.avalue.align);
-    tabAnVa->cmbType->setCurrentIndex(p.avalue.type);
-    tabAnVa->cmbPrecision->setCurrentIndex(p.avalue.prec);
-    tabAnVa->cmbFormat->setCurrentIndex(p.avalue.format);
-    tabAnVa->ledXOffs->setDoubleValue("%g", p.avalue.offset.x);
-    tabAnVa->ledYOffs->setDoubleValue("%g", p.avalue.offset.y);
+    cmbFont->setCurrentIndex(p.avalue.font);
+    cmbAnnColor->setCurrentIndex(p.avalue.color);
+    cmbAnnColor->setAlpha(p.avalue.alpha);
+    spnFontAngle->setValue(p.avalue.angle);
+    //ledPrepend->setText(QString(p.avalue.prestr));
+    //ledAppend->setText(QString(p.avalue.appstr));
+    ledPrepend->SetTextToMemory(g[graph_number].p[set_number].avalue.prestr,g[graph_number].p[set_number].avalue.orig_prestr);
+    ledAppend->SetTextToMemory(g[graph_number].p[set_number].avalue.appstr,g[graph_number].p[set_number].avalue.orig_appstr);
+    selAlign->setCurrentValue(p.avalue.align);
+    cmbAnnValType->setCurrentIndex(p.avalue.type);
+    cmbPrecision->setCurrentIndex(p.avalue.prec);
+    cmbFormat->setCurrentIndex(p.avalue.format);
+    ledXOffs->setDoubleValue("%g", p.avalue.offset.x);
+    ledYOffs->setDoubleValue("%g", p.avalue.offset.y);
     //sprintf(val, "%f", p.avalue.offset.x);
-    //tabAnVa->ledXOffs->setText(QString(val));
+    //ledXOffs->setText(QString(val));
     //sprintf(val, "%f", p.avalue.offset.y);
-    //tabAnVa->ledYOffs->setText(QString(val));
-    tabErBa->cmbColor->setCurrentIndex(p.errbar.pen.color);
-    tabErBa->cmbColor->setAlpha(p.errbar.pen.alpha);
-    tabErBa->cmbPattern->setCurrentIndex(p.errbar.pen.pattern);
-    tabErBa->chkArrowClip->setChecked(p.errbar.arrow_clip);
-    tabErBa->chkShowInLegend->setChecked(p.errbar.show_in_legend);
-    tabErBa->chkConnectErrorBars->setCurrentValue(p.errbar.connect_bars);
-    tabErBa->spnMaxLength->setValue(p.errbar.cliplen);
-    tabErBa->spnbarWidth->setValue(p.errbar.linew);
-    tabErBa->cmbBarStyle->setCurrentIndex(p.errbar.lines);
-    tabErBa->spnRiserWidth->setValue(p.errbar.riser_linew);
-    tabErBa->cmbRiserStyle->setCurrentIndex(p.errbar.riser_lines);
-    tabErBa->spnBarSize->setValue(p.errbar.barsize);
-    tabErBa->cmbPlacement->setCurrentIndex(p.errbar.ptype);
+    //ledYOffs->setText(QString(val));
+    cmbErrColor->setCurrentIndex(p.errbar.pen.color);
+    cmbErrColor->setAlpha(p.errbar.pen.alpha);
+    cmbErrPattern->setCurrentIndex(p.errbar.pen.pattern);
+    chkArrowClip->setChecked(p.errbar.arrow_clip);
+    chkShowInLegend->setChecked(p.errbar.show_in_legend);
+    chkConnectErrorBars->setCurrentValue(p.errbar.connect_bars);
+    spnMaxLength->setValue(p.errbar.cliplen);
+    spnbarWidth->setValue(p.errbar.linew);
+    cmbBarStyle->setCurrentIndex(p.errbar.lines);
+    spnRiserWidth->setValue(p.errbar.riser_linew);
+    cmbRiserStyle->setCurrentIndex(p.errbar.riser_lines);
+    spnBarSize->setValue(p.errbar.barsize);
+    cmbPlacement->setCurrentIndex(p.errbar.ptype);
     ///SET ITEM 4 ENABLED OR NOT --> ITEM 4 IS "NULL" --> DON'T KNOW WHAT THIS IS FOR!?
     /*
         switch (p.type) {
@@ -2223,16 +2119,16 @@ tabMa->cmbType
 void frmSet_Appearance::SyncColors(int val)
 {
     if (updating==true || actcolorsync->isChecked()==FALSE) return;//Color Change is internal or no sync-ing intended
-    tabMa->cmbSymbColor->setCurrentIndex(val);
-    tabSy->cmbFillColor->setCurrentIndex(val);
-    tabErBa->cmbColor->setCurrentIndex(val);
+    cmbSymbColor->setCurrentIndex(val);
+    cmbSymbFillColor->setCurrentIndex(val);
+    cmbErrColor->setCurrentIndex(val);
 }
 
 void frmSet_Appearance::SyncColors2(int val)
 {
     if (updating==true || actcolorsync->isChecked()==FALSE) return;//Color Change is internal or no sync-ing intended
-    tabSy->cmbFillColor->setCurrentIndex(val);
-    tabErBa->cmbColor->setCurrentIndex(val);
+    cmbSymbFillColor->setCurrentIndex(val);
+    cmbErrColor->setCurrentIndex(val);
 }
 
 void frmSet_Appearance::writeSetData(int graph_number,int set_number)
@@ -2438,50 +2334,50 @@ void frmSet_Appearance::setapp_data_proc(int dat)
 
 void frmSet_Appearance::redisplayContents(void)
 {
-/*tabMa->spnLineWidth->blockSignals(true);
-tabSy->spnSymbWidth->blockSignals(true);
-tabAnVa->ledXOffs->blockSignals(true);
-tabAnVa->ledYOffs->blockSignals(true);
-tabErBa->spnMaxLength->blockSignals(true);
-tabErBa->spnbarWidth->blockSignals(true);
-tabErBa->spnRiserWidth->blockSignals(true);*/
+/*spnLineWidth->blockSignals(true);
+spnSymbWidth->blockSignals(true);
+ledXOffs->blockSignals(true);
+ledYOffs->blockSignals(true);
+spnMaxLength->blockSignals(true);
+spnbarWidth->blockSignals(true);
+spnRiserWidth->blockSignals(true);*/
     if (DecimalPointToUse=='.')
     {
-        tabMa->spnLineWidth->spnLineWidth->setLocale(*dot_locale);
-        tabSy->spnSymbWidth->spnLineWidth->setLocale(*dot_locale);
-        tabErBa->spnMaxLength->spnLineWidth->setLocale(*dot_locale);
-        tabErBa->spnbarWidth->spnLineWidth->setLocale(*dot_locale);
-        tabErBa->spnRiserWidth->spnLineWidth->setLocale(*dot_locale);
+        spnLineWidth->spnLineWidth->setLocale(*dot_locale);
+        spnSymbWidth->spnLineWidth->setLocale(*dot_locale);
+        spnMaxLength->spnLineWidth->setLocale(*dot_locale);
+        spnbarWidth->spnLineWidth->setLocale(*dot_locale);
+        spnRiserWidth->spnLineWidth->setLocale(*dot_locale);
     }
     else
     {
-        tabMa->spnLineWidth->spnLineWidth->setLocale(*comma_locale);
-        tabSy->spnSymbWidth->spnLineWidth->setLocale(*comma_locale);
-        tabErBa->spnMaxLength->spnLineWidth->setLocale(*comma_locale);
-        tabErBa->spnbarWidth->spnLineWidth->setLocale(*comma_locale);
-        tabErBa->spnRiserWidth->spnLineWidth->setLocale(*comma_locale);
+        spnLineWidth->spnLineWidth->setLocale(*comma_locale);
+        spnSymbWidth->spnLineWidth->setLocale(*comma_locale);
+        spnMaxLength->spnLineWidth->setLocale(*comma_locale);
+        spnbarWidth->spnLineWidth->setLocale(*comma_locale);
+        spnRiserWidth->spnLineWidth->setLocale(*comma_locale);
     }
 //if (OldDecimalPoint==DecimalPointToUse) return;
-    tabMa->spnLineWidth->setValue(tabMa->spnLineWidth->value());
-    tabSy->spnSymbWidth->setValue(tabSy->spnSymbWidth->value());
-    tabAnVa->ledXOffs->ReplaceNumberContents();
-    tabAnVa->ledYOffs->ReplaceNumberContents();
-    tabErBa->spnMaxLength->setValue(tabErBa->spnMaxLength->value());
-    tabErBa->spnbarWidth->setValue(tabErBa->spnbarWidth->value());
-    tabErBa->spnRiserWidth->setValue(tabErBa->spnRiserWidth->value());
-/*tabMa->spnLineWidth->blockSignals(false);
-tabSy->spnSymbWidth->blockSignals(false);
-tabAnVa->ledXOffs->blockSignals(false);
-tabAnVa->ledYOffs->blockSignals(false);
-tabErBa->spnMaxLength->blockSignals(false);
-tabErBa->spnbarWidth->blockSignals(false);
-tabErBa->spnRiserWidth->blockSignals(false);*/
+    spnLineWidth->setValue(spnLineWidth->value());
+    spnSymbWidth->setValue(spnSymbWidth->value());
+    ledXOffs->ReplaceNumberContents();
+    ledYOffs->ReplaceNumberContents();
+    spnMaxLength->setValue(spnMaxLength->value());
+    spnbarWidth->setValue(spnbarWidth->value());
+    spnRiserWidth->setValue(spnRiserWidth->value());
+/*spnLineWidth->blockSignals(false);
+spnSymbWidth->blockSignals(false);
+ledXOffs->blockSignals(false);
+ledYOffs->blockSignals(false);
+spnMaxLength->blockSignals(false);
+spnbarWidth->blockSignals(false);
+spnRiserWidth->blockSignals(false);*/
 
-    /*tabMa->adjustSize();
-    tabSy->adjustSize();
-    tabLi->adjustSize();
-    tabAnVa->adjustSize();
-    tabErBa->adjustSize();*/
+    /*adjustSize();
+    adjustSize();
+    adjustSize();
+    adjustSize();
+    adjustSize();*/
 
 }
 

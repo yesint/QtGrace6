@@ -8054,7 +8054,7 @@ if (saved_toolbarsize!=toolBarSizeFactor || savedFont!=qApp->font())// save_gui_
 create_line_Patterns();
 read_basic_icons();
 updateAllSelectors();
-if (FormSetAppearance!=NULL) FormSetAppearance->flp->tabMa->updateSymbolTypeIcons();
+if (FormSetAppearance!=NULL) FormSetAppearance->flp->updateSymbolTypeIcons();
 if (FormFontTool!=NULL) FormFontTool->updateGlyphSize();
 }
 UpdateAllWindowContents();
@@ -8167,7 +8167,7 @@ void frm_Preferences::read_Behavior(void)
 //cout << "Read: redisplay" << endl;
     if (FormSetAppearance!=NULL)
     {
-    FormSetAppearance->flp->tabMa->updateSymbolTypeIcons();
+    FormSetAppearance->flp->updateSymbolTypeIcons();
     }
 //cout << "Ende Read: redisplay" << endl;
     //universal_font_size_factor=selFontSize->value()*0.01;
