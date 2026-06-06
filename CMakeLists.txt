@@ -228,6 +228,14 @@ qt_add_resources(qtgrace "icons"
         fonts/icons/settype_xyvmap.svg
         fonts/icons/settype_boxplot.svg
         fonts/icons/settype_band.svg
+        fonts/icons/linetype_none.svg
+        fonts/icons/linetype_straight.svg
+        fonts/icons/linetype_lstairs.svg
+        fonts/icons/linetype_rstairs.svg
+        fonts/icons/linetype_segments.svg
+        fonts/icons/linetype_3segments.svg
+        fonts/icons/linetype_inc_x.svg
+        fonts/icons/linetype_dec_x.svg
 )
 
 # Translations

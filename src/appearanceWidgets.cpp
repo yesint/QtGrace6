@@ -569,6 +569,16 @@ flp->resize(QSize(n_size_w,n_size_h));
 }
 
 
+static QIcon lineTypeIcon(int lt)
+{
+    static const char *names[8] = {
+        "linetype_none", "linetype_straight", "linetype_lstairs", "linetype_rstairs",
+        "linetype_segments", "linetype_3segments", "linetype_inc_x", "linetype_dec_x"
+    };
+    if (lt < 0 || lt >= 8) return QIcon();
+    return QIcon(QString(":/icons/%1.svg").arg(names[lt]));
+}
+
 static QIcon setTypeIcon(int setType)
 {
     static const char *names[NUMBER_OF_SETTYPES] = {
@@ -683,6 +693,9 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     entr[7]=tr("Decreasing X only");
     number=8;
     cmbLineType=new StdSelector(fraLineProp,tr("Type:"),number,entr);
+    cmbLineType->cmbSelect->setIconSize(QSize(40, 13));
+    for (int i=0; i<8; i++)
+        cmbLineType->cmbSelect->setItemIcon(i, lineTypeIcon(i));
     layout2->addWidget(cmbLineType);
     cmbLineStyle=new LineStyleSelector(fraLineProp);
     cmbLineStyle->lblText->setText(tr("Style:"));
