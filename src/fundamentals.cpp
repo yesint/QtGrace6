@@ -931,6 +931,14 @@ SetSelectorCombo::SetSelectorCombo(QString text,QWidget * parent):QWidget(parent
     setLayout(layout);
 }
 
+// Adopt label + set combobox from a .ui file.
+SetSelectorCombo::SetSelectorCombo(QLabel * lbl, SetCombo * combo, QWidget * parent):QWidget(parent)
+{
+    cmb=combo;
+    lblCombo=lbl;
+    layout=nullptr;
+}
+
 void SetSelectorCombo::update_entries(int gno,bool preserve_selection)
 {
     cmb->update_entries(gno,preserve_selection);
@@ -2710,6 +2718,25 @@ FontSelector::FontSelector(QWidget * parent):QWidget(parent)
     updateAppearance(useQtFonts);
 }
 
+// Adopt label + font button + font combobox from a .ui file.
+FontSelector::FontSelector(QLabel * lbl, QPushButton * btn, QComboBox * combo, QWidget * parent):QWidget(parent)
+{
+    font=qApp->font();
+    lblText=lbl;
+    cmdSelFont=btn;
+    cmbFontSelect=combo;
+    connect(cmdSelFont,SIGNAL(clicked()),SLOT(selectNewFont()));
+    displayFont();
+    for (unsigned int i=0;i<number_of_fonts();i++)
+        cmbFontSelect->addItem(get_fontalias((int)i));
+    connect(cmbFontSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(changed(int)));
+    cmbFontSelect->setCurrentIndex(DefaultFont);
+    layout=nullptr;
+    add_FontSelector(this);
+    updateFonts(false);
+    updateAppearance(useQtFonts);
+}
+
 void FontSelector::updateAppearance(bool QtIsNew)
 {
     lblText->setVisible(true);
@@ -2980,6 +3007,22 @@ AlignmentSelector::AlignmentSelector(QWidget * parent):QWidget(parent)
     layout->addWidget(lblText2);
     layout->addWidget(cmbJustSelect2);
     setLayout(layout);
+    addAlignmentSelector(this);
+}
+
+// Adopt label + combobox from a .ui file.
+AlignmentSelector::AlignmentSelector(QLabel * lbl, QComboBox * combo, QWidget * parent):QWidget(parent)
+{
+    values2[0] = JUST_LEFT;
+    values2[1] = JUST_CENTER;
+    values2[2] = JUST_RIGHT;
+    lblText2 = lbl;
+    cmbJustSelect2 = combo;
+    cmbJustSelect2->addItem(tr("Left"));
+    cmbJustSelect2->addItem(tr("Center"));
+    cmbJustSelect2->addItem(tr("Right"));
+    cmbJustSelect2->setToolTip(tr("Set the text alignment in each line"));
+    layout = nullptr;
     addAlignmentSelector(this);
 }
 
@@ -4213,6 +4256,21 @@ FillPatternSelector::FillPatternSelector(QWidget * parent):QWidget(parent)
     addPatternSelector(this);
 }
 
+// Adopt label + pattern combobox from a .ui file.
+FillPatternSelector::FillPatternSelector(QLabel * lbl, PatternComboBox * combo, QWidget * parent):QWidget(parent)
+{
+    lblText = lbl;
+    cmbFillPattern = combo;
+    if (PatternPixmaps[1])
+        cmbFillPattern->setIconSize(QSize(PatternPixmaps[1]->width(), PatternPixmaps[1]->height()));
+    cmbFillPattern->addItem(tr("None"));
+    for (int i = 1; i < MAXPATTERNS; i++)
+        if (PatternPixmaps[i]) cmbFillPattern->addItem(QIcon(*PatternPixmaps[i]), "");
+    connect(cmbFillPattern, SIGNAL(currentIndexChanged(int)), SLOT(changed(int)));
+    layout = nullptr;
+    addPatternSelector(this);
+}
+
 void FillPatternSelector::changed(int i)
 {
     emit(currentIndexChanged(i));
@@ -4364,6 +4422,16 @@ stdIntSelector::stdIntSelector(QWidget * parent,QString label,int min,int max):Q
     layout->addWidget(spnInt);
     setLayout(layout);
 addIntSelector(this);
+}
+
+// Adopt label + spinbox from a .ui file.
+stdIntSelector::stdIntSelector(QLabel * lbl, QSpinBox * spin, QWidget * parent):QWidget(parent)
+{
+    lblText=lbl;
+    spnInt=spin;
+    connect(spnInt,SIGNAL(valueChanged(int)),SLOT(changed(int)));
+    layout=nullptr;
+    addIntSelector(this);
 }
 
 void stdIntSelector::changed(int i)

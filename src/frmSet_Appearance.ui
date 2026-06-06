@@ -247,9 +247,24 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item><widget class="LineStyleSelector" name="cmbSymbStyle"/></item>
-          <item><widget class="FillPatternSelector" name="cmbSymbPattern"/></item>
-          <item><widget class="LineWidthSelector" name="spnSymbWidth"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblSymbStyle"><property name="text"><string>Style:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbSymbStyleBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblSymbPattern"><property name="text"><string>Pattern:</string></property></widget></item>
+            <item><widget class="PatternComboBox3" name="cmbSymbPatternBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblSymbWidth"><property name="text"><string>Width:</string></property></widget></item>
+            <item><widget class="QDoubleSpinBox" name="spnSymbWidthBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -262,8 +277,20 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item><widget class="ColorSelector" name="cmbSymbFillColor"/></item>
-          <item><widget class="FillPatternSelector" name="cmbSymbFillPattern"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblSymbFillColor"><property name="text"><string>Color:</string></property></widget></item>
+            <item><widget class="ColorComboBox" name="cmbSymbFillColorBox"/></item>
+            <item><widget class="QLabel" name="swSymbFillColor"/></item>
+            <item><widget class="QSpinBox" name="spnSymbFillAlpha"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblSymbFillPattern"><property name="text"><string>Pattern:</string></property></widget></item>
+            <item><widget class="PatternComboBox3" name="cmbSymbFillPatternBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -276,8 +303,19 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item><widget class="stdIntSelector" name="spnSymbSkip"/></item>
-          <item><widget class="FontSelector" name="cmbSymbFont"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblSymbSkip"><property name="text"><string>Symbol skip:</string></property></widget></item>
+            <item><widget class="QSpinBox" name="spnSymbSkipBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblSymbFont"><property name="text"><string>Font for symbol:</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmbSymbFontBtn"/></item>
+            <item><widget class="QComboBox" name="cmbSymbFontBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -305,7 +343,12 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item><widget class="FillPatternSelector" name="cmbDropPattern"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblDropPattern"><property name="text"><string>Pattern:</string></property></widget></item>
+            <item><widget class="PatternComboBox3" name="cmbDropPatternBox"/></item>
+           </layout>
+          </item>
           <item>
            <widget class="QCheckBox" name="chkDrawDropLines">
             <property name="text"><string>Draw drop lines</string></property>
@@ -323,11 +366,38 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item row="0" column="0"><widget class="StdSelector" name="cmbFillType"/></item>
-          <item row="0" column="1"><widget class="StdSelector" name="cmbRule"/></item>
-          <item row="1" column="0"><widget class="FillPatternSelector" name="cmbAreaFillPattern"/></item>
-          <item row="1" column="1"><widget class="ColorSelector" name="cmbAreaFillColor"/></item>
-          <item row="2" column="0"><widget class="SetSelectorCombo" name="cmbSet"/></item>
+          <item row="0" column="0">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblFillType"><property name="text"><string>Type:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbFillTypeBox"/></item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblRule"><property name="text"><string>Rule:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbRuleBox"/></item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblAreaFillPattern"><property name="text"><string>Pattern:</string></property></widget></item>
+            <item><widget class="PatternComboBox3" name="cmbAreaFillPatternBox"/></item>
+           </layout>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblAreaFillColor"><property name="text"><string>Color:</string></property></widget></item>
+            <item><widget class="ColorComboBox" name="cmbAreaFillColorBox"/></item>
+            <item><widget class="QLabel" name="swAreaFillColor"/></item>
+            <item><widget class="QSpinBox" name="spnAreaFillAlpha"/></item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblSet"><property name="text"><string>Polygon base set:</string></property></widget></item>
+            <item><widget class="SetCombo" name="cmbSetBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -345,7 +415,12 @@
             <property name="text"><string>Draw line</string></property>
            </widget>
           </item>
-          <item><widget class="StdSelector" name="cmbBaseType"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblBaseType"><property name="text"><string>Type:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbBaseTypeBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -373,9 +448,27 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item row="0" column="0"><widget class="FontSelector" name="cmbFont"/></item>
-          <item row="0" column="1"><widget class="AlignmentSelector" name="selAlign"/></item>
-          <item row="1" column="0"><widget class="ColorSelector" name="cmbAnnColor"/></item>
+          <item row="0" column="0">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblFont"><property name="text"><string>Font:</string></property></widget></item>
+            <item><widget class="QPushButton" name="cmbFontBtn"/></item>
+            <item><widget class="QComboBox" name="cmbFontBox"/></item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblAlign"><property name="text"><string>Alignment:</string></property></widget></item>
+            <item><widget class="QComboBox" name="selAlignBox"/></item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblAnnColor"><property name="text"><string>Color:</string></property></widget></item>
+            <item><widget class="ColorComboBox" name="cmbAnnColorBox"/></item>
+            <item><widget class="QLabel" name="swAnnColor"/></item>
+            <item><widget class="QSpinBox" name="spnAnnAlpha"/></item>
+           </layout>
+          </item>
           <item row="1" column="1">
            <widget class="QWidget" name="rowAngle">
             <layout class="QHBoxLayout">
@@ -402,8 +495,18 @@
             </layout>
            </widget>
           </item>
-          <item row="2" column="0"><widget class="stdLineEditLaTeX" name="ledPrepend"/></item>
-          <item row="2" column="1"><widget class="stdLineEditLaTeX" name="ledAppend"/></item>
+          <item row="2" column="0">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblPrepend"><property name="text"><string>Prepend:</string></property></widget></item>
+            <item><widget class="QLineEdit" name="ledPrependBox"/></item>
+           </layout>
+          </item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblAppend"><property name="text"><string>Append:</string></property></widget></item>
+            <item><widget class="QLineEdit" name="ledAppendBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -416,9 +519,24 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item><widget class="StdSelector" name="cmbAnnValType"/></item>
-          <item><widget class="StdSelector" name="cmbPrecision"/></item>
-          <item><widget class="StdSelector" name="cmbFormat"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblAnnValType"><property name="text"><string>Type:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbAnnValTypeBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblPrecision"><property name="text"><string>Precision:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbPrecisionBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblFormat"><property name="text"><string>Format:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbFormatBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -431,8 +549,18 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item><widget class="stdLineEdit" name="ledXOffs"/></item>
-          <item><widget class="stdLineEdit" name="ledYOffs"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblXOffs"><property name="text"><string>X offset:</string></property></widget></item>
+            <item><widget class="QLineEdit" name="ledXOffsBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblYOffs"><property name="text"><string>Y offset:</string></property></widget></item>
+            <item><widget class="QLineEdit" name="ledYOffsBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -457,10 +585,32 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item><widget class="StdSelector" name="cmbPlacement"/></item>
-          <item><widget class="ColorSelector" name="cmbErrColor"/></item>
-          <item><widget class="FillPatternSelector" name="cmbErrPattern"/></item>
-          <item><widget class="StdSelector" name="chkConnectErrorBars"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblPlacement"><property name="text"><string>Placement:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbPlacementBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblErrColor"><property name="text"><string>Color:</string></property></widget></item>
+            <item><widget class="ColorComboBox" name="cmbErrColorBox"/></item>
+            <item><widget class="QLabel" name="swErrColor"/></item>
+            <item><widget class="QSpinBox" name="spnErrAlpha"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblErrPattern"><property name="text"><string>Pattern:</string></property></widget></item>
+            <item><widget class="PatternComboBox3" name="cmbErrPatternBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblConnectErrorBars"><property name="text"><string>Connect errorbars:</string></property></widget></item>
+            <item><widget class="QComboBox" name="chkConnectErrorBarsBox"/></item>
+           </layout>
+          </item>
           <item>
            <widget class="QCheckBox" name="chkShowInLegend">
             <property name="text"><string>Show error bars in legend</string></property>
@@ -483,7 +633,12 @@
             <property name="text"><string>Arrow clip</string></property>
            </widget>
           </item>
-          <item><widget class="LineWidthSelector" name="spnMaxLength"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblMaxLength"><property name="text"><string>Max length:</string></property></widget></item>
+            <item><widget class="QDoubleSpinBox" name="spnMaxLengthBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -516,8 +671,18 @@
             </layout>
            </widget>
           </item>
-          <item><widget class="LineWidthSelector" name="spnbarWidth"/></item>
-          <item><widget class="LineStyleSelector" name="cmbBarStyle"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblbarWidth"><property name="text"><string>Width:</string></property></widget></item>
+            <item><widget class="QDoubleSpinBox" name="spnbarWidthBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblBarStyle"><property name="text"><string>Style:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbBarStyleBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -530,8 +695,18 @@
           <property name="topMargin"><number>2</number></property>
           <property name="rightMargin"><number>2</number></property>
           <property name="bottomMargin"><number>2</number></property>
-          <item><widget class="LineWidthSelector" name="spnRiserWidth"/></item>
-          <item><widget class="LineStyleSelector" name="cmbRiserStyle"/></item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblRiserWidth"><property name="text"><string>Width:</string></property></widget></item>
+            <item><widget class="QDoubleSpinBox" name="spnRiserWidthBox"/></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblRiserStyle"><property name="text"><string>Style:</string></property></widget></item>
+            <item><widget class="QComboBox" name="cmbRiserStyleBox"/></item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -549,19 +724,10 @@
  <customwidgets>
   <customwidget><class>uniSetList</class><extends>QListWidget</extends><header>fundamentals.h</header></customwidget>
   <customwidget><class>stdButtonGroup</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>StdSelector</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>stdLineEdit</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>stdLineEditLaTeX</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>stdIntSelector</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
   <customwidget><class>PatternComboBox4</class><extends>QComboBox</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>ColorSelector</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
+  <customwidget><class>PatternComboBox3</class><extends>QComboBox</extends><header>fundamentals.h</header></customwidget>
   <customwidget><class>ColorComboBox</class><extends>QComboBox</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>LineStyleSelector</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>LineWidthSelector</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>FillPatternSelector</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>FontSelector</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>AlignmentSelector</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>SetSelectorCombo</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
+  <customwidget><class>SetCombo</class><extends>QComboBox</extends><header>fundamentals.h</header></customwidget>
  </customwidgets>
  <resources/>
  <connections/>

@@ -484,6 +484,7 @@ Q_OBJECT
 public:
 explicit SetSelectorCombo(QWidget *parent=nullptr) : SetSelectorCombo(QString(), parent) {}
 SetSelectorCombo(QString text,QWidget * parent=0);
+SetSelectorCombo(QLabel * lbl, SetCombo * combo, QWidget * parent=nullptr);// adopt existing .ui widgets
 SetCombo * cmb;
 QLabel * lblCombo;
 QHBoxLayout * layout;
@@ -802,6 +803,7 @@ class FontSelector:public QWidget
 Q_OBJECT
 public:
 FontSelector(QWidget * parent=0);
+FontSelector(QLabel * lbl, QPushButton * btn, QComboBox * combo, QWidget * parent=nullptr);// adopt existing .ui widgets
 
 QLabel * lblText;//just a label
 QComboBox * cmbFontSelect;//standard-combo-box for selecting one of a few predefined T1-fonts (or preselected Qt-fonts)
@@ -864,6 +866,7 @@ class AlignmentSelector:public QWidget
 Q_OBJECT
 public:
 AlignmentSelector(QWidget * parent=0);
+AlignmentSelector(QLabel * lbl, QComboBox * combo, QWidget * parent=nullptr);// adopt existing .ui widgets
 int values2[3];
 QLabel * lblText2;
 QComboBox * cmbJustSelect2;
@@ -1031,11 +1034,18 @@ public:
     explicit PatternComboBox4(QWidget *parent=nullptr) : PatternComboBox(4, parent) {}
 };
 
+class PatternComboBox3 : public PatternComboBox {
+    Q_OBJECT
+public:
+    explicit PatternComboBox3(QWidget *parent=nullptr) : PatternComboBox(3, parent) {}
+};
+
 class FillPatternSelector:public QWidget
 {
 Q_OBJECT
 public:
 FillPatternSelector(QWidget * parent=0);
+FillPatternSelector(QLabel * lbl, PatternComboBox * combo, QWidget * parent=nullptr);// adopt existing .ui widgets
 
 QLabel * lblText;
 PatternComboBox * cmbFillPattern;
@@ -1094,6 +1104,7 @@ Q_OBJECT
 public:
 explicit stdIntSelector(QWidget *parent=nullptr) : stdIntSelector(parent, QString(), 0, 100) {}
 stdIntSelector(QWidget * parent,QString label,int min,int max);
+stdIntSelector(QLabel * lbl, QSpinBox * spin, QWidget * parent=nullptr);// adopt existing .ui widgets
 QLabel * lblText;
 QSpinBox * spnInt;
 QHBoxLayout * layout;
