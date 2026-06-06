@@ -626,33 +626,27 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     //layout1->setMargin(STD_MARGIN);
     layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
     {
-        QHBoxLayout *symbTypeRow = new QHBoxLayout;
-        symbTypeRow->addWidget(new QLabel(tr("Type:"), fraSymbProp));
+        QWidget *typeAndSizeRow = new QWidget(fraSymbProp);
+        QHBoxLayout *rowLayout = new QHBoxLayout(typeAndSizeRow);
+        rowLayout->setContentsMargins(2,2,2,2);
+        rowLayout->setSpacing(4);
+        rowLayout->addWidget(new QLabel(tr("Type:"), typeAndSizeRow));
         cmbSymbType = new PatternComboBox(4, fraSymbProp);
         int symbIconSz = qMax(20, int(20 * toolBarSizeFactor));
         cmbSymbType->setIconSize(QSize(symbIconSz, symbIconSz));
         cmbSymbType->setFixedHeight(symbIconSz + 6);
-        symbTypeRow->addWidget(cmbSymbType);
-        symbTypeRow->addStretch();
-        QWidget *symbTypeWidget = new QWidget(fraSymbProp);
-        symbTypeWidget->setLayout(symbTypeRow);
-        layout1->addWidget(symbTypeWidget);
-    }
-
-    updateSymbolTypeIcons();
-
-    {
-        QWidget * wdgSize = new QWidget(fraSymbProp);
-        QHBoxLayout * szLayout = new QHBoxLayout(wdgSize);
-        szLayout->setContentsMargins(2,2,2,2);
-        szLayout->addWidget(new QLabel(tr("Size:"), wdgSize));
-        spnSymbSize = new QDoubleSpinBox(wdgSize);
+        rowLayout->addWidget(cmbSymbType, 1);
+        rowLayout->addWidget(new QLabel(tr("Size:"), typeAndSizeRow));
+        spnSymbSize = new QDoubleSpinBox(typeAndSizeRow);
         spnSymbSize->setRange(0.0, 10.0);
         spnSymbSize->setSingleStep(1.0);
         spnSymbSize->setDecimals(2);
-        szLayout->addWidget(spnSymbSize);
-        layout1->addWidget(wdgSize);
+        spnSymbSize->setFixedWidth(70);
+        rowLayout->addWidget(spnSymbSize);
+        layout1->addWidget(typeAndSizeRow);
     }
+
+    updateSymbolTypeIcons();
     cmbSymbColor=new ColorSelector(fraSymbProp);
     layout1->addWidget(cmbSymbColor);
     connect(cmbSymbColor,SIGNAL(currentIndexChanged(int)),SLOT(SymbColorChanged(int)));
@@ -700,10 +694,16 @@ tabMain::tabMain(QWidget * parent):QWidget(parent)
     layout2->addWidget(cmbLineType);
     cmbLineStyle=new LineStyleSelector(fraLineProp);
     cmbLineStyle->lblText->setText(tr("Style:"));
-    layout2->addWidget(cmbLineStyle);
     spnLineWidth=new LineWidthSelector(fraLineProp);
     spnLineWidth->lblText->setText(tr("Width:"));
-    layout2->addWidget(spnLineWidth);
+    {
+        QWidget *styleWidthRow = new QWidget(fraLineProp);
+        QHBoxLayout *swLayout = new QHBoxLayout(styleWidthRow);
+        swLayout->setContentsMargins(0,0,0,0);
+        swLayout->addWidget(cmbLineStyle);
+        swLayout->addWidget(spnLineWidth);
+        layout2->addWidget(styleWidthRow);
+    }
     cmbLineColor=new ColorSelector(fraLineProp);
     layout2->addWidget(cmbLineColor);
     connect(cmbLineColor,SIGNAL(currentIndexChanged(int)),SLOT(LineColorChanged(int)));
@@ -800,18 +800,18 @@ void tabMain::updateSymbolTypeIcons(void)
 tabSymbol::tabSymbol(QWidget * parent):QWidget(parent)
 {
     fraSymbOutl=new QGroupBox(tr("Symbol outline"),this);
-    layout0=new QGridLayout;
+    layout0=new QHBoxLayout;
     //layout0->setMargin(STD_MARGIN);
     layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
     cmbSymbStyle=new LineStyleSelector(this);
     cmbSymbStyle->lblText->setText(tr("Style:"));
-    layout0->addWidget(cmbSymbStyle,0,0);
+    layout0->addWidget(cmbSymbStyle);
     cmbSymbPattern=new FillPatternSelector(this);
     cmbSymbPattern->lblText->setText(tr("Pattern:"));
-    layout0->addWidget(cmbSymbPattern,1,0);
+    layout0->addWidget(cmbSymbPattern);
     spnSymbWidth=new LineWidthSelector(this);
     spnSymbWidth->lblText->setText(tr("Width:"));
-    layout0->addWidget(spnSymbWidth,0,1);
+    layout0->addWidget(spnSymbWidth);
     fraSymbOutl->setLayout(layout0);
     fraSymbFill=new QGroupBox(tr("Symbol fill"),this);
     layout1=new QHBoxLayout;
@@ -825,14 +825,13 @@ tabSymbol::tabSymbol(QWidget * parent):QWidget(parent)
     layout1->addWidget(cmbFillPattern);
     fraSymbFill->setLayout(layout1);
     fraExtra=new QGroupBox(tr("Extra"),this);
-    layout2=new QVBoxLayout;
+    layout2=new QHBoxLayout;
     //layout2->setMargin(STD_MARGIN);
     layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
     spnSymbSkip=new stdIntSelector(this,tr("Symbol skip:"),0,100000);
     layout2->addWidget(spnSymbSkip);
     cmbSymbFont=new FontSelector(this);
     cmbSymbFont->setLabelText(tr("Font for symbol:"));
-    //cmbSymbFont->lblText->setText(tr("Font for char symbol:"));
     layout2->addWidget(cmbSymbFont);
     fraExtra->setLayout(layout2);
     layout=new QVBoxLayout;
@@ -896,9 +895,9 @@ tabLine::tabLine(QWidget * parent):QWidget(parent)
     entr[4]=tr("Graph max");
     entr[5]=tr("Set average");
     cmbBaseType=new StdSelector(this,tr("Type:"),number,entr);
-    layout2->addWidget(cmbBaseType);
     chkDrawLine=new QCheckBox(tr("Draw line"),fraBaseLine);
     layout2->addWidget(chkDrawLine);
+    layout2->addWidget(cmbBaseType);
     fraBaseLine->setLayout(layout2);
     layout=new QVBoxLayout;
     //layout->setMargin(STD_MARGIN);
@@ -921,7 +920,10 @@ tabAnnVal::tabAnnVal(QWidget * parent):QWidget(parent)
     //layout0->setMargin(STD_MARGIN);
     layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
     cmbFont=new FontSelector(this);
-    layout0->addWidget(cmbFont,0,0,1,2);
+    layout0->addWidget(cmbFont,0,0);
+    selAlign=new AlignmentSelector(this);
+    selAlign->setToolTip(tr("Sets the text-alignment for each line\n(only useful if you have annotations with more than one line)"));
+    layout0->addWidget(selAlign,0,1);
     cmbColor=new ColorSelector(this);
     layout0->addWidget(cmbColor,1,0);
     {
@@ -946,12 +948,9 @@ tabAnnVal::tabAnnVal(QWidget * parent):QWidget(parent)
     ledAppend=new stdLineEdit(this,tr("Append:"),true);
     ledAppend->lenText->setText(QString(""));
     layout0->addWidget(ledAppend,2,1);
-    selAlign=new AlignmentSelector(this);
-    selAlign->setToolTip(tr("Sets the text-alignment for each line\n(only useful if you have annotations with more than one line)"));
-    layout0->addWidget(selAlign,3,0);
     fraTextProp->setLayout(layout0);
     fraFormatOpt=new QGroupBox(tr("Format options"),this);
-    layout1=new QGridLayout;
+    layout1=new QHBoxLayout;
     //layout1->setMargin(STD_MARGIN);
     layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
     number=6;
@@ -962,7 +961,7 @@ tabAnnVal::tabAnnVal(QWidget * parent):QWidget(parent)
     entr[4]=tr("String");
     entr[5]=tr("Z");
     cmbType=new StdSelector(this,tr("Type:"),number,entr);
-    layout1->addWidget(cmbType,0,0);
+    layout1->addWidget(cmbType);
     number=10;
     for (int i=0;i<number;i++)
     {
@@ -970,12 +969,12 @@ tabAnnVal::tabAnnVal(QWidget * parent):QWidget(parent)
         entr[i]=QString(dummy);
     }
     cmbPrecision=new StdSelector(this,tr("Precision:"),number,entr);
-    layout1->addWidget(cmbPrecision,0,1);
+    layout1->addWidget(cmbPrecision);
     for (int i=0;i<NUM_FMT_OPTION_ITEMS;i++)
         entr[i]=QString(fmt_option_items[i].label);
     number=NUM_FMT_OPTION_ITEMS;
     cmbFormat=new StdSelector(this,tr("Format:"),number,entr);
-    layout1->addWidget(cmbFormat,1,0,1,2);
+    layout1->addWidget(cmbFormat);
     fraFormatOpt->setLayout(layout1);
     fraPlacement=new QGroupBox(tr("Placement"),this);
     layout2=new QHBoxLayout;

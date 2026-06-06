@@ -153,9 +153,9 @@ public:
     FontSelector * cmbSymbFont;
     QWidget * empty;
     QVBoxLayout * layout;
-    QGridLayout * layout0;
+    QHBoxLayout * layout0;
     QHBoxLayout * layout1;
-    QVBoxLayout * layout2;
+    QHBoxLayout * layout2;
 };
 
 class tabLine:public QWidget
@@ -204,7 +204,7 @@ public:
     stdLineEdit * ledYOffs;
     QVBoxLayout * layout;
     QGridLayout * layout0;
-    QGridLayout * layout1;
+    QHBoxLayout * layout1;
     QHBoxLayout * layout2;
 };
 
