@@ -21,6 +21,7 @@
 #include "fundamentals.h"
 #include <QStylePainter>
 #include <QStyleOptionComboBox>
+#include <QSlider>
 #include "MainWindow.h"
 #include "allWidgets.h"
 #include "windowWidgets.h"
@@ -3122,20 +3123,42 @@ void ColorComboBox::showPopup()
     action->setDefaultWidget(grid_widget);
     menu->addAction(action);
 
-    // Opacity control below the color grid (stays open while adjusting)
+    // Opacity control below the color grid (stays open while adjusting):
+    // [opacity icon] [---- slider ----] [spinbox]
     if (m_showAlpha) {
         menu->addSeparator();
         QWidget *op_widget = new QWidget;
         QHBoxLayout *op = new QHBoxLayout(op_widget);
         op->setContentsMargins(4, 2, 4, 2);
         op->setSpacing(4);
-        op->addWidget(new QLabel(tr("Opacity:"), op_widget));
+
+        QLabel *op_icon = new QLabel(op_widget);
+        QIcon opacIcon = QIcon::fromTheme("edit-opacity");
+        int isz = qMax(16, int(16.0 * toolBarSizeFactor));
+        if (!opacIcon.isNull())
+            op_icon->setPixmap(opacIcon.pixmap(isz, isz));
+        else
+            op_icon->setText(tr("Opacity:"));// fallback when the theme lacks the icon
+        op_icon->setToolTip(tr("Opacity (0 = transparent, 255 = opaque)"));
+        op->addWidget(op_icon);
+
+        QSlider *op_slider = new QSlider(Qt::Horizontal, op_widget);
+        op_slider->setRange(0, 255);
+        op_slider->setValue(m_alpha);
+        op_slider->setToolTip(tr("0 = transparent, 255 = opaque"));
+        op->addWidget(op_slider, 1);
+
         QSpinBox *sp = new QSpinBox(op_widget);
         sp->setRange(0, 255);
         sp->setValue(m_alpha);
+        sp->setMaximumWidth(sp->fontMetrics().horizontalAdvance("888") + 28);// ~3 digits + arrows
         sp->setToolTip(tr("0 = transparent, 255 = opaque"));
         op->addWidget(sp);
+
+        connect(op_slider, &QSlider::valueChanged, sp, &QSpinBox::setValue);
+        connect(sp, &QSpinBox::valueChanged, op_slider, &QSlider::setValue);
         connect(sp, &QSpinBox::valueChanged, this, &ColorComboBox::setAlpha);
+
         QWidgetAction *op_action = new QWidgetAction(menu);
         op_action->setDefaultWidget(op_widget);
         menu->addAction(op_action);

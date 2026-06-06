@@ -4662,7 +4662,10 @@ if (!screenshotSavePath.isEmpty() || !screenshotComparePath.isEmpty()) {
         QApplication::processEvents(QEventLoop::AllEvents, 500);
         shotTarget = dlg;
         if (suffix == "pop") {
-            dlg->flp->cmbSymbColor->setAlpha(128);   // demonstrate a translucent color
+            // demonstrate a translucent color without triggering a live re-apply
+            dlg->flp->cmbSymbColor->cmbColorSelect->blockSignals(true);
+            dlg->flp->cmbSymbColor->setAlpha(96);
+            dlg->flp->cmbSymbColor->cmbColorSelect->blockSignals(false);
             dlg->flp->cmbSymbColor->cmbColorSelect->showPopup();
             QApplication::processEvents(QEventLoop::AllEvents, 500);
             if (QApplication::activePopupWidget()) shotTarget = QApplication::activePopupWidget();
