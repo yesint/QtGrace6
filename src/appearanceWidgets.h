@@ -162,7 +162,7 @@ public:
     stdLineEditLaTeX * ledAppend;
     QGroupBox * fraFormatOpt;
     StdSelector * cmbAnnValType;
-    StdSelector * cmbPrecision;
+    QSpinBox * cmbPrecision;
     StdSelector * cmbFormat;
     QGroupBox * fraPlacement;
     stdLineEdit * ledXOffs;

@@ -2,26 +2,49 @@
 <ui version="4.0">
  <class>frmSet_Appearance</class>
  <widget class="QWidget" name="frmSet_Appearance">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>539</width>
+    <height>652</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Set Appearance</string>
   </property>
   <layout class="QVBoxLayout" name="layout">
-   <property name="spacing"><number>2</number></property>
-   <property name="leftMargin"><number>2</number></property>
-   <property name="topMargin"><number>2</number></property>
-   <property name="rightMargin"><number>2</number></property>
-   <property name="bottomMargin"><number>2</number></property>
-   <item><widget class="QMenuBar" name="menuBar"/></item>
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   <item>
+    <widget class="QMenuBar" name="menuBar"/>
+   </item>
    <item>
     <widget class="QLabel" name="lblSelSet">
-     <property name="text"><string>Select set:</string></property>
+     <property name="text">
+      <string>Select set:</string>
+     </property>
     </widget>
    </item>
    <item>
     <widget class="uniSetList" name="listSet">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch><verstretch>1</verstretch>
+       <horstretch>0</horstretch>
+       <verstretch>1</verstretch>
       </sizepolicy>
      </property>
     </widget>
@@ -30,41 +53,86 @@
     <widget class="QTabWidget" name="tabs">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch><verstretch>0</verstretch>
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="currentIndex"><number>0</number></property>
-
-     <!-- ===== Main tab ===== -->
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
      <widget class="QWidget" name="tabPageMain">
-      <attribute name="title"><string>Main</string></attribute>
+      <attribute name="title">
+       <string>Main</string>
+      </attribute>
       <layout class="QVBoxLayout" name="mainTabLayout">
-       <property name="spacing"><number>2</number></property>
-       <property name="leftMargin"><number>2</number></property>
-       <property name="topMargin"><number>2</number></property>
-       <property name="rightMargin"><number>2</number></property>
-       <property name="bottomMargin"><number>2</number></property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="fraSetPres">
-         <property name="title"><string>Set presentation</string></property>
+         <property name="title">
+          <string>Set presentation</string>
+         </property>
          <layout class="QVBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
            <layout class="QHBoxLayout">
-            <property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSetType"><property name="text"><string>Type:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbSetTypeBox"/></item>
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSetType">
+              <property name="text">
+               <string>Type:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbSetTypeBox"/>
+            </item>
            </layout>
           </item>
           <item>
            <layout class="QHBoxLayout">
-            <property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblString"><property name="text"><string>Legend:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledStringBox"/></item>
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblString">
+              <property name="text">
+               <string>Legend:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledStringBox"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -74,58 +142,133 @@
         <layout class="QHBoxLayout" name="layoutSymbLine">
          <item>
           <widget class="QGroupBox" name="fraSymbProp">
-           <property name="title"><string>Symbol properties</string></property>
+           <property name="title">
+            <string>Symbol properties</string>
+           </property>
            <layout class="QVBoxLayout">
-            <property name="spacing"><number>2</number></property>
-            <property name="leftMargin"><number>2</number></property>
-            <property name="topMargin"><number>2</number></property>
-            <property name="rightMargin"><number>2</number></property>
-            <property name="bottomMargin"><number>2</number></property>
-            <item>
-             <widget class="QWidget" name="rowTypeSize">
-              <layout class="QHBoxLayout">
-               <property name="spacing"><number>4</number></property>
-               <property name="leftMargin"><number>2</number></property>
-               <property name="topMargin"><number>2</number></property>
-               <property name="rightMargin"><number>2</number></property>
-               <property name="bottomMargin"><number>2</number></property>
-               <item><widget class="QLabel" name="lblSymbType"><property name="text"><string>Type:</string></property></widget></item>
-               <item>
-                <widget class="PatternComboBox4" name="cmbSymbType">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                   <horstretch>0</horstretch><verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                </widget>
-               </item>
-               <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
-               <item><widget class="QLabel" name="lblSymbSize"><property name="text"><string>Size:</string></property></widget></item>
-               <item>
-                <widget class="QDoubleSpinBox" name="spnSymbSize">
-                 <property name="minimum"><double>0.000000</double></property>
-                 <property name="maximum"><double>10.000000</double></property>
-                 <property name="singleStep"><double>1.000000</double></property>
-                 <property name="decimals"><number>2</number></property>
-                 <property name="maximumWidth"><number>70</number></property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
             <item>
              <layout class="QHBoxLayout">
-              <property name="spacing"><number>2</number></property>
-              <item><widget class="QLabel" name="lblSymbColor"><property name="text"><string>Color:</string></property></widget></item>
-              <item><widget class="ColorComboBox" name="cmbSymbColorBox"/></item>
+              <property name="spacing">
+               <number>4</number>
+              </property>
+              <property name="leftMargin">
+               <number>2</number>
+              </property>
+              <property name="topMargin">
+               <number>2</number>
+              </property>
+              <property name="rightMargin">
+               <number>2</number>
+              </property>
+              <property name="bottomMargin">
+               <number>2</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblSymbType">
+                <property name="text">
+                 <string>Type:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="PatternComboBox4" name="cmbSymbType">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
             <item>
              <layout class="QHBoxLayout">
-              <property name="spacing"><number>2</number></property>
-              <item><widget class="QLabel" name="lblSymbChar"><property name="text"><string>Symbol char:</string></property></widget></item>
-              <item><widget class="QLineEdit" name="selSymbCharBox"><property name="maxLength"><number>1</number></property><property name="alignment"><set>Qt::AlignHCenter</set></property><property name="maximumSize"><size><width>40</width><height>16777215</height></size></property></widget></item>
-              <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblSymbColor">
+                <property name="text">
+                 <string>Color:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="ColorComboBox" name="cmbSymbColorBox"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblSymbChar">
+                <property name="text">
+                 <string>Symbol char:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="selSymbCharBox">
+                <property name="maximumSize">
+                 <size>
+                  <width>40</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="maxLength">
+                 <number>1</number>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignHCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QLabel" name="lblSymbSize">
+                <property name="text">
+                 <string>Size:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="spnSymbSize">
+                <property name="decimals">
+                 <number>2</number>
+                </property>
+                <property name="minimum">
+                 <double>0.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>10.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>1.000000000000000</double>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
            </layout>
@@ -133,40 +276,100 @@
          </item>
          <item>
           <widget class="QGroupBox" name="fraSetLineProp">
-           <property name="title"><string>Line properties</string></property>
+           <property name="title">
+            <string>Line properties</string>
+           </property>
            <layout class="QVBoxLayout">
-            <property name="spacing"><number>2</number></property>
-            <property name="leftMargin"><number>2</number></property>
-            <property name="topMargin"><number>2</number></property>
-            <property name="rightMargin"><number>2</number></property>
-            <property name="bottomMargin"><number>2</number></property>
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
             <item>
              <layout class="QHBoxLayout">
-              <property name="spacing"><number>2</number></property>
-              <item><widget class="QLabel" name="lblLineType"><property name="text"><string>Type:</string></property></widget></item>
-              <item><widget class="QComboBox" name="cmbLineTypeBox"/></item>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblLineType">
+                <property name="text">
+                 <string>Type:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cmbLineTypeBox"/>
+              </item>
              </layout>
             </item>
             <item>
-             <widget class="QWidget" name="rowStyleWidth">
-              <layout class="QHBoxLayout">
-               <property name="spacing"><number>2</number></property>
-               <property name="leftMargin"><number>0</number></property>
-               <property name="topMargin"><number>0</number></property>
-               <property name="rightMargin"><number>0</number></property>
-               <property name="bottomMargin"><number>0</number></property>
-               <item><widget class="QLabel" name="lblLineStyle"><property name="text"><string>Style:</string></property></widget></item>
-               <item><widget class="QComboBox" name="cmbLineStyleBox"/></item>
-               <item><widget class="QLabel" name="lblLineWidth"><property name="text"><string>Width:</string></property></widget></item>
-               <item><widget class="QDoubleSpinBox" name="spnLineWidthBox"/></item>
-              </layout>
-             </widget>
+             <layout class="QHBoxLayout">
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblLineStyle">
+                <property name="text">
+                 <string>Style:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cmbLineStyleBox"/>
+              </item>
+             </layout>
             </item>
             <item>
              <layout class="QHBoxLayout">
-              <property name="spacing"><number>2</number></property>
-              <item><widget class="QLabel" name="lblLineColor"><property name="text"><string>Color:</string></property></widget></item>
-              <item><widget class="ColorComboBox" name="cmbLineColorBox"/></item>
+              <property name="spacing">
+               <number>2</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="lblLineWidth">
+                <property name="text">
+                 <string>Width:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="spnLineWidthBox"/>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QLabel" name="lblLineColor">
+                <property name="text">
+                 <string>Color:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="ColorComboBox" name="cmbLineColorBox"/>
+              </item>
              </layout>
             </item>
            </layout>
@@ -176,49 +379,92 @@
        </item>
        <item>
         <widget class="QGroupBox" name="fraDispOpt">
-         <property name="title"><string>Display options</string></property>
+         <property name="title">
+          <string>Display options</string>
+         </property>
          <layout class="QGridLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="spacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
            <widget class="QCheckBox" name="chkAnnVal">
-            <property name="text"><string>Annotate values</string></property>
+            <property name="text">
+             <string>Annotate values</string>
+            </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QWidget" name="rowAnnSize">
-            <layout class="QHBoxLayout">
-             <property name="spacing"><number>2</number></property>
-             <property name="leftMargin"><number>0</number></property>
-             <property name="topMargin"><number>0</number></property>
-             <property name="rightMargin"><number>0</number></property>
-             <property name="bottomMargin"><number>0</number></property>
-             <item><widget class="QLabel" name="lblAnnSize"><property name="text"><string>Annotation label size:</string></property></widget></item>
-             <item>
-              <widget class="QDoubleSpinBox" name="spnAnnValSize">
-               <property name="enabled"><bool>false</bool></property>
-               <property name="minimum"><double>0.010000</double></property>
-               <property name="maximum"><double>10.000000</double></property>
-               <property name="singleStep"><double>0.100000</double></property>
-               <property name="decimals"><number>2</number></property>
-               <property name="value"><double>1.000000</double></property>
-               <property name="maximumWidth"><number>70</number></property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAnnSize">
+              <property name="text">
+               <string>Annot. label size:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnAnnValSize">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="decimals">
+               <number>2</number>
+              </property>
+              <property name="minimum">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>10.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.100000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="chkDispErrBars">
-            <property name="text"><string>Display error bars</string></property>
+            <property name="text">
+             <string>Display error bars</string>
+            </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QCheckBox" name="chkIgnoreInAutoscale">
-            <property name="text"><string>Ignore during autoscale</string></property>
+            <property name="text">
+             <string>Ignore during autoscale</string>
+            </property>
            </widget>
           </item>
          </layout>
@@ -226,41 +472,103 @@
        </item>
       </layout>
      </widget>
-
-     <!-- ===== Symbols tab ===== -->
      <widget class="QWidget" name="tabPageSymbol">
-      <attribute name="title"><string>Symbols</string></attribute>
+      <attribute name="title">
+       <string>Symbols</string>
+      </attribute>
       <layout class="QVBoxLayout" name="symbolTabLayout">
-       <property name="spacing"><number>2</number></property>
-       <property name="leftMargin"><number>2</number></property>
-       <property name="topMargin"><number>2</number></property>
-       <property name="rightMargin"><number>2</number></property>
-       <property name="bottomMargin"><number>2</number></property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="fraSymbOutl">
-         <property name="title"><string>Symbol outline</string></property>
-         <layout class="QHBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Symbol outline</string>
+         </property>
+         <layout class="QVBoxLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSymbStyle"><property name="text"><string>Style:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbSymbStyleBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSymbStyle">
+              <property name="text">
+               <string>Style:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbSymbStyleBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSymbPattern"><property name="text"><string>Pattern:</string></property></widget></item>
-            <item><widget class="PatternComboBox3" name="cmbSymbPatternBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>14</number>
+            </property>
+          <item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSymbPattern">
+              <property name="text">
+               <string>Pattern:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="PatternComboBox3" name="cmbSymbPatternBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSymbWidth"><property name="text"><string>Width:</string></property></widget></item>
-            <item><widget class="QDoubleSpinBox" name="spnSymbWidthBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSymbWidth">
+              <property name="text">
+               <string>Width:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnSymbWidthBox"/>
+            </item>
+           </layout>
+          </item>
            </layout>
           </item>
          </layout>
@@ -268,23 +576,57 @@
        </item>
        <item>
         <widget class="QGroupBox" name="fraSymbFill">
-         <property name="title"><string>Symbol fill</string></property>
+         <property name="title">
+          <string>Symbol fill</string>
+         </property>
          <layout class="QHBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>14</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSymbFillColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbSymbFillColorBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSymbFillColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbSymbFillColorBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSymbFillPattern"><property name="text"><string>Pattern:</string></property></widget></item>
-            <item><widget class="PatternComboBox3" name="cmbSymbFillPatternBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSymbFillPattern">
+              <property name="text">
+               <string>Pattern:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="PatternComboBox3" name="cmbSymbFillPatternBox"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -292,62 +634,143 @@
        </item>
        <item>
         <widget class="QGroupBox" name="fraExtra">
-         <property name="title"><string>Extra</string></property>
-         <layout class="QHBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Extra</string>
+         </property>
+         <layout class="QVBoxLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSymbSkip"><property name="text"><string>Symbol skip:</string></property></widget></item>
-            <item><widget class="QSpinBox" name="spnSymbSkipBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSymbSkip">
+              <property name="text">
+               <string>Symbol skip:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spnSymbSkipBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSymbFont"><property name="text"><string>Font for symbol:</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmbSymbFontBtn"/></item>
-            <item><widget class="QComboBox" name="cmbSymbFontBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSymbFont">
+              <property name="text">
+               <string>Font for symbol:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cmbSymbFontBtn"/>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbSymbFontBox"/>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
        </item>
        <item>
-        <spacer><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
-
-     <!-- ===== Line tab ===== -->
      <widget class="QWidget" name="tabPageLine">
-      <attribute name="title"><string>Line</string></attribute>
+      <attribute name="title">
+       <string>Line</string>
+      </attribute>
       <layout class="QVBoxLayout" name="lineTabLayout">
-       <property name="spacing"><number>2</number></property>
-       <property name="leftMargin"><number>2</number></property>
-       <property name="topMargin"><number>2</number></property>
-       <property name="rightMargin"><number>2</number></property>
-       <property name="bottomMargin"><number>2</number></property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="fraDropLineProp">
-         <property name="title"><string>Line properties</string></property>
+         <property name="title">
+          <string>Line properties</string>
+         </property>
          <layout class="QHBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>14</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblDropPattern"><property name="text"><string>Pattern:</string></property></widget></item>
-            <item><widget class="PatternComboBox3" name="cmbDropPatternBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblDropPattern">
+              <property name="text">
+               <string>Pattern:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="PatternComboBox3" name="cmbDropPatternBox"/>
+            </item>
            </layout>
           </item>
           <item>
            <widget class="QCheckBox" name="chkDrawDropLines">
-            <property name="text"><string>Draw drop lines</string></property>
+            <property name="text">
+             <string>Draw drop lines</string>
+            </property>
            </widget>
           </item>
          </layout>
@@ -355,41 +778,111 @@
        </item>
        <item>
         <widget class="QGroupBox" name="fraFillProp">
-         <property name="title"><string>Fill properties</string></property>
+         <property name="title">
+          <string>Fill properties</string>
+         </property>
          <layout class="QGridLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblFillType"><property name="text"><string>Type:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbFillTypeBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblFillType">
+              <property name="text">
+               <string>Type:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbFillTypeBox"/>
+            </item>
            </layout>
           </item>
           <item row="0" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblRule"><property name="text"><string>Rule:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbRuleBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblRule">
+              <property name="text">
+               <string>Rule:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbRuleBox"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAreaFillPattern"><property name="text"><string>Pattern:</string></property></widget></item>
-            <item><widget class="PatternComboBox3" name="cmbAreaFillPatternBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAreaFillPattern">
+              <property name="text">
+               <string>Pattern:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="PatternComboBox3" name="cmbAreaFillPatternBox"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAreaFillColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbAreaFillColorBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAreaFillColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbAreaFillColorBox"/>
+            </item>
            </layout>
           </item>
           <item row="2" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSet"><property name="text"><string>Polygon base set:</string></property></widget></item>
-            <item><widget class="SetCombo" name="cmbSetBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSet">
+              <property name="text">
+               <string>Polygon base set:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="SetCombo" name="cmbSetBox"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -397,106 +890,246 @@
        </item>
        <item>
         <widget class="QGroupBox" name="fraBaseLine">
-         <property name="title"><string>Base line</string></property>
+         <property name="title">
+          <string>Base line</string>
+         </property>
          <layout class="QHBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
            <widget class="QCheckBox" name="chkDrawLine">
-            <property name="text"><string>Draw line</string></property>
+            <property name="text">
+             <string>Draw line</string>
+            </property>
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblBaseType"><property name="text"><string>Type:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbBaseTypeBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblBaseType">
+              <property name="text">
+               <string>Type:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbBaseTypeBox"/>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
        </item>
        <item>
-        <spacer><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
-
-     <!-- ===== Ann. values tab ===== -->
      <widget class="QWidget" name="tabPageAnnVal">
-      <attribute name="title"><string>Ann. values</string></attribute>
+      <attribute name="title">
+       <string>Ann. values</string>
+      </attribute>
       <layout class="QVBoxLayout" name="annValTabLayout">
-       <property name="spacing"><number>2</number></property>
-       <property name="leftMargin"><number>2</number></property>
-       <property name="topMargin"><number>2</number></property>
-       <property name="rightMargin"><number>2</number></property>
-       <property name="bottomMargin"><number>2</number></property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="fraTextProp">
-         <property name="title"><string>Text properties</string></property>
+         <property name="title">
+          <string>Text properties</string>
+         </property>
          <layout class="QGridLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblFont"><property name="text"><string>Font:</string></property></widget></item>
-            <item><widget class="QPushButton" name="cmbFontBtn"/></item>
-            <item><widget class="QComboBox" name="cmbFontBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblFont">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cmbFontBtn"/>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbFontBox"/>
+            </item>
            </layout>
           </item>
           <item row="0" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAlign"><property name="text"><string>Alignment:</string></property></widget></item>
-            <item><widget class="QComboBox" name="selAlignBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAlign">
+              <property name="text">
+               <string>Alignment:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="selAlignBox"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAnnColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbAnnColorBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAnnColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbAnnColorBox"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="1">
-           <widget class="QWidget" name="rowAngle">
-            <layout class="QHBoxLayout">
-             <property name="spacing"><number>2</number></property>
-             <property name="leftMargin"><number>2</number></property>
-             <property name="topMargin"><number>2</number></property>
-             <property name="rightMargin"><number>2</number></property>
-             <property name="bottomMargin"><number>2</number></property>
-             <item><widget class="QLabel" name="lblAngle"><property name="text"><string>Angle:</string></property></widget></item>
-             <item>
-              <widget class="QSlider" name="sldFontAngle">
-               <property name="minimum"><number>0</number></property>
-               <property name="maximum"><number>360</number></property>
-               <property name="orientation"><enum>Qt::Horizontal</enum></property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="spnFontAngle">
-               <property name="minimum"><number>0</number></property>
-               <property name="maximum"><number>360</number></property>
-               <property name="maximumWidth"><number>55</number></property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAngle">
+              <property name="text">
+               <string>Angle:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="sldFontAngle">
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>360</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spnFontAngle">
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>360</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="2" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblPrepend"><property name="text"><string>Prepend:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledPrependBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblPrepend">
+              <property name="text">
+               <string>Prepend:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledPrependBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
+            </item>
            </layout>
           </item>
           <item row="2" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAppend"><property name="text"><string>Append:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledAppendBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAppend">
+              <property name="text">
+               <string>Append:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledAppendBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -504,29 +1137,74 @@
        </item>
        <item>
         <widget class="QGroupBox" name="fraFormatOpt">
-         <property name="title"><string>Format options</string></property>
-         <layout class="QHBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Format options</string>
+         </property>
+         <layout class="QVBoxLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAnnValType"><property name="text"><string>Type:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbAnnValTypeBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAnnValType">
+              <property name="text">
+               <string>Type:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbAnnValTypeBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblPrecision"><property name="text"><string>Precision:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbPrecisionBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblPrecision">
+              <property name="text">
+               <string>Precision:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="cmbPrecisionBox"><property name="minimum"><number>0</number></property><property name="maximum"><number>9</number></property></widget>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblFormat"><property name="text"><string>Format:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbFormatBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblFormat">
+              <property name="text">
+               <string>Format:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbFormatBox"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -534,23 +1212,57 @@
        </item>
        <item>
         <widget class="QGroupBox" name="fraPlacement">
-         <property name="title"><string>Placement</string></property>
+         <property name="title">
+          <string>Placement</string>
+         </property>
          <layout class="QHBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblXOffs"><property name="text"><string>X offset:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledXOffsBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblXOffs">
+              <property name="text">
+               <string>X offset:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledXOffsBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblYOffs"><property name="text"><string>Y offset:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledYOffsBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblYOffs">
+              <property name="text">
+               <string>Y offset:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledYOffsBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -558,166 +1270,384 @@
        </item>
       </layout>
      </widget>
-
-     <!-- ===== Error bars tab ===== -->
      <widget class="QWidget" name="tabPageErrBars">
-      <attribute name="title"><string>Error bars</string></attribute>
+      <attribute name="title">
+       <string>Error bars</string>
+      </attribute>
       <layout class="QGridLayout" name="errBarsTabLayout">
-       <property name="spacing"><number>2</number></property>
-       <property name="leftMargin"><number>2</number></property>
-       <property name="topMargin"><number>2</number></property>
-       <property name="rightMargin"><number>2</number></property>
-       <property name="bottomMargin"><number>2</number></property>
-       <item row="0" column="0">
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <item row="0" column="0" colspan="2">
         <widget class="QGroupBox" name="fraCommon">
-         <property name="title"><string>Common</string></property>
+         <property name="title">
+          <string>Common</string>
+         </property>
          <layout class="QVBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblPlacement"><property name="text"><string>Placement:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbPlacementBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblPlacement">
+              <property name="text">
+               <string>Placement:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbPlacementBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblErrColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbErrColorBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblErrColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbErrColorBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblErrPattern"><property name="text"><string>Pattern:</string></property></widget></item>
-            <item><widget class="PatternComboBox3" name="cmbErrPatternBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblErrPattern">
+              <property name="text">
+               <string>Pattern:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="PatternComboBox3" name="cmbErrPatternBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblConnectErrorBars"><property name="text"><string>Connect errorbars:</string></property></widget></item>
-            <item><widget class="QComboBox" name="chkConnectErrorBarsBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblConnectErrorBars">
+              <property name="text">
+               <string>Connect errorbars:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="chkConnectErrorBarsBox"/>
+            </item>
            </layout>
           </item>
           <item>
            <widget class="QCheckBox" name="chkShowInLegend">
-            <property name="text"><string>Show error bars in legend</string></property>
+            <property name="text">
+             <string>Show error bars in legend</string>
+            </property>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="1" column="0" colspan="2">
         <widget class="QGroupBox" name="fraClipping">
-         <property name="title"><string>Clipping</string></property>
+         <property name="title">
+          <string>Clipping</string>
+         </property>
          <layout class="QVBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
            <widget class="QCheckBox" name="chkArrowClip">
-            <property name="text"><string>Arrow clip</string></property>
+            <property name="text">
+             <string>Arrow clip</string>
+            </property>
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMaxLength"><property name="text"><string>Max length:</string></property></widget></item>
-            <item><widget class="QDoubleSpinBox" name="spnMaxLengthBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMaxLength">
+              <property name="text">
+               <string>Max length:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnMaxLengthBox"/>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
        </item>
-       <item row="0" column="1">
+       <item row="2" column="0">
         <widget class="QGroupBox" name="fraBarLine">
-         <property name="title"><string>Bar line</string></property>
+         <property name="title">
+          <string>Bar line</string>
+         </property>
          <layout class="QVBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <widget class="QWidget" name="rowBarSize">
-            <layout class="QHBoxLayout">
-             <property name="spacing"><number>2</number></property>
-             <property name="leftMargin"><number>2</number></property>
-             <property name="topMargin"><number>2</number></property>
-             <property name="rightMargin"><number>2</number></property>
-             <property name="bottomMargin"><number>2</number></property>
-             <item><widget class="QLabel" name="lblBarSize"><property name="text"><string>Size:</string></property></widget></item>
-             <item>
-              <widget class="QDoubleSpinBox" name="spnBarSize">
-               <property name="minimum"><double>0.000000</double></property>
-               <property name="maximum"><double>10.000000</double></property>
-               <property name="singleStep"><double>1.000000</double></property>
-               <property name="decimals"><number>2</number></property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblbarWidth"><property name="text"><string>Width:</string></property></widget></item>
-            <item><widget class="QDoubleSpinBox" name="spnbarWidthBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblBarSize">
+              <property name="text">
+               <string>Size:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnBarSize">
+              <property name="decimals">
+               <number>2</number>
+              </property>
+              <property name="minimum">
+               <double>0.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>10.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblBarStyle"><property name="text"><string>Style:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbBarStyleBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblbarWidth">
+              <property name="text">
+               <string>Width:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnbarWidthBox"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblBarStyle">
+              <property name="text">
+               <string>Style:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbBarStyleBox"/>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="2" column="1">
         <widget class="QGroupBox" name="fraRiserLine">
-         <property name="title"><string>Riser line</string></property>
+         <property name="title">
+          <string>Riser line</string>
+         </property>
          <layout class="QVBoxLayout">
-          <property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property>
-          <property name="topMargin"><number>2</number></property>
-          <property name="rightMargin"><number>2</number></property>
-          <property name="bottomMargin"><number>2</number></property>
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblRiserWidth"><property name="text"><string>Width:</string></property></widget></item>
-            <item><widget class="QDoubleSpinBox" name="spnRiserWidthBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblRiserWidth">
+              <property name="text">
+               <string>Width:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnRiserWidthBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblRiserStyle"><property name="text"><string>Style:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbRiserStyleBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblRiserStyle">
+              <property name="text">
+               <string>Style:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbRiserStyleBox"/>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
        </item>
-       <item row="2" column="0" colspan="2">
-        <spacer><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property></spacer>
+       <item row="3" column="0" colspan="2">
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
-
     </widget>
    </item>
-   <item><widget class="stdButtonGroup" name="buttonGroup"/></item>
+   <item>
+    <widget class="stdButtonGroup" name="buttonGroup" native="true"/>
+   </item>
   </layout>
  </widget>
  <customwidgets>
-  <customwidget><class>uniSetList</class><extends>QListWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>stdButtonGroup</class><extends>QWidget</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>PatternComboBox4</class><extends>QComboBox</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>PatternComboBox3</class><extends>QComboBox</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>ColorComboBox</class><extends>QComboBox</extends><header>fundamentals.h</header></customwidget>
-  <customwidget><class>SetCombo</class><extends>QComboBox</extends><header>fundamentals.h</header></customwidget>
+  <customwidget>
+   <class>uniSetList</class>
+   <extends>QListWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>stdButtonGroup</class>
+   <extends>QWidget</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>PatternComboBox4</class>
+   <extends>QComboBox</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>PatternComboBox3</class>
+   <extends>QComboBox</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorComboBox</class>
+   <extends>QComboBox</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SetCombo</class>
+   <extends>QComboBox</extends>
+   <header>fundamentals.h</header>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections/>

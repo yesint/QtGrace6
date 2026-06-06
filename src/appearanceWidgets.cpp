@@ -603,6 +603,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     lblSelSet  = ui->lblSelSet;
     listSet    = ui->listSet;
     tabs       = ui->tabs;
+    tabs->setUsesScrollButtons(false);// show all tab labels; never use scroll arrows
     buttonGroup= ui->buttonGroup;
 
     // Main tab
@@ -659,7 +660,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     ledAppend         = new stdLineEditLaTeX(ui->lblAppend, ui->ledAppendBox, this);
     fraFormatOpt      = ui->fraFormatOpt;
     cmbAnnValType     = new StdSelector(ui->lblAnnValType, ui->cmbAnnValTypeBox, this);
-    cmbPrecision      = new StdSelector(ui->lblPrecision, ui->cmbPrecisionBox, this);
+    cmbPrecision      = ui->cmbPrecisionBox;
     cmbFormat         = new StdSelector(ui->lblFormat, ui->cmbFormatBox, this);
     fraPlacement      = ui->fraPlacement;
     ledXOffs          = new stdLineEdit(ui->lblXOffs, ui->ledXOffsBox, false, this);
@@ -714,7 +715,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
         QString entr[8];
         entr[0]=tr("None"); entr[1]=tr("Straight"); entr[2]=tr("Left stairs");
         entr[3]=tr("Right stairs"); entr[4]=tr("Segments"); entr[5]=tr("3-Segments");
-        entr[6]=tr("Increasing X only"); entr[7]=tr("Decreasing X only");
+        entr[6]=tr("Increasing X"); entr[7]=tr("Decreasing X");
         cmbLineType->setNewEntries(8, entr);
     }
     cmbLineType->lblText->setText(tr("Type:"));
@@ -770,12 +771,6 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
         cmbAnnValType->lblText->setText(tr("Type:"));
     }
     {
-        char dummy[32]; QString entr[10];
-        for (int i = 0; i < 10; i++) { sprintf(dummy,"%d",i); entr[i]=QString(dummy); }
-        cmbPrecision->setNewEntries(10, entr);
-        cmbPrecision->lblText->setText(tr("Precision:"));
-    }
-    {
         QString entr[NUM_FMT_OPTION_ITEMS];
         for (int i = 0; i < NUM_FMT_OPTION_ITEMS; i++) entr[i]=QString(fmt_option_items[i].label);
         cmbFormat->setNewEntries(NUM_FMT_OPTION_ITEMS, entr);
@@ -794,9 +789,9 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     cmbErrPattern->lblText->setText(tr("Pattern:"));
     {
         QString entr[7];
-        entr[0]=tr("None"); entr[1]=tr("X- and Y-bars"); entr[2]=tr("Y-bars only");
-        entr[3]=tr("X-bars only"); entr[4]=tr("Fill Y-bars as polygon");
-        entr[5]=tr("Fill X-bars as polygon"); entr[6]=tr("Fill X- and Y-bars as polygons");
+        entr[0]=tr("None"); entr[1]=tr("X/Y bars"); entr[2]=tr("Y bars");
+        entr[3]=tr("X bars"); entr[4]=tr("Y bars poly");
+        entr[5]=tr("X bars poly"); entr[6]=tr("X/Y bars poly");
         chkConnectErrorBars->setNewEntries(7, entr);
         chkConnectErrorBars->lblText->setText(tr("Connect errorbars:"));
     }
@@ -891,7 +886,7 @@ frmSet_Appearance::frmSet_Appearance(QWidget * parent):QWidget(parent),
     connect(cmbAnnColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
     connect(cmbFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(cmbFormat,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(cmbPrecision,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(cmbPrecision,SIGNAL(valueChanged(int)),SLOT(update1(int)));
     connect(cmbAnnValType,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(ledAppend,SIGNAL(changed()),SLOT(update0()));
     connect(ledPrepend,SIGNAL(changed()),SLOT(update0()));
@@ -1215,7 +1210,7 @@ apply_running=true;
     avalue.angle = spnFontAngle->value();
     avalue.format = cmbFormat->currentIndex();
     avalue.type = cmbAnnValType->currentIndex();
-    avalue.prec = cmbPrecision->currentIndex();
+    avalue.prec = cmbPrecision->value();
     avalue.align = selAlign->currentValue();
 
     ledPrepend->SetMemoryToText(avalue.prestr,avalue.orig_prestr);
@@ -2067,7 +2062,7 @@ cmbSetType
     ledAppend->SetTextToMemory(g[graph_number].p[set_number].avalue.appstr,g[graph_number].p[set_number].avalue.orig_appstr);
     selAlign->setCurrentValue(p.avalue.align);
     cmbAnnValType->setCurrentIndex(p.avalue.type);
-    cmbPrecision->setCurrentIndex(p.avalue.prec);
+    cmbPrecision->setValue(p.avalue.prec);
     cmbFormat->setCurrentIndex(p.avalue.format);
     ledXOffs->setDoubleValue("%g", p.avalue.offset.x);
     ledYOffs->setDoubleValue("%g", p.avalue.offset.y);
@@ -2438,6 +2433,10 @@ void frmSetAppearance::showEvent(QShowEvent * event)
 {
     if (!event->spontaneous()) {
         adjustSize();
+        // Never let the dialog get narrower than the tab bar, else tab labels truncate.
+        QTabBar * tb = flp->tabs->findChild<QTabBar*>();
+        int tabBarW = tb ? tb->sizeHint().width() + 4 : 0;
+        if (width() < tabBarW) resize(tabBarW, height());
         setFixedWidth(width());
     }
 int * selected=new int[2];
