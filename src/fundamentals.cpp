@@ -3080,7 +3080,11 @@ stdButtonGroup::stdButtonGroup(QWidget * parent,bool appl,bool acc,bool help):QW
     setLayout(layout);
 }
 
-ColorComboBox::ColorComboBox(QWidget *parent) : QComboBox(parent) {}
+ColorComboBox::ColorComboBox(QWidget *parent) : QComboBox(parent)
+{
+    // Compact: size to the swatch + arrow, don't stretch to fill the row.
+    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
+}
 
 void ColorComboBox::showPopup()
 {
@@ -3321,7 +3325,7 @@ void ColorSelector::updateColorIcons(int nr_of_cols, CMap_entry * entries)
     cmbColorSelect->clear();
     if (nr_of_cols > 0 && entries) {
         int swatchH = qMax(14, int(14.0 * toolBarSizeFactor));
-        int swatchW = swatchH * 3;
+        int swatchW = swatchH * 2;// drives the closed-combo width (icon not drawn, see paintEvent)
         cmbColorSelect->setIconSize(QSize(swatchW, swatchH));
         for (int i = 0; i < nr_of_cols; ++i) {
             QPixmap pm(swatchW, swatchH);
