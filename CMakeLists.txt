@@ -209,6 +209,25 @@ qt_add_resources(qtgrace "icons"
         fonts/icons/zoomIn.png
         fonts/icons/zoomOut.png
         fonts/icons/zoom.png
+        fonts/icons/settype_xy.svg
+        fonts/icons/settype_xydx.svg
+        fonts/icons/settype_xydy.svg
+        fonts/icons/settype_xydxdx.svg
+        fonts/icons/settype_xydydy.svg
+        fonts/icons/settype_xydxdy.svg
+        fonts/icons/settype_xydxdxdydy.svg
+        fonts/icons/settype_bar.svg
+        fonts/icons/settype_bardy.svg
+        fonts/icons/settype_bardydy.svg
+        fonts/icons/settype_xyhilo.svg
+        fonts/icons/settype_xyz.svg
+        fonts/icons/settype_xyr.svg
+        fonts/icons/settype_xysize.svg
+        fonts/icons/settype_xycolor.svg
+        fonts/icons/settype_xycolpat.svg
+        fonts/icons/settype_xyvmap.svg
+        fonts/icons/settype_boxplot.svg
+        fonts/icons/settype_band.svg
 )
 
 # Translations
