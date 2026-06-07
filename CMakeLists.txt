@@ -274,6 +274,20 @@ qt_add_resources(qtgrace "icons"
         fonts/icons/linetype_dec_x.svg
 )
 
+# Embed the Type1 font assets (.pfb/.afm/.enc + FontDataBase) so the binary
+# is self-contained and can be run from anywhere; they are extracted to a
+# cache dir at startup and handed to T1lib (which can only read from disk).
+file(GLOB GRACE_FONT_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    fonts/type1/*.pfb
+    fonts/type1/*.afm
+    fonts/enc/*.enc
+)
+qt_add_resources(qtgrace "gracefonts"
+    PREFIX "/gracefonts"
+    BASE "fonts"
+    FILES ${GRACE_FONT_FILES} fonts/FontDataBase
+)
+
 # Translations
 set(TS_FILES qt_grace_ger.ts)
 

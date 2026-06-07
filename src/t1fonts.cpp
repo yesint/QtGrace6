@@ -46,8 +46,46 @@
 #include "globals.h"
 #include "noxprotos.h"
 #include <QPainter>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QDirIterator>
+#include <QStandardPaths>
 
 using namespace std;
+
+// The Type1 font assets are embedded as Qt resources (":/gracefonts/...").
+// T1lib can only read fonts from the real filesystem, so extract them once
+// to a cache directory and return that base path. This makes the binary
+// self-contained (runnable from anywhere) instead of depending on
+// fonts/ sitting next to the executable. Returns NULL on failure.
+static const char * extract_embedded_fonts(void)
+{
+    static char base_buf[GR_MAXPATHLEN] = "";
+    if (base_buf[0]) return base_buf;// already extracted this run
+
+    QString base = QDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation))
+                       .filePath(QString("qtgrace_fonts"));
+    QDirIterator it(QString(":/gracefonts"), QDir::Files, QDirIterator::Subdirectories);
+    bool any=false;
+    while (it.hasNext())
+    {
+        QString src=it.next();
+        QString rel=src.mid(QString(":/gracefonts/").length());
+        QString dst=base+QString("/")+rel;
+        QDir().mkpath(QFileInfo(dst).absolutePath());
+        QFile::remove(dst);// overwrite any stale copy
+        if (QFile::copy(src,dst))
+        {
+            QFile::setPermissions(dst, QFile::ReadOwner|QFile::WriteOwner|QFile::ReadGroup|QFile::ReadOther);
+            any=true;
+        }
+    }
+    if (!any || !QFile::exists(base+QString("/FontDataBase"))) return NULL;
+    strncpy(base_buf, base.toLocal8Bit().constData(), GR_MAXPATHLEN-1);
+    base_buf[GR_MAXPATHLEN-1]='\0';
+    return base_buf;
+}
 
 extern QPainter * GeneralPainter;
 
@@ -146,45 +184,51 @@ VPoint debug_bounding_box[2];
 int init_t1(void)
 {
     int i;
-    const char * bufp;
     char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN];
+    char path_type1[GR_MAXPATHLEN], path_enc[GR_MAXPATHLEN], path_fdb[GR_MAXPATHLEN];
     FILE *fd;
-    
+
+    /* Resolve the font asset locations. Prefer the embedded copies (extracted
+     * to a cache dir) so the binary is self-contained; fall back to an
+     * on-disk installation via grace_path() if extraction is unavailable. */
+    const char * fontbase = extract_embedded_fonts();
+    if (fontbase != NULL) {
+        sprintf(path_type1, "%s/type1", fontbase);
+        sprintf(path_enc,   "%s/enc",   fontbase);
+        sprintf(path_fdb,   "%s/FontDataBase", fontbase);
+    } else {
+        const char * bufp;
+        if ((bufp = grace_path("fonts/type1")) == NULL) return (RETURN_FAILURE);
+        strcpy(path_type1, bufp);
+        if ((bufp = grace_path("fonts/enc")) == NULL) return (RETURN_FAILURE);
+        strcpy(path_enc, bufp);
+        if ((bufp = grace_path("fonts/FontDataBase")) == NULL) return (RETURN_FAILURE);
+        strcpy(path_fdb, bufp);
+    }
+
     /* Set search paths: */
-    bufp = grace_path("fonts/type1");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFileSearchPath(T1_PFAB_PATH, bufp);
-    T1_SetFileSearchPath(T1_AFM_PATH, bufp);
-    bufp = grace_path("fonts/enc");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFileSearchPath(T1_ENC_PATH, bufp);
-    
+    T1_SetFileSearchPath(T1_PFAB_PATH, path_type1);
+    T1_SetFileSearchPath(T1_AFM_PATH, path_type1);
+    T1_SetFileSearchPath(T1_ENC_PATH, path_enc);
+
     /* Set font database: */
-    bufp = grace_path("fonts/FontDataBase");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFontDataBase(bufp);
+    T1_SetFontDataBase(path_fdb);
 
     /* Set log-level: */
     T1_SetLogLevel(T1LOG_DEBUG);
-    
+
     /* Initialize t1-library */
     ///
     if (T1_InitLib(T1LOGFILE|IGNORE_CONFIGFILE) == NULL) {
         return (RETURN_FAILURE);
     }
-    
+
     nfonts = T1_GetNoFonts();
     if (nfonts < 1) {
         return (RETURN_FAILURE);
     }
-    
-    fd = grace_openr("fonts/FontDataBase", SOURCE_DISK);
+
+    fd = fopen(path_fdb, "r");
     if (fd == NULL) {
         return (RETURN_FAILURE);
     }
