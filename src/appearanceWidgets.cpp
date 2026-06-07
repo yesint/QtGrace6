@@ -4538,6 +4538,15 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
         c->setMinimumContentsLength(7);
     }
 
+    // stdSlider defaults to MinimumExpanding vertically, which stretches the
+    // group boxes that contain it and leaves big gaps around the slider. Pin
+    // each to its natural height instead.
+    for (stdSlider * s : findChildren<stdSlider*>())
+    {
+        s->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        s->setFixedHeight(s->sizeHint().height());
+    }
+
     // Pack everything tightly: drop the vertical padding from every layout
     // (it adds up across the stacked group boxes and looks loose, especially
     // on heavier themes) and use a small uniform spacing. The wider

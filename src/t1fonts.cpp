@@ -434,6 +434,40 @@ else
         }
     }
     //}
+
+    /* Tolerate Qt QFont::toString() descriptors and arbitrary family names
+     * (e.g. files saved by the Qt-font build, whose @map font entries look
+     * like "Times New Roman,10,-1,5,400,0,..."). Map the family + weight +
+     * italic onto the closest standard Grace font instead of failing. */
+    {
+        char family[256], low[256];
+        int weight = 400, style = 0, base, off, k;
+        const char * comma = strchr(fname, ',');
+        if (comma != NULL) {
+            int len = (int)(comma - fname);
+            if (len > 255) len = 255;
+            memcpy(family, fname, len);
+            family[len] = '\0';
+            /* QFont::toString: family,pointSize,pixelSize,styleHint,weight,style,... */
+            sscanf(comma + 1, "%*[^,],%*[^,],%*[^,],%d,%d", &weight, &style);
+        } else {
+            strncpy(family, fname, 255);
+            family[255] = '\0';
+        }
+        for (k = 0; family[k] && k < 255; k++) low[k] = tolower((unsigned char)family[k]);
+        low[k] = '\0';
+        if (strstr(low, "symbol"))                          base = 12;
+        else if (strstr(low, "dingbat") || strstr(low, "zapf")) base = 13;
+        else if (strstr(low, "courier") || strstr(low, "mono")) base = 8;
+        else if (strstr(low, "times") || strstr(low, "serif") || strstr(low, "roman")) base = 0;
+        else base = 4; /* helvetica / arial / sans / unknown -> Helvetica */
+        if (base == 12 || base == 13) { if (base < nfonts) return base; }
+        else {
+            off = ((weight >= 600) ? 2 : 0) + ((style != 0) ? 1 : 0);
+            if (base + off < nfonts) return base + off;
+            if (base < nfonts) return base;
+        }
+    }
     return(BAD_FONT_ID);
 }
 
