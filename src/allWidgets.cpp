@@ -29,6 +29,7 @@
 #include "device.h"
 #include "globals.h"
 #include "t1fonts.h"
+#include "t1lib.h"
 #include "ssdata.h"
 #include "graphutils.h"
 #include "events.h"

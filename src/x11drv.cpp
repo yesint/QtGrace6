@@ -1633,7 +1633,7 @@ ys=sa*x+ca*y;
 
 GLYPH *GetQtGlyph(CompositeString *cs, double dpv, int fontaa)
 {
-static GLYPH string_glyph = {{0,0,0,0,0,0}, NULL, 0};
+static GLYPH string_glyph={NULL,{0,0,0,0,0,0},NULL,1};
 double rot=atan(cs->tm.cyx/cs->tm.cyy);// *180.0/3.1415927
 if (cs->tm.cxx<0.0) rot+=M_PI;
 double ca=cos(rot),sa=sin(rot);

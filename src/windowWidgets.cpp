@@ -33,6 +33,7 @@ int track_move_dir;  /* direction on point movement */
 int nrOfUndoObjs;
 int * undoObjs;
 
+static T1_TMATRIX UNITY_MATRIX = {1.0, 0.0, 0.0, 1.0};
 
 extern int slider_status;
 extern char SystemsDecimalPoint;
@@ -4297,21 +4298,29 @@ void GlyphPanel::setMarked(bool mark)
     }
 }
 
-void GlyphPanel::setCurrentPixmap(int font_nr, int char_nr)
+void GlyphPanel::setCurrentPixmap(int font_nr,int char_nr)
 {
-    number = char_nr;
-    font = font_nr;
+    number=char_nr;
+    font=font_nr;
 
-    pix = new QPixmap(25*toolBarSizeFactor, 25*toolBarSizeFactor);
-    pix->fill(QApplication::palette().window().color());
-    QFont dfont = getFontFromDatabase(font_nr);
-    dfont.setPixelSize(15*toolBarSizeFactor);
-    QPainter paint1;
-    paint1.begin(pix);
-    paint1.setFont(dfont);
-    paint1.drawText(5*toolBarSizeFactor, 20*toolBarSizeFactor, QString(QChar(char_nr)));
-    paint1.end();
-    valid_char = true;
+    if (useQtFonts!=true)
+    {
+        *pix=DrawCB((unsigned char)number,font,valid_char);
+    }
+    else
+    {
+        pix=new QPixmap(25*toolBarSizeFactor,25*toolBarSizeFactor);
+        pix->fill(QApplication::palette().window().color());
+        QChar car(char_nr);
+        QPainter paint1;
+        QFont dfont=getFontFromDatabase(font_nr);
+        dfont.setPixelSize(15*toolBarSizeFactor);
+        paint1.begin(pix);
+        paint1.setFont(dfont);
+        paint1.drawText(5*toolBarSizeFactor,20*toolBarSizeFactor,QString(car));
+        paint1.end();
+        valid_char=true;
+    }
 
     setPixmap(*pix);
 }
@@ -4322,6 +4331,112 @@ void GlyphPanel::mousePressEvent(QMouseEvent *event)
     emit(panelClicked(number));
 }
 
+QPixmap GlyphPanel::DrawCB(unsigned char c,int FontID,bool & valid_char)
+{
+    float Size = 16.8*toolBarSizeFactor;//who knows where this value comes from?
+    BBox bbox;
+    GLYPH *glyph;
+    int height, width;// hshift, vshift;
+    QPixmap tmpBitmap;
+    QColor bg;
+    QPainter paint1;
+    QPainter paint2;
+    height=width=0;
+
+    bg=QApplication::palette().window().color();
+
+    if (FontID == BAD_FONT_ID) {
+        glyph = NULL;
+    } else {
+        glyph = T1_SetChar(FontID, c, Size, &UNITY_MATRIX);
+    }
+
+    bbox = T1_GetFontBBox(FontID);
+    /* check if bbox is zero or invalid and then calculate it ourselves */
+    if (bbox.llx >= bbox.urx || bbox.lly >= bbox.ury) {
+        int c;
+        memset(&bbox, 0, sizeof(bbox));
+        for (c = 0; c < 256; c++) {
+            BBox bbox_tmp = T1_GetCharBBox(FontID, c);
+            bbox.llx = MIN2(bbox.llx, bbox_tmp.llx);
+            bbox.lly = MIN2(bbox.lly, bbox_tmp.lly);
+            bbox.urx = MAX2(bbox.urx, bbox_tmp.urx);
+            bbox.ury = MAX2(bbox.ury, bbox_tmp.ury);
+        }
+    }
+
+    if (glyph != NULL && glyph->bits != NULL) {
+        valid_char = TRUE;
+        height = glyph->metrics.ascent - glyph->metrics.descent;
+        width = glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing;
+        /*hshift = MAX2(glyph->metrics.leftSideBearing - bbox.llx, 0);
+        vshift = MAX2(bbox.ury - glyph->metrics.ascent, 0);*/
+
+        /*XtVaGetValues(w, XmNbackground, &bg, XmNforeground, &fg, NULL);
+     XSetForeground(disp, gc, bg);*/
+
+        tmpBitmap=QPixmap(width,height);
+        tmpBitmap.fill(bg);
+        paint2.begin(&tmpBitmap);
+        char kkk;
+        char s;
+        int c_counter;
+        int nr_of_bytes= 8*(width/8)==width ? width/8 : width/8+1;
+        for (int jjj=0;jjj<height;jjj++)
+        {
+            c_counter=0;
+            for (int iii=0;iii<nr_of_bytes;iii++)//bytes
+            {
+                kkk=glyph->bits[jjj*nr_of_bytes+iii];
+                for (int lll=0;lll<8;lll++)//8bits per byte
+                {
+                    s=1<<lll;
+                    if (kkk&s)
+                        paint2.drawPoint(c_counter,jjj);
+                    c_counter++;
+                    if (c_counter>=width) break;
+                }
+            }
+        }
+        paint2.end();
+
+        /*ptmp = XCreateBitmapFromData(disp, root,(char *) glyph->bits, width, height);
+     XSetBackground(disp, gc, bg);
+        pixmap = XCreatePixmap(disp, root, bbox.urx - bbox.llx, bbox.ury - bbox.lly, depth);
+        XFillRectangle(disp, pixmap, gc, 0, 0, bbox.urx - bbox.llx, bbox.ury - bbox.lly);
+     XSetForeground(disp, gc, fg);
+        XCopyPlane(disp, ptmp, pixmap, gc, 0, 0, width, height, hshift, vshift, 1);
+        XFreePixmap(disp, ptmp);*/
+
+    } else {
+        if (c == ' ') {
+            valid_char = TRUE;
+        } else {
+            valid_char = FALSE;
+        }
+        //        pixmap =  XCreateBitmapFromData(disp, root,dummy_bits, 1, 1);
+    }
+    if (width<=0)
+        width=25;
+    if (height<=0)
+        height=25;
+
+    QPixmap pixmap(25*toolBarSizeFactor,25*toolBarSizeFactor);
+    pixmap.fill(bg);
+
+    if (glyph != NULL && glyph->bits != NULL)
+    {
+        paint1.begin(&pixmap);
+        paint1.drawPixmap((25*toolBarSizeFactor-width)/2+glyph->metrics.leftSideBearing,(25*toolBarSizeFactor-height)/2-glyph->metrics.descent,QPixmap(tmpBitmap));
+        paint1.end();
+    }
+
+    /* Assign it a pixmap */
+    //    cbs->pixmap = pixmap;
+    //    cbs->type = XbaePixmap;
+    //    XbaeMatrixSetCellUserData(w, cbs->row, cbs->column, (XtPointer) valid_char);
+    return pixmap;
+}
 
 frmFontTool::frmFontTool(QWidget * parent):QDialog(parent)
 {

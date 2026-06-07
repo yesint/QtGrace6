@@ -47,7 +47,6 @@
 
 #include <QTextStream>
 #include <QFile>
-#include <QFont>
 #include <QMultiMap>
 #include <iostream>
 
@@ -57,7 +56,6 @@ extern FILE *prstream;
 extern VPoint CenterOfMass(int n,VPoint *p);
 extern struct LatexCommands allCommands[];
 extern bool useQtFonts;
-extern QFont getFontFromDatabase(int i);
 
 int cur_font=0;
 
@@ -974,46 +972,126 @@ void svg_putpixmap(VPoint vp, int width, int height, char *databits,
 void svg_puttext(VPoint vp, char *s, int len, int font,
                  TextMatrix *tm, int underline, int overline, int kerning)
 {
+    char *fontalias, *fontfullname, *fontweight;
+    char *dash, *family, *familyff;
+    double fsize = scaleval(1);
     (void)kerning;
     svg_group_props(FALSE, TRUE);
+    
+    fprintf(prstream, "   <text  ");
 
-    QFont qf = getFontFromDatabase(font);
+    fontalias = get_fontalias(font);
+    fontfullname = get_fontfullname(font);
 
-    fprintf(prstream, "   <text style=\"font-family:'%s'",
-            qf.family().toUtf8().constData());
+    family  = NULL;
+    if ((dash = strchr(fontalias, '-')) == NULL) {
+        family = copy_string(family, fontalias);
+    } else {
+        family = (char*)xrealloc(family, dash - fontalias + 1);
+        strncpy(family, fontalias, dash - fontalias);
+        family[dash - fontalias] = '\0';
+    }
+    fprintf(prstream, " style=\"font-family:'%s'", family);
+    
+    familyff=get_fontfamilyname(font);
+    if (strcmp(family,familyff) != 0){
+        fprintf(prstream, ",'%s'",familyff);
+    }
+    
+    family = copy_string(family, NULL);
 
-    switch (qf.style()) {
-    case QFont::StyleItalic:  fprintf(prstream, ";font-style:italic");  break;
-    case QFont::StyleOblique: fprintf(prstream, ";font-style:oblique"); break;
-    default:                  fprintf(prstream, ";font-style:normal");  break;
+    if (get_italic_angle(font) != 0) {
+        if ((strstr(fontfullname, "Obliqued") != NULL) ||
+                (strstr(fontfullname, "Oblique") != NULL) ||
+                (strstr(fontfullname, "Upright") != NULL) ||
+                (strstr(fontfullname, "Kursiv") != NULL) ||
+                (strstr(fontfullname, "Cursive") != NULL) ||
+                (strstr(fontfullname, "Slanted") != NULL) ||
+                (strstr(fontfullname, "Inclined") != NULL)) {
+            fprintf(prstream, "; font-style:oblique");
+        } else {
+            fprintf(prstream, "; font-style:italic");
+        }
+    } else {
+        fprintf(prstream, "; font-style:normal");
     }
 
-    // Qt6 weight() returns CSS-compatible int (100-900)
-    fprintf(prstream, ";font-weight:%d", qf.weight());
+    fontweight=get_fontweight(font);
+    if ((strstr(fontweight, "UltraLight") != NULL) ||
+            (strstr(fontweight, "ExtraLight") != NULL)) {
+        fprintf(prstream, "; font-weight:100");
+    } else if ((strstr(fontweight, "SemiLight") != NULL) ||
+               (strstr(fontweight, "Thin") != NULL)) {
+        fprintf(prstream, "; font-weight:200");
+    } else if (strstr(fontweight, "Light") != NULL) {
+        fprintf(prstream, "; font-weight:300");
+    } else if (strstr(fontweight, "Book") != NULL) {
+        fprintf(prstream, "; font-weight:500");
+    } else if (strstr(fontweight, "miBold") != NULL) {
+        fprintf(prstream, "; font-weight:600");
+    } else if ((strstr(fontweight, "ExtraBold") != NULL) ||
+               (strstr(fontweight, "Heavy") != NULL) ||
+               (strstr(fontweight, "UltraBold") != NULL)) {
+        fprintf(prstream, "; font-weight:800");
+    } else if (strstr(fontweight, "Bold") != NULL) {
+        fprintf(prstream, "; font-weight:bold");
+    } else if ((strstr(fontweight, "ExtraBlack") != NULL) ||
+               (strstr(fontweight, "Ultra") != NULL)) {
+        fprintf(prstream, "; font-weight:900");
+    } else if (strstr(fontweight, "Black") != NULL) {
+        fprintf(prstream, "; font-weight:800");
+    } else {
+        fprintf(prstream, "; font-weight:normal");
+    }
 
-    // Qt6 stretch() returns percentage (100 = normal, 75 = condensed, 125 = expanded)
-    int stretch = qf.stretch();
-    if      (stretch > 0 && stretch <= 62)  fprintf(prstream, ";font-stretch:condensed");
-    else if (stretch > 0 && stretch <= 87)  fprintf(prstream, ";font-stretch:semi-condensed");
-    else if (stretch >= 113 && stretch <= 137) fprintf(prstream, ";font-stretch:semi-expanded");
-    else if (stretch > 137)                 fprintf(prstream, ";font-stretch:expanded");
-    // stretch == 0 means unset; 88-112 is normal — omit in both cases
+    if ((strstr(fontfullname, "UltraCompressed") != NULL) ||
+            (strstr(fontfullname, "UltraCondensed") != NULL)) {
+        fprintf(prstream, "; font-stretch:ultra-condensed");
+    } else if ((strstr(fontfullname, "ExtraCompressed") != NULL) ||
+               (strstr(fontfullname, "ExtraCondensed") != NULL)) {
+        fprintf(prstream, "; font-stretch:extra-condensed");
+    } else if ((strstr(fontfullname, "SemiCondensed") != NULL) ||
+               (strstr(fontfullname, "Narrow") != NULL)) {
+        fprintf(prstream, "; font-stretch:semi-condensed");
+    } else if (strstr(fontfullname, "Condensed") != NULL) {
+        fprintf(prstream, "; font-stretch:condensed");
+    } else if ((strstr(fontfullname, "Wide") != NULL) ||
+               (strstr(fontfullname, "Poster") != NULL) ||
+               (strstr(fontfullname, "SemiExpanded") != NULL)) {
+        fprintf(prstream, "; font-stretch:semi-expanded");
+    } else if ((strstr(fontfullname, "ExtraExpanded") != NULL) ||
+               (strstr(fontfullname, "ExtraExtended") != NULL)) {
+        fprintf(prstream, "; font-stretch:extra-expanded");
+    } else if ((strstr(fontfullname, "UltraExpanded") != NULL) ||
+               (strstr(fontfullname, "UltraExtended") != NULL)) {
+        fprintf(prstream, "; font-stretch:ultra-expanded");
+    } else if ((strstr(fontfullname, "Expanded") != NULL) ||
+               (strstr(fontfullname, "Extended") != NULL)) {
+        fprintf(prstream, "; font-stretch:expanded");
+    }
 
-    fprintf(prstream, ";font-size:%.4f", scaleval(1));
+    fprintf(prstream, "; font-size:%.4f", fsize);
 
-    if (underline == TRUE && overline == TRUE)
-        fprintf(prstream, ";text-decoration:underline overline");
-    else if (underline == TRUE)
-        fprintf(prstream, ";text-decoration:underline");
-    else if (overline == TRUE)
-        fprintf(prstream, ";text-decoration:overline");
+    if (underline == TRUE) {
+        if (overline == TRUE) {
+            fprintf(prstream, "; text-decoration:underline|overline");
+        } else {
+            fprintf(prstream, "; text-decoration:underline");
+        }
+    } else {
+        if (overline == TRUE) {
+            fprintf(prstream, "; text-decoration:overline");
+        }
+    }
 
     fprintf(prstream, "\" transform=\"matrix(%.4f,%.4f,%.4f,%.4f,%.4f,%.4f)\">",
-            tm->cxx, tm->cyx, -tm->cxy, -tm->cyy,
+            tm->cxx, tm->cyx,
+            -tm->cxy, -tm->cyy,
             scaleval(vp.x), scaleval(vp.y));
 
-    cur_font = font;
-    fprintf(prstream, "%s", escape_specials((unsigned char *)s, len));
+    cur_font=font;
+    fprintf(prstream,"%s",escape_specials((unsigned char *) s, len));
+
     fprintf(prstream, "</text>\n");
 }
 
