@@ -106,6 +106,7 @@ qt_standard_project_setup()
 qt_add_executable(qtgrace
     src/MainWindow.ui
     src/frmSet_Appearance.ui
+    src/frmAxis_Prop.ui
     src/allWidgets.cpp
     src/appearanceWidgets.cpp
     src/compressdecompress.cpp

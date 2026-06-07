@@ -20,6 +20,7 @@
 
 #include "appearanceWidgets.h"
 #include "ui_frmSet_Appearance.h"
+#include "ui_frmAxis_Prop.h"
 
 #define cg get_cg()
 
@@ -4228,575 +4229,45 @@ setMinimumSize(min_w,min_h);
 flp->resize(QSize(n_size_w,n_size_h));
 }
 
-AxisTabMain::AxisTabMain(QWidget * parent):QWidget(parent)
+frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
+    ui(new Ui::frmAxis_Prop)
 {
     int number;
-    char dummy[10];
-    QString * entr=new QString[NUM_FMT_OPTION_ITEMS+2];
-    grpAxisLabel=new QGroupBox(tr("Axis label"),this);
-    ledAxisLabel=new stdLineEdit(grpAxisLabel,tr("Label string:"),true);
-    layout0=new QHBoxLayout;
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout0->addWidget(ledAxisLabel);
-    grpAxisLabel->setLayout(layout0);
-
-    grpTickProp=new QGroupBox(tr("Tick properties"),this);
-    ledMajorSpacing=new stdLineEdit(grpTickProp,tr("Major spacing:"));
-    selMinTicks=new stdIntSelector(grpTickProp,tr("Minor ticks:"),0,MAX_TICKS - 1);
-    number=NUM_FMT_OPTION_ITEMS;
-    for (int i=0;i<number;i++)
-    {
-        entr[i]=QString(fmt_option_items[i].label);
-    }
-    selFormat=new StdSelector(grpTickProp,tr("Format:"),number,entr);
-    number=10;
-    for (int i=0;i<number;i++)
-    {
-        sprintf(dummy,"%d",i);
-        entr[i]=QString(dummy);
-    }
-    selPrecision=new StdSelector(grpTickProp,tr("Precision:"),number,entr);
-    layout1=new QGridLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout1->addWidget(ledMajorSpacing,0,0);
-    layout1->addWidget(selMinTicks,0,1);
-    layout1->addWidget(selFormat,1,0);
-    layout1->addWidget(selPrecision,1,1);
-    grpTickProp->setLayout(layout1);
-
-    grpDisplOpt=new QGroupBox(tr("Display options"),this);
-    chkDisplTickLabels=new QCheckBox(tr("Display tick labels"),grpDisplOpt);
-    chkDisplAxixBar=new QCheckBox(tr("Display axis bar"),grpDisplOpt);
-    chkDisplTickMarks=new QCheckBox(tr("Display tick marks"),grpDisplOpt);
-    layout2=new QGridLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout2->addWidget(chkDisplTickLabels,0,0);
-    layout2->addWidget(chkDisplAxixBar,0,1);
-    layout2->addWidget(chkDisplTickMarks,1,0);
-    grpDisplOpt->setLayout(layout2);
-
-    grpAxisPlace=new QGroupBox(tr("Axis placement"),this);
-    chkZeroAxis=new QCheckBox(tr("Zero axis"),grpAxisPlace);
-    ledOffsetNormal=new stdLineEdit(grpAxisPlace,tr("Offsets - Normal:"));
-    ledOffsetOpposite=new stdLineEdit(grpAxisPlace,tr("Opposite:"));
-    layout3=new QHBoxLayout;
-    //layout3->setMargin(STD_MARGIN);
-    layout3->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout3->addWidget(chkZeroAxis);
-    layout3->addWidget(ledOffsetNormal);
-    layout3->addWidget(ledOffsetOpposite);
-    grpAxisPlace->setLayout(layout3);
-
-    grpTickLabelProp=new QGroupBox(tr("Tick label properties"),this);
-    selTickLabelFont=new FontSelector(grpTickLabelProp);
-    selTickLabelColor=new ColorSelector(grpTickLabelProp);
-    layout4=new QHBoxLayout;
-    //layout4->setMargin(STD_MARGIN);
-    layout4->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout4->addWidget(selTickLabelFont);
-    layout4->addWidget(selTickLabelColor);
-    grpTickLabelProp->setLayout(layout4);
-
-
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(grpAxisLabel);
-    layout->addWidget(grpTickProp);
-    layout->addWidget(grpDisplOpt);
-    layout->addWidget(grpAxisPlace);
-    layout->addWidget(grpTickLabelProp);
-    setLayout(layout);
-    delete[] entr;
-}
-
-AxisTabLabelBars::AxisTabLabelBars(QWidget * parent):QWidget(parent)
-{
-    int number;
-    QString * entr=new QString[5];
-    grpLabelProperties=new QGroupBox(tr("Label properties"),this);
-    selLabelFont=new FontSelector(grpLabelProperties);
-    selLabelColor=new ColorSelector(grpLabelProperties);
-    sldCharSize=new stdSlider(grpLabelProperties,tr("Char size"),0,1000);
-    number=2;
-    entr[0]=tr("Parallel to axis");
-    entr[1]=tr("Perpendicular to axis");
-    selLayout=new StdSelector(grpLabelProperties,tr("Layout:"),number,entr);
-    number=3;
-    entr[0]=tr("Normal");
-    entr[1]=tr("Opposite");
-    entr[2]=tr("Both");
-    selSide=new StdSelector(grpLabelProperties,tr("Side:"),number,entr);
-    number=2;
-    entr[0]=tr("Auto");
-    entr[1]=tr("Specified");
-    selLocation=new StdSelector(grpLabelProperties,tr("Location:"),number,entr);
-    connect(selLocation->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(locationChanged(int)));
-    ledParaOffs=new stdLineEdit(grpLabelProperties,tr("Parallel offset:"));
-    ledPerpendOffs=new stdLineEdit(grpLabelProperties,tr("Perpendicular offset:"));
-    ledParaOffs->setEnabled(FALSE);
-    ledPerpendOffs->setEnabled(FALSE);
-    selAlign=new AlignmentSelector(grpLabelProperties);
-    selAlign->setToolTip(tr("Sets the text-alignment for each line\n(only useful in case you have an axis-labels with more than one line of text)"));
-    layout1=new QGridLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout1->addWidget(selLabelFont,0,0);
-    layout1->addWidget(selLabelColor,0,1);
-    layout1->addWidget(sldCharSize,1,0);
-    layout1->addWidget(selLayout,1,1);
-    layout1->addWidget(selSide,2,0);
-    layout1->addWidget(selLocation,2,1);
-    layout1->addWidget(ledParaOffs,3,0);
-    layout1->addWidget(ledPerpendOffs,3,1);
-    layout1->addWidget(selAlign,4,0,1,1);
-    grpLabelProperties->setLayout(layout1);
-
-    grpBarProperties=new QGroupBox(tr("Bar properties:"),this);
-    selBarColor=new ColorSelector(grpBarProperties);
-    selBarStyle=new LineStyleSelector(grpBarProperties);
-    selBarWidth=new LineWidthSelector(grpBarProperties);
-    selBarWidth->lblText->setText(tr("Width:"));
-    layout2=new QGridLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout2->addWidget(selBarColor,0,0);
-    layout2->addWidget(selBarWidth,0,1);
-    layout2->addWidget(selBarStyle,1,0);
-    grpBarProperties->setLayout(layout2);
-
-    //empty=new QWidget(this);
-    //empty->setMinimumHeight(140);
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(grpLabelProperties);
-    layout->addWidget(grpBarProperties);
-    layout->addStretch(3);
-    //layout->addWidget(empty);
-    setLayout(layout);
-    delete[] entr;
-}
-
-void AxisTabLabelBars::locationChanged(int i)
-{
-    if (i==0)
-    {
-        ledParaOffs->setEnabled(FALSE);
-        ledPerpendOffs->setEnabled(FALSE);
-    }
-    else
-    {
-        ledParaOffs->setEnabled(TRUE);
-        ledPerpendOffs->setEnabled(TRUE);
-    }
-}
-
-AxisTabTickLabels::AxisTabTickLabels(QWidget * parent):QWidget(parent)
-{
-    int number;
-    char dummy[10];
-    QString * entr=new QString[12];
-
-    grpLabels=new QGroupBox(tr("Labels"),this);
-    sldCharSize=new stdSlider(grpLabels,tr("Char size"),0,1000);
-    sldCharAngle=new stdSlider(grpLabels,tr("Angle"),0,360);
-    selAlign=new AlignmentSelector(grpLabels);
-    selAlign->setToolTip(tr("Sets the text-alignment for each line\n(only useful in case you have tick-labels with more than one line of text)"));
-    layout0=new QHBoxLayout;
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout0->addWidget(sldCharSize);
-    layout0->addWidget(sldCharAngle);
-    layout0->addWidget(selAlign);
-    grpLabels->setLayout(layout0);
-
-    grpPlacement=new QGroupBox(tr("Placement"),this);
-    number=3;
-    entr[0]=tr("Normal");
-    entr[1]=tr("Opposite");
-    entr[2]=tr("Both");
-    selSide=new StdSelector(grpPlacement,tr("Side:"),number,entr);
-    number=2;
-    entr[0]=tr("Axis min");
-    entr[1]=tr("Specified:");
-    selStartAt=new StdSelector(grpPlacement,tr("Start at:"),number,entr);
-    entr[0]=tr("Axis max");
-    selStopAt=new StdSelector(grpPlacement,tr("Stop at:"),number,entr);
-    number=10;
-    for (int i=0;i<number;i++)
-    {
-        sprintf(dummy,"%d",i);
-        entr[i]=QString(dummy);
-    }
-    selStagger=new StdSelector(grpPlacement,tr("Stagger:"),number,entr);
-    ledStart=new QLineEdit(QString(""),grpPlacement);
-    ledStop=new QLineEdit(QString(""),grpPlacement);
-    layout1=new QGridLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout1->addWidget(selSide,0,0);
-    layout1->addWidget(selStartAt,0,1);
-    layout1->addWidget(ledStart,0,2);
-    layout1->addWidget(selStagger,1,0);
-    layout1->addWidget(selStopAt,1,1);
-    layout1->addWidget(ledStop,1,2);
-    grpPlacement->setLayout(layout1);
-
-    grpExtra=new QGroupBox(tr("Extra"),this);
-    ledPrepend=new stdLineEdit(grpExtra,tr("Prepend:"),true);
-    ledAppend=new stdLineEdit(grpExtra,tr("Append:"),true);
-    ledAxisTransform=new stdLineEdit(grpExtra,tr("Axis transform:"));
-    ledParaOffs=new stdLineEdit(grpExtra,tr("Parallel offset:"));
-    ledPerpendOffs=new stdLineEdit(grpExtra,tr("Perpendicular offset:"));
-    ledParaOffs->setEnabled(FALSE);
-    ledPerpendOffs->setEnabled(FALSE);
-    selSkipEvery=new StdSelector(grpExtra,tr("Skip every:"),number,entr);
-    number=2;
-    entr[0]=tr("Auto");
-    entr[1]=tr("Specified");
-    selLocation=new StdSelector(grpExtra,tr("Location:"),number,entr);
-    connect(selLocation->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(locationChanged(int)));
-    layout2=new QGridLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout2->addWidget(selSkipEvery,0,0);
-    layout2->addWidget(ledAxisTransform,0,1);
-    layout2->addWidget(ledPrepend,1,0);
-    layout2->addWidget(ledAppend,1,1);
-    layout2->addWidget(selLocation,2,0);
-    layout2->addWidget(ledParaOffs,3,0);
-    layout2->addWidget(ledPerpendOffs,3,1);
-    grpExtra->setLayout(layout2);
-
-    grpQuick=new QGroupBox(tr("Quick transformation"),this);
-    grpQuick->setToolTip(tr("The buttons in this group assume that the data is present in radians.\nThey just set axis transformations for different representations of angles."));
-    layout3=new QHBoxLayout;
-    cmdQuickNormal=new QPushButton(tr("Normal"),this);
-    cmdQuickNormal->setToolTip(tr("Reset axis transformation to default\n(i.e. no transformation)"));
-    cmdQuickDegrees=new QPushButton(tr("Degrees"),this);
-    cmdQuickDegrees->setToolTip(tr("Set tick labels to degrees\n(with spacing = 90 degrees)"));
-    cmdQuickPis=new QPushButton(tr("Multiples of Pi"),this);
-    cmdQuickPis->setToolTip(tr("Set tick labels to multiples of PI\n(with spacing = PI/2)"));
-    cmdQuickAlt=new QPushButton(tr("Alt-Axis"),this);
-    cmdQuickAlt->setToolTip(tr("Generate an alternative axis by an axis-transformation.\nThis opens a dialog that helps in setting up a secondary axis with a different scale."));
-    connect(cmdQuickNormal,SIGNAL(clicked()),SLOT(doQuickNormal()));
-    connect(cmdQuickDegrees,SIGNAL(clicked()),SLOT(doQuickDegrees()));
-    connect(cmdQuickPis,SIGNAL(clicked()),SLOT(doQuickPis()));
-    connect(cmdQuickAlt,SIGNAL(clicked()),SLOT(doQuickAlt()));
-    //layout3->setMargin(STD_MARGIN);
-    layout3->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout3->addWidget(cmdQuickNormal);
-    layout3->addWidget(cmdQuickDegrees);
-    layout3->addWidget(cmdQuickPis);
-    layout3->addWidget(cmdQuickAlt);
-    grpQuick->setLayout(layout3);
-
-    //empty=new QWidget(this);
-    //empty->setMinimumHeight(70);
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(grpLabels);
-    layout->addWidget(grpPlacement);
-    layout->addWidget(grpExtra);
-    layout->addWidget(grpQuick);
-    layout->addStretch(3);
-    //layout->addWidget(empty);
-    setLayout(layout);
-    delete[] entr;
-}
-
-void AxisTabTickLabels::locationChanged(int i)
-{
-    if (i==0)
-    {
-        ledParaOffs->setEnabled(FALSE);
-        ledPerpendOffs->setEnabled(FALSE);
-    }
-    else
-    {
-        ledParaOffs->setEnabled(TRUE);
-        ledPerpendOffs->setEnabled(TRUE);
-    }
-}
-
-void AxisTabTickLabels::doQuickNormal(void)
-{
-emit(quickSetNormal());
-}
-
-void AxisTabTickLabels::doQuickDegrees(void)
-{
-emit(quickSetDegrees());
-}
-
-void AxisTabTickLabels::doQuickPis(void)
-{
-emit(quickSetPis());
-}
-
-void AxisTabTickLabels::doQuickAlt(void)
-{
-emit(quickSetAlt());
-}
-
-AxisTabTickMarks::AxisTabTickMarks(QWidget * parent):QWidget(parent)
-{
-    int number;
-    char dummy[10];
-    QString * entr=new QString[12];
-
-    grpPlacement=new QGroupBox(tr("Placement"),this);
-    number=3;
-    entr[0]=tr("In");
-    entr[1]=tr("Out");
-    entr[2]=tr("Both");
-    selPointing=new StdSelector(grpPlacement,tr("Pointing"),number,entr);
-    entr[0]=tr("Normal side");
-    entr[1]=tr("Opposite side");
-    entr[2]=tr("Both sides");
-    selDrawOn=new StdSelector(grpPlacement,tr("Draw on:"),number,entr);
-    number=11;
-    for (int i=2;i<13;i++)
-    {
-        sprintf(dummy,"%d",i);
-        entr[i-2]=QString(dummy);
-    }
-    setAutotickDiv=new StdSelector(grpPlacement,tr("Autotick divisions:"),number,entr);
-    chkPlaceRoundPos=new QCheckBox(tr("Place at rounded positions"),grpPlacement);
-    layout0=new QGridLayout;
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout0->addWidget(selPointing,0,0);
-    layout0->addWidget(selDrawOn,0,1);
-    layout0->addWidget(chkPlaceRoundPos,1,0);
-    layout0->addWidget(setAutotickDiv,1,1);
-    grpPlacement->setLayout(layout0);
-
-    grpMajorTicks=new QGroupBox(tr("Major ticks"),this);
-    chkDrawMajGrid=new QCheckBox(tr("Draw grid lines"),grpMajorTicks);
-    sldMajTickLength=new stdSlider(grpMajorTicks,tr("Tick length"),0,1000);
-    selMajTickColor=new ColorSelector(grpMajorTicks);
-    selMajTickWidth=new LineWidthSelector(grpMajorTicks);
-    selMajTickStyle=new LineStyleSelector(grpMajorTicks);
-    layout1=new QVBoxLayout;
-    //layout1->setMargin(STD_MARGIN);
-    layout1->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout1->addWidget(chkDrawMajGrid);
-    layout1->addWidget(sldMajTickLength);
-    layout1->addWidget(selMajTickColor);
-    layout1->addWidget(selMajTickWidth);
-    layout1->addWidget(selMajTickStyle);
-    grpMajorTicks->setLayout(layout1);
-
-    grpMinorTicks=new QGroupBox(tr("Minor ticks"),this);
-    chkDrawMinGrid=new QCheckBox(tr("Draw grid lines"),grpMinorTicks);
-    sldMinTickLength=new stdSlider(grpMinorTicks,tr("Tick length"),0,1000);
-    selMinTickColor=new ColorSelector(grpMinorTicks);
-    selMinTickWidth=new LineWidthSelector(grpMinorTicks);
-    selMinTickStyle=new LineStyleSelector(grpMinorTicks);
-    layout2=new QVBoxLayout;
-    //layout2->setMargin(STD_MARGIN);
-    layout2->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout2->addWidget(chkDrawMinGrid);
-    layout2->addWidget(sldMinTickLength);
-    layout2->addWidget(selMinTickColor);
-    layout2->addWidget(selMinTickWidth);
-    layout2->addWidget(selMinTickStyle);
-    grpMinorTicks->setLayout(layout2);
-
-    empty=new QWidget(this);
-    empty->setMinimumHeight(40);
-
-    layout=new QGridLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(grpPlacement,0,0,1,2);
-    layout->addWidget(grpMajorTicks,1,0);
-    layout->addWidget(grpMinorTicks,1,1);
-    layout->addWidget(empty,2,0,1,2);
-    layout->setRowStretch(0,1);
-    layout->setRowStretch(1,1);
-    layout->setRowStretch(2,5);
-    setLayout(layout);
-    delete[] entr;
-}
-
-AxisTabSpecial::AxisTabSpecial(QWidget * parent):QWidget(parent)
-{
-    int number;
-    QString * entr=new QString[12];
-    number=3;
-    entr[0]=tr("None");
-    entr[1]=tr("Tick marks only");
-    entr[2]=tr("Tick marks and labels");
-    selSpecTicks=new StdSelector(this,tr("Custom ticks:"),number,entr);
-    selSpecTicks->entryValues[0]=TICKS_SPEC_NONE;
-    selSpecTicks->entryValues[1]=TICKS_SPEC_MARKS;
-    selSpecTicks->entryValues[2]=TICKS_SPEC_BOTH;
-    selNumber=new stdIntSelector(this,tr("Number of user ticks to use:"),0,MAX_TICKS - 1);
-    //lblTickLocLabel=new QLabel(tr("Nr. - Tick location - Label:"),this);
-
-    connect(selSpecTicks,SIGNAL(currentIndexChanged(int)),SLOT(updateSpreadSheet(int)));
-    connect(selNumber,SIGNAL(currentValueChanged(int)),SLOT(updateSpreadSheet(int)));
-
-    scroll=new QScrollArea(this);
-    empty=new QWidget(this);
-    layout0=new QGridLayout;
-    //layout0->setMargin(STD_MARGIN);
-    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout0->setSpacing(STD_SPACING);
-    int index=0;
-    lblTitles[0]=new QLabel(tr("Nr.  "),this);
-    lblTitles[1]=new QLabel(tr("Tick Location"),this);
-    lblTitles[2]=new QLabel(tr("Tick Label"),this);
-        for (int i=0;i<3;i++) layout0->addWidget(lblTitles[i],index,i);
-        index++;
-    for (int i=0;i<MAX_TICKS;i++)
-    {
-    original[i]=true;
-    orig_text[i]=text[i]=NULL;
-    lblNr[i]=new QLabel(QString::number(i),this);
-    ledLocation[i]=new QLineEdit(QString(""),this);
-    ledLabel[i]=new QLineEdit(QString(""),this);
-    layout0->addWidget(lblNr[i],index,0);
-    layout0->addWidget(ledLocation[i],index,1);
-    layout0->setRowStretch(index,0);
-    layout0->addWidget(ledLabel[i],index++,2);
-    }
-    empty->setLayout(layout0);
-    scroll->setWidget(empty);
-
-    /*spreadSpecLabels=new spreadSheet(scroll,2,256,3);
-    spreadSpecLabels->setMinimumWidth(400);
-    scroll->setWidget(spreadSpecLabels);*/
-
-    layout=new QVBoxLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(selSpecTicks);
-    layout->addWidget(selNumber);
-    //layout->addWidget(lblTickLocLabel);
-    layout->addWidget(scroll);
-    setLayout(layout);
-    delete[] entr;
-}
-
-void AxisTabSpecial::updateSpreadSheet(int i)
-{
-    (void)i;
-int custom_type=selSpecTicks->currentIndex();//0=none,1=TickMarks only,2=TickMarks and Labels
-int custom_nr=selNumber->value();
-
-headerHeight=lblTitles[0]->height();
-stdHeight=lblNr[0]->height();
-if (headerHeight<16) headerHeight=16;
-if (stdHeight<22) stdHeight=22;
-
-int w,h;
-w=lblTitles[0]->width()+lblTitles[1]->width()+lblTitles[2]->width();
-if (w<316) w=316;
-w+=2*(STD_MARGIN+STD_SPACING);
-h=2*STD_MARGIN+(STD_SPACING+stdHeight)*custom_nr+headerHeight;
-empty->resize(w,h);
-
-if (custom_type==0)//none
-{
-    for (int i=0;i<MAX_TICKS;i++)
-    {
-    lblNr[i]->setEnabled(false);
-    ledLocation[i]->setEnabled(false);
-    ledLabel[i]->setEnabled(false);
-    }
-}
-else if (custom_type==1)//TickMarks only
-{
-    for (int i=0;i<MAX_TICKS;i++)
-    {
-    lblNr[i]->setEnabled(true);
-    ledLocation[i]->setEnabled(true);
-    ledLabel[i]->setEnabled(false);
-    }
-}
-else//TickMarks and Labels
-{
-    for (int i=0;i<MAX_TICKS;i++)
-    {
-    lblNr[i]->setEnabled(true);
-    ledLocation[i]->setEnabled(true);
-    ledLabel[i]->setEnabled(true);
-    }
-}
-
-for (int i=0;i<custom_nr;i++)
-{
-    lblNr[i]->setVisible(true);
-    ledLocation[i]->setVisible(true);
-    ledLabel[i]->setVisible(true);
-}
-for (int i=custom_nr;i<MAX_TICKS;i++)
-{
-    lblNr[i]->setVisible(false);
-    ledLocation[i]->setVisible(false);
-    ledLabel[i]->setVisible(false);
-}
-
-}
-
-frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent)
-{
-    int number;
+    char dummy[16];
     curaxis=X_AXIS;
-    QString * entr=new QString[8];
-//setFont(*stdFont);
+    QString * entr=new QString[NUM_FMT_OPTION_ITEMS+8];
+
+    ui->setupUi(this);
     setWindowTitle(tr("QtGrace: Axis"));
     setWindowIcon(QIcon(*GraceIcon));
 
+    // ============ top area ============
+    tabs = ui->tabs;
+    tabs->setUsesScrollButtons(false);
+    chkActive  = ui->chkActive;   chkActive->setChecked(TRUE);
+    chkInvAxis = ui->chkInvAxis;  chkInvAxis->setChecked(FALSE);
+    ledStart = new stdLineEdit(ui->lblStart, ui->ledStartBox, false, this);
+    ledStop  = new stdLineEdit(ui->lblStop,  ui->ledStopBox,  false, this);
+
+    selEdit = new StdSelector(ui->lblEdit, ui->cmbEdit, this);
     number=4;
-    entr[0]=tr("X axis");
-    entr[1]=tr("Y axis");
-    entr[2]=tr("Alt X axis");
-    entr[3]=tr("Alt Y axis");
-    selEdit=new StdSelector(this,tr("Edit:"),number,entr);
+    entr[0]=tr("X axis"); entr[1]=tr("Y axis"); entr[2]=tr("Alt X axis"); entr[3]=tr("Alt Y axis");
+    selEdit->setNewEntries(number,entr);
     selEdit->entryValues[0]=X_AXIS;
     selEdit->entryValues[1]=Y_AXIS;
     selEdit->entryValues[2]=ZX_AXIS;
     selEdit->entryValues[3]=ZY_AXIS;
-    connect(selEdit->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(selEditChanged(int)));
-    chkActive=new QCheckBox(tr("Active"),this);
-    chkActive->setChecked(TRUE);
-    connect(chkActive,SIGNAL(stateChanged(int)),SLOT(set_active_proc(int)));
 
-    ledStart=new stdLineEdit(this,tr("Start:"));
-    ledStop=new stdLineEdit(this,tr("Stop:"));
-    chkInvAxis=new QCheckBox(tr("Invert axis"),this);
-    chkInvAxis->setChecked(FALSE);
-    tabs=new QTabWidget(this);
-    tabMain=new AxisTabMain(tabs);
-    tabLabelsBars=new AxisTabLabelBars(tabs);
-    tabTickLabels=new AxisTabTickLabels(tabs);
-    tabTickMarks=new AxisTabTickMarks(tabs);
-    tabSpecial=new AxisTabSpecial(tabs);
-    tabs->addTab(tabMain, tr("Main"));
-    tabs->addTab(tabLabelsBars, tr("Axis label && bar"));
-    tabs->addTab(tabTickLabels, tr("Tick labels"));
-    tabs->addTab(tabTickMarks, tr("Tick marks"));
-    tabs->addTab(tabSpecial, tr("Custom ticks"));
+    selScale = new StdSelector(ui->lblScale, ui->cmbScale, this);
     number=4;
-    entr[0]=tr("Linear");
-    entr[1]=tr("Logarithmic");
-    entr[2]=tr("Reciprocal");
-    entr[3]=tr("Logit");
-    selScale=new StdSelector(this,tr("Scale:"),number,entr);
+    entr[0]=tr("Linear"); entr[1]=tr("Logarithmic"); entr[2]=tr("Reciprocal"); entr[3]=tr("Logit");
+    selScale->setNewEntries(number,entr);
     selScale->entryValues[0]=SCALE_NORMAL;
     selScale->entryValues[1]=SCALE_LOG;
     selScale->entryValues[2]=SCALE_REC;
     selScale->entryValues[3]=SCALE_LOGIT;
-    connect(selScale->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(axis_scale_cb(int)));
+
+    selApplyTo = new StdSelector(ui->lblApplyTo, ui->cmbApplyTo, this);
     number=8;
     entr[0]=tr("Current axis");
     entr[1]=tr("All axes, current graph");
@@ -4806,129 +4277,336 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent)
     entr[5]=tr("x+y axes, all graphs");
     entr[6]=tr("alt x+y axes, current graph");
     entr[7]=tr("alt x+y axes, all graphs");
-    selApplyTo=new StdSelector(this,tr("Apply to:"),number,entr);
-    selApplyTo->lblText->setVisible(true);
-    cmdApplyTo=new QPushButton(tr("Apply to:"),selApplyTo);
+    selApplyTo->setNewEntries(number,entr);
+    ui->lblApplyTo->hide();// "Apply to:" text lives on the button instead
+    cmdApplyTo = ui->cmdApplyTo;
     cmdApplyTo->setToolTip(tr("The Apply-button below always applies the Axis-settings to the current axis. With this button (Apply-to) you are able to select multiple axes to apply the settings to at the same time."));
-    selApplyTo->layout->removeWidget(selApplyTo->lblText);
-    selApplyTo->layout->removeWidget(selApplyTo->cmbSelect);
-    selApplyTo->layout->addWidget(cmdApplyTo);
-    selApplyTo->layout->addWidget(selApplyTo->cmbSelect);
-    chkTransferLabel=new QCheckBox(tr("Incl.axis-label"),this);
+    chkTransferLabel = ui->chkTransferLabel;
+    chkTransferTickLabel = ui->chkTransferTickLabel;
     chkTransferLabel->setToolTip(tr("If activated the label and its appearance on the current axis will be copied to other axes as well.\nTo deactivate this is useful if different graphs share an axis (pack graphs) because some axes have their axis-label disabled on purpose.\nIf deactivated the new settings of the label will be applied to the current axis only, the other settings will be applied to the other axes as intended."));
-    chkTransferTickLabel=new QCheckBox(tr("Incl.ticks"),this);
     chkTransferTickLabel->setToolTip(tr("If activated the tick-settings of the current axis will be copied to other axes as well.\nTo deactivate this is useful if different graphs share an axis (pack graphs) because some axes have their tick-labels disabled on purpose.\nIf deactivated the new settings for the ticks will be applied to the current axis only, the other settings will be applied to the other axes as intended."));
     chkTransferLabel->setChecked(true);
     chkTransferTickLabel->setChecked(true);
-    selApplyTo->layout->addWidget(chkTransferLabel);
-    selApplyTo->layout->addWidget(chkTransferTickLabel);
-    connect(cmdApplyTo,SIGNAL(clicked()),SLOT(doApplyTo()));
 
-    buttonGroup=new stdButtonGroup(this);
+    buttonGroup = ui->buttonGroup;
+    buttonGroup->cmdApply->setDefault(true);
+
+    // ============ Main tab ============
+    ledAxisLabel    = new stdLineEdit(ui->lblAxisLabel, ui->ledAxisLabelBox, true, this);
+    ledMajorSpacing = new stdLineEdit(ui->lblMajorSpacing, ui->ledMajorSpacingBox, false, this);
+    selMinTicks     = new stdIntSelector(ui->lblMinTicks, ui->spnMinTicks, this);
+    selMinTicks->setRange(0, MAX_TICKS - 1);
+    selFormat       = new StdSelector(ui->lblFormat, ui->cmbFormat, this);
+    number=NUM_FMT_OPTION_ITEMS;
+    for (int i=0;i<number;i++) entr[i]=QString(fmt_option_items[i].label);
+    selFormat->setNewEntries(number,entr);
+    selPrecision    = new stdIntSelector(ui->lblPrecision, ui->spnPrecision, this);
+    selPrecision->setRange(0, 9);
+    chkDisplTickLabels = ui->chkDisplTickLabels;
+    chkDisplAxixBar    = ui->chkDisplAxixBar;
+    chkDisplTickMarks  = ui->chkDisplTickMarks;
+    chkZeroAxis        = ui->chkZeroAxis;
+    ledOffsetNormal    = new stdLineEdit(ui->lblOffsetNormal, ui->ledOffsetNormalBox, false, this);
+    ledOffsetOpposite  = new stdLineEdit(ui->lblOffsetOpposite, ui->ledOffsetOppositeBox, false, this);
+    selTickLabelFont   = new FontSelector(ui->lblTickLabelFont, ui->btnTickLabelFont, ui->cmbTickLabelFont, this);
+    selTickLabelColor  = new ColorSelector(ui->lblTickLabelColor, ui->cmbTickLabelColor, this);
+
+    // ============ Axis label & bar tab ============
+    selLabelFont  = new FontSelector(ui->lblLabelFont, ui->btnLabelFont, ui->cmbLabelFont, this);
+    selLabelColor = new ColorSelector(ui->lblLabelColor, ui->cmbLabelColor, this);
+    spnLabelCharSize = ui->spnLabelCharSize;
+    selLayout = new StdSelector(ui->lblLayout, ui->cmbLayout, this);
+    number=2; entr[0]=tr("Parallel to axis"); entr[1]=tr("Perpendicular to axis");
+    selLayout->setNewEntries(number,entr);
+    selLabelSide = new StdSelector(ui->lblLabelSide, ui->cmbLabelSide, this);
+    number=3; entr[0]=tr("Normal"); entr[1]=tr("Opposite"); entr[2]=tr("Both");
+    selLabelSide->setNewEntries(number,entr);
+    selLabelLocation = new StdSelector(ui->lblLabelLocation, ui->cmbLabelLocation, this);
+    number=2; entr[0]=tr("Auto"); entr[1]=tr("Specified");
+    selLabelLocation->setNewEntries(number,entr);
+    ledLabelParaOffs    = new stdLineEdit(ui->lblLabelParaOffs, ui->ledLabelParaOffsBox, false, this);
+    ledLabelPerpendOffs = new stdLineEdit(ui->lblLabelPerpendOffs, ui->ledLabelPerpendOffsBox, false, this);
+    ledLabelParaOffs->setEnabled(FALSE);
+    ledLabelPerpendOffs->setEnabled(FALSE);
+    selLabelAlign = new AlignmentSelector(ui->lblLabelAlign, ui->cmbLabelAlign, this);
+    selLabelAlign->cmbJustSelect2->setToolTip(tr("Sets the text-alignment for each line\n(only useful in case you have an axis-labels with more than one line of text)"));
+    selBarColor = new ColorSelector(ui->lblBarColor, ui->cmbBarColor, this);
+    selBarStyle = new LineStyleSelector(ui->lblBarStyle, ui->cmbBarStyle, this);
+    selBarWidth = new LineWidthSelector(ui->lblBarWidth, ui->spnBarWidth, this);
+
+    // ============ Tick labels tab ============
+    spnTickCharSize = ui->spnTickCharSize;
+    sldCharAngle = ui->sldCharAngle;
+    sldCharAngle->slideType=SLIDE_LINEAR; sldCharAngle->ScalingFactor=1.0;
+    sldCharAngle->sldSlider->setRange(0,360); sldCharAngle->lblText->setText(tr("Angle")); sldCharAngle->redisplay();
+    selTickAlign = new AlignmentSelector(ui->lblTickAlign, ui->cmbTickAlign, this);
+    selTickAlign->cmbJustSelect2->setToolTip(tr("Sets the text-alignment for each line\n(only useful in case you have tick-labels with more than one line of text)"));
+    selTickSide = new StdSelector(ui->lblTickSide, ui->cmbTickSide, this);
+    number=3; entr[0]=tr("Normal"); entr[1]=tr("Opposite"); entr[2]=tr("Both");
+    selTickSide->setNewEntries(number,entr);
+    selStartAt = new StdSelector(ui->lblStartAt, ui->cmbStartAt, this);
+    number=2; entr[0]=tr("Axis min"); entr[1]=tr("Specified:");
+    selStartAt->setNewEntries(number,entr);
+    selStopAt = new StdSelector(ui->lblStopAt, ui->cmbStopAt, this);
+    entr[0]=tr("Axis max"); entr[1]=tr("Specified:");
+    selStopAt->setNewEntries(number,entr);
+    selStagger = new StdSelector(ui->lblStagger, ui->cmbStagger, this);
+    number=10; for (int i=0;i<number;i++){ sprintf(dummy,"%d",i); entr[i]=QString(dummy); }
+    selStagger->setNewEntries(number,entr);
+    ledTickStart = ui->ledTickStart;
+    ledTickStop  = ui->ledTickStop;
+    ledPrepend       = new stdLineEdit(ui->lblPrepend, ui->ledPrependBox, true, this);
+    ledAppend        = new stdLineEdit(ui->lblAppend, ui->ledAppendBox, true, this);
+    ledAxisTransform = new stdLineEdit(ui->lblAxisTransform, ui->ledAxisTransformBox, false, this);
+    ledTickParaOffs    = new stdLineEdit(ui->lblTickParaOffs, ui->ledTickParaOffsBox, false, this);
+    ledTickPerpendOffs = new stdLineEdit(ui->lblTickPerpendOffs, ui->ledTickPerpendOffsBox, false, this);
+    ledTickParaOffs->setEnabled(FALSE);
+    ledTickPerpendOffs->setEnabled(FALSE);
+    selSkipEvery = new StdSelector(ui->lblSkipEvery, ui->cmbSkipEvery, this);
+    selSkipEvery->setNewEntries(number,entr);// 0..9
+    selTickLocation = new StdSelector(ui->lblTickLocation, ui->cmbTickLocation, this);
+    number=2; entr[0]=tr("Auto"); entr[1]=tr("Specified");
+    selTickLocation->setNewEntries(number,entr);
+    cmdQuickNormal  = ui->cmdQuickNormal;
+    cmdQuickDegrees = ui->cmdQuickDegrees;
+    cmdQuickPis     = ui->cmdQuickPis;
+    cmdQuickAlt     = ui->cmdQuickAlt;
+    ui->grpQuick->setToolTip(tr("The buttons in this group assume that the data is present in radians.\nThey just set axis transformations for different representations of angles."));
+    cmdQuickNormal->setToolTip(tr("Reset axis transformation to default\n(i.e. no transformation)"));
+    cmdQuickDegrees->setToolTip(tr("Set tick labels to degrees\n(with spacing = 90 degrees)"));
+    cmdQuickPis->setToolTip(tr("Set tick labels to multiples of PI\n(with spacing = PI/2)"));
+    cmdQuickAlt->setToolTip(tr("Generate an alternative axis by an axis-transformation.\nThis opens a dialog that helps in setting up a secondary axis with a different scale."));
+
+    // ============ Tick marks tab ============
+    selPointing = new StdSelector(ui->lblPointing, ui->cmbPointing, this);
+    number=3; entr[0]=tr("In"); entr[1]=tr("Out"); entr[2]=tr("Both");
+    selPointing->setNewEntries(number,entr);
+    selDrawOn = new StdSelector(ui->lblDrawOn, ui->cmbDrawOn, this);
+    entr[0]=tr("Normal side"); entr[1]=tr("Opposite side"); entr[2]=tr("Both sides");
+    selDrawOn->setNewEntries(number,entr);
+    setAutotickDiv = new StdSelector(ui->lblAutotickDiv, ui->cmbAutotickDiv, this);
+    number=11; for (int i=2;i<13;i++){ sprintf(dummy,"%d",i); entr[i-2]=QString(dummy); }
+    setAutotickDiv->setNewEntries(number,entr);
+    chkPlaceRoundPos = ui->chkPlaceRoundPos;
+    chkDrawMajGrid   = ui->chkDrawMajGrid;
+    sldMajTickLength = ui->sldMajTickLength;
+    sldMajTickLength->slideType=SLIDE_LINEAR; sldMajTickLength->ScalingFactor=1.0;
+    sldMajTickLength->sldSlider->setRange(0,1000); sldMajTickLength->lblText->setText(tr("Tick length")); sldMajTickLength->redisplay();
+    selMajTickColor = new ColorSelector(ui->lblMajTickColor, ui->cmbMajTickColor, this);
+    selMajTickWidth = new LineWidthSelector(ui->lblMajTickWidth, ui->spnMajTickWidth, this);
+    selMajTickStyle = new LineStyleSelector(ui->lblMajTickStyle, ui->cmbMajTickStyle, this);
+    chkDrawMinGrid   = ui->chkDrawMinGrid;
+    sldMinTickLength = ui->sldMinTickLength;
+    sldMinTickLength->slideType=SLIDE_LINEAR; sldMinTickLength->ScalingFactor=1.0;
+    sldMinTickLength->sldSlider->setRange(0,1000); sldMinTickLength->lblText->setText(tr("Tick length")); sldMinTickLength->redisplay();
+    selMinTickColor = new ColorSelector(ui->lblMinTickColor, ui->cmbMinTickColor, this);
+    selMinTickWidth = new LineWidthSelector(ui->lblMinTickWidth, ui->spnMinTickWidth, this);
+    selMinTickStyle = new LineStyleSelector(ui->lblMinTickStyle, ui->cmbMinTickStyle, this);
+
+    // ============ Custom ticks tab ============
+    selSpecTicks = new StdSelector(ui->lblSpecTicks, ui->cmbSpecTicks, this);
+    number=3; entr[0]=tr("None"); entr[1]=tr("Tick marks only"); entr[2]=tr("Tick marks and labels");
+    selSpecTicks->setNewEntries(number,entr);
+    selSpecTicks->entryValues[0]=TICKS_SPEC_NONE;
+    selSpecTicks->entryValues[1]=TICKS_SPEC_MARKS;
+    selSpecTicks->entryValues[2]=TICKS_SPEC_BOTH;
+    selNumber = new stdIntSelector(ui->lblNumber, ui->spnNumber, this);
+    selNumber->setRange(0, MAX_TICKS - 1);
+    scroll = ui->scroll;
+    empty = new QWidget(this);
+    layout0 = new QGridLayout;
+    layout0->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
+    layout0->setSpacing(STD_SPACING);
+    {
+        int index=0;
+        lblTitles[0]=new QLabel(tr("Nr.  "),empty);
+        lblTitles[1]=new QLabel(tr("Tick Location"),empty);
+        lblTitles[2]=new QLabel(tr("Tick Label"),empty);
+        for (int i=0;i<3;i++) layout0->addWidget(lblTitles[i],index,i);
+        index++;
+        for (int i=0;i<MAX_TICKS;i++)
+        {
+            original[i]=true;
+            orig_text[i]=text[i]=NULL;
+            lblNr[i]=new QLabel(QString::number(i),empty);
+            ledLocation[i]=new QLineEdit(QString(""),empty);
+            ledLabel[i]=new QLineEdit(QString(""),empty);
+            layout0->addWidget(lblNr[i],index,0);
+            layout0->addWidget(ledLocation[i],index,1);
+            layout0->setRowStretch(index,0);
+            layout0->addWidget(ledLabel[i],index++,2);
+        }
+    }
+    empty->setLayout(layout0);
+    scroll->setWidget(empty);
+
+    // ============ behavioural connections ============
+    connect(selEdit->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(selEditChanged(int)));
+    connect(chkActive,SIGNAL(stateChanged(int)),SLOT(set_active_proc(int)));
+    connect(selScale->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(axis_scale_cb(int)));
+    connect(cmdApplyTo,SIGNAL(clicked()),SLOT(doApplyTo()));
     connect(buttonGroup->cmdAccept,SIGNAL(clicked()),this,SLOT(doAccept()));
     connect(buttonGroup->cmdClose,SIGNAL(clicked()),this,SLOT(doClose()));
     connect(buttonGroup->cmdApply,SIGNAL(clicked()),this,SLOT(doApply()));
-    buttonGroup->cmdApply->setDefault(true);
-    layout=new QGridLayout;
-    //layout->setMargin(STD_MARGIN);
-    layout->setContentsMargins(STD_MARGIN,STD_MARGIN,STD_MARGIN,STD_MARGIN);
-    layout->addWidget(selEdit,0,0);
-    layout->addWidget(chkActive,0,1);
-    //layout->addWidget(empty[0],0,2);
-    layout->addWidget(ledStart,1,0);
-    layout->addWidget(ledStop,1,1);
-    //layout->addWidget(empty[1],1,2);
-    layout->addWidget(selScale,2,0);
-    layout->addWidget(chkInvAxis,2,1);
-    //layout->addWidget(empty[2],2,2);
-    layout->addWidget(tabs,3,0,1,3);
-    layout->addWidget(selApplyTo,4,0,1,2);
-    //layout->addWidget(empty[3],4,2);
-    layout->addWidget(buttonGroup,5,0,1,3);
-    setLayout(layout);
+    connect(selLabelLocation->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(labelLocationChanged(int)));
+    connect(selTickLocation->cmbSelect,SIGNAL(currentIndexChanged(int)),this,SLOT(tickLocationChanged(int)));
+    connect(selSpecTicks,SIGNAL(currentIndexChanged(int)),SLOT(updateSpreadSheet(int)));
+    connect(selNumber,SIGNAL(currentValueChanged(int)),SLOT(updateSpreadSheet(int)));
+    connect(cmdQuickNormal,SIGNAL(clicked()),SLOT(doQuickNormalTicks()));
+    connect(cmdQuickDegrees,SIGNAL(clicked()),SLOT(doQuickDegreesTicks()));
+    connect(cmdQuickPis,SIGNAL(clicked()),SLOT(doQuickPisTricks()));
+    connect(cmdQuickAlt,SIGNAL(clicked()),SLOT(doQuickAltTricks()));
 
-    //immediateUpdate
+    // ============ immediate-update connections ============
     connect(chkActive,SIGNAL(stateChanged(int)),SLOT(update1(int)));
     connect(chkInvAxis,SIGNAL(stateChanged(int)),SLOT(update1(int)));
 
-    connect(tabMain->ledAxisLabel,SIGNAL(changed()),SLOT(update0()));
-    connect(tabMain->ledMajorSpacing,SIGNAL(changed()),SLOT(update0()));
-    connect(tabMain->selMinTicks,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
-    connect(tabMain->selFormat,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMain->selPrecision,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMain->chkDisplTickLabels,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabMain->chkDisplAxixBar,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabMain->chkDisplTickMarks,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabMain->chkZeroAxis,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabMain->ledOffsetNormal,SIGNAL(changed()),SLOT(update0()));
-    connect(tabMain->ledOffsetOpposite,SIGNAL(changed()),SLOT(update0()));
-    connect(tabMain->selTickLabelFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMain->selTickLabelColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabMain->selTickLabelColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(ledAxisLabel,SIGNAL(changed()),SLOT(update0()));
+    connect(ledMajorSpacing,SIGNAL(changed()),SLOT(update0()));
+    connect(selMinTicks,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
+    connect(selFormat,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selPrecision,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
+    connect(chkDisplTickLabels,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(chkDisplAxixBar,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(chkDisplTickMarks,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(chkZeroAxis,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(ledOffsetNormal,SIGNAL(changed()),SLOT(update0()));
+    connect(ledOffsetOpposite,SIGNAL(changed()),SLOT(update0()));
+    connect(selTickLabelFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selTickLabelColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selTickLabelColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
 
-    connect(tabLabelsBars->selLabelFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->selLabelColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->selLabelColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->sldCharSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->selLayout,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->selSide,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->selLocation,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->ledParaOffs,SIGNAL(changed()),SLOT(update0()));
-    connect(tabLabelsBars->ledPerpendOffs,SIGNAL(changed()),SLOT(update0()));
-    connect(tabLabelsBars->selBarColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->selBarColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->selBarStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabLabelsBars->selBarWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    connect(tabLabelsBars->selAlign->cmbJustSelect2,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selLabelFont,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selLabelColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selLabelColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(spnLabelCharSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(selLayout,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selLabelSide,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selLabelLocation,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(ledLabelParaOffs,SIGNAL(changed()),SLOT(update0()));
+    connect(ledLabelPerpendOffs,SIGNAL(changed()),SLOT(update0()));
+    connect(selBarColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selBarColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(selBarStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selBarWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
+    connect(selLabelAlign->cmbJustSelect2,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
 
-    connect(tabTickLabels->sldCharSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
-    connect(tabTickLabels->sldCharAngle,SIGNAL(valueChanged(int)),SLOT(update1(int)));
-    connect(tabTickLabels->selSide,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickLabels->selStartAt,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickLabels->selStopAt,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickLabels->selStagger,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickLabels->ledStart,SIGNAL(returnPressed()),SLOT(update0()));
-    connect(tabTickLabels->ledStop,SIGNAL(returnPressed()),SLOT(update0()));
-    connect(tabTickLabels->ledPrepend,SIGNAL(changed()),SLOT(update0()));
-    connect(tabTickLabels->ledAppend,SIGNAL(changed()),SLOT(update0()));
-    connect(tabTickLabels->ledAxisTransform,SIGNAL(changed()),SLOT(update0()));
-    connect(tabTickLabels->ledParaOffs,SIGNAL(changed()),SLOT(update0()));
-    connect(tabTickLabels->ledPerpendOffs,SIGNAL(changed()),SLOT(update0()));
-    connect(tabTickLabels->selSkipEvery,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickLabels->selLocation,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickLabels->selAlign->cmbJustSelect2,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(spnTickCharSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(sldCharAngle,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(selTickSide,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selStartAt,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selStopAt,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selStagger,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(ledTickStart,SIGNAL(returnPressed()),SLOT(update0()));
+    connect(ledTickStop,SIGNAL(returnPressed()),SLOT(update0()));
+    connect(ledPrepend,SIGNAL(changed()),SLOT(update0()));
+    connect(ledAppend,SIGNAL(changed()),SLOT(update0()));
+    connect(ledAxisTransform,SIGNAL(changed()),SLOT(update0()));
+    connect(ledTickParaOffs,SIGNAL(changed()),SLOT(update0()));
+    connect(ledTickPerpendOffs,SIGNAL(changed()),SLOT(update0()));
+    connect(selSkipEvery,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selTickLocation,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selTickAlign->cmbJustSelect2,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
 
-    connect(tabTickMarks->selPointing,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->selDrawOn,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->setAutotickDiv,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->chkPlaceRoundPos,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabTickMarks->chkDrawMajGrid,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabTickMarks->sldMajTickLength,SIGNAL(valueChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->selMajTickColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->selMajTickColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->selMajTickWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    connect(tabTickMarks->selMajTickStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->chkDrawMinGrid,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(tabTickMarks->sldMinTickLength,SIGNAL(valueChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->selMinTickColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->selMinTickColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
-    connect(tabTickMarks->selMinTickWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
-    connect(tabTickMarks->selMinTickStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selPointing,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selDrawOn,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(setAutotickDiv,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(chkPlaceRoundPos,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(chkDrawMajGrid,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(sldMajTickLength,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(selMajTickColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selMajTickColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(selMajTickWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
+    connect(selMajTickStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(chkDrawMinGrid,SIGNAL(toggled(bool)),SLOT(update3(bool)));
+    connect(sldMinTickLength,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(selMinTickColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selMinTickColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
+    connect(selMinTickWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
+    connect(selMinTickStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
 
-    connect(tabSpecial->selSpecTicks,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
-    connect(tabSpecial->selNumber,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
+    connect(selSpecTicks,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
+    connect(selNumber,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
 
-    connect(tabTickLabels,SIGNAL(quickSetNormal()),SLOT(doQuickNormalTicks()));
-    connect(tabTickLabels,SIGNAL(quickSetDegrees()),SLOT(doQuickDegreesTicks()));
-    connect(tabTickLabels,SIGNAL(quickSetPis()),SLOT(doQuickPisTricks()));
-    connect(tabTickLabels,SIGNAL(quickSetAlt()),SLOT(doQuickAltTricks()));
-//connect(tabSpecial->spreadSpecLabels,SIGNAL(changed()),SLOT(update0()));
-    //end immediateUpdate
     delete[] entr;
 }
 
 frmAxis_Prop::~frmAxis_Prop()
-{}
+{
+    delete ui;
+}
+
+void frmAxis_Prop::labelLocationChanged(int i)
+{
+    ledLabelParaOffs->setEnabled(i!=0);
+    ledLabelPerpendOffs->setEnabled(i!=0);
+}
+
+void frmAxis_Prop::tickLocationChanged(int i)
+{
+    ledTickParaOffs->setEnabled(i!=0);
+    ledTickPerpendOffs->setEnabled(i!=0);
+}
+
+void frmAxis_Prop::updateSpreadSheet(int i)
+{
+    (void)i;
+    int custom_type=selSpecTicks->currentIndex();//0=none,1=TickMarks only,2=TickMarks and Labels
+    int custom_nr=selNumber->value();
+
+    headerHeight=lblTitles[0]->height();
+    stdHeight=lblNr[0]->height();
+    if (headerHeight<16) headerHeight=16;
+    if (stdHeight<22) stdHeight=22;
+
+    int w,h;
+    w=lblTitles[0]->width()+lblTitles[1]->width()+lblTitles[2]->width();
+    if (w<316) w=316;
+    w+=2*(STD_MARGIN+STD_SPACING);
+    h=2*STD_MARGIN+(STD_SPACING+stdHeight)*custom_nr+headerHeight;
+    empty->resize(w,h);
+
+    if (custom_type==0)//none
+    {
+        for (int k=0;k<MAX_TICKS;k++)
+        {
+            lblNr[k]->setEnabled(false);
+            ledLocation[k]->setEnabled(false);
+            ledLabel[k]->setEnabled(false);
+        }
+    }
+    else if (custom_type==1)//TickMarks only
+    {
+        for (int k=0;k<MAX_TICKS;k++)
+        {
+            lblNr[k]->setEnabled(true);
+            ledLocation[k]->setEnabled(true);
+            ledLabel[k]->setEnabled(false);
+        }
+    }
+    else//TickMarks and Labels
+    {
+        for (int k=0;k<MAX_TICKS;k++)
+        {
+            lblNr[k]->setEnabled(true);
+            ledLocation[k]->setEnabled(true);
+            ledLabel[k]->setEnabled(true);
+        }
+    }
+
+    for (int k=0;k<custom_nr;k++)
+    {
+        lblNr[k]->setVisible(true);
+        ledLocation[k]->setVisible(true);
+        ledLabel[k]->setVisible(true);
+    }
+    for (int k=custom_nr;k<MAX_TICKS;k++)
+    {
+        lblNr[k]->setVisible(false);
+        ledLocation[k]->setVisible(false);
+        ledLabel[k]->setVisible(false);
+    }
+}
 
 void frmAxis_Prop::selEditChanged(int i)
 {
@@ -4990,41 +4668,41 @@ int frmAxis_Prop::axes_aac_cb(void)
         return RETURN_FAILURE;
     }
     t->active = chkActive->isChecked();
-    t->zero = tabMain->chkZeroAxis->isChecked();
-    if (xv_evalexpr(tabMain->ledMajorSpacing, &t->tmajor) != RETURN_SUCCESS)
+    t->zero = chkZeroAxis->isChecked();
+    if (xv_evalexpr(ledMajorSpacing, &t->tmajor) != RETURN_SUCCESS)
     {
         errmsg(tr("Specify major tick spacing").toLocal8Bit().constData());
         free_graph_tickmarks(t);
         ApplyError=true;
         return RETURN_FAILURE;
     }
-    t->nminor = tabMain->selMinTicks->value();
+    t->nminor = selMinTicks->value();
 
-    t->tl_flag = tabMain->chkDisplTickLabels->isChecked();
-    t->t_flag = tabMain->chkDisplTickMarks->isChecked();
-    t->t_drawbar = tabMain->chkDisplAxixBar->isChecked();
+    t->tl_flag = chkDisplTickLabels->isChecked();
+    t->t_flag = chkDisplTickMarks->isChecked();
+    t->t_drawbar = chkDisplAxixBar->isChecked();
 
     ///setting plotstring
-    tabMain->ledAxisLabel->DynSetMemoryToText(t->label.s_plotstring,t->label.alt_plotstring);
-    xv_evalexpr(tabMain->ledOffsetNormal, &t->offsx);
-    xv_evalexpr(tabMain->ledOffsetOpposite, &t->offsy);
-    t->label_layout = tabLabelsBars->selLayout->currentIndex() ? LAYOUT_PERPENDICULAR : LAYOUT_PARALLEL;
-    t->label_place = tabLabelsBars->selLocation->currentIndex();
+    ledAxisLabel->DynSetMemoryToText(t->label.s_plotstring,t->label.alt_plotstring);
+    xv_evalexpr(ledOffsetNormal, &t->offsx);
+    xv_evalexpr(ledOffsetOpposite, &t->offsy);
+    t->label_layout = selLayout->currentIndex() ? LAYOUT_PERPENDICULAR : LAYOUT_PARALLEL;
+    t->label_place = selLabelLocation->currentIndex();
     if (t->label_place == TYPE_SPEC)//or auto
     {
-        xv_evalexpr(tabLabelsBars->ledParaOffs, &t->label.x);
-        xv_evalexpr(tabLabelsBars->ledPerpendOffs, &t->label.y);
+        xv_evalexpr(ledLabelParaOffs, &t->label.x);
+        xv_evalexpr(ledLabelPerpendOffs, &t->label.y);
     }
-    t->label.font = tabLabelsBars->selLabelFont->currentIndex();
-    t->label.align = tabLabelsBars->selAlign->currentValue();
-    t->label.color = tabLabelsBars->selLabelColor->currentIndex();
-    t->label.alpha = tabLabelsBars->selLabelColor->alpha();
-    t->label.charsize = tabLabelsBars->sldCharSize->value()/100.0;
+    t->label.font = selLabelFont->currentIndex();
+    t->label.align = selLabelAlign->currentValue();
+    t->label.color = selLabelColor->currentIndex();
+    t->label.alpha = selLabelColor->alpha();
+    t->label.charsize = spnLabelCharSize->value()/100.0;
 
     /* somehow the value of axislabelop gets automatically correctly
        applied to all selected axes without checking for the value of
        applyto directly here (strange...) */
-    switch(tabLabelsBars->selSide->currentIndex())
+    switch(selLabelSide->currentIndex())
     {
     case 0:
         t->label_op = PLACEMENT_NORMAL;
@@ -5037,23 +4715,23 @@ int frmAxis_Prop::axes_aac_cb(void)
         break;
     }
 
-    t->tl_font = tabMain->selTickLabelFont->currentIndex();
-    t->tl_color = tabMain->selTickLabelColor->currentIndex();
-    t->tl_alpha = tabMain->selTickLabelColor->alpha();
-    t->tl_skip = tabTickLabels->selSkipEvery->currentIndex();
-    t->tl_align = tabTickLabels->selAlign->currentValue();
-    t->tl_prec = tabMain->selPrecision->currentIndex();
-    t->tl_staggered = tabTickLabels->selStagger->currentIndex();
+    t->tl_font = selTickLabelFont->currentIndex();
+    t->tl_color = selTickLabelColor->currentIndex();
+    t->tl_alpha = selTickLabelColor->alpha();
+    t->tl_skip = selSkipEvery->currentIndex();
+    t->tl_align = selTickAlign->currentValue();
+    t->tl_prec = selPrecision->value();
+    t->tl_staggered = selStagger->currentIndex();
 
-    tabTickLabels->ledAppend->SetMemoryToText(t->tl_appstr,t->orig_tl_appstr);
-    tabTickLabels->ledPrepend->SetMemoryToText(t->tl_prestr,t->orig_tl_prestr);
-    //strcpy(t->tl_appstr, tabTickLabels->ledAppend->text().toLocal8Bit());
-    //strcpy(t->tl_prestr, tabTickLabels->ledPrepend->text().toLocal8Bit());
+    ledAppend->SetMemoryToText(t->tl_appstr,t->orig_tl_appstr);
+    ledPrepend->SetMemoryToText(t->tl_prestr,t->orig_tl_prestr);
+    //strcpy(t->tl_appstr, ledAppend->text().toLocal8Bit());
+    //strcpy(t->tl_prestr, ledPrepend->text().toLocal8Bit());
     ///setting strings
-    t->tl_starttype =  tabTickLabels->selStartAt->currentIndex()== 0 ? TYPE_AUTO : TYPE_SPEC;
+    t->tl_starttype =  selStartAt->currentIndex()== 0 ? TYPE_AUTO : TYPE_SPEC;
     if (t->tl_starttype == TYPE_SPEC)
     {
-        if(xv_evalexpr(tabTickLabels->ledStart, &t->tl_start) != RETURN_SUCCESS)
+        if(xv_evalexpr(ledTickStart, &t->tl_start) != RETURN_SUCCESS)
         {
             errmsg(tr("Specify tick label start").toLocal8Bit().constData());
             free_graph_tickmarks(t);
@@ -5061,10 +4739,10 @@ int frmAxis_Prop::axes_aac_cb(void)
             return RETURN_FAILURE;
         }
     }
-    t->tl_stoptype =  tabTickLabels->selStopAt->currentIndex()== 0 ? TYPE_AUTO : TYPE_SPEC;
+    t->tl_stoptype =  selStopAt->currentIndex()== 0 ? TYPE_AUTO : TYPE_SPEC;
     if (t->tl_stoptype == TYPE_SPEC)
     {
-        if(xv_evalexpr(tabTickLabels->ledStop, &t->tl_stop) != RETURN_SUCCESS)
+        if(xv_evalexpr(ledTickStop, &t->tl_stop) != RETURN_SUCCESS)
         {
             errmsg(tr("Specify tick label stop").toLocal8Bit().constData());
             free_graph_tickmarks(t);
@@ -5072,21 +4750,21 @@ int frmAxis_Prop::axes_aac_cb(void)
             return RETURN_FAILURE;
         }
     }
-    t->tl_format = tabMain->selFormat->currentIndex();
-    strcpy(dummy,tabTickLabels->ledAxisTransform->text().toLatin1().constData());
+    t->tl_format = selFormat->currentIndex();
+    strcpy(dummy,ledAxisTransform->text().toLatin1().constData());
     PrepareFormula(dummy);//replace ',' with '.' if necessary
     t->tl_formula = copy_string(NULL, dummy);
-    t->tl_gaptype = tabTickLabels->selLocation->currentIndex()== 0 ? TYPE_AUTO : TYPE_SPEC;
+    t->tl_gaptype = selTickLocation->currentIndex()== 0 ? TYPE_AUTO : TYPE_SPEC;
     if (t->tl_gaptype == TYPE_SPEC)
     {
-        xv_evalexpr(tabTickLabels->ledParaOffs, &t->tl_gap.x);
-        xv_evalexpr(tabTickLabels->ledPerpendOffs, &t->tl_gap.y);
+        xv_evalexpr(ledTickParaOffs, &t->tl_gap.x);
+        xv_evalexpr(ledTickPerpendOffs, &t->tl_gap.y);
     }
 
-    t->tl_angle = tabTickLabels->sldCharAngle->value();
-    t->tl_charsize = tabTickLabels->sldCharSize->value()/100.0;
+    t->tl_angle = sldCharAngle->value();
+    t->tl_charsize = spnTickCharSize->value()/100.0;
 
-    switch (tabTickMarks->selPointing->currentIndex())
+    switch (selPointing->currentIndex())
     {
     case 0:
         t->t_inout = TICKS_IN;
@@ -5098,7 +4776,7 @@ int frmAxis_Prop::axes_aac_cb(void)
         t->t_inout = TICKS_BOTH;
         break;
     }
-    switch(tabTickLabels->selSide->currentIndex())
+    switch(selTickSide->currentIndex())
     {
     case 0:
         t->tl_op = PLACEMENT_NORMAL;
@@ -5110,7 +4788,7 @@ int frmAxis_Prop::axes_aac_cb(void)
         t->tl_op = PLACEMENT_BOTH;
         break;
     }
-    switch(tabTickMarks->selDrawOn->currentIndex())
+    switch(selDrawOn->currentIndex())
     {
     case 0:
         t->t_op = PLACEMENT_NORMAL;
@@ -5123,42 +4801,42 @@ int frmAxis_Prop::axes_aac_cb(void)
         break;
     }
 
-    t->props.color = tabTickMarks->selMajTickColor->currentIndex();
-    t->props.alpha = tabTickMarks->selMajTickColor->alpha();
-    t->props.linew = tabTickMarks->selMajTickWidth->value();
-    t->props.lines = tabTickMarks->selMajTickStyle->currentIndex();
-    t->mprops.color = tabTickMarks->selMinTickColor->currentIndex();
-    t->mprops.alpha = tabTickMarks->selMinTickColor->alpha();
-    t->mprops.linew = tabTickMarks->selMinTickWidth->value();
-    t->mprops.lines = tabTickMarks->selMinTickStyle->currentIndex();
-    t->props.size = tabTickMarks->sldMajTickLength->value()/100.0;
-    t->mprops.size = tabTickMarks->sldMinTickLength->value()/100.0;
-    t->t_autonum = 2+tabTickMarks->setAutotickDiv->currentIndex();
-    t->t_round = tabTickMarks->chkPlaceRoundPos->isChecked();
-    t->props.gridflag = tabTickMarks->chkDrawMajGrid->isChecked();
-    t->mprops.gridflag = tabTickMarks->chkDrawMinGrid->isChecked();
-    t->t_drawbarcolor = tabLabelsBars->selBarColor->currentIndex();
-    t->t_drawbaralpha = tabLabelsBars->selBarColor->alpha();
-    t->t_drawbarlinew = tabLabelsBars->selBarWidth->value();
-    t->t_drawbarlines = tabLabelsBars->selBarStyle->currentIndex();
+    t->props.color = selMajTickColor->currentIndex();
+    t->props.alpha = selMajTickColor->alpha();
+    t->props.linew = selMajTickWidth->value();
+    t->props.lines = selMajTickStyle->currentIndex();
+    t->mprops.color = selMinTickColor->currentIndex();
+    t->mprops.alpha = selMinTickColor->alpha();
+    t->mprops.linew = selMinTickWidth->value();
+    t->mprops.lines = selMinTickStyle->currentIndex();
+    t->props.size = sldMajTickLength->value()/100.0;
+    t->mprops.size = sldMinTickLength->value()/100.0;
+    t->t_autonum = 2+setAutotickDiv->currentIndex();
+    t->t_round = chkPlaceRoundPos->isChecked();
+    t->props.gridflag = chkDrawMajGrid->isChecked();
+    t->mprops.gridflag = chkDrawMinGrid->isChecked();
+    t->t_drawbarcolor = selBarColor->currentIndex();
+    t->t_drawbaralpha = selBarColor->alpha();
+    t->t_drawbarlinew = selBarWidth->value();
+    t->t_drawbarlines = selBarStyle->currentIndex();
 
-    t->t_spec = tabSpecial->selSpecTicks->currentValue();
+    t->t_spec = selSpecTicks->currentValue();
     /* only read special info if special ticks used */
     //if (t->t_spec != TICKS_SPEC_NONE)
     //{
-        t->nticks = tabSpecial->selNumber->value();
+        t->nticks = selNumber->value();
         /* ensure that enough tick positions have been specified */
         for (i = 0; i < t->nticks; i++)
         {
-            //if (xv_evalexpr(tabSpecial->spreadSpecLabels->axislines[i]->ledLocation, &t->tloc[i].wtpos) == RETURN_SUCCESS)
-            if (xv_evalexpr(tabSpecial->ledLocation[i], &t->tloc[i].wtpos) == RETURN_SUCCESS)
+            //if (xv_evalexpr(spreadSpecLabels->axislines[i]->ledLocation, &t->tloc[i].wtpos) == RETURN_SUCCESS)
+            if (xv_evalexpr(ledLocation[i], &t->tloc[i].wtpos) == RETURN_SUCCESS)
             {
-                //strcpy(dummy,tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->text().toLatin1().constData());//copy text directly
-                //strcpy(dummy,tabSpecial->ledLabel[i]->text().toLatin1().constData());//copy text directly
+                //strcpy(dummy,spreadSpecLabels->axislines[i]->ledLabel->text().toLatin1().constData());//copy text directly
+                //strcpy(dummy,ledLabel[i]->text().toLatin1().constData());//copy text directly
                 /// Warning --> use encoding here! (instead of latin1)
-                //strcpy(dummy,tabSpecial->spreadSpecLabels->axislines[i]->LabelText().toLocal8Bit());
+                //strcpy(dummy,spreadSpecLabels->axislines[i]->LabelText().toLocal8Bit());
                 //if (dummy[0] == '\0')
-                if (tabSpecial->ledLabel[i]->text().isEmpty()==true)
+                if (ledLabel[i]->text().isEmpty()==true)
                 {
                     t->tloc[i].type = TICK_TYPE_MINOR;
                 }
@@ -5168,8 +4846,8 @@ int frmAxis_Prop::axes_aac_cb(void)
                 }
                 if (t->t_spec == TICKS_SPEC_BOTH)
                 {
-                    DynSetMemoryToLineEdit(t->tloc[i].label,t->tloc[i].orig_label,tabSpecial->text[i],tabSpecial->orig_text[i],tabSpecial->original[i],true,tabSpecial->ledLabel[i]);
-                    //tabSpecial->spreadSpecLabels->axislines[i]->SetMemoryToText(t->tloc[i].label,t->tloc[i].orig_label);
+                    DynSetMemoryToLineEdit(t->tloc[i].label,t->tloc[i].orig_label,text[i],orig_text[i],original[i],true,ledLabel[i]);
+                    //spreadSpecLabels->axislines[i]->SetMemoryToText(t->tloc[i].label,t->tloc[i].orig_label);
                     /*
                     t->tloc[i].orig_label = copy_string(t->tloc[i].label, dummy);
                     t->tloc[i].label = copy_string(t->tloc[i].label, dummy);
@@ -5918,15 +5596,15 @@ int frmAxis_Prop::axes_aac_cb(void)
             //the following commands are neccessary for LaTeX-support (because dynamic strings are coppied dynamically)
             if (i==get_cg() && j==curaxis)
             {
-                tabMain->ledAxisLabel->SetTextToMemory(g[i].t[j]->label.s_plotstring,g[i].t[j]->label.alt_plotstring);
-                tabTickLabels->ledAppend->SetTextToMemory(g[i].t[j]->tl_appstr,g[i].t[j]->orig_tl_appstr);
-                tabTickLabels->ledPrepend->SetTextToMemory(g[i].t[j]->tl_prestr,g[i].t[j]->orig_tl_prestr);
+                ledAxisLabel->SetTextToMemory(g[i].t[j]->label.s_plotstring,g[i].t[j]->label.alt_plotstring);
+                ledAppend->SetTextToMemory(g[i].t[j]->tl_appstr,g[i].t[j]->orig_tl_appstr);
+                ledPrepend->SetTextToMemory(g[i].t[j]->tl_prestr,g[i].t[j]->orig_tl_prestr);
                 if (g[i].t[j]->t_spec == TICKS_SPEC_BOTH)
                 {
                     for (int k=0;k<g[i].t[j]->nticks;k++)
                     {
-                    SetLineEditToMemory(g[i].t[j]->tloc[k].label,g[i].t[j]->tloc[k].orig_label,tabSpecial->text[k],tabSpecial->orig_text[k],tabSpecial->original[k],tabSpecial->ledLabel[k]);
-                    //tabSpecial->spreadSpecLabels->axislines[k]->SetTextToMemory(g[i].t[j]->tloc[k].label,g[i].t[j]->tloc[k].orig_label);
+                    SetLineEditToMemory(g[i].t[j]->tloc[k].label,g[i].t[j]->tloc[k].orig_label,text[k],orig_text[k],original[k],ledLabel[k]);
+                    //spreadSpecLabels->axislines[k]->SetTextToMemory(g[i].t[j]->tloc[k].label,g[i].t[j]->tloc[k].orig_label);
                     }
                 }
             }
@@ -5966,17 +5644,17 @@ void frmAxis_Prop::axis_scale_cb(int value)
     double major_space, axestart, axestop;
     int auton;
     char buf[32];
-    xv_evalexpr(tabMain->ledMajorSpacing, &major_space);
+    xv_evalexpr(ledMajorSpacing, &major_space);
     xv_evalexpr(ledStart, &axestart);
     xv_evalexpr(ledStop,  &axestop);
-    auton = 2+tabTickMarks->setAutotickDiv->currentIndex();
+    auton = 2+setAutotickDiv->currentIndex();
     switch (scale) {
     case SCALE_NORMAL:
         if (major_space <= 0.0) {
             sprintf(buf, "%g", (axestop - axestart)/auton);
-            tabMain->ledMajorSpacing->setText(QString(buf));
+            ledMajorSpacing->setText(QString(buf));
         }
-        tabMain->selMinTicks->setValue(1);/// Changed for 0.2.6
+        selMinTicks->setValue(1);/// Changed for 0.2.6
         break;
     case SCALE_LOG:
         if (axestart <= 0.0 && axestop <= 0.0) {
@@ -5989,8 +5667,8 @@ void frmAxis_Prop::axis_scale_cb(int value)
             sprintf(buf, "%g", axestart);
             ledStart->setText(QString(buf));
         }
-        tabMain->ledMajorSpacing->setText(QString("10"));
-        tabMain->selMinTicks->setValue(9);
+        ledMajorSpacing->setText(QString("10"));
+        selMinTicks->setValue(9);
         break;
     case SCALE_LOGIT:
         if (axestart <= 0.0 && axestop <= 0.0) {
@@ -6010,7 +5688,7 @@ void frmAxis_Prop::axis_scale_cb(int value)
             ledStop->setText(QString(buf));
         }
         if (major_space >= 1.0) {
-            tabMain->ledMajorSpacing->setText(QString("0.6"));
+            ledMajorSpacing->setText(QString("0.6"));
         }
         break;
     }
@@ -6052,7 +5730,7 @@ void frmAxis_Prop::update_ticks(int gno)
         tabs->setEnabled(true);
     }
     selEdit->setCurrentValue(curaxis);
-    tabMain->chkZeroAxis->setChecked(is_zero_axis(gno, curaxis));
+    chkZeroAxis->setChecked(is_zero_axis(gno, curaxis));
     get_graph_world(gno, &w);
     if (is_xaxis(curaxis))
     {
@@ -6080,49 +5758,49 @@ void frmAxis_Prop::update_ticks(int gno)
         selScale->setCurrentValue(get_graph_yscale(gno));
         chkInvAxis->setChecked(is_graph_yinvert(gno));
     }
-    tabMain->ledOffsetNormal->setDoubleValue("%.4f",t->offsx);
+    ledOffsetNormal->setDoubleValue("%.4f",t->offsx);
     //sprintf(buf, "%.4f", t->offsx);
-    //tabMain->ledOffsetNormal->setText(QString(buf));
+    //ledOffsetNormal->setText(QString(buf));
     //xv_setstr(offx, buf);
-    tabMain->ledOffsetOpposite->setDoubleValue("%.4f",t->offsy);
+    ledOffsetOpposite->setDoubleValue("%.4f",t->offsy);
     //sprintf(buf, "%.4f", t->offsy);
-    //tabMain->ledOffsetOpposite->setText(QString(buf));
+    //ledOffsetOpposite->setText(QString(buf));
     //xv_setstr(offy, buf);
-    tabLabelsBars->selLayout->setCurrentIndex(t->label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
-    tabLabelsBars->selLocation->setCurrentIndex(t->label_place);
-    tabLabelsBars->ledParaOffs->setDoubleValue("%.4f",t->label.x);
-    //tabLabelsBars->ledParaOffs->setText(QString(buf));
+    selLayout->setCurrentIndex(t->label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
+    selLabelLocation->setCurrentIndex(t->label_place);
+    ledLabelParaOffs->setDoubleValue("%.4f",t->label.x);
+    //ledLabelParaOffs->setText(QString(buf));
     //sprintf(buf, "%.4f", t->label.x);
     //xv_setstr(axislabelspec_para, buf);
-    tabLabelsBars->ledPerpendOffs->setDoubleValue("%.4f",t->label.y);
-    //tabLabelsBars->ledPerpendOffs->setText(QString(buf));
+    ledLabelPerpendOffs->setDoubleValue("%.4f",t->label.y);
+    //ledLabelPerpendOffs->setText(QString(buf));
     //sprintf(buf, "%.4f", t->label.y);
     //xv_setstr(axislabelspec_perp, buf);
-    tabLabelsBars->ledParaOffs->setEnabled(t->label_place == TYPE_SPEC);
-    tabLabelsBars->ledPerpendOffs->setEnabled(t->label_place == TYPE_SPEC);
-    tabLabelsBars->selLabelFont->setCurrentIndex(t->label.font);
-    tabLabelsBars->selAlign->setCurrentValue(t->label.align);
+    ledLabelParaOffs->setEnabled(t->label_place == TYPE_SPEC);
+    ledLabelPerpendOffs->setEnabled(t->label_place == TYPE_SPEC);
+    selLabelFont->setCurrentIndex(t->label.font);
+    selLabelAlign->setCurrentValue(t->label.align);
     //qDebug() << "setting Label Alignment:" << t->label.align;
-    tabLabelsBars->selLabelColor->setCurrentIndex(t->label.color);
-    tabLabelsBars->selLabelColor->setAlpha(t->label.alpha);
-    tabLabelsBars->sldCharSize->setValue((int)rint_2(100.0*t->label.charsize));
+    selLabelColor->setCurrentIndex(t->label.color);
+    selLabelColor->setAlpha(t->label.alpha);
+    spnLabelCharSize->setValue((int)rint_2(100.0*t->label.charsize));
     switch(t->label_op)
     {
     case PLACEMENT_NORMAL:
-        tabLabelsBars->selSide->setCurrentIndex(0);
+        selLabelSide->setCurrentIndex(0);
         break;
     case PLACEMENT_OPPOSITE:
-        tabLabelsBars->selSide->setCurrentIndex(1);
+        selLabelSide->setCurrentIndex(1);
         break;
     case PLACEMENT_BOTH:
-        tabLabelsBars->selSide->setCurrentIndex(2);
+        selLabelSide->setCurrentIndex(2);
         break;
     }
-    tabMain->chkDisplTickLabels->setChecked((bool)t->tl_flag);
-    tabMain->chkDisplTickMarks->setChecked((bool)t->t_flag);
-    tabMain->chkDisplAxixBar->setChecked((bool)t->t_drawbar);
-    tabMain->ledAxisLabel->SetTextToMemory(g[gno].t[curaxis]->label.s_plotstring,g[gno].t[curaxis]->label.alt_plotstring);
-    //tabMain->ledAxisLabel->setText(QString(t->label.s));
+    chkDisplTickLabels->setChecked((bool)t->tl_flag);
+    chkDisplTickMarks->setChecked((bool)t->t_flag);
+    chkDisplAxixBar->setChecked((bool)t->t_drawbar);
+    ledAxisLabel->SetTextToMemory(g[gno].t[curaxis]->label.s_plotstring,g[gno].t[curaxis]->label.alt_plotstring);
+    //ledAxisLabel->setText(QString(t->label.s));
     if (is_log_axis(gno, curaxis))
     {
         if (t->tmajor <= 1.0)
@@ -6130,7 +5808,7 @@ void frmAxis_Prop::update_ticks(int gno)
             t->tmajor = 10.0;
         }
         //sprintf(buf, "%g", t->tmajor);
-        tabMain->ledMajorSpacing->setDoubleValue("%g",t->tmajor);
+        ledMajorSpacing->setDoubleValue("%g",t->tmajor);
     }
     else if (is_logit_axis(gno, curaxis))
     {
@@ -6142,34 +5820,34 @@ void frmAxis_Prop::update_ticks(int gno)
         {
             t->tmajor = 0.4;
         }
-        tabMain->ledMajorSpacing->setDoubleValue("%g",t->tmajor);
+        ledMajorSpacing->setDoubleValue("%g",t->tmajor);
         //sprintf(buf, "%g", t->tmajor);
     }
     else if (t->tmajor > 0)
     {
-        tabMain->ledMajorSpacing->setDoubleValue("%g",t->tmajor);
+        ledMajorSpacing->setDoubleValue("%g",t->tmajor);
         //sprintf(buf, "%g", t->tmajor);
     }
     else
     {
-        tabMain->ledMajorSpacing->setText(tr("UNDEFINED"));
+        ledMajorSpacing->setText(tr("UNDEFINED"));
     }
-    //tabMain->ledMajorSpacing->setText(QString(buf));
+    //ledMajorSpacing->setText(QString(buf));
     //xv_setstr(tmajor, buf);
-    tabMain->selMinTicks->setValue(t->nminor);
+    selMinTicks->setValue(t->nminor);
     //SetSpinChoice(nminor, t->nminor);
-    tabMain->selTickLabelFont->setCurrentIndex(t->tl_font);
-    tabMain->selTickLabelColor->setCurrentIndex(t->tl_color);
-    tabMain->selTickLabelColor->setAlpha(t->tl_alpha);
-    tabTickLabels->selSkipEvery->setCurrentIndex(t->tl_skip);
-    tabTickLabels->selStagger->setCurrentIndex(t->tl_staggered);
+    selTickLabelFont->setCurrentIndex(t->tl_font);
+    selTickLabelColor->setCurrentIndex(t->tl_color);
+    selTickLabelColor->setAlpha(t->tl_alpha);
+    selSkipEvery->setCurrentIndex(t->tl_skip);
+    selStagger->setCurrentIndex(t->tl_staggered);
 
-    //tabTickLabels->ledAppend->setText(QString(t->tl_appstr));
-    //tabTickLabels->ledPrepend->setText(QString(t->tl_prestr));
-    tabTickLabels->ledAppend->SetTextToMemory(g[gno].t[curaxis]->tl_appstr,g[gno].t[curaxis]->orig_tl_appstr);
-    tabTickLabels->ledPrepend->SetTextToMemory(g[gno].t[curaxis]->tl_prestr,g[gno].t[curaxis]->orig_tl_prestr);
+    //ledAppend->setText(QString(t->tl_appstr));
+    //ledPrepend->setText(QString(t->tl_prestr));
+    ledAppend->SetTextToMemory(g[gno].t[curaxis]->tl_appstr,g[gno].t[curaxis]->orig_tl_appstr);
+    ledPrepend->SetTextToMemory(g[gno].t[curaxis]->tl_prestr,g[gno].t[curaxis]->orig_tl_prestr);
 
-    tabTickLabels->selStartAt->setCurrentIndex(t->tl_starttype == TYPE_SPEC?1:0);
+    selStartAt->setCurrentIndex(t->tl_starttype == TYPE_SPEC?1:0);
     /*xv_setstr(tlappstr, t->tl_appstr);
         xv_setstr(tlprestr, t->tl_prestr);*/
     //SetChoice(tlstarttype, t->tl_starttype == TYPE_SPEC);
@@ -6177,129 +5855,129 @@ void frmAxis_Prop::update_ticks(int gno)
     {
         sprintf(buf, "%g", t->tl_start);
         SetDecimalSeparatorToUserValue(buf);
-        tabTickLabels->ledStart->setText(QString(buf));
+        ledTickStart->setText(QString(buf));
     }
     /*else
-    tabTickLabels->ledStart->setText("");*/
-    tabTickLabels->selStopAt->setCurrentIndex(t->tl_stoptype== TYPE_SPEC?1:0);
+    ledTickStart->setText("");*/
+    selStopAt->setCurrentIndex(t->tl_stoptype== TYPE_SPEC?1:0);
     if (t->tl_stoptype == TYPE_SPEC)
     {
         sprintf(buf, "%g", t->tl_stop);
         SetDecimalSeparatorToUserValue(buf);
-        tabTickLabels->ledStop->setText(QString(buf));
+        ledTickStop->setText(QString(buf));
     }
     /*else
-    tabTickLabels->ledStop->setText("");*/
-    tabMain->selFormat->setCurrentIndex(t->tl_format);
-    tabMain->selPrecision->setCurrentIndex(t->tl_prec);
+    ledTickStop->setText("");*/
+    selFormat->setCurrentIndex(t->tl_format);
+    selPrecision->setValue(t->tl_prec);
     if (t->tl_formula!=NULL)
         strcpy(buf,t->tl_formula);
     else
         strcpy(buf,"");
     RedisplayFormula(buf);
-    tabTickLabels->ledAxisTransform->setText(QString(buf));
+    ledAxisTransform->setText(QString(buf));
     switch (t->tl_op)
     {
     case PLACEMENT_NORMAL:
-        tabTickLabels->selSide->setCurrentIndex(0);
+        selTickSide->setCurrentIndex(0);
         break;
     case PLACEMENT_OPPOSITE:
-        tabTickLabels->selSide->setCurrentIndex(1);
+        selTickSide->setCurrentIndex(1);
         break;
     case PLACEMENT_BOTH:
-        tabTickLabels->selSide->setCurrentIndex(2);
+        selTickSide->setCurrentIndex(2);
         break;
     }
-    tabTickLabels->selLocation->setCurrentIndex(t->tl_gaptype==TYPE_AUTO?0:1);
-    tabTickLabels->ledParaOffs->setDoubleValue("%.4f",t->tl_gap.x);
+    selTickLocation->setCurrentIndex(t->tl_gaptype==TYPE_AUTO?0:1);
+    ledTickParaOffs->setDoubleValue("%.4f",t->tl_gap.x);
     //sprintf(buf, "%.4f", t->tl_gap.x);
-    //tabTickLabels->ledParaOffs->setText(QString(buf));
+    //ledTickParaOffs->setText(QString(buf));
     //xv_setstr(tlgap_para, buf);
-    tabTickLabels->ledPerpendOffs->setDoubleValue("%.4f",t->tl_gap.y);
+    ledTickPerpendOffs->setDoubleValue("%.4f",t->tl_gap.y);
     //sprintf(buf, "%.4f", t->tl_gap.y);
-    //tabTickLabels->ledPerpendOffs->setText(QString(buf));
+    //ledTickPerpendOffs->setText(QString(buf));
     //xv_setstr(tlgap_perp, buf);
-    tabTickLabels->ledParaOffs->setEnabled(t->tl_gaptype == TYPE_SPEC);
-    tabTickLabels->ledPerpendOffs->setEnabled(t->tl_gaptype == TYPE_SPEC);
-    tabTickLabels->sldCharAngle->setValue(t->tl_angle);
-    tabTickLabels->sldCharSize->setValue((int)rint_2(t->tl_charsize*100.0));
-    tabTickLabels->selAlign->setCurrentValue(t->tl_align);
+    ledTickParaOffs->setEnabled(t->tl_gaptype == TYPE_SPEC);
+    ledTickPerpendOffs->setEnabled(t->tl_gaptype == TYPE_SPEC);
+    sldCharAngle->setValue(t->tl_angle);
+    spnTickCharSize->setValue((int)rint_2(t->tl_charsize*100.0));
+    selTickAlign->setCurrentValue(t->tl_align);
     //qDebug() << "setting Tick Label Alignment:" << t->tl_align;
     switch (t->t_inout)
     {
     case TICKS_IN:
-        tabTickMarks->selPointing->setCurrentIndex(0);
+        selPointing->setCurrentIndex(0);
         break;
     case TICKS_OUT:
-        tabTickMarks->selPointing->setCurrentIndex(1);
+        selPointing->setCurrentIndex(1);
         break;
     case TICKS_BOTH:
-        tabTickMarks->selPointing->setCurrentIndex(2);
+        selPointing->setCurrentIndex(2);
         break;
     }
     switch (t->t_op)
     {
     case PLACEMENT_NORMAL:
-        tabTickMarks->selDrawOn->setCurrentIndex(0);
+        selDrawOn->setCurrentIndex(0);
         break;
     case PLACEMENT_OPPOSITE:
-        tabTickMarks->selDrawOn->setCurrentIndex(1);
+        selDrawOn->setCurrentIndex(1);
         break;
     case PLACEMENT_BOTH:
-        tabTickMarks->selDrawOn->setCurrentIndex(2);
+        selDrawOn->setCurrentIndex(2);
         break;
     }
-    tabTickMarks->selMajTickColor->setCurrentIndex(t->props.color);
-    tabTickMarks->selMajTickColor->setAlpha(t->props.alpha);
-    tabTickMarks->selMajTickWidth->setValue(t->props.linew);
-    tabTickMarks->selMajTickStyle->setCurrentIndex(t->props.lines);
-    tabTickMarks->selMinTickColor->setCurrentIndex(t->mprops.color);
-    tabTickMarks->selMinTickColor->setAlpha(t->mprops.alpha);
-    tabTickMarks->selMinTickWidth->setValue(t->mprops.linew);
-    tabTickMarks->selMinTickStyle->setCurrentIndex(t->mprops.lines);
-    tabTickMarks->sldMajTickLength->setValue((int)rint_2(100.0*t->props.size));
-    tabTickMarks->sldMinTickLength->setValue((int)rint_2(100.0*t->mprops.size));
-    tabTickMarks->setAutotickDiv->setCurrentIndex(t->t_autonum - 2);
-    tabTickMarks->chkPlaceRoundPos->setChecked((bool)t->t_round);
-    tabTickMarks->chkDrawMajGrid->setChecked((bool)t->props.gridflag);
-    tabTickMarks->chkDrawMinGrid->setChecked((bool)t->mprops.gridflag);
-    tabLabelsBars->selBarColor->setCurrentIndex(t->t_drawbarcolor);
-    tabLabelsBars->selBarColor->setAlpha(t->t_drawbaralpha);
-    tabLabelsBars->selBarWidth->setValue(t->t_drawbarlinew);
-    tabLabelsBars->selBarStyle->setCurrentIndex(t->t_drawbarlines);
-    tabSpecial->selSpecTicks->setCurrentValue(t->t_spec);
-    tabSpecial->selNumber->setValue(t->nticks);
+    selMajTickColor->setCurrentIndex(t->props.color);
+    selMajTickColor->setAlpha(t->props.alpha);
+    selMajTickWidth->setValue(t->props.linew);
+    selMajTickStyle->setCurrentIndex(t->props.lines);
+    selMinTickColor->setCurrentIndex(t->mprops.color);
+    selMinTickColor->setAlpha(t->mprops.alpha);
+    selMinTickWidth->setValue(t->mprops.linew);
+    selMinTickStyle->setCurrentIndex(t->mprops.lines);
+    sldMajTickLength->setValue((int)rint_2(100.0*t->props.size));
+    sldMinTickLength->setValue((int)rint_2(100.0*t->mprops.size));
+    setAutotickDiv->setCurrentIndex(t->t_autonum - 2);
+    chkPlaceRoundPos->setChecked((bool)t->t_round);
+    chkDrawMajGrid->setChecked((bool)t->props.gridflag);
+    chkDrawMinGrid->setChecked((bool)t->mprops.gridflag);
+    selBarColor->setCurrentIndex(t->t_drawbarcolor);
+    selBarColor->setAlpha(t->t_drawbaralpha);
+    selBarWidth->setValue(t->t_drawbarlinew);
+    selBarStyle->setCurrentIndex(t->t_drawbarlines);
+    selSpecTicks->setCurrentValue(t->t_spec);
+    selNumber->setValue(t->nticks);
 char * ni=NULL;
     for (i = 0; i < t->nticks; i++)
     {
         sprintf(buf, "%.9g", t->tloc[i].wtpos);
         SetDecimalSeparatorToUserValue(buf);
-        //tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(QString(buf));
-        tabSpecial->ledLocation[i]->setText(QString(buf));
+        //spreadSpecLabels->axislines[i]->ledLocation->setText(QString(buf));
+        ledLocation[i]->setText(QString(buf));
         //xv_setstr(specloc[i], buf);
         if (t->tloc[i].type == TICK_TYPE_MAJOR)
         {
-        SetLineEditToMemory(g[gno].t[curaxis]->tloc[i].label,g[gno].t[curaxis]->tloc[i].orig_label,tabSpecial->text[i],tabSpecial->orig_text[i],tabSpecial->original[i],tabSpecial->ledLabel[i]);
-        //tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(g[gno].t[curaxis]->tloc[i].label,g[gno].t[curaxis]->tloc[i].orig_label);
-            //tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->setText(QString(t->tloc[i].label));
+        SetLineEditToMemory(g[gno].t[curaxis]->tloc[i].label,g[gno].t[curaxis]->tloc[i].orig_label,text[i],orig_text[i],original[i],ledLabel[i]);
+        //spreadSpecLabels->axislines[i]->SetTextToMemory(g[gno].t[curaxis]->tloc[i].label,g[gno].t[curaxis]->tloc[i].orig_label);
+            //spreadSpecLabels->axislines[i]->ledLabel->setText(QString(t->tloc[i].label));
             //xv_setstr(speclabel[i], t->tloc[i].label);
         }
         else
         {
-        SetLineEditToMemory(ni,ni,tabSpecial->text[i],tabSpecial->orig_text[i],tabSpecial->original[i],tabSpecial->ledLabel[i]);
-        //tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(ni,ni);
-            //tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->setText(QString(""));
+        SetLineEditToMemory(ni,ni,text[i],orig_text[i],original[i],ledLabel[i]);
+        //spreadSpecLabels->axislines[i]->SetTextToMemory(ni,ni);
+            //spreadSpecLabels->axislines[i]->ledLabel->setText(QString(""));
             //xv_setstr(speclabel[i], "");
         }
     }
     strcpy(buf,"");
     for (i = (t->nticks>=0?t->nticks:0); i < MAX_TICKS; i++)
     {
-    SetLineEditToMemory(ni,ni,tabSpecial->text[i],tabSpecial->orig_text[i],tabSpecial->original[i],tabSpecial->ledLabel[i]);
-    //tabSpecial->spreadSpecLabels->axislines[i]->SetTextToMemory(ni,ni);//only affects the label
-        tabSpecial->ledLocation[i]->setText(QString(buf));
-        //tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(QString(buf));
-        //tabSpecial->spreadSpecLabels->axislines[i]->ledLabel->setText(QString(buf));
+    SetLineEditToMemory(ni,ni,text[i],orig_text[i],original[i],ledLabel[i]);
+    //spreadSpecLabels->axislines[i]->SetTextToMemory(ni,ni);//only affects the label
+        ledLocation[i]->setText(QString(buf));
+        //spreadSpecLabels->axislines[i]->ledLocation->setText(QString(buf));
+        //spreadSpecLabels->axislines[i]->ledLabel->setText(QString(buf));
     }
     immediateUpdate=old_upd;
     updateRunning=false;
@@ -6329,78 +6007,59 @@ void frmAxis_Prop::redisplayContents(void)
 {
     if (DecimalPointToUse=='.')
     {
-        tabLabelsBars->selBarWidth->spnLineWidth->setLocale(*dot_locale);
-        tabTickMarks->selMajTickWidth->spnLineWidth->setLocale(*dot_locale);
-        tabTickMarks->selMinTickWidth->spnLineWidth->setLocale(*dot_locale);
+        selBarWidth->spnLineWidth->setLocale(*dot_locale);
+        selMajTickWidth->spnLineWidth->setLocale(*dot_locale);
+        selMinTickWidth->spnLineWidth->setLocale(*dot_locale);
     }
     else
     {
-        tabLabelsBars->selBarWidth->spnLineWidth->setLocale(*comma_locale);
-        tabTickMarks->selMajTickWidth->spnLineWidth->setLocale(*comma_locale);
-        tabTickMarks->selMinTickWidth->spnLineWidth->setLocale(*comma_locale);
+        selBarWidth->spnLineWidth->setLocale(*comma_locale);
+        selMajTickWidth->spnLineWidth->setLocale(*comma_locale);
+        selMinTickWidth->spnLineWidth->setLocale(*comma_locale);
     }
     //if (OldDecimalPoint==DecimalPointToUse) return;
-    tabMain->ledMajorSpacing->ReplaceNumberContents();
+    ledMajorSpacing->ReplaceNumberContents();
     ledStart->ReplaceNumberContents();
     ledStop->ReplaceNumberContents();
-    tabMain->ledOffsetNormal->ReplaceNumberContents();
-    tabMain->ledOffsetOpposite->ReplaceNumberContents();
-    tabLabelsBars->ledParaOffs->ReplaceNumberContents();
-    tabLabelsBars->ledPerpendOffs->ReplaceNumberContents();
-    tabLabelsBars->selBarWidth->setValue(tabLabelsBars->selBarWidth->value());
-    tabTickLabels->ledParaOffs->ReplaceNumberContents();
-    tabTickLabels->ledPerpendOffs->ReplaceNumberContents();
-    QString te=tabTickLabels->ledAxisTransform->text();
+    ledOffsetNormal->ReplaceNumberContents();
+    ledOffsetOpposite->ReplaceNumberContents();
+    ledLabelParaOffs->ReplaceNumberContents();
+    ledLabelPerpendOffs->ReplaceNumberContents();
+    selBarWidth->setValue(selBarWidth->value());
+    ledTickParaOffs->ReplaceNumberContents();
+    ledTickPerpendOffs->ReplaceNumberContents();
+    QString te=ledAxisTransform->text();
     strcpy(dummy,te.toLatin1().constData());
     RedisplayFormula(dummy);
-    tabTickLabels->ledAxisTransform->setText(QString(dummy));/// Formula-transformation???
-    te=tabTickLabels->ledStart->text();
+    ledAxisTransform->setText(QString(dummy));/// Formula-transformation???
+    te=ledTickStart->text();
     Replace_Dec_Sep_In_Single_String(te);
     //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
-    tabTickLabels->ledStart->setText(te);/// Formula-transformation???
-    te=tabTickLabels->ledStop->text();
+    ledTickStart->setText(te);/// Formula-transformation???
+    te=ledTickStop->text();
     Replace_Dec_Sep_In_Single_String(te);
     //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
-    tabTickLabels->ledStop->setText(te);/// Formula-transformation???
-    tabTickMarks->selMajTickWidth->setValue(tabTickMarks->selMajTickWidth->value());
-    tabTickMarks->selMinTickWidth->setValue(tabTickMarks->selMinTickWidth->value());
-    //for (int i = 0; i < tabSpecial->spreadSpecLabels->rows; i++)
+    ledTickStop->setText(te);/// Formula-transformation???
+    selMajTickWidth->setValue(selMajTickWidth->value());
+    selMinTickWidth->setValue(selMinTickWidth->value());
+    //for (int i = 0; i < spreadSpecLabels->rows; i++)
     for (int i = 0; i < MAX_TICKS; i++)
     {
-        //te=tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->text();
-        te=tabSpecial->ledLocation[i]->text();
+        //te=spreadSpecLabels->axislines[i]->ledLocation->text();
+        te=ledLocation[i]->text();
         if (!te.isEmpty())
         {
             //te.replace(QChar(OldDecimalPoint),QChar(DecimalPointToUse));
             Replace_Dec_Sep_In_Single_String(te);
-            tabSpecial->ledLocation[i]->setText(te);
-            //tabSpecial->spreadSpecLabels->axislines[i]->ledLocation->setText(te);
+            ledLocation[i]->setText(te);
+            //spreadSpecLabels->axislines[i]->ledLocation->setText(te);
         }
     }
 
-    tabMain->layout0->update();
-    tabMain->layout1->update();
-    tabMain->layout2->update();
-    tabMain->layout4->update();
-    tabMain->layout->update();
 
-    tabLabelsBars->layout1->update();
-    tabLabelsBars->layout2->update();
-    tabLabelsBars->layout->update();
 
-    tabTickLabels->layout0->update();
-    tabTickLabels->layout1->update();
-    tabTickLabels->layout2->update();
-    tabTickLabels->layout3->update();
-    tabTickLabels->layout->update();
 
-    tabTickMarks->layout0->update();
-    tabTickMarks->layout1->update();
-    tabTickMarks->layout2->update();
-    tabTickMarks->layout->update();
 
-    tabSpecial->layout0->update();
-    tabSpecial->layout->update();
 }
 
 void frmAxis_Prop::doQuickNormalTicks(void)
@@ -6413,10 +6072,10 @@ int cur_gr=get_cg();
     ListOfOldStates.clear();
 //qDebug() << "Resetting ticks to default";
     quickSetAxisFormat(cur_gr,curaxis,QUICK_AXIS_TRANSFORM_NORMAL);
-/*tabTickLabels->ledAxisTransform->setText(QString(""));
+/*ledAxisTransform->setText(QString(""));
 strcpy(g[cur_gr].t[curaxis]->tl_appstr,"");
 strcpy(g[cur_gr].t[curaxis]->orig_tl_appstr,"");
-tabTickLabels->ledAppend->SetTextToMemory(g[cur_gr].t[curaxis]->tl_appstr,g[cur_gr].t[curaxis]->orig_tl_appstr);*/
+ledAppend->SetTextToMemory(g[cur_gr].t[curaxis]->tl_appstr,g[cur_gr].t[curaxis]->orig_tl_appstr);*/
 
 //undo_active=FALSE;
 //mainWin->mainArea->compl_redraw_running=true;
@@ -6440,11 +6099,11 @@ int cur_gr=get_cg();
     ListOfOldStates.clear();
 //qDebug() << "Setting ticks to degrees";
     quickSetAxisFormat(cur_gr,curaxis,QUICK_AXIS_TRANSFORM_DEGREES);
-/*tabTickLabels->ledAxisTransform->setText(QString("$t*180.0/PI"));
+/*ledAxisTransform->setText(QString("$t*180.0/PI"));
 strcpy(g[cur_gr].t[curaxis]->tl_appstr,"\\c:");
 strcpy(g[cur_gr].t[curaxis]->orig_tl_appstr,"\\c:");
-tabTickLabels->ledAppend->SetTextToMemory(g[cur_gr].t[curaxis]->tl_appstr,g[cur_gr].t[curaxis]->orig_tl_appstr);
-tabMain->ledMajorSpacing->setText(QString("PI/2"));*/
+ledAppend->SetTextToMemory(g[cur_gr].t[curaxis]->tl_appstr,g[cur_gr].t[curaxis]->orig_tl_appstr);
+ledMajorSpacing->setText(QString("PI/2"));*/
 doApply();
 }
 
@@ -6457,11 +6116,11 @@ int cur_gr=get_cg();
     ListOfOldStates.clear();
 //qDebug() << "Setting ticks to Multiples of Pi";
     quickSetAxisFormat(cur_gr,curaxis,QUICK_AXIS_TRANSFORM_MULT_PI);
-/*tabTickLabels->ledAxisTransform->setText(QString("$t/PI"));
+/*ledAxisTransform->setText(QString("$t/PI"));
 strcpy(g[cur_gr].t[curaxis]->tl_appstr,"\\xp");//"\\c7\\C\\xp"
 strcpy(g[cur_gr].t[curaxis]->orig_tl_appstr,"\\xp");
-tabTickLabels->ledAppend->SetTextToMemory(g[cur_gr].t[curaxis]->tl_appstr,g[cur_gr].t[curaxis]->orig_tl_appstr);
-tabMain->ledMajorSpacing->setText(QString("PI/2"));*/
+ledAppend->SetTextToMemory(g[cur_gr].t[curaxis]->tl_appstr,g[cur_gr].t[curaxis]->orig_tl_appstr);
+ledMajorSpacing->setText(QString("PI/2"));*/
 doApply();
 }
 
@@ -6532,29 +6191,19 @@ void frmAxis_Prop::update4(double v)
 
 frmAxisProp::frmAxisProp(QWidget * parent):QDialog(parent)
 {
-//setFont(*stdFont);
      min_w=545;
      min_h=623;
+     bar_w=bar_h=20;
+     sizeLocked=false;
     setWindowTitle(tr("QtGrace: Axis"));
     setWindowIcon(QIcon(*GraceIcon));
     QVBoxLayout * layout=new QVBoxLayout;
-    //layout->setMargin(0);
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(0);
     flp=new frmAxis_Prop(this);
     connect(flp,SIGNAL(closeWish()),SLOT(close()));
-    //layout->addWidget(flp);
-
-    scroll=new QScrollArea(this);
-    scroll->setWidget(flp);
-    layout->addWidget(scroll);
-
-     //bar_w=scroll->verticalScrollBar()->width();
-     //bar_h=scroll->horizontalScrollBar()->height();
-     bar_w=bar_h=20;//15
+    layout->addWidget(flp);
     setLayout(layout);
-    //resize(min_w,min_h);
-    resize(LastSize_FormAxisProperties);
 }
 
 frmAxisProp::~frmAxisProp()
@@ -6584,47 +6233,26 @@ void frmAxisProp::doClose(void)
     hide();
 }
 
-void frmAxisProp::resizeEvent(QResizeEvent * event)
+void frmAxisProp::showEvent(QShowEvent * event)
 {
-//cout << "resize: " << event->size().width() << "x" << event->size().height() << " bar_w=" << bar_w << " bar_h=" << bar_h << endl;
-int n_size_w=event->size().width(),n_size_h=event->size().height();
-int actual_space_w=n_size_w,actual_space_h=n_size_h;
-if (small_screen_adjustments & 2)
-{
-for (int i=0;i<2;i++)
-{
-        if (actual_space_w<min_w)
-        {
-        n_size_w=min_w;
-        actual_space_h=event->size().height()-bar_h;
-        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-        }
-        else
-        {
-        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        }
-    if (actual_space_h<min_h)
+    QDialog::showEvent(event);
+    if (event->spontaneous() || sizeLocked) return;
+    // Size the dialog so the tallest/widest tab page fits, then lock it:
+    // the Axis dialog has fully static content, so it stays at its minimal
+    // natural size and is not user-resizable.
+    int wmax=0,hmax=0;
+    for (int i=0;i<flp->tabs->count();i++)
     {
-    n_size_h=min_h;
-    actual_space_w=event->size().width()-bar_w;
-    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        QSize s=flp->tabs->widget(i)->sizeHint();
+        if (s.width()>wmax) wmax=s.width();
+        if (s.height()>hmax) hmax=s.height();
     }
-    else
-    {
-    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    }
-}
-if (scroll->verticalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_w-=bar_w;
-if (scroll->horizontalScrollBarPolicy()==Qt::ScrollBarAlwaysOn) n_size_h-=bar_h;
-this->setMinimumSize(0,0);
-}
-else
-{
-scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-this->setMinimumSize(min_w,min_h);
-}
-flp->resize(QSize(n_size_w,n_size_h));
+    QTabBar * tb=flp->tabs->tabBar();
+    int barh = tb ? tb->sizeHint().height() : 0;
+    flp->tabs->setMinimumSize(wmax+8, hmax+barh+8);
+    adjustSize();
+    setFixedSize(size());
+    sizeLocked=true;
 }
 
 

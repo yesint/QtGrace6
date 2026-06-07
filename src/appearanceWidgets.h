@@ -529,192 +529,7 @@ public slots:
     virtual void resizeEvent(QResizeEvent * event);
 };
 
-class AxisTabMain:public QWidget
-{
-    Q_OBJECT
-public:
-    AxisTabMain(QWidget * parent=0);
-
-    QGroupBox * grpAxisLabel;
-    stdLineEdit * ledAxisLabel;
-    QHBoxLayout * layout0;
-
-    QGroupBox * grpTickProp;
-    stdLineEdit * ledMajorSpacing;
-    stdIntSelector * selMinTicks;
-    StdSelector * selFormat;
-    StdSelector * selPrecision;
-    QGridLayout * layout1;
-
-    QGroupBox * grpDisplOpt;
-    QCheckBox * chkDisplTickLabels;
-    QCheckBox * chkDisplAxixBar;
-    QCheckBox * chkDisplTickMarks;
-    QGridLayout * layout2;
-
-    QGroupBox * grpAxisPlace;
-    QCheckBox * chkZeroAxis;
-    stdLineEdit * ledOffsetNormal;
-    stdLineEdit * ledOffsetOpposite;
-    QHBoxLayout * layout3;
-
-    QGroupBox * grpTickLabelProp;
-    FontSelector * selTickLabelFont;
-    ColorSelector * selTickLabelColor;
-    QHBoxLayout * layout4;
-
-    QVBoxLayout * layout;
-public slots:
-};
-
-class AxisTabLabelBars:public QWidget
-{
-    Q_OBJECT
-public:
-    AxisTabLabelBars(QWidget * parent=0);
-
-    QGroupBox * grpLabelProperties;
-    FontSelector * selLabelFont;
-    ColorSelector * selLabelColor;
-    stdSlider * sldCharSize;
-    StdSelector * selLayout;
-    StdSelector * selSide;
-    StdSelector * selLocation;
-    stdLineEdit * ledParaOffs;
-    stdLineEdit * ledPerpendOffs;
-    AlignmentSelector * selAlign;
-    QGridLayout * layout1;
-
-    QGroupBox * grpBarProperties;
-    ColorSelector * selBarColor;
-    LineStyleSelector * selBarStyle;
-    LineWidthSelector * selBarWidth;
-    QGridLayout * layout2;
-
-    QWidget * empty;
-    QVBoxLayout * layout;
-public slots:
-    void locationChanged(int i);
-};
-
-class AxisTabTickLabels:public QWidget
-{
-    Q_OBJECT
-public:
-    AxisTabTickLabels(QWidget * parent=0);
-
-    QGroupBox * grpLabels;
-    stdSlider * sldCharSize;
-    stdSlider * sldCharAngle;
-    AlignmentSelector * selAlign;
-    QHBoxLayout * layout0;
-
-    QGroupBox * grpPlacement;
-    StdSelector * selSide;
-    StdSelector * selStartAt;
-    StdSelector * selStopAt;
-    StdSelector * selStagger;
-    QLineEdit * ledStart;
-    QLineEdit * ledStop;
-
-    QGroupBox * grpExtra;
-    QGridLayout * layout1;
-    stdLineEdit * ledPrepend;
-    stdLineEdit * ledAppend;
-    stdLineEdit * ledAxisTransform;
-    stdLineEdit * ledParaOffs;
-    stdLineEdit * ledPerpendOffs;
-    StdSelector * selSkipEvery;
-    StdSelector * selLocation;
-    QGridLayout * layout2;
-
-    QGroupBox * grpQuick;
-    QHBoxLayout * layout3;
-    QPushButton * cmdQuickNormal;
-    QPushButton * cmdQuickDegrees;
-    QPushButton * cmdQuickPis;
-    QPushButton * cmdQuickAlt;
-
-    QWidget * empty;
-
-    QVBoxLayout * layout;
-public slots:
-    void doQuickNormal(void);
-    void doQuickDegrees(void);
-    void doQuickPis(void);
-    void doQuickAlt(void);
-    void locationChanged(int i);
-signals:
-    void quickSetDegrees(void);
-    void quickSetPis(void);
-    void quickSetNormal(void);
-    void quickSetAlt(void);
-};
-
-class AxisTabTickMarks:public QWidget
-{
-    Q_OBJECT
-public:
-    AxisTabTickMarks(QWidget * parent=0);
-
-    QGroupBox * grpPlacement;
-    StdSelector * selPointing;
-    StdSelector * selDrawOn;
-    StdSelector * setAutotickDiv;
-    QCheckBox * chkPlaceRoundPos;
-    QGridLayout * layout0;
-
-    QGroupBox * grpMajorTicks;
-    QCheckBox * chkDrawMajGrid;
-    stdSlider * sldMajTickLength;
-    ColorSelector * selMajTickColor;
-    LineWidthSelector * selMajTickWidth;
-    LineStyleSelector * selMajTickStyle;
-    QVBoxLayout * layout1;
-
-    QGroupBox * grpMinorTicks;
-    QCheckBox * chkDrawMinGrid;
-    stdSlider * sldMinTickLength;
-    ColorSelector * selMinTickColor;
-    LineWidthSelector * selMinTickWidth;
-    LineStyleSelector * selMinTickStyle;
-    QVBoxLayout * layout2;
-
-    QWidget * empty;
-
-    QGridLayout * layout;
-public slots:
-};
-
-class AxisTabSpecial:public QWidget
-{
-    Q_OBJECT
-public:
-    AxisTabSpecial(QWidget * parent=0);
-
-    StdSelector * selSpecTicks;
-    stdIntSelector * selNumber;
-    //QLabel * lblTickLocLabel;
-
-    QScrollArea * scroll;
-    //spreadSheet * spreadSpecLabels;
-
-    QLabel * lblTitles[3];
-    QLabel * lblNr[MAX_TICKS];
-    QLineEdit * ledLocation[MAX_TICKS];
-    QLineEdit * ledLabel[MAX_TICKS];
-
-    bool original[MAX_TICKS];
-    char * orig_text[MAX_TICKS],*text[MAX_TICKS];
-    int stdHeight,headerHeight;
-
-    QWidget * empty;
-    QGridLayout * layout0;
-
-    QVBoxLayout * layout;
-public slots:
-    void updateSpreadSheet(int i);
-};
+namespace Ui { class frmAxis_Prop; }
 
 class frmAxis_Prop:public QWidget
 {
@@ -725,6 +540,7 @@ public:
 
     int curaxis,apply_to_selection,transfer_tick_labels,transfer_label;
 
+    // ---- top area ----
     StdSelector * selEdit;
     QCheckBox * chkActive;
     stdLineEdit * ledStart;
@@ -732,18 +548,94 @@ public:
     StdSelector * selScale;
     QCheckBox * chkInvAxis;
     QTabWidget * tabs;
-    AxisTabMain * tabMain;
-    AxisTabLabelBars * tabLabelsBars;
-    AxisTabTickLabels * tabTickLabels;
-    AxisTabTickMarks * tabTickMarks;
-    AxisTabSpecial * tabSpecial;
-
     StdSelector * selApplyTo;
     QPushButton * cmdApplyTo;
     QCheckBox * chkTransferLabel;
     QCheckBox * chkTransferTickLabel;
     stdButtonGroup * buttonGroup;
-    QGridLayout * layout;
+
+    // ---- Main tab ----
+    stdLineEdit * ledAxisLabel;
+    stdLineEdit * ledMajorSpacing;
+    stdIntSelector * selMinTicks;
+    StdSelector * selFormat;
+    stdIntSelector * selPrecision;
+    QCheckBox * chkDisplTickLabels;
+    QCheckBox * chkDisplAxixBar;
+    QCheckBox * chkDisplTickMarks;
+    QCheckBox * chkZeroAxis;
+    stdLineEdit * ledOffsetNormal;
+    stdLineEdit * ledOffsetOpposite;
+    FontSelector * selTickLabelFont;
+    ColorSelector * selTickLabelColor;
+
+    // ---- Axis label & bar tab ----
+    FontSelector * selLabelFont;
+    ColorSelector * selLabelColor;
+    QSpinBox * spnLabelCharSize;
+    StdSelector * selLayout;
+    StdSelector * selLabelSide;
+    StdSelector * selLabelLocation;
+    stdLineEdit * ledLabelParaOffs;
+    stdLineEdit * ledLabelPerpendOffs;
+    AlignmentSelector * selLabelAlign;
+    ColorSelector * selBarColor;
+    LineStyleSelector * selBarStyle;
+    LineWidthSelector * selBarWidth;
+
+    // ---- Tick labels tab ----
+    QSpinBox * spnTickCharSize;
+    stdSlider * sldCharAngle;
+    AlignmentSelector * selTickAlign;
+    StdSelector * selTickSide;
+    StdSelector * selStartAt;
+    StdSelector * selStopAt;
+    StdSelector * selStagger;
+    QLineEdit * ledTickStart;
+    QLineEdit * ledTickStop;
+    stdLineEdit * ledPrepend;
+    stdLineEdit * ledAppend;
+    stdLineEdit * ledAxisTransform;
+    stdLineEdit * ledTickParaOffs;
+    stdLineEdit * ledTickPerpendOffs;
+    StdSelector * selSkipEvery;
+    StdSelector * selTickLocation;
+    QPushButton * cmdQuickNormal;
+    QPushButton * cmdQuickDegrees;
+    QPushButton * cmdQuickPis;
+    QPushButton * cmdQuickAlt;
+
+    // ---- Tick marks tab ----
+    StdSelector * selPointing;
+    StdSelector * selDrawOn;
+    StdSelector * setAutotickDiv;
+    QCheckBox * chkPlaceRoundPos;
+    QCheckBox * chkDrawMajGrid;
+    stdSlider * sldMajTickLength;
+    ColorSelector * selMajTickColor;
+    LineWidthSelector * selMajTickWidth;
+    LineStyleSelector * selMajTickStyle;
+    QCheckBox * chkDrawMinGrid;
+    stdSlider * sldMinTickLength;
+    ColorSelector * selMinTickColor;
+    LineWidthSelector * selMinTickWidth;
+    LineStyleSelector * selMinTickStyle;
+
+    // ---- Custom ticks tab ----
+    StdSelector * selSpecTicks;
+    stdIntSelector * selNumber;
+    QScrollArea * scroll;
+    QLabel * lblTitles[3];
+    QLabel * lblNr[MAX_TICKS];
+    QLineEdit * ledLocation[MAX_TICKS];
+    QLineEdit * ledLabel[MAX_TICKS];
+    bool original[MAX_TICKS];
+    char * orig_text[MAX_TICKS],*text[MAX_TICKS];
+    int stdHeight,headerHeight;
+    QWidget * empty;
+    QGridLayout * layout0;
+
+    Ui::frmAxis_Prop * ui;
 public slots:
     void selEditChanged(int i);
     void doAccept(void);
@@ -761,6 +653,10 @@ public slots:
     void doQuickDegreesTicks(void);
     void doQuickPisTricks(void);
     void doQuickAltTricks(void);
+    //merged tab slots
+    void labelLocationChanged(int i);
+    void tickLocationChanged(int i);
+    void updateSpreadSheet(int i);
     //immediateUpdates
     void update0(void);
     void update1(int v);
@@ -778,14 +674,14 @@ public:
     frmAxisProp(QWidget * parent=0);
     ~frmAxisProp();
     frmAxis_Prop * flp;
-    QScrollArea * scroll;
     int min_w,min_h,bar_w,bar_h;
+    bool sizeLocked;
 public slots:
     void update_ticks(int gno);
     void create_axes_dialog(int axisno);
     void doAccept(void);
     void doClose(void);
-    virtual void resizeEvent(QResizeEvent * event);
+    virtual void showEvent(QShowEvent * event);
 };
 
 #endif // APPEARANCEWIDGETS_H
