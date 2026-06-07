@@ -335,7 +335,12 @@ int get_mapped_font(int mapped_id)
             return(i);
         }
     }
-    return(BAD_FONT_ID);
+    /* No reverse entry: this happens when a file maps several distinct font
+     * ids onto the same runtime font (the reverse table can only hold one id
+     * per font). Fall back to the id itself when it is a valid font index so
+     * the text still gets a usable font instead of none at all. */
+    if (mapped_id >= 0 && mapped_id < nfonts) return mapped_id;
+    return 0;
 }
 
 int map_font(int font, int mapped_id)
