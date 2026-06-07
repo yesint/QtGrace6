@@ -4316,7 +4316,7 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
     selLabelColor = new ColorSelector(ui->lblLabelColor, ui->cmbLabelColor, this);
     spnLabelCharSize = ui->spnLabelCharSize;
     selLayout = new StdSelector(ui->lblLayout, ui->cmbLayout, this);
-    number=2; entr[0]=tr("Parallel to axis"); entr[1]=tr("Perpendicular to axis");
+    number=2; entr[0]=tr("Parallel"); entr[1]=tr("Perpendicular");
     selLayout->setNewEntries(number,entr);
     selLabelSide = new StdSelector(ui->lblLabelSide, ui->cmbLabelSide, this);
     number=3; entr[0]=tr("Normal"); entr[1]=tr("Opposite"); entr[2]=tr("Both");
@@ -4527,6 +4527,16 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
 
     connect(selSpecTicks,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(selNumber,SIGNAL(currentValueChanged(int)),SLOT(update1(int)));
+
+    // Let every combo shrink below its longest item so a few long entries
+    // (font names, option strings) don't force the whole dialog wide. The
+    // popups still show full text; only the closed field elides when space
+    // is tight.
+    for (QComboBox * c : findChildren<QComboBox*>())
+    {
+        c->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+        c->setMinimumContentsLength(7);
+    }
 
     delete[] entr;
 }
@@ -6262,11 +6272,18 @@ void frmAxisProp::adjustToCurrentTab(void)
         pg->setSizePolicy(sp);
     }
     flp->tabs->updateGeometry();
-    // Lift the previous fixed-size lock, recompute the natural size, re-lock.
+    // Lift the previous fixed-size lock, recompute, re-lock.
     setMinimumSize(0,0);
     setMaximumSize(QWIDGETSIZE_MAX,QWIDGETSIZE_MAX);
     adjustSize();
-    setFixedSize(size());
+    // Width: only as wide as the tab bar (the tabs are the natural width);
+    // text fields/combos shrink to fit rather than stretching the window.
+    // Clamp up to the layout minimum so nothing is clipped. Height: keep the
+    // full current-tab height.
+    QTabBar * tbar=flp->tabs->tabBar();
+    int barw = tbar ? tbar->sizeHint().width() : 0;
+    int w = qMax(barw+12, minimumSizeHint().width());
+    setFixedSize(w, sizeHint().height());
 }
 
 
