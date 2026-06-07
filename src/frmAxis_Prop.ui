@@ -159,11 +159,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <spacer><property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
-         <property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property>
-        </spacer>
-       </item>
       </layout>
      </widget>
      <!-- ================= AXIS LABEL && BAR TAB ================= -->
@@ -256,11 +251,6 @@
           </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <spacer><property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
-         <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -381,11 +371,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <spacer><property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
-         <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
-        </spacer>
-       </item>
       </layout>
      </widget>
      <!-- ================= TICK MARKS TAB ================= -->
@@ -477,11 +462,6 @@
          </layout>
         </widget>
        </item>
-       <item row="2" column="0" colspan="2">
-        <spacer><property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
-         <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
-        </spacer>
-       </item>
       </layout>
      </widget>
      <!-- ================= CUSTOM TICKS TAB ================= -->
@@ -502,7 +482,7 @@
          <item><widget class="QSpinBox" name="spnNumber"/></item>
         </layout>
        </item>
-       <item><widget class="QScrollArea" name="scroll"><property name="widgetResizable"><bool>false</bool></property></widget></item>
+       <item><widget class="QScrollArea" name="scroll"><property name="widgetResizable"><bool>false</bool></property><property name="minimumSize"><size><width>0</width><height>240</height></size></property></widget></item>
       </layout>
      </widget>
     </widget>

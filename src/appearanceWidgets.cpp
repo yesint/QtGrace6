@@ -6237,22 +6237,36 @@ void frmAxisProp::showEvent(QShowEvent * event)
 {
     QDialog::showEvent(event);
     if (event->spontaneous() || sizeLocked) return;
-    // Size the dialog so the tallest/widest tab page fits, then lock it:
-    // the Axis dialog has fully static content, so it stays at its minimal
-    // natural size and is not user-resizable.
-    int wmax=0,hmax=0;
+    sizeLocked=true;
+    // Resize the dialog to fit whichever tab is shown (no empty space below
+    // the controls), and re-fit whenever the user switches tabs. Width stays
+    // stable because the tab stack always reserves the widest page.
+    connect(flp->tabs,SIGNAL(currentChanged(int)),this,SLOT(adjustToCurrentTab()));
+    adjustToCurrentTab();
+}
+
+void frmAxisProp::adjustToCurrentTab(void)
+{
+    int cur=flp->tabs->currentIndex();
+    if (cur<0) return;
+    // Make non-current pages contribute zero height to the tab stack's
+    // sizeHint (QStackedLayout ignores widgets whose vertical policy is
+    // Ignored), so the dialog fits the current page only — no empty space
+    // below the controls. Horizontal policy is left alone so the width
+    // stays stable (= widest page) across tab switches.
     for (int i=0;i<flp->tabs->count();i++)
     {
-        QSize s=flp->tabs->widget(i)->sizeHint();
-        if (s.width()>wmax) wmax=s.width();
-        if (s.height()>hmax) hmax=s.height();
+        QWidget * pg=flp->tabs->widget(i);
+        QSizePolicy sp=pg->sizePolicy();
+        sp.setVerticalPolicy(i==cur ? QSizePolicy::Preferred : QSizePolicy::Ignored);
+        pg->setSizePolicy(sp);
     }
-    QTabBar * tb=flp->tabs->tabBar();
-    int barh = tb ? tb->sizeHint().height() : 0;
-    flp->tabs->setMinimumSize(wmax+8, hmax+barh+8);
+    flp->tabs->updateGeometry();
+    // Lift the previous fixed-size lock, recompute the natural size, re-lock.
+    setMinimumSize(0,0);
+    setMaximumSize(QWIDGETSIZE_MAX,QWIDGETSIZE_MAX);
     adjustSize();
     setFixedSize(size());
-    sizeLocked=true;
 }
 
 

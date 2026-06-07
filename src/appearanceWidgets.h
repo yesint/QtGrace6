@@ -681,6 +681,7 @@ public slots:
     void create_axes_dialog(int axisno);
     void doAccept(void);
     void doClose(void);
+    void adjustToCurrentTab(void);
     virtual void showEvent(QShowEvent * event);
 };
 
