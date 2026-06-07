@@ -4538,6 +4538,20 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
         c->setMinimumContentsLength(7);
     }
 
+    // Pack everything tightly: drop the vertical padding from every layout
+    // (it adds up across the stacked group boxes and looks loose, especially
+    // on heavier themes) and use a small uniform spacing. The wider
+    // inter-column spacing on the grids is preserved.
+    for (QLayout * l : findChildren<QLayout*>())
+    {
+        QMargins m=l->contentsMargins();
+        l->setContentsMargins(m.left(), 0, m.right(), 0);
+        if (QGridLayout * g=qobject_cast<QGridLayout*>(l))
+            g->setVerticalSpacing(2);
+        else
+            l->setSpacing(2);
+    }
+
     delete[] entr;
 }
 
