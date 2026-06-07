@@ -585,7 +585,7 @@ public:
 
     // ---- Tick labels tab ----
     QSpinBox * spnTickCharSize;
-    stdSlider * sldCharAngle;
+    QSpinBox * spnCharAngle;
     AlignmentSelector * selTickAlign;
     StdSelector * selTickSide;
     StdSelector * selStartAt;
@@ -611,12 +611,12 @@ public:
     StdSelector * setAutotickDiv;
     QCheckBox * chkPlaceRoundPos;
     QCheckBox * chkDrawMajGrid;
-    stdSlider * sldMajTickLength;
+    QSpinBox * spnMajTickLength;
     ColorSelector * selMajTickColor;
     LineWidthSelector * selMajTickWidth;
     LineStyleSelector * selMajTickStyle;
     QCheckBox * chkDrawMinGrid;
-    stdSlider * sldMinTickLength;
+    QSpinBox * spnMinTickLength;
     ColorSelector * selMinTickColor;
     LineWidthSelector * selMinTickWidth;
     LineStyleSelector * selMinTickStyle;
@@ -675,14 +675,11 @@ public:
     ~frmAxisProp();
     frmAxis_Prop * flp;
     int min_w,min_h,bar_w,bar_h;
-    bool sizeLocked;
 public slots:
     void update_ticks(int gno);
     void create_axes_dialog(int axisno);
     void doAccept(void);
     void doClose(void);
-    void adjustToCurrentTab(void);
-    virtual void showEvent(QShowEvent * event);
 };
 
 #endif // APPEARANCEWIDGETS_H

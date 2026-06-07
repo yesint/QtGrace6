@@ -4336,9 +4336,7 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
 
     // ============ Tick labels tab ============
     spnTickCharSize = ui->spnTickCharSize;
-    sldCharAngle = ui->sldCharAngle;
-    sldCharAngle->slideType=SLIDE_LINEAR; sldCharAngle->ScalingFactor=1.0;
-    sldCharAngle->sldSlider->setRange(0,360); sldCharAngle->lblText->setText(tr("Angle")); sldCharAngle->redisplay();
+    spnCharAngle = ui->spnCharAngle;// slider<->spinbox link is declared in the .ui
     selTickAlign = new AlignmentSelector(ui->lblTickAlign, ui->cmbTickAlign, this);
     selTickAlign->cmbJustSelect2->setToolTip(tr("Sets the text-alignment for each line\n(only useful in case you have tick-labels with more than one line of text)"));
     selTickSide = new StdSelector(ui->lblTickSide, ui->cmbTickSide, this);
@@ -4389,16 +4387,12 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
     setAutotickDiv->setNewEntries(number,entr);
     chkPlaceRoundPos = ui->chkPlaceRoundPos;
     chkDrawMajGrid   = ui->chkDrawMajGrid;
-    sldMajTickLength = ui->sldMajTickLength;
-    sldMajTickLength->slideType=SLIDE_LINEAR; sldMajTickLength->ScalingFactor=1.0;
-    sldMajTickLength->sldSlider->setRange(0,1000); sldMajTickLength->lblText->setText(tr("Tick length")); sldMajTickLength->redisplay();
+    spnMajTickLength = ui->spnMajTickLength;
     selMajTickColor = new ColorSelector(ui->lblMajTickColor, ui->cmbMajTickColor, this);
     selMajTickWidth = new LineWidthSelector(ui->lblMajTickWidth, ui->spnMajTickWidth, this);
     selMajTickStyle = new LineStyleSelector(ui->lblMajTickStyle, ui->cmbMajTickStyle, this);
     chkDrawMinGrid   = ui->chkDrawMinGrid;
-    sldMinTickLength = ui->sldMinTickLength;
-    sldMinTickLength->slideType=SLIDE_LINEAR; sldMinTickLength->ScalingFactor=1.0;
-    sldMinTickLength->sldSlider->setRange(0,1000); sldMinTickLength->lblText->setText(tr("Tick length")); sldMinTickLength->redisplay();
+    spnMinTickLength = ui->spnMinTickLength;
     selMinTickColor = new ColorSelector(ui->lblMinTickColor, ui->cmbMinTickColor, this);
     selMinTickWidth = new LineWidthSelector(ui->lblMinTickWidth, ui->spnMinTickWidth, this);
     selMinTickStyle = new LineStyleSelector(ui->lblMinTickStyle, ui->cmbMinTickStyle, this);
@@ -4492,7 +4486,7 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
     connect(selLabelAlign->cmbJustSelect2,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
 
     connect(spnTickCharSize,SIGNAL(valueChanged(int)),SLOT(update1(int)));
-    connect(sldCharAngle,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(spnCharAngle,SIGNAL(valueChanged(int)),SLOT(update1(int)));
     connect(selTickSide,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(selStartAt,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(selStopAt,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
@@ -4513,13 +4507,13 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
     connect(setAutotickDiv,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(chkPlaceRoundPos,SIGNAL(toggled(bool)),SLOT(update3(bool)));
     connect(chkDrawMajGrid,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(sldMajTickLength,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(spnMajTickLength,SIGNAL(valueChanged(int)),SLOT(update1(int)));
     connect(selMajTickColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(selMajTickColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
     connect(selMajTickWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
     connect(selMajTickStyle,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(chkDrawMinGrid,SIGNAL(toggled(bool)),SLOT(update3(bool)));
-    connect(sldMinTickLength,SIGNAL(valueChanged(int)),SLOT(update1(int)));
+    connect(spnMinTickLength,SIGNAL(valueChanged(int)),SLOT(update1(int)));
     connect(selMinTickColor,SIGNAL(currentIndexChanged(int)),SLOT(update1(int)));
     connect(selMinTickColor,SIGNAL(alphaChanged(int)),SLOT(update1(int)));
     connect(selMinTickWidth,SIGNAL(currentValueChanged(double)),SLOT(update4(double)));
@@ -4536,15 +4530,6 @@ frmAxis_Prop::frmAxis_Prop(QWidget * parent):QWidget(parent),
     {
         c->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
         c->setMinimumContentsLength(7);
-    }
-
-    // stdSlider defaults to MinimumExpanding vertically, which stretches the
-    // group boxes that contain it and leaves big gaps around the slider. Pin
-    // each to its natural height instead.
-    for (stdSlider * s : findChildren<stdSlider*>())
-    {
-        s->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        s->setFixedHeight(s->sizeHint().height());
     }
 
     // Pack everything tightly: drop the vertical padding from every layout
@@ -4794,7 +4779,7 @@ int frmAxis_Prop::axes_aac_cb(void)
         xv_evalexpr(ledTickPerpendOffs, &t->tl_gap.y);
     }
 
-    t->tl_angle = sldCharAngle->value();
+    t->tl_angle = spnCharAngle->value();
     t->tl_charsize = spnTickCharSize->value()/100.0;
 
     switch (selPointing->currentIndex())
@@ -4842,8 +4827,8 @@ int frmAxis_Prop::axes_aac_cb(void)
     t->mprops.alpha = selMinTickColor->alpha();
     t->mprops.linew = selMinTickWidth->value();
     t->mprops.lines = selMinTickStyle->currentIndex();
-    t->props.size = sldMajTickLength->value()/100.0;
-    t->mprops.size = sldMinTickLength->value()/100.0;
+    t->props.size = spnMajTickLength->value()/100.0;
+    t->mprops.size = spnMinTickLength->value()/100.0;
     t->t_autonum = 2+setAutotickDiv->currentIndex();
     t->t_round = chkPlaceRoundPos->isChecked();
     t->props.gridflag = chkDrawMajGrid->isChecked();
@@ -5932,7 +5917,7 @@ void frmAxis_Prop::update_ticks(int gno)
     //xv_setstr(tlgap_perp, buf);
     ledTickParaOffs->setEnabled(t->tl_gaptype == TYPE_SPEC);
     ledTickPerpendOffs->setEnabled(t->tl_gaptype == TYPE_SPEC);
-    sldCharAngle->setValue(t->tl_angle);
+    spnCharAngle->setValue(t->tl_angle);
     spnTickCharSize->setValue((int)rint_2(t->tl_charsize*100.0));
     selTickAlign->setCurrentValue(t->tl_align);
     //qDebug() << "setting Tick Label Alignment:" << t->tl_align;
@@ -5968,8 +5953,8 @@ void frmAxis_Prop::update_ticks(int gno)
     selMinTickColor->setAlpha(t->mprops.alpha);
     selMinTickWidth->setValue(t->mprops.linew);
     selMinTickStyle->setCurrentIndex(t->mprops.lines);
-    sldMajTickLength->setValue((int)rint_2(100.0*t->props.size));
-    sldMinTickLength->setValue((int)rint_2(100.0*t->mprops.size));
+    spnMajTickLength->setValue((int)rint_2(100.0*t->props.size));
+    spnMinTickLength->setValue((int)rint_2(100.0*t->mprops.size));
     setAutotickDiv->setCurrentIndex(t->t_autonum - 2);
     chkPlaceRoundPos->setChecked((bool)t->t_round);
     chkDrawMajGrid->setChecked((bool)t->props.gridflag);
@@ -6227,7 +6212,6 @@ frmAxisProp::frmAxisProp(QWidget * parent):QDialog(parent)
      min_w=545;
      min_h=623;
      bar_w=bar_h=20;
-     sizeLocked=false;
     setWindowTitle(tr("QtGrace: Axis"));
     setWindowIcon(QIcon(*GraceIcon));
     QVBoxLayout * layout=new QVBoxLayout;
@@ -6237,6 +6221,11 @@ frmAxisProp::frmAxisProp(QWidget * parent):QDialog(parent)
     connect(flp,SIGNAL(closeWish()),SLOT(close()));
     layout->addWidget(flp);
     setLayout(layout);
+    // Auto-size to the content (the tab widget sizes to its tallest page) and
+    // make the dialog non-resizable. The "Custom ticks" tab uses a scroll
+    // area so its variable-length list never enlarges the dialog. All sizing
+    // is declarative (layout properties + spacers in the .ui).
+    layout->setSizeConstraint(QLayout::SetFixedSize);
 }
 
 frmAxisProp::~frmAxisProp()
@@ -6264,49 +6253,6 @@ void frmAxisProp::doAccept(void)
 void frmAxisProp::doClose(void)
 {
     hide();
-}
-
-void frmAxisProp::showEvent(QShowEvent * event)
-{
-    QDialog::showEvent(event);
-    if (event->spontaneous() || sizeLocked) return;
-    sizeLocked=true;
-    // Resize the dialog to fit whichever tab is shown (no empty space below
-    // the controls), and re-fit whenever the user switches tabs. Width stays
-    // stable because the tab stack always reserves the widest page.
-    connect(flp->tabs,SIGNAL(currentChanged(int)),this,SLOT(adjustToCurrentTab()));
-    adjustToCurrentTab();
-}
-
-void frmAxisProp::adjustToCurrentTab(void)
-{
-    int cur=flp->tabs->currentIndex();
-    if (cur<0) return;
-    // Make non-current pages contribute zero height to the tab stack's
-    // sizeHint (QStackedLayout ignores widgets whose vertical policy is
-    // Ignored), so the dialog fits the current page only — no empty space
-    // below the controls. Horizontal policy is left alone so the width
-    // stays stable (= widest page) across tab switches.
-    for (int i=0;i<flp->tabs->count();i++)
-    {
-        QWidget * pg=flp->tabs->widget(i);
-        QSizePolicy sp=pg->sizePolicy();
-        sp.setVerticalPolicy(i==cur ? QSizePolicy::Preferred : QSizePolicy::Ignored);
-        pg->setSizePolicy(sp);
-    }
-    flp->tabs->updateGeometry();
-    // Lift the previous fixed-size lock, recompute, re-lock.
-    setMinimumSize(0,0);
-    setMaximumSize(QWIDGETSIZE_MAX,QWIDGETSIZE_MAX);
-    adjustSize();
-    // Width: only as wide as the tab bar (the tabs are the natural width);
-    // text fields/combos shrink to fit rather than stretching the window.
-    // Clamp up to the layout minimum so nothing is clipped. Height: keep the
-    // full current-tab height.
-    QTabBar * tbar=flp->tabs->tabBar();
-    int barw = tbar ? tbar->sizeHint().width() : 0;
-    int w = qMax(barw+12, minimumSizeHint().width());
-    setFixedSize(w, sizeHint().height());
 }
 
 

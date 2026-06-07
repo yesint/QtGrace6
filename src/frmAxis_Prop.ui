@@ -7,98 +7,269 @@
     <x>0</x>
     <y>0</y>
     <width>545</width>
-    <height>623</height>
+    <height>639</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>QtGrace: Axis</string>
   </property>
   <layout class="QGridLayout" name="layout">
-   <property name="leftMargin"><number>2</number></property>
-   <property name="topMargin"><number>2</number></property>
-   <property name="rightMargin"><number>2</number></property>
-   <property name="bottomMargin"><number>2</number></property>
-   <property name="horizontalSpacing"><number>14</number></property>
-   <property name="verticalSpacing"><number>2</number></property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   <property name="horizontalSpacing">
+    <number>14</number>
+   </property>
+   <property name="verticalSpacing">
+    <number>2</number>
+   </property>
    <item row="0" column="0">
-    <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-     <item><widget class="QLabel" name="lblEdit"><property name="text"><string>Edit:</string></property></widget></item>
-     <item><widget class="QComboBox" name="cmbEdit"/></item>
+    <layout class="QHBoxLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="lblEdit">
+       <property name="text">
+        <string>Edit:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cmbEdit"/>
+     </item>
     </layout>
    </item>
    <item row="0" column="1">
-    <widget class="QCheckBox" name="chkActive"><property name="text"><string>Active</string></property></widget>
+    <widget class="QCheckBox" name="chkActive">
+     <property name="text">
+      <string>Active</string>
+     </property>
+    </widget>
    </item>
    <item row="1" column="0">
-    <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-     <item><widget class="QLabel" name="lblStart"><property name="text"><string>Start:</string></property></widget></item>
-     <item><widget class="QLineEdit" name="ledStartBox"/></item>
+    <layout class="QHBoxLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="lblStart">
+       <property name="text">
+        <string>Start:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="ledStartBox"/>
+     </item>
     </layout>
    </item>
    <item row="1" column="1">
-    <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-     <item><widget class="QLabel" name="lblStop"><property name="text"><string>Stop:</string></property></widget></item>
-     <item><widget class="QLineEdit" name="ledStopBox"/></item>
+    <layout class="QHBoxLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="lblStop">
+       <property name="text">
+        <string>Stop:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="ledStopBox"/>
+     </item>
     </layout>
    </item>
    <item row="2" column="0">
-    <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-     <item><widget class="QLabel" name="lblScale"><property name="text"><string>Scale:</string></property></widget></item>
-     <item><widget class="QComboBox" name="cmbScale"/></item>
+    <layout class="QHBoxLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="lblScale">
+       <property name="text">
+        <string>Scale:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cmbScale"/>
+     </item>
     </layout>
    </item>
    <item row="2" column="1">
-    <widget class="QCheckBox" name="chkInvAxis"><property name="text"><string>Invert axis</string></property></widget>
+    <widget class="QCheckBox" name="chkInvAxis">
+     <property name="text">
+      <string>Invert axis</string>
+     </property>
+    </widget>
    </item>
    <item row="3" column="0" colspan="3">
     <widget class="QTabWidget" name="tabs">
-     <property name="currentIndex"><number>0</number></property>
-     <!-- ================= MAIN TAB ================= -->
+     <property name="currentIndex">
+      <number>4</number>
+     </property>
      <widget class="QWidget" name="tabPageMain">
-      <attribute name="title"><string>Main</string></attribute>
+      <attribute name="title">
+       <string>Main</string>
+      </attribute>
       <layout class="QVBoxLayout" name="mainTabLayout">
-       <property name="leftMargin"><number>2</number></property>
-       <property name="topMargin"><number>2</number></property>
-       <property name="rightMargin"><number>2</number></property>
-       <property name="bottomMargin"><number>2</number></property>
-       <property name="spacing"><number>2</number></property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="grpAxisLabel">
-         <property name="title"><string>Axis label</string></property>
-         <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-          <item><widget class="QLabel" name="lblAxisLabel"><property name="text"><string>Label string:</string></property></widget></item>
-          <item><widget class="QLineEdit" name="ledAxisLabelBox"/></item>
+         <property name="title">
+          <string>Axis label</string>
+         </property>
+         <layout class="QHBoxLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="lblAxisLabel">
+            <property name="text">
+             <string>Label string:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="ledAxisLabelBox"/>
+          </item>
          </layout>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="grpTickProp">
-         <property name="title"><string>Tick properties</string></property>
-         <layout class="QGridLayout"><property name="horizontalSpacing"><number>14</number></property><property name="verticalSpacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Tick properties</string>
+         </property>
+         <layout class="QGridLayout">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMajorSpacing"><property name="text"><string>Major spacing:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledMajorSpacingBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMajorSpacing">
+              <property name="text">
+               <string>Major spacing:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledMajorSpacingBox"/>
+            </item>
            </layout>
           </item>
           <item row="0" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMinTicks"><property name="text"><string>Minor ticks:</string></property></widget></item>
-            <item><widget class="QSpinBox" name="spnMinTicks"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMinTicks">
+              <property name="text">
+               <string>Minor ticks:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spnMinTicks"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblFormat"><property name="text"><string>Format:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbFormat"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblFormat">
+              <property name="text">
+               <string>Format:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbFormat"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblPrecision"><property name="text"><string>Precision:</string></property></widget></item>
-            <item><widget class="QSpinBox" name="spnPrecision"><property name="minimum"><number>0</number></property><property name="maximum"><number>9</number></property></widget></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblPrecision">
+              <property name="text">
+               <string>Precision:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spnPrecision">
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>9</number>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -106,31 +277,116 @@
        </item>
        <item>
         <widget class="QGroupBox" name="grpDisplOpt">
-         <property name="title"><string>Display options</string></property>
-         <layout class="QGridLayout"><property name="horizontalSpacing"><number>14</number></property><property name="verticalSpacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-          <item row="0" column="0"><widget class="QCheckBox" name="chkDisplTickLabels"><property name="text"><string>Display tick labels</string></property></widget></item>
-          <item row="0" column="1"><widget class="QCheckBox" name="chkDisplAxixBar"><property name="text"><string>Display axis bar</string></property></widget></item>
-          <item row="1" column="0"><widget class="QCheckBox" name="chkDisplTickMarks"><property name="text"><string>Display tick marks</string></property></widget></item>
+         <property name="title">
+          <string>Display options</string>
+         </property>
+         <layout class="QGridLayout">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QCheckBox" name="chkDisplTickMarks">
+              <property name="text">
+               <string>Tick marks</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkDisplAxixBar">
+              <property name="text">
+               <string>Axis bar</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkDisplTickLabels">
+              <property name="text">
+               <string>Tick labels</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="grpAxisPlace">
-         <property name="title"><string>Axis placement</string></property>
-         <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-          <item><widget class="QCheckBox" name="chkZeroAxis"><property name="text"><string>Zero axis</string></property></widget></item>
+         <property name="title">
+          <string>Axis placement</string>
+         </property>
+         <layout class="QHBoxLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblOffsetNormal"><property name="text"><string>Offsets - Normal:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledOffsetNormalBox"/></item>
+           <widget class="QCheckBox" name="chkZeroAxis">
+            <property name="text">
+             <string>Zero axis</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblOffsetNormal">
+              <property name="text">
+               <string>Offsets - Normal:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledOffsetNormalBox"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblOffsetOpposite"><property name="text"><string>Opposite:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledOffsetOppositeBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblOffsetOpposite">
+              <property name="text">
+               <string>Opposite:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledOffsetOppositeBox"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -138,89 +394,296 @@
        </item>
        <item>
         <widget class="QGroupBox" name="grpTickLabelProp">
-         <property name="title"><string>Tick label properties</string></property>
-         <layout class="QHBoxLayout"><property name="spacing"><number>14</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Tick label properties</string>
+         </property>
+         <layout class="QHBoxLayout">
+          <property name="spacing">
+           <number>14</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblTickLabelFont"><property name="text"><string>Font:</string></property></widget></item>
-            <item><widget class="QPushButton" name="btnTickLabelFont"><property name="text"><string>Font:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbTickLabelFont"/></item>
-            <item><widget class="QSpinBox" name="spnTickCharSize"><property name="minimum"><number>0</number></property><property name="maximum"><number>1000</number></property></widget></item>
-            <item><widget class="QLabel" name="lblTickCharPct"><property name="text"><string>%</string></property></widget></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblTickLabelFont">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnTickLabelFont">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbTickLabelFont"/>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spnTickCharSize">
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>1000</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblTickCharPct">
+              <property name="text">
+               <string>%</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblTickLabelColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbTickLabelColor"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblTickLabelColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbTickLabelColor"/>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
        </item>
+       <item>
+        <spacer>
+         <property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
+         <property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property>
+        </spacer>
+       </item>
       </layout>
      </widget>
-     <!-- ================= AXIS LABEL && BAR TAB ================= -->
      <widget class="QWidget" name="tabPageLabelBars">
-      <attribute name="title"><string>Axis label &amp;&amp; bar</string></attribute>
+      <attribute name="title">
+       <string>Axis label &amp;&amp; bar</string>
+      </attribute>
       <layout class="QVBoxLayout" name="labelBarsTabLayout">
-       <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-       <property name="spacing"><number>2</number></property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="grpLabelProperties">
-         <property name="title"><string>Label properties</string></property>
-         <layout class="QGridLayout"><property name="horizontalSpacing"><number>14</number></property><property name="verticalSpacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Label properties</string>
+         </property>
+         <layout class="QGridLayout">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblLabelFont"><property name="text"><string>Font:</string></property></widget></item>
-            <item><widget class="QPushButton" name="btnLabelFont"><property name="text"><string>Font:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbLabelFont"/></item>
-            <item><widget class="QSpinBox" name="spnLabelCharSize"><property name="minimum"><number>0</number></property><property name="maximum"><number>1000</number></property></widget></item>
-            <item><widget class="QLabel" name="lblLabelCharPct"><property name="text"><string>%</string></property></widget></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblLabelFont">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnLabelFont">
+              <property name="text">
+               <string>Font:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbLabelFont"/>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spnLabelCharSize">
+              <property name="minimum">
+               <number>0</number>
+              </property>
+              <property name="maximum">
+               <number>1000</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblLabelCharPct">
+              <property name="text">
+               <string>%</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item row="0" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblLabelColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbLabelColor"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblLabelColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbLabelColor"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblLayout"><property name="text"><string>Layout:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbLayout"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblLayout">
+              <property name="text">
+               <string>Layout:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbLayout"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblLabelSide"><property name="text"><string>Side:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbLabelSide"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblLabelSide">
+              <property name="text">
+               <string>Side:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbLabelSide"/>
+            </item>
            </layout>
           </item>
           <item row="2" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblLabelLocation"><property name="text"><string>Location:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbLabelLocation"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblLabelLocation">
+              <property name="text">
+               <string>Location:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbLabelLocation"/>
+            </item>
            </layout>
           </item>
           <item row="2" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblLabelAlign"><property name="text"><string>Alignment:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbLabelAlign"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblLabelAlign">
+              <property name="text">
+               <string>Alignment:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbLabelAlign"/>
+            </item>
            </layout>
           </item>
           <item row="3" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblLabelParaOffs"><property name="text"><string>Parallel offset:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledLabelParaOffsBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblLabelParaOffs">
+              <property name="text">
+               <string>Parallel offset:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledLabelParaOffsBox"/>
+            </item>
            </layout>
           </item>
           <item row="3" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblLabelPerpendOffs"><property name="text"><string>Perpendicular offset:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledLabelPerpendOffsBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblLabelPerpendOffs">
+              <property name="text">
+               <string>Perpendicular offset:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledLabelPerpendOffsBox"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -228,48 +691,154 @@
        </item>
        <item>
         <widget class="QGroupBox" name="grpBarProperties">
-         <property name="title"><string>Bar properties:</string></property>
-         <layout class="QGridLayout"><property name="horizontalSpacing"><number>14</number></property><property name="verticalSpacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Bar properties:</string>
+         </property>
+         <layout class="QGridLayout">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblBarColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbBarColor"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblBarColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbBarColor"/>
+            </item>
            </layout>
           </item>
           <item row="0" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblBarWidth"><property name="text"><string>Width:</string></property></widget></item>
-            <item><widget class="QDoubleSpinBox" name="spnBarWidth"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblBarWidth">
+              <property name="text">
+               <string>Width:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnBarWidth"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblBarStyle"><property name="text"><string>Style:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbBarStyle"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblBarStyle">
+              <property name="text">
+               <string>Style:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbBarStyle"/>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
        </item>
+       <item>
+        <spacer>
+         <property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
+         <property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property>
+        </spacer>
+       </item>
       </layout>
      </widget>
-     <!-- ================= TICK LABELS TAB ================= -->
      <widget class="QWidget" name="tabPageTickLabels">
-      <attribute name="title"><string>Tick labels</string></attribute>
+      <attribute name="title">
+       <string>Tick labels</string>
+      </attribute>
       <layout class="QVBoxLayout" name="tickLabelsTabLayout">
-       <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-       <property name="spacing"><number>2</number></property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="grpLabels">
-         <property name="title"><string>Labels</string></property>
-         <layout class="QHBoxLayout"><property name="spacing"><number>14</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-          <item><widget class="stdSlider" name="sldCharAngle" native="true"/></item>
+         <property name="title">
+          <string>Labels</string>
+         </property>
+         <layout class="QHBoxLayout">
+          <property name="spacing">
+           <number>14</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblTickAlign"><property name="text"><string>Alignment:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbTickAlign"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblCharAngle"><property name="text"><string>Angle</string></property></widget></item>
+            <item><widget class="QSlider" name="sldCharAngleBar"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="minimum"><number>0</number></property><property name="maximum"><number>360</number></property></widget></item>
+            <item><widget class="QSpinBox" name="spnCharAngle"><property name="minimum"><number>0</number></property><property name="maximum"><number>360</number></property></widget></item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblTickAlign">
+              <property name="text">
+               <string>Alignment:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbTickAlign"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -277,33 +846,100 @@
        </item>
        <item>
         <widget class="QGroupBox" name="grpTickPlacement">
-         <property name="title"><string>Placement</string></property>
-         <layout class="QGridLayout"><property name="horizontalSpacing"><number>14</number></property><property name="verticalSpacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Placement</string>
+         </property>
+         <layout class="QGridLayout">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblTickSide"><property name="text"><string>Side:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbTickSide"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblTickSide">
+              <property name="text">
+               <string>Side:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbTickSide"/>
+            </item>
            </layout>
           </item>
           <item row="0" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblStartAt"><property name="text"><string>Start at:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbStartAt"/></item>
-            <item><widget class="QLineEdit" name="ledTickStart"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblStartAt">
+              <property name="text">
+               <string>Start at:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbStartAt"/>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledTickStart"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblStagger"><property name="text"><string>Stagger:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbStagger"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblStagger">
+              <property name="text">
+               <string>Stagger:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbStagger"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblStopAt"><property name="text"><string>Stop at:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbStopAt"/></item>
-            <item><widget class="QLineEdit" name="ledTickStop"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblStopAt">
+              <property name="text">
+               <string>Stop at:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbStopAt"/>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledTickStop"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -311,49 +947,145 @@
        </item>
        <item>
         <widget class="QGroupBox" name="grpExtra">
-         <property name="title"><string>Extra</string></property>
-         <layout class="QGridLayout"><property name="horizontalSpacing"><number>14</number></property><property name="verticalSpacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Extra</string>
+         </property>
+         <layout class="QGridLayout">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblSkipEvery"><property name="text"><string>Skip every:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbSkipEvery"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblSkipEvery">
+              <property name="text">
+               <string>Skip every:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbSkipEvery"/>
+            </item>
            </layout>
           </item>
           <item row="0" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAxisTransform"><property name="text"><string>Axis transform:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledAxisTransformBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAxisTransform">
+              <property name="text">
+               <string>Axis transform:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledAxisTransformBox"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblPrepend"><property name="text"><string>Prepend:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledPrependBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblPrepend">
+              <property name="text">
+               <string>Prepend:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledPrependBox"/>
+            </item>
            </layout>
           </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAppend"><property name="text"><string>Append:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledAppendBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAppend">
+              <property name="text">
+               <string>Append:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledAppendBox"/>
+            </item>
            </layout>
           </item>
           <item row="2" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblTickLocation"><property name="text"><string>Location:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbTickLocation"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblTickLocation">
+              <property name="text">
+               <string>Location:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbTickLocation"/>
+            </item>
            </layout>
           </item>
           <item row="3" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblTickParaOffs"><property name="text"><string>Parallel offset:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledTickParaOffsBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblTickParaOffs">
+              <property name="text">
+               <string>Parallel offset:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledTickParaOffsBox"/>
+            </item>
            </layout>
           </item>
           <item row="3" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblTickPerpendOffs"><property name="text"><string>Perpendicular offset:</string></property></widget></item>
-            <item><widget class="QLineEdit" name="ledTickPerpendOffsBox"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblTickPerpendOffs">
+              <property name="text">
+               <string>Perpendicular offset:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="ledTickPerpendOffsBox"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -361,46 +1093,167 @@
        </item>
        <item>
         <widget class="QGroupBox" name="grpQuick">
-         <property name="title"><string>Quick transformation</string></property>
-         <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-          <item><widget class="QPushButton" name="cmdQuickNormal"><property name="text"><string>Normal</string></property></widget></item>
-          <item><widget class="QPushButton" name="cmdQuickDegrees"><property name="text"><string>Degrees</string></property></widget></item>
-          <item><widget class="QPushButton" name="cmdQuickPis"><property name="text"><string>Multiples of Pi</string></property></widget></item>
-          <item><widget class="QPushButton" name="cmdQuickAlt"><property name="text"><string>Alt-Axis</string></property></widget></item>
+         <property name="title">
+          <string>Quick transformation</string>
+         </property>
+         <layout class="QHBoxLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="cmdQuickNormal">
+            <property name="text">
+             <string>Normal</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="cmdQuickDegrees">
+            <property name="text">
+             <string>Degrees</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="cmdQuickPis">
+            <property name="text">
+             <string>Multiples of Pi</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="cmdQuickAlt">
+            <property name="text">
+             <string>Alt-Axis</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
+       <item>
+        <spacer>
+         <property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
+         <property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property>
+        </spacer>
+       </item>
       </layout>
      </widget>
-     <!-- ================= TICK MARKS TAB ================= -->
      <widget class="QWidget" name="tabPageTickMarks">
-      <attribute name="title"><string>Tick marks</string></attribute>
+      <attribute name="title">
+       <string>Tick marks</string>
+      </attribute>
       <layout class="QGridLayout" name="tickMarksTabLayout">
-       <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-       <property name="horizontalSpacing"><number>14</number></property><property name="verticalSpacing"><number>2</number></property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
+       <property name="horizontalSpacing">
+        <number>14</number>
+       </property>
+       <property name="verticalSpacing">
+        <number>2</number>
+       </property>
        <item row="0" column="0" colspan="2">
         <widget class="QGroupBox" name="grpTickMarkPlacement">
-         <property name="title"><string>Placement</string></property>
-         <layout class="QGridLayout"><property name="horizontalSpacing"><number>14</number></property><property name="verticalSpacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
+         <property name="title">
+          <string>Placement</string>
+         </property>
+         <layout class="QGridLayout">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>14</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>2</number>
+          </property>
           <item row="0" column="0">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblPointing"><property name="text"><string>Pointing</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbPointing"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblPointing">
+              <property name="text">
+               <string>Pointing</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbPointing"/>
+            </item>
            </layout>
           </item>
           <item row="0" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblDrawOn"><property name="text"><string>Draw on:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbDrawOn"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblDrawOn">
+              <property name="text">
+               <string>Draw on:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbDrawOn"/>
+            </item>
            </layout>
           </item>
-          <item row="1" column="0"><widget class="QCheckBox" name="chkPlaceRoundPos"><property name="text"><string>Place at rounded positions</string></property></widget></item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="chkPlaceRoundPos">
+            <property name="text">
+             <string>Place at rounded positions</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblAutotickDiv"><property name="text"><string>Autotick divisions:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbAutotickDiv"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAutotickDiv">
+              <property name="text">
+               <string>Autotick divisions:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbAutotickDiv"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -408,27 +1261,89 @@
        </item>
        <item row="1" column="0">
         <widget class="QGroupBox" name="grpMajorTicks">
-         <property name="title"><string>Major ticks</string></property>
-         <layout class="QVBoxLayout"><property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-          <item><widget class="QCheckBox" name="chkDrawMajGrid"><property name="text"><string>Draw grid lines</string></property></widget></item>
-          <item><widget class="stdSlider" name="sldMajTickLength" native="true"/></item>
+         <property name="title">
+          <string>Major ticks</string>
+         </property>
+         <layout class="QVBoxLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMajTickColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbMajTickColor"/></item>
+           <widget class="QCheckBox" name="chkDrawMajGrid">
+            <property name="text">
+             <string>Draw grid lines</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout">
+            <property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblMajTickLength"><property name="text"><string>Length</string></property></widget></item>
+            <item><widget class="QSlider" name="sldMajTickLengthBar"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="minimum"><number>0</number></property><property name="maximum"><number>1000</number></property></widget></item>
+            <item><widget class="QSpinBox" name="spnMajTickLength"><property name="minimum"><number>0</number></property><property name="maximum"><number>1000</number></property></widget></item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMajTickWidth"><property name="text"><string>Width:</string></property></widget></item>
-            <item><widget class="QDoubleSpinBox" name="spnMajTickWidth"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMajTickColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbMajTickColor"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMajTickStyle"><property name="text"><string>Style:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbMajTickStyle"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMajTickWidth">
+              <property name="text">
+               <string>Width:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnMajTickWidth"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMajTickStyle">
+              <property name="text">
+               <string>Style:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbMajTickStyle"/>
+            </item>
            </layout>
           </item>
          </layout>
@@ -436,64 +1351,215 @@
        </item>
        <item row="1" column="1">
         <widget class="QGroupBox" name="grpMinorTicks">
-         <property name="title"><string>Minor ticks</string></property>
-         <layout class="QVBoxLayout"><property name="spacing"><number>2</number></property>
-          <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-          <item><widget class="QCheckBox" name="chkDrawMinGrid"><property name="text"><string>Draw grid lines</string></property></widget></item>
-          <item><widget class="stdSlider" name="sldMinTickLength" native="true"/></item>
+         <property name="title">
+          <string>Minor ticks</string>
+         </property>
+         <layout class="QVBoxLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMinTickColor"><property name="text"><string>Color:</string></property></widget></item>
-            <item><widget class="ColorComboBox" name="cmbMinTickColor"/></item>
+           <widget class="QCheckBox" name="chkDrawMinGrid">
+            <property name="text">
+             <string>Draw grid lines</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout">
+            <property name="spacing"><number>2</number></property>
+            <item><widget class="QLabel" name="lblMinTickLength"><property name="text"><string>Length</string></property></widget></item>
+            <item><widget class="QSlider" name="sldMinTickLengthBar"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="minimum"><number>0</number></property><property name="maximum"><number>1000</number></property></widget></item>
+            <item><widget class="QSpinBox" name="spnMinTickLength"><property name="minimum"><number>0</number></property><property name="maximum"><number>1000</number></property></widget></item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMinTickWidth"><property name="text"><string>Width:</string></property></widget></item>
-            <item><widget class="QDoubleSpinBox" name="spnMinTickWidth"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMinTickColor">
+              <property name="text">
+               <string>Color:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="ColorComboBox" name="cmbMinTickColor"/>
+            </item>
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-            <item><widget class="QLabel" name="lblMinTickStyle"><property name="text"><string>Style:</string></property></widget></item>
-            <item><widget class="QComboBox" name="cmbMinTickStyle"/></item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMinTickWidth">
+              <property name="text">
+               <string>Width:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="spnMinTickWidth"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblMinTickStyle">
+              <property name="text">
+               <string>Style:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cmbMinTickStyle"/>
+            </item>
            </layout>
           </item>
          </layout>
         </widget>
        </item>
+       <item row="2" column="0" colspan="2">
+        <spacer>
+         <property name="orientation"><enum>Qt::Orientation::Vertical</enum></property>
+         <property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property>
+        </spacer>
+       </item>
       </layout>
      </widget>
-     <!-- ================= CUSTOM TICKS TAB ================= -->
      <widget class="QWidget" name="tabPageSpecial">
-      <attribute name="title"><string>Custom ticks</string></attribute>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <attribute name="title">
+       <string>Custom ticks</string>
+      </attribute>
       <layout class="QVBoxLayout" name="specialTabLayout">
-       <property name="leftMargin"><number>2</number></property><property name="topMargin"><number>2</number></property><property name="rightMargin"><number>2</number></property><property name="bottomMargin"><number>2</number></property>
-       <property name="spacing"><number>2</number></property>
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
        <item>
-        <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-         <item><widget class="QLabel" name="lblSpecTicks"><property name="text"><string>Custom ticks:</string></property></widget></item>
-         <item><widget class="QComboBox" name="cmbSpecTicks"/></item>
+        <layout class="QHBoxLayout">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lblSpecTicks">
+           <property name="text">
+            <string>Custom ticks:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="cmbSpecTicks"/>
+         </item>
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout"><property name="spacing"><number>2</number></property>
-         <item><widget class="QLabel" name="lblNumber"><property name="text"><string>Number of user ticks to use:</string></property></widget></item>
-         <item><widget class="QSpinBox" name="spnNumber"/></item>
+        <layout class="QHBoxLayout">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lblNumber">
+           <property name="text">
+            <string>Number of user ticks to use:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spnNumber"/>
+         </item>
         </layout>
        </item>
-       <item><widget class="QScrollArea" name="scroll"><property name="widgetResizable"><bool>false</bool></property><property name="minimumSize"><size><width>0</width><height>240</height></size></property></widget></item>
+       <item>
+        <widget class="QScrollArea" name="scroll">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="widgetResizable">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>
    </item>
    <item row="4" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="applyToLayout"><property name="spacing"><number>2</number></property>
-     <item><widget class="QLabel" name="lblApplyTo"><property name="text"><string>Apply to:</string></property></widget></item>
-     <item><widget class="QPushButton" name="cmdApplyTo"><property name="text"><string>Apply to:</string></property></widget></item>
-     <item><widget class="QComboBox" name="cmbApplyTo"/></item>
-     <item><widget class="QCheckBox" name="chkTransferLabel"><property name="text"><string>Incl.axis-label</string></property></widget></item>
-     <item><widget class="QCheckBox" name="chkTransferTickLabel"><property name="text"><string>Incl.ticks</string></property></widget></item>
+    <layout class="QHBoxLayout" name="applyToLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="lblApplyTo">
+       <property name="text">
+        <string>Apply to:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cmdApplyTo">
+       <property name="text">
+        <string>Apply to:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cmbApplyTo"/>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="chkTransferLabel">
+       <property name="text">
+        <string>Incl.axis-label</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="chkTransferTickLabel">
+       <property name="text">
+        <string>Incl.ticks</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item row="5" column="0" colspan="3">
@@ -508,16 +1574,48 @@
    <header>fundamentals.h</header>
   </customwidget>
   <customwidget>
-   <class>stdSlider</class>
-   <extends>QWidget</extends>
-   <header>fundamentals.h</header>
-  </customwidget>
-  <customwidget>
    <class>ColorComboBox</class>
    <extends>QComboBox</extends>
    <header>fundamentals.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>sldCharAngleBar</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spnCharAngle</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+  <connection>
+   <sender>spnCharAngle</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>sldCharAngleBar</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+  <connection>
+   <sender>sldMajTickLengthBar</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spnMajTickLength</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+  <connection>
+   <sender>spnMajTickLength</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>sldMajTickLengthBar</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+  <connection>
+   <sender>sldMinTickLengthBar</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>spnMinTickLength</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+  <connection>
+   <sender>spnMinTickLength</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>sldMinTickLengthBar</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+ </connections>
 </ui>
