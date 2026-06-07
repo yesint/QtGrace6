@@ -368,7 +368,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ledOffsetNormalBox"/>
+             <widget class="QLineEdit" name="ledOffsetNormalBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
             </item>
            </layout>
           </item>
@@ -385,7 +385,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ledOffsetOppositeBox"/>
+             <widget class="QLineEdit" name="ledOffsetOppositeBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
             </item>
            </layout>
           </item>
@@ -665,7 +665,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ledLabelParaOffsBox"/>
+             <widget class="QLineEdit" name="ledLabelParaOffsBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
             </item>
            </layout>
           </item>
@@ -682,7 +682,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ledLabelPerpendOffsBox"/>
+             <widget class="QLineEdit" name="ledLabelPerpendOffsBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
             </item>
            </layout>
           </item>
@@ -901,7 +901,7 @@
              <widget class="QComboBox" name="cmbStartAt"/>
             </item>
             <item>
-             <widget class="QLineEdit" name="ledTickStart"/>
+             <widget class="QLineEdit" name="ledTickStart"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
             </item>
            </layout>
           </item>
@@ -938,7 +938,7 @@
              <widget class="QComboBox" name="cmbStopAt"/>
             </item>
             <item>
-             <widget class="QLineEdit" name="ledTickStop"/>
+             <widget class="QLineEdit" name="ledTickStop"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
             </item>
            </layout>
           </item>
@@ -1067,7 +1067,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ledTickParaOffsBox"/>
+             <widget class="QLineEdit" name="ledTickParaOffsBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
             </item>
            </layout>
           </item>
@@ -1084,7 +1084,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="ledTickPerpendOffsBox"/>
+             <widget class="QLineEdit" name="ledTickPerpendOffsBox"><property name="maximumSize"><size><width>70</width><height>16777215</height></size></property></widget>
             </item>
            </layout>
           </item>
