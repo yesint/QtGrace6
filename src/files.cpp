@@ -2525,6 +2525,18 @@ path_we_currently_save_to=fi.absolutePath()+QDir::separator();
             }
         }
 
+        /* If the load failed (e.g. a missing default template on a partial
+         * install, or a corrupt project file) wipeout() has already cleared
+         * everything, so we may be left with no graphs at all and no valid
+         * current graph. Fall back to a blank default graph so the program
+         * stays usable - otherwise nextset() returns -1 and creating any new
+         * dataset (formula/spreadsheet/editor) silently fails. */
+        if (is_valid_gno(get_cg()) != TRUE)
+        {
+            set_graph_active(0);
+            select_graph(0);
+        }
+
         resume_strings_after_load_or_save();
 
         ///#ifndef NONE_GUI
